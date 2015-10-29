@@ -1,0 +1,525 @@
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
+
+using Microsoft.Spark.CSharp.Interop;
+using Microsoft.Spark.CSharp.Proxy;
+
+namespace Microsoft.Spark.CSharp.Core
+{
+    public class SparkContext
+    {
+        internal ISparkContextProxy SparkContextProxy { get; private set; }
+        internal List<Broadcast> broadcastVars = new List<Broadcast>();
+
+        private AccumulatorServer accumulatorServer;
+        private int nextAccumulatorId;
+
+        /// <summary>
+        /// The version of Spark on which this application is running.
+        /// </summary>
+        public string Version
+        {
+            get { return SparkContextProxy.Version; }
+        }
+
+        /// <summary>
+        /// Return the epoch time when the Spark Context was started.
+        /// </summary>
+        public long StartTime
+        {
+            get { return SparkContextProxy.StartTime; }
+        }
+
+        /// <summary>
+        /// Default level of parallelism to use when not given by user (e.g. for reduce tasks)
+        /// </summary>
+        public int DefaultParallelism
+        {
+            get { return SparkContextProxy.DefaultParallelism; }
+        }
+
+        /// <summary>
+        /// Default min number of partitions for Hadoop RDDs when not given by user
+        /// </summary>
+        public int DefaultMinPartitions
+        {
+            get { return SparkContextProxy.DefaultMinPartitions; }
+        }
+
+        /// <summary>
+        /// Get SPARK_USER for user who is running SparkContext.
+        /// </summary>
+        public string SparkUser { get { return SparkContextProxy.SparkUser; } }
+
+        /// <summary>
+        /// Return :class:`StatusTracker` object
+        /// </summary>
+        public StatusTracker StatusTracker { get { return new StatusTracker(SparkContextProxy.StatusTracker); } }
+
+        public SparkContext(string master, string appName, string sparkHome)
+            : this(master, appName, sparkHome, null)
+        {
+        }
+
+        public SparkContext(string master, string appName)
+            : this(master, appName, null, null)
+        {
+        }
+
+        public SparkContext(SparkConf conf)
+            : this(null, null, null, conf)
+        {
+        }
+
+        private SparkContext(string master, string appName, string sparkHome, SparkConf conf)
+        {
+            SparkContextProxy = SparkCLREnvironment.SparkContextProxy;
+            SparkContextProxy.CreateSparkContext(master, appName, sparkHome, conf.sparkConfProxy);
+
+            // AddDriverFilesToSparkContext and AddWorkerToSparkContext
+            foreach (var file in SparkCLREnvironment.ConfigurationService.GetDriverFiles())
+            {
+                AddFile(file);
+            }
+            AddFile(SparkCLREnvironment.ConfigurationService.GetCSharpWorkerPath());
+
+            string host = "localhost";
+            accumulatorServer = new AccumulatorServer(host);
+            int port = accumulatorServer.StartUpdateServer();
+
+            SparkContextProxy.Accumulator(host, port);
+        }
+
+        public RDD<string> TextFile(string filePath, int minPartitions = 0)
+        {
+            return new RDD<string>(SparkContextProxy.TextFile(filePath, minPartitions), this, SerializedMode.String);
+        }
+
+        /// <summary>
+        /// Distribute a local collection to form an RDD.
+        ///
+        /// sc.Parallelize(new int[] {0, 2, 3, 4, 6}, 5).Glom().Collect()
+        /// [[0], [2], [3], [4], [6]]
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="serializableObjects"></param>
+        /// <param name="numSlices"></param>
+        /// <returns></returns>
+        public RDD<T> Parallelize<T>(IEnumerable<T> serializableObjects, int? numSlices)
+        {
+            List<byte[]> collectionOfByteRepresentationOfObjects = new List<byte[]>();
+            foreach (T obj in serializableObjects)
+            {
+                var memoryStream = new MemoryStream();
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(memoryStream, obj);
+                collectionOfByteRepresentationOfObjects.Add(memoryStream.ToArray());
+            }
+
+            return new RDD<T>(SparkContextProxy.Parallelize(collectionOfByteRepresentationOfObjects, numSlices), this);
+        }
+
+        /// <summary>
+        /// Create an RDD that has no partitions or elements.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public RDD<T> EmptyRDD<T>()
+        {
+            return new RDD<T>(SparkContextProxy.EmptyRDD<T>(), this, SerializedMode.None);
+        }
+
+        /// <summary>
+        /// Read a directory of text files from HDFS, a local file system (available on all nodes), or any
+        /// Hadoop-supported file system URI. Each file is read as a single record and returned in a
+        /// key-value pair, where the key is the path of each file, the value is the content of each file.
+        ///
+        /// <p> For example, if you have the following files:
+        /// {{{
+        ///   hdfs://a-hdfs-path/part-00000
+        ///   hdfs://a-hdfs-path/part-00001
+        ///   ...
+        ///   hdfs://a-hdfs-path/part-nnnnn
+        /// }}}
+        ///
+        /// Do
+        /// {{{
+        ///   JavaPairRDD<String, String> rdd = sparkContext.wholeTextFiles("hdfs://a-hdfs-path")
+        /// }}}
+        ///
+        /// <p> then `rdd` contains
+        /// {{{
+        ///   (a-hdfs-path/part-00000, its content)
+        ///   (a-hdfs-path/part-00001, its content)
+        ///   ...
+        ///   (a-hdfs-path/part-nnnnn, its content)
+        /// }}}
+        ///
+        /// @note Small files are preferred, large file is also allowable, but may cause bad performance.
+        ///
+        /// @param minPartitions A suggestion value of the minimal splitting number for input data.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="minPartitions"></param>
+        /// <returns></returns>
+        public RDD<KeyValuePair<byte[], byte[]>> WholeTextFiles(string filePath, int? minPartitions = null)
+        {
+            return new RDD<KeyValuePair<byte[], byte[]>>(SparkContextProxy.WholeTextFiles(filePath, minPartitions ?? DefaultMinPartitions), this, SerializedMode.Pair);
+        }
+
+        /// <summary>
+        /// Read a directory of binary files from HDFS, a local file system (available on all nodes),
+        /// or any Hadoop-supported file system URI as a byte array. Each file is read as a single
+        /// record and returned in a key-value pair, where the key is the path of each file,
+        /// the value is the content of each file.
+        ///
+        /// For example, if you have the following files:
+        /// {{{
+        ///   hdfs://a-hdfs-path/part-00000
+        ///   hdfs://a-hdfs-path/part-00001
+        ///   ...
+        ///   hdfs://a-hdfs-path/part-nnnnn
+        /// }}}
+        ///
+        /// Do
+        /// `JavaPairRDD<String, byte[]> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+        ///
+        /// then `rdd` contains
+        /// {{{
+        ///   (a-hdfs-path/part-00000, its content)
+        ///   (a-hdfs-path/part-00001, its content)
+        ///   ...
+        ///   (a-hdfs-path/part-nnnnn, its content)
+        /// }}}
+        ///
+        /// @note Small files are preferred; very large files but may cause bad performance.
+        ///
+        /// @param minPartitions A suggestion value of the minimal splitting number for input data.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="minPartitions"></param>
+        /// <returns></returns>
+        public RDD<KeyValuePair<byte[], byte[]>> BinaryFiles(string filePath, int? minPartitions)
+        {
+            return new RDD<KeyValuePair<byte[], byte[]>>(SparkContextProxy.BinaryFiles(filePath, minPartitions ?? DefaultMinPartitions), this, SerializedMode.Pair);
+        }
+
+        /// <summary>
+        /// Read a Hadoop SequenceFile with arbitrary key and value Writable class from HDFS,
+        /// a local file system (available on all nodes), or any Hadoop-supported file system URI.
+        /// The mechanism is as follows:
+        /// 
+        ///     1. A Java RDD is created from the SequenceFile or other InputFormat, and the key
+        ///         and value Writable classes
+        ///     2. Serialization is attempted via Pyrolite pickling
+        ///     3. If this fails, the fallback is to call 'toString' on each key and value
+        ///     4. C{PickleSerializer} is used to deserialize pickled objects on the Python side
+        ///     
+        /// </summary>
+        /// <param name="filePath">path to sequncefile</param>
+        /// <param name="keyClass">fully qualified classname of key Writable class (e.g. "org.apache.hadoop.io.Text")</param>
+        /// <param name="valueClass">fully qualified classname of value Writable class (e.g. "org.apache.hadoop.io.LongWritable")</param>
+        /// <param name="keyConverterClass"></param>
+        /// <param name="valueConverterClass"></param>
+        /// <param name="minSplits">minimum splits in dataset (default min(2, sc.defaultParallelism))</param>
+        /// <returns></returns>
+        public RDD<byte[]> SequenceFile(string filePath, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, int? minSplits)
+        {
+            return new RDD<byte[]>(SparkContextProxy.SequenceFile(filePath, keyClass, valueClass, keyConverterClass, valueConverterClass, minSplits ?? Math.Min(DefaultParallelism, 2), 1), this, SerializedMode.None);
+        }
+
+        /// <summary>
+        /// Read a 'new API' Hadoop InputFormat with arbitrary key and value class from HDFS,
+        /// a local file system (available on all nodes), or any Hadoop-supported file system URI.
+        /// The mechanism is the same as for sc.sequenceFile.
+        /// 
+        /// A Hadoop configuration can be passed in as a Python dict. This will be converted into a Configuration in Java
+        /// 
+        /// </summary>
+        /// <param name="filePath">path to Hadoop file</param>
+        /// <param name="inputFormatClass">fully qualified classname of Hadoop InputFormat (e.g. "org.apache.hadoop.mapreduce.lib.input.TextInputFormat")</param>
+        /// <param name="keyClass">fully qualified classname of key Writable class (e.g. "org.apache.hadoop.io.Text")</param>
+        /// <param name="valueClass">fully qualified classname of value Writable class (e.g. "org.apache.hadoop.io.LongWritable")</param>
+        /// <param name="keyConverterClass">(None by default)</param>
+        /// <param name="valueConverterClass">(None by default)</param>
+        /// <param name="conf"> Hadoop configuration, passed in as a dict (None by default)</param>
+        /// <param name="batchSize"></param>
+        /// <returns></returns>
+        public RDD<byte[]> NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        {
+            return new RDD<byte[]>(SparkContextProxy.NewAPIHadoopFile(filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
+        }
+
+        /// <summary>
+        /// Read a 'new API' Hadoop InputFormat with arbitrary key and value class, from an arbitrary
+        /// Hadoop configuration, which is passed in as a Python dict.
+        /// This will be converted into a Configuration in Java.
+        /// The mechanism is the same as for sc.sequenceFile.
+        /// 
+        /// </summary>
+        /// <param name="inputFormatClass">fully qualified classname of Hadoop InputFormat (e.g. "org.apache.hadoop.mapreduce.lib.input.TextInputFormat")</param>
+        /// <param name="keyClass">fully qualified classname of key Writable class (e.g. "org.apache.hadoop.io.Text")</param>
+        /// <param name="valueClass">fully qualified classname of value Writable class (e.g. "org.apache.hadoop.io.LongWritable")</param>
+        /// <param name="keyConverterClass">(None by default)</param>
+        /// <param name="valueConverterClass">(None by default)</param>
+        /// <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
+        /// <returns></returns>
+        public RDD<byte[]> NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        {
+            return new RDD<byte[]>(SparkContextProxy.NewAPIHadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
+        }
+
+        /// <summary>
+        /// Read an 'old' Hadoop InputFormat with arbitrary key and value class from HDFS,
+        /// a local file system (available on all nodes), or any Hadoop-supported file system URI.
+        /// The mechanism is the same as for sc.sequenceFile.
+        /// 
+        /// A Hadoop configuration can be passed in as a Python dict. This will be converted into a Configuration in Java.
+        /// 
+        /// </summary>
+        /// <param name="filePath">path to Hadoop file</param>
+        /// <param name="inputFormatClass">fully qualified classname of Hadoop InputFormat (e.g. "org.apache.hadoop.mapred.TextInputFormat")</param>
+        /// <param name="keyClass">fully qualified classname of key Writable class (e.g. "org.apache.hadoop.io.Text")</param>
+        /// <param name="valueClass">fully qualified classname of value Writable class (e.g. "org.apache.hadoop.io.LongWritable")</param>
+        /// <param name="keyConverterClass">(None by default)</param>
+        /// <param name="valueConverterClass">(None by default)</param>
+        /// <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
+        /// <returns></returns>
+        public RDD<byte[]> HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        {
+            return new RDD<byte[]>(SparkContextProxy.HadoopFile(filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
+        }
+
+        /// <summary>
+        /// Read an 'old' Hadoop InputFormat with arbitrary key and value class, from an arbitrary
+        /// Hadoop configuration, which is passed in as a Python dict.
+        /// This will be converted into a Configuration in Java.
+        /// The mechanism is the same as for sc.sequenceFile.
+        /// 
+        /// </summary>
+        /// <param name="inputFormatClass">fully qualified classname of Hadoop InputFormat (e.g. "org.apache.hadoop.mapred.TextInputFormat")</param>
+        /// <param name="keyClass">fully qualified classname of key Writable class (e.g. "org.apache.hadoop.io.Text")</param>
+        /// <param name="valueClass">fully qualified classname of value Writable class (e.g. "org.apache.hadoop.io.LongWritable")</param>
+        /// <param name="keyConverterClass">(None by default)</param>
+        /// <param name="valueConverterClass">(None by default)</param>
+        /// <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
+        /// <returns></returns>
+        public RDD<byte[]> HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        {
+            return new RDD<byte[]>(SparkContextProxy.HadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
+        }
+
+        internal RDD<T> CheckpointFile<T>(string filePath, SerializedMode serializedMode)
+        {
+            return new RDD<T>(SparkContextProxy.CheckpointFile(filePath), this, serializedMode);
+        }
+
+        /// <summary>
+        /// Build the union of a list of RDDs.
+        /// 
+        /// This supports unions() of RDDs with different serialized formats,
+        /// although this forces them to be reserialized using the default serializer:
+        /// 
+        /// >>> path = os.path.join(tempdir, "union-text.txt")
+        /// >>> with open(path, "w") as testFile:
+        /// ...    _ = testFile.write("Hello")
+        /// >>> textFile = sc.textFile(path)
+        /// >>> textFile.collect()
+        /// [u'Hello']
+        /// >>> parallelized = sc.parallelize(["World!"])
+        /// >>> sorted(sc.union([textFile, parallelized]).collect())
+        /// [u'Hello', 'World!']
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="rdds"></param>
+        /// <returns></returns>
+        public RDD<T> Union<T>(IEnumerable<RDD<T>> rdds)
+        {
+            return new RDD<T>(SparkContextProxy.Union(rdds), this, rdds.FirstOrDefault().serializedMode);
+        }
+
+        /// <summary>
+        /// Broadcast a read-only variable to the cluster, returning a Broadcast
+        /// object for reading it in distributed functions. The variable will
+        /// be sent to each cluster only once.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Broadcast<T> Broadcast<T>(T value)
+        {
+            var broadcast = new Broadcast<T>(this, value);
+            broadcastVars.Add(broadcast);
+            return broadcast;
+        }
+
+        /// <summary>
+        /// Create an L{Accumulator} with the given initial value, using a given
+        /// L{AccumulatorParam} helper object to define how to add values of the
+        /// data type if provided. Default AccumulatorParams are used for integers
+        /// and floating-point numbers if you do not provide one. For other types,
+        /// a custom AccumulatorParam can be used.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Accumulator<T> Accumulator<T>(T value)
+        {
+            return new Accumulator<T>(nextAccumulatorId++, value);
+        }
+
+        /// <summary>
+        /// Shut down the SparkContext.
+        /// </summary>
+        public void Stop()
+        {
+            SparkContextProxy.Stop();
+            accumulatorServer.Shutdown();
+        }
+
+        /// <summary>
+        /// Add a file to be downloaded with this Spark job on every node.
+        /// The `path` passed can be either a local file, a file in HDFS (or other Hadoop-supported
+        /// filesystems), or an HTTP, HTTPS or FTP URI.  To access the file in Spark jobs,
+        /// use `SparkFiles.get(fileName)` to find its download location.
+        /// </summary>
+        /// <param name="path"></param>
+        public void AddFile(string path)
+        {
+            SparkContextProxy.AddFile(path);
+        }
+
+        /// <summary>
+        /// Set the directory under which RDDs are going to be checkpointed. The directory must
+        /// be a HDFS path if running on a cluster.
+        /// </summary>
+        /// <param name="directory"></param>
+        public void SetCheckpointDir(string directory)
+        {
+            SparkContextProxy.SetCheckpointDir(directory);
+        }
+
+        /// <summary>
+        /// Assigns a group ID to all the jobs started by this thread until the group ID is set to a
+        /// different value or cleared.
+        ///
+        /// Often, a unit of execution in an application consists of multiple Spark actions or jobs.
+        /// Application programmers can use this method to group all those jobs together and give a
+        /// group description. Once set, the Spark web UI will associate such jobs with this group.
+        ///
+        /// The application can also use [[org.apache.spark.api.java.JavaSparkContext.cancelJobGroup]]
+        /// to cancel all running jobs in this group. For example,
+        /// {{{
+        /// // In the main thread:
+        /// sc.setJobGroup("some_job_to_cancel", "some job description");
+        /// rdd.map(...).count();
+        ///
+        /// // In a separate thread:
+        /// sc.cancelJobGroup("some_job_to_cancel");
+        /// }}}
+        ///
+        /// If interruptOnCancel is set to true for the job group, then job cancellation will result
+        /// in Thread.interrupt() being called on the job's executor threads. This is useful to help ensure
+        /// that the tasks are actually stopped in a timely manner, but is off by default due to HDFS-1208,
+        /// where HDFS may respond to Thread.interrupt() by marking nodes as dead.
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="description"></param>
+        /// <param name="interruptOnCancel"></param>
+        public void SetJobGroup(string groupId, string description, bool interruptOnCancel = false)
+        {
+            SparkContextProxy.SetJobGroup(groupId, description, interruptOnCancel);
+        }
+
+        /// <summary>
+        /// Set a local property that affects jobs submitted from this thread, such as the
+        /// Spark fair scheduler pool.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void SetLocalProperty(string key, string value)
+        {
+            SparkContextProxy.SetLocalProperty(key, value);
+        }
+
+        /// <summary>
+        /// Get a local property set in this thread, or null if it is missing. See
+        /// [[org.apache.spark.api.java.JavaSparkContext.setLocalProperty]].
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public string GetLocalProperty(string key)
+        {
+            return SparkContextProxy.GetLocalProperty(key);
+        }
+
+        /// <summary>
+        /// Control our logLevel. This overrides any user-defined log settings.
+        /// @param logLevel The desired log level as a string.
+        /// Valid log levels include: ALL, DEBUG, ERROR, FATAL, INFO, OFF, TRACE, WARN
+        /// </summary>
+        /// <param name="logLevel"></param>
+        public void SetLogLevel(string logLevel)
+        {
+            SparkContextProxy.SetLogLevel(logLevel);
+        }
+
+        /// <summary>
+        /// Cancel active jobs for the specified group. See L{SparkContext.setJobGroup} for more information.
+        /// </summary>
+        /// <param name="groupId"></param>
+        public void CancelJobGroup(string groupId)
+        {
+            SparkContextProxy.CancelJobGroup(groupId);
+        }
+
+        /// <summary>
+        /// Cancel all jobs that have been scheduled or are running.
+        /// </summary>
+        public void CancelAllJobs()
+        {
+            SparkContextProxy.CancelAllJobs();
+        }
+
+        internal static byte[] BuildCommand(object func, SerializedMode deserializerMode = SerializedMode.Byte, SerializedMode serializerMode = SerializedMode.Byte)
+        {
+            var formatter = new BinaryFormatter();
+            var stream = new MemoryStream();
+            formatter.Serialize(stream, func);
+            List<byte[]> commandPayloadBytesList = new List<byte[]>();
+            // add deserializer mode
+            var modeBytes = Encoding.UTF8.GetBytes(deserializerMode.ToString());
+            var length = modeBytes.Length;
+            var lengthAsBytes = BitConverter.GetBytes(length);
+            Array.Reverse(lengthAsBytes);
+            commandPayloadBytesList.Add(lengthAsBytes);
+            commandPayloadBytesList.Add(modeBytes);
+            // add serializer mode
+            modeBytes = Encoding.UTF8.GetBytes(serializerMode.ToString());
+            length = modeBytes.Length;
+            lengthAsBytes = BitConverter.GetBytes(length);
+            Array.Reverse(lengthAsBytes);
+            commandPayloadBytesList.Add(lengthAsBytes);
+            commandPayloadBytesList.Add(modeBytes);
+            // add func
+            var funcBytes = stream.ToArray();
+            var funcBytesLengthAsBytes = BitConverter.GetBytes(funcBytes.Length);
+            Array.Reverse(funcBytesLengthAsBytes);
+            commandPayloadBytesList.Add(funcBytesLengthAsBytes);
+            commandPayloadBytesList.Add(funcBytes);
+            return commandPayloadBytesList.SelectMany(byteArray => byteArray).ToArray();
+        }
+    }
+}
