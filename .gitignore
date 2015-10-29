@@ -1,0 +1,37 @@
+# User files #
+###################
+*.suo
+*.user
+*.csproj.user
+*.iml
+
+# Compiled source #
+###################
+*.class
+*.dll
+*.exe
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.gz
+*.jar
+*.tar
+*.nupkg
+
+# Folders #
+############
+*/target/**
+*/bin/**
+*/obj/**
+csharp/packages
+csharp/Adapter/Microsoft.Spark.CSharp/bin/**
+csharp/Adapter/Microsoft.Spark.CSharp/obj/**
+csharp/AdapterTest/bin/**
+csharp/AdapterTest/obj/**
+csharp/Samples/Microsoft.Spark.CSharp/bin/**
+csharp/Samples/Microsoft.Spark.CSharp/obj/**
+csharp/Worker/Microsoft.Spark.CSharp/bin/**
+csharp/Worker/Microsoft.Spark.CSharp/obj/**
+scala/.idea/**
