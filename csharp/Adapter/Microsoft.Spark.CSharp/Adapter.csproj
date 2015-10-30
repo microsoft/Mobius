@@ -73,10 +73,12 @@
     <Compile Include="Proxy\IDataFrameProxy.cs" />
     <Compile Include="Proxy\Ipc\DataFrameIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\RDDIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\SparkCLRIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\SqlContextIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\StatusTrackerIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\StructIpcProxy.cs" />
     <Compile Include="Proxy\IRDDProxy.cs" />
+    <Compile Include="Proxy\ISparkCLRProxy.cs" />
     <Compile Include="Proxy\ISparkConfProxy.cs" />
     <Compile Include="Proxy\ISparkContextProxy.cs" />
     <Compile Include="Proxy\Ipc\SparkConfIpcProxy.cs" />

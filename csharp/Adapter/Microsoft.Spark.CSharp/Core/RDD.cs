@@ -27,21 +27,13 @@ namespace Microsoft.Spark.CSharp.Core
     {
         internal IRDDProxy rddProxy;
         internal IRDDProxy previousRddProxy;
-        protected SparkContext sparkContext;
+        internal SparkContext sparkContext;
         internal SerializedMode serializedMode; //used for deserializing data before processing in C# worker
         internal SerializedMode prevSerializedMode;
 
         protected bool isCached;
         protected bool isCheckpointed;
         internal bool bypassSerializer;
-
-        internal SparkContext SparkContext
-        {
-            get
-            {
-                return sparkContext;
-            }
-        }
 
         internal virtual IRDDProxy RddProxy
         {
@@ -233,7 +225,7 @@ namespace Microsoft.Spark.CSharp.Core
                 previousRddProxy = rddProxy,
                 prevSerializedMode = serializedMode,
 
-                sparkContext = sparkContext,
+                sparkContext = this.sparkContext,
                 rddProxy = null,
                 serializedMode = SerializedMode.Byte
             };
@@ -327,7 +319,7 @@ namespace Microsoft.Spark.CSharp.Core
             else if (num == 0)
                 return new T[0];
 
-            int initialCount = (int) Count();
+            int initialCount = (int)Count();
             if (initialCount == 0)
                 return new T[0];
 
@@ -487,7 +479,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<Tuple<T, U>> Cartesian<U>(RDD<U> other)
         {
-            return new RDD<Tuple<T, U>>(RddProxy.Cartesian(other.RddProxy), sparkContext);
+            return new RDD<Tuple<T, U>>(RddProxy.Cartesian(other.RddProxy), sparkContext, SerializedMode.Pair);
         }
 
         /// <summary>
@@ -1470,7 +1462,6 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
     }
-
     internal enum SerializedMode
     {
         None,
@@ -1479,4 +1470,5 @@ namespace Microsoft.Spark.CSharp.Core
         Pair,
         Row
     }
+
 }

@@ -19,8 +19,9 @@ namespace Microsoft.Spark.CSharp.Core
 {
     public class SparkContext
     {
+        internal static ISparkContextProxy ActiveSparkContextProxy { get; private set; }
         internal ISparkContextProxy SparkContextProxy { get; private set; }
-        internal List<Broadcast> broadcastVars = new List<Broadcast>();
+        internal SparkConf SparkConf { get; private set; }
 
         private AccumulatorServer accumulatorServer;
         private int nextAccumulatorId;
@@ -84,8 +85,16 @@ namespace Microsoft.Spark.CSharp.Core
 
         private SparkContext(string master, string appName, string sparkHome, SparkConf conf)
         {
-            SparkContextProxy = SparkCLREnvironment.SparkContextProxy;
-            SparkContextProxy.CreateSparkContext(master, appName, sparkHome, conf.sparkConfProxy);
+            SparkConf = conf ?? new SparkConf();
+            if (master != null)
+                SparkConf.SetMaster(master);
+            if (appName != null)
+                SparkConf.SetAppName(appName);
+            if (sparkHome != null)
+                SparkConf.SetSparkHome(sparkHome);
+
+            SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
+            ActiveSparkContextProxy = SparkContextProxy;
 
             // AddDriverFilesToSparkContext and AddWorkerToSparkContext
             foreach (var file in SparkCLREnvironment.ConfigurationService.GetDriverFiles())
@@ -93,12 +102,6 @@ namespace Microsoft.Spark.CSharp.Core
                 AddFile(file);
             }
             AddFile(SparkCLREnvironment.ConfigurationService.GetCSharpWorkerPath());
-
-            string host = "localhost";
-            accumulatorServer = new AccumulatorServer(host);
-            int port = accumulatorServer.StartUpdateServer();
-
-            SparkContextProxy.Accumulator(host, port);
         }
 
         public RDD<string> TextFile(string filePath, int minPartitions = 0)
@@ -117,7 +120,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="serializableObjects"></param>
         /// <param name="numSlices"></param>
         /// <returns></returns>
-        public RDD<T> Parallelize<T>(IEnumerable<T> serializableObjects, int? numSlices)
+        public RDD<T> Parallelize<T>(IEnumerable<T> serializableObjects, int numSlices = 1)
         {
             List<byte[]> collectionOfByteRepresentationOfObjects = new List<byte[]>();
             foreach (T obj in serializableObjects)
@@ -127,6 +130,9 @@ namespace Microsoft.Spark.CSharp.Core
                 formatter.Serialize(memoryStream, obj);
                 collectionOfByteRepresentationOfObjects.Add(memoryStream.ToArray());
             }
+
+            if (numSlices < 1)
+                numSlices = 1;
 
             return new RDD<T>(SparkContextProxy.Parallelize(collectionOfByteRepresentationOfObjects, numSlices), this);
         }
@@ -361,7 +367,6 @@ namespace Microsoft.Spark.CSharp.Core
         public Broadcast<T> Broadcast<T>(T value)
         {
             var broadcast = new Broadcast<T>(this, value);
-            broadcastVars.Add(broadcast);
             return broadcast;
         }
 
@@ -377,6 +382,14 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public Accumulator<T> Accumulator<T>(T value)
         {
+            if (accumulatorServer == null)
+            {
+                string host = "localhost";
+                accumulatorServer = new AccumulatorServer(host);
+                int port = accumulatorServer.StartUpdateServer();
+
+                SparkContextProxy.Accumulator(host, port);
+            }
             return new Accumulator<T>(nextAccumulatorId++, value);
         }
 
@@ -385,8 +398,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         public void Stop()
         {
+            if (accumulatorServer != null)
+                accumulatorServer.Shutdown();
             SparkContextProxy.Stop();
-            accumulatorServer.Shutdown();
         }
 
         /// <summary>

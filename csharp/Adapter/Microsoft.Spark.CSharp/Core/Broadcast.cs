@@ -24,14 +24,14 @@ namespace Microsoft.Spark.CSharp.Core
     /// [1, 2, 3, 4, 5, 1, 2, 3, 4, 5]
     /// b.Unpersist()
     /// 
+    /// See python implementation in broadcast.py, worker.py, PythonRDD.scala
+    /// 
     /// </summary>
     [Serializable]
     public class Broadcast
     {
         [NonSerialized]
         public static Dictionary<long, Broadcast> broadcastRegistry = new Dictionary<long, Broadcast>();
-        [NonSerialized]
-        internal string broadcastObjId;
         [NonSerialized]
         internal string path;
 
@@ -63,17 +63,16 @@ namespace Microsoft.Spark.CSharp.Core
     public class Broadcast<T> : Broadcast
     {
         [NonSerialized]
-        internal SparkContext sparkContext;
+        private IBroadcastProxy broadcastProxy;
         [NonSerialized]
         private T value;
 
         internal Broadcast(SparkContext sparkContext, T value)
         {
-            this.sparkContext = sparkContext;
             this.value = value;
             path = Path.GetTempFileName();
             DumpBroadcast<T>(value, path);
-            broadcastObjId = sparkContext.SparkContextProxy.ReadBroadcastFromFile(path, out broadcastId);
+            broadcastProxy = sparkContext.SparkContextProxy.ReadBroadcastFromFile(path, out broadcastId);
         }
 
         /// <summary>
@@ -100,10 +99,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="blocking"></param>
         public void Unpersist(bool blocking = false)
         {
-            if (broadcastObjId == null)
+            if (broadcastProxy == null)
                 throw new ArgumentException("Broadcast can only be unpersisted in driver");
-            sparkContext.SparkContextProxy.UnpersistBroadcast(broadcastObjId, blocking);
-            sparkContext.broadcastVars.Remove(this);
+            broadcastProxy.Unpersist(blocking);
             File.Delete(path);
         }
     }

@@ -45,7 +45,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         public static StructType CreateStructType(List<StructField> structFields)
         {
-            return SparkCLREnvironment.SqlContextProxy.CreateStructType(structFields);
+            return new StructType(SparkCLREnvironment.SparkCLRProxy.CreateStructType(structFields));
         }
     }
 
@@ -95,7 +95,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         public static StructField CreateStructField(string name, string dataType, bool isNullable)
         {
-            return SparkCLREnvironment.SqlContextProxy.CreateStructField(name, dataType, isNullable);
+            return new StructField(SparkCLREnvironment.SparkCLRProxy.CreateStructField(name, dataType, isNullable));
         }
     }
 

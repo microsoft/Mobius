@@ -9,6 +9,7 @@ import org.apache.spark.api.python.{PythonBroadcast, PythonRDD}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Accumulator, SparkContext}
+import org.apache.spark.api.java.{JavaPairRDD, JavaRDD, JavaSparkContext}
 
 /**
  * RDD used for forking an external C# process and pipe in & out the data
@@ -30,7 +31,7 @@ class CSharpRDD(
 }
 
 object CSharpRDD {
-  def createRDDFromArray(sc: SparkContext, arr: Array[Array[Byte]], numSlices: Int): RDD[Array[Byte]] = {
-    sc.parallelize(arr, numSlices)
+  def createRDDFromArray(sc: SparkContext, arr: Array[Array[Byte]], numSlices: Int): JavaRDD[Array[Byte]] = {
+    JavaRDD.fromRDD(sc.parallelize(arr, numSlices))
   }
 }

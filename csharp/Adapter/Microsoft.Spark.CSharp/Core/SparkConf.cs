@@ -20,7 +20,8 @@ namespace Microsoft.Spark.CSharp.Core
     public class SparkConf
     {
         private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
-        internal ISparkConfProxy sparkConfProxy;
+        private ISparkConfProxy sparkConfProxy;
+        internal ISparkConfProxy SparkConfProxy { get { return sparkConfProxy; } }
 
         /// <summary>
         /// Create SparkConf
@@ -28,8 +29,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="loadDefaults">indicates whether to also load values from Java system properties</param>
         public SparkConf(bool loadDefaults = true)
         {
-            SetSparkConfProxy();
-            sparkConfProxy.CreateSparkConf(loadDefaults);
+            sparkConfProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkConf(loadDefaults);
 
             //special handling for debug mode because
             //spark.master and spark.app.name will not be set in debug mode
@@ -44,11 +44,6 @@ namespace Microsoft.Spark.CSharp.Core
                 logger.LogInfo("spark.app.name not set. Assuming debug mode");
                 SetAppName("debug app");
             }
-        }
-
-        private void SetSparkConfProxy()
-        {
-            sparkConfProxy = SparkCLREnvironment.SparkConfProxy;
         }
 
         /// <summary>

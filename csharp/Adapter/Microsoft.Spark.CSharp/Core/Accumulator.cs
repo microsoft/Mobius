@@ -28,6 +28,9 @@ namespace Microsoft.Spark.CSharp.Core
     /// While C{SparkContext} supports accumulators for primitive data types like C{int} and
     /// C{float}, users can also define accumulators for custom types by providing a custom
     /// L{AccumulatorParam} object. Refer to the doctest of this module for an example.
+    /// 
+    /// See python implementation in accumulators.py, worker.py, PythonRDD.scala
+    /// 
     /// </summary>
     [Serializable]
     public class Accumulator
@@ -70,7 +73,6 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     throw new ArgumentException("Accumulator.value cannot be accessed inside tasks");
                 }
-                
                 this.value = value;
             }
         }
@@ -169,24 +171,27 @@ namespace Microsoft.Spark.CSharp.Core
                     IFormatter formatter = new BinaryFormatter();
                     using (Socket s = AcceptSocket())
                     using (var ns = new NetworkStream(s))
-                    using (var br = new BinaryReader(ns))
-                    using (var bw = new BinaryWriter(ns))
                     {
                         while (!serverShutdown)
                         {
-                            int numUpdates = SerDe.Convert(br.ReadInt32());
+                            int numUpdates = SerDe.ReadInt(ns);
                             for (int i = 0; i < numUpdates; i++)
                             {
-                                var ms = new MemoryStream(br.ReadBytes(SerDe.Convert(br.ReadInt32())));
+                                var ms = new MemoryStream(SerDe.ReadBytes(ns));
                                 KeyValuePair<int, dynamic> update = (KeyValuePair<int, dynamic>)formatter.Deserialize(ms);
                                 Accumulator accumulator = Accumulator.accumulatorRegistry[update.Key];
                                 accumulator.GetType().GetMethod("Add").Invoke(accumulator, new object[] { update.Value });
                             }
-                            bw.Write((byte)1);  // acknowledge byte other than -1
-                            bw.Flush();
+                            ns.WriteByte((byte)1);  // acknowledge byte other than -1
+                            ns.Flush();
                             Thread.Sleep(1000);
                         }
                     }
+                }
+                catch (SocketException e)
+                {
+                    if (e.ErrorCode != 10004)   // A blocking operation was interrupted by a call to WSACancelBlockingCall - TcpListener.Stop cancelled AccepSocket as expected
+                        throw e;
                 }
                 catch (Exception e)
                 {
