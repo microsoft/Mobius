@@ -331,15 +331,16 @@ namespace Microsoft.Spark.CSharp.Samples
                 Console.WriteLine(kv);
         }
 
+        //TO DO: implement PairRDDFunctions.SampleByKey
         //[Sample]
-        internal static void PairRDDSampleByKeySample()
-        {
-            var fractions = new Dictionary<string, double> { { "a", 0.2 }, { "b", 0.1 } };
-            var rdd = SparkCLRSamples.SparkContext.Parallelize(fractions.Keys.ToArray(), 2).Cartesian(SparkCLRSamples.SparkContext.Parallelize(Enumerable.Range(0, 1000), 2));
-            var sample = rdd.Map(t => new KeyValuePair<string, int>(t.Item1, t.Item2)).SampleByKey(false, fractions, 2).GroupByKey().Collect();
+        //internal static void PairRDDSampleByKeySample()
+        //{
+        //    var fractions = new Dictionary<string, double> { { "a", 0.2 }, { "b", 0.1 } };
+        //    var rdd = SparkCLRSamples.SparkContext.Parallelize(fractions.Keys.ToArray(), 2).Cartesian(SparkCLRSamples.SparkContext.Parallelize(Enumerable.Range(0, 1000), 2));
+        //    var sample = rdd.Map(t => new KeyValuePair<string, int>(t.Item1, t.Item2)).SampleByKey(false, fractions, 2).GroupByKey().Collect();
 
-            Console.WriteLine(sample);
-        }
+        //    Console.WriteLine(sample);
+        //}
 
         [Sample]
         internal static void PairRDDSubtractByKeySample()

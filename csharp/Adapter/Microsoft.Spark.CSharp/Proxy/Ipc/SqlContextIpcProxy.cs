@@ -15,43 +15,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     internal class SqlContextIpcProxy : ISqlContextProxy
     {
         private JvmObjectReference jvmSqlContextReference;
-        private ISparkContextProxy sparkContextProxy;
 
-        public void CreateSqlContext(ISparkContextProxy scProxy)
+        public SqlContextIpcProxy(JvmObjectReference jvmSqlContextReference)
         {
-            sparkContextProxy = scProxy;
-            jvmSqlContextReference = new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createSQLContext", new object[] { (sparkContextProxy as SparkContextIpcProxy).JvmSparkContextReference }).ToString());
-        }
-
-        public StructField CreateStructField(string name, string dataType, bool isNullable)
-        {
-            return new StructField(
-                new StructFieldIpcProxy(
-                    new JvmObjectReference(
-                        SparkCLREnvironment.JvmBridge.CallStaticJavaMethod(
-                            "org.apache.spark.sql.api.csharp.SQLUtils", "createStructField",
-                            new object[] {name, dataType, isNullable}).ToString()
-                        )
-                    )
-                );
-        }
-
-        public StructType CreateStructType(List<StructField> fields)
-        {
-            var fieldsReference = fields.Select(s => (s.StructFieldProxy as StructFieldIpcProxy).JvmStructFieldReference).ToList().Cast<JvmObjectReference>();
-            //var javaObjectReferenceList = objectList.Cast<JvmObjectReference>().ToList();
-            var seq = 
-                new JvmObjectReference(
-                    SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
-                        "toSeq", new object[] { fieldsReference }).ToString());
-
-            return new StructType(
-                new StructTypeIpcProxy(
-                    new JvmObjectReference(
-                        SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createStructType", new object[] { seq }).ToString()
-                        )
-                    )
-                );
+            this.jvmSqlContextReference = jvmSqlContextReference;
         }
 
         public IDataFrameProxy ReaDataFrame(string path, StructType schema, Dictionary<string, string> options)
@@ -59,14 +26,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             //parameter Dictionary<string, string> options is not used right now - it is meant to be passed on to data sources
             return new DataFrameIpcProxy(
                         new JvmObjectReference(
-                               SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "loadDF", new object[] { jvmSqlContextReference, path, (schema.StructTypeProxy as StructTypeIpcProxy).JvmStructTypeReference }).ToString()
+                               SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "loadDF", new object[] { jvmSqlContextReference, path, (schema.StructTypeProxy as StructTypeIpcProxy).JvmStructTypeReference }).ToString()
                             ), this
                     );
         }
 
         public IDataFrameProxy JsonFile(string path)
         {
-            var javaDataFrameReference = SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "jsonFile", new object[] {path});
+            var javaDataFrameReference = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "jsonFile", new object[] {path});
             var javaObjectReferenceForDataFrame = new JvmObjectReference(javaDataFrameReference.ToString());
             return new DataFrameIpcProxy(javaObjectReferenceForDataFrame, this);
         }
@@ -75,7 +42,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             return new DataFrameIpcProxy(
                     new JvmObjectReference(
-                        SparkCLREnvironment.JvmBridge.CallStaticJavaMethod(
+                        SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
                             "org.apache.spark.sql.api.csharp.SQLUtils", "loadTextFile",
                             new object[] {jvmSqlContextReference, path, delimiter, (schema.StructTypeProxy as StructTypeIpcProxy).JvmStructTypeReference}).ToString()
                         ), this
@@ -86,7 +53,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             return new DataFrameIpcProxy(
                     new JvmObjectReference(
-                        SparkCLREnvironment.JvmBridge.CallStaticJavaMethod(
+                        SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
                             "org.apache.spark.sql.api.csharp.SQLUtils", "loadTextFile",
                             new object[] {jvmSqlContextReference, path, hasHeader, inferSchema}).ToString()
                         ), this
@@ -95,7 +62,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDataFrameProxy Sql(string sqlQuery)
         {
-            var javaDataFrameReference = SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "sql", new object[] { sqlQuery });
+            var javaDataFrameReference = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "sql", new object[] { sqlQuery });
             var javaObjectReferenceForDataFrame = new JvmObjectReference(javaDataFrameReference.ToString());
             return new DataFrameIpcProxy(javaObjectReferenceForDataFrame, this);
         }

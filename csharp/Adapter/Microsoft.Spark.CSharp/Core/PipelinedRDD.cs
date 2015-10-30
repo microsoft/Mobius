@@ -35,10 +35,10 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     func = new MapPartitionsWithIndexHelper(new NewFuncWrapper<U, U1>(newFunc).Execute, func).Execute,
                     preservesPartitioning = preservesPartitioning && preservesPartitioningParam,
-                    previousRddProxy = previousRddProxy,
-                    prevSerializedMode = prevSerializedMode,
+                    previousRddProxy = this.previousRddProxy,
+                    prevSerializedMode = this.prevSerializedMode,
 
-                    sparkContext = sparkContext,
+                    sparkContext = this.sparkContext,
                     rddProxy = null,
                     serializedMode = SerializedMode.Byte
                 };
@@ -99,7 +99,7 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     rddProxy = sparkContext.SparkContextProxy.CreateCSharpRdd(previousRddProxy,
                         SparkContext.BuildCommand(func, prevSerializedMode, bypassSerializer ? SerializedMode.None : serializedMode),
-                        null, null, preservesPartitioning, sparkContext.broadcastVars, null);
+                        null, null, preservesPartitioning, null, null);
                 }
                 return rddProxy;
             }

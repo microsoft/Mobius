@@ -305,7 +305,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             if (numPartitions == 0)
             {
-                numPartitions = SparkCLREnvironment.SparkConfProxy.GetInt("spark.default.parallelism", 0);
+                numPartitions = self.sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
                 if (numPartitions == 0)
                     numPartitions = self.previousRddProxy.PartitionLength();
             }
@@ -315,10 +315,10 @@ namespace Microsoft.Spark.CSharp.Core
             // convert shuffling version of RDD[(Long, Array[Byte])] back to normal RDD[Array[Byte]]
             // invoking property keyed.RddProxy marks the end of current pipeline RDD after shuffling
             // and potentially starts next pipeline RDD with defult SerializedMode.Byte
-            var rdd = self.SparkContext.SparkContextProxy.CreatePairwiseRDD<K, V>(keyed.RddProxy, numPartitions);
+            var rdd = self.sparkContext.SparkContextProxy.CreatePairwiseRDD<K, V>(keyed.RddProxy, numPartitions);
             //rdd.partitioner = partitioner
 
-            return new RDD<KeyValuePair<K, V>>(rdd, self.SparkContext);
+            return new RDD<KeyValuePair<K, V>>(rdd, self.sparkContext);
         }
 
         /// <summary>
@@ -364,7 +364,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             if (numPartitions == 0)
             {
-                numPartitions = SparkCLREnvironment.SparkConfProxy.GetInt("spark.default.parallelism", 0);
+                numPartitions = self.sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
                 if (numPartitions == 0 && self.previousRddProxy != null)
                     numPartitions = self.previousRddProxy.PartitionLength();
             }
@@ -633,6 +633,7 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
+        /// TO DO: C# version of RDDSampler.py
         /// Return a subset of this RDD sampled by key (via stratified sampling).
         /// Create a sample of this RDD using variable sampling rates for
         /// different keys as specified by fractions, a key to sampling rate map.
@@ -656,14 +657,17 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="fractions"></param>
         /// <param name="seed"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<string, V>> SampleByKey<V>(
-            this RDD<KeyValuePair<string, V>> self,
-            bool withReplacement,
-            Dictionary<string, double> fractions,
-            long seed)
-        {
-            return new RDD<KeyValuePair<string, V>>(self.RddProxy.SampleByKey(withReplacement, fractions, seed), self.SparkContext);
-        }
+        //public static RDD<KeyValuePair<string, V>> SampleByKey<V>(
+        //    this RDD<KeyValuePair<string, V>> self,
+        //    bool withReplacement,
+        //    Dictionary<string, double> fractions,
+        //    long seed)
+        //{
+        //    if (fractions.Any(f => f.Value < 0.0))
+        //        throw new ArgumentException(string.Format("Negative fraction value found in: {0}", string.Join(",", fractions.Values.ToArray())));
+
+        //    return new RDD<KeyValuePair<string, V>>(self.RddProxy.SampleByKey(withReplacement, fractions, seed), self.sparkContext);
+        //}
 
         /// <summary>
         /// Return each (key, value) pair in C{self} that has no pair with matching key in C{other}.

@@ -27,8 +27,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             get
             {
-                var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-                return (string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "name");
+                var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+                return (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "name");
             }
         }
 
@@ -36,8 +36,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             get
             {
-                var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-                return (bool)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "isCheckpointed");
+                var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+                return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "isCheckpointed");
             }
         }
 
@@ -48,213 +48,199 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public long Count()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return long.Parse(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "count").ToString());
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return long.Parse(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "count").ToString());
         }
 
         public int CollectAndServe()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return int.Parse(SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "collectAndServe", new object[] { rdd }).ToString());
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "collectAndServe", new object[] { rdd }).ToString());
         }
 
 
         public IRDDProxy Union(IRDDProxy javaRddReferenceOther)
         {
-            var jref = new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "union", new object[] { (javaRddReferenceOther as RDDIpcProxy).jvmRddReference }).ToString());
+            var jref = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "union", new object[] { (javaRddReferenceOther as RDDIpcProxy).jvmRddReference }).ToString());
             return new RDDIpcProxy(jref);
         }
 
         public int PartitionLength()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            var partitions = SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "partitions", new object[] { });
-            return int.Parse(SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("java.lang.reflect.Array", "getLength", new object[] { partitions }).ToString());
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            var partitions = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "partitions", new object[] { });
+            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("java.lang.reflect.Array", "getLength", new object[] { partitions }).ToString());
         }
 
         public IRDDProxy Coalesce(int numPartitions, bool shuffle)
         {
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "coalesce", new object[] { numPartitions, shuffle })));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "coalesce", new object[] { numPartitions, shuffle })));
         }
 
         public IRDDProxy Sample(bool withReplacement, double fraction, long seed)
         {
-            var jref = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "sample", new object[] { withReplacement, fraction, seed }));
+            var jref = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "sample", new object[] { withReplacement, fraction, seed }));
             return new RDDIpcProxy(jref);
         }
 
         public IRDDProxy[] RandomSplit(double[] weights, long seed)
         {
-            return ((List<JvmObjectReference>)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "randomSplit", new object[] { weights, seed }))
+            return ((List<JvmObjectReference>)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "randomSplit", new object[] { weights, seed }))
                 .Select(obj => new RDDIpcProxy(obj)).ToArray();
         }
 
         public IRDDProxy RandomSampleWithRange(double lb, double ub, long seed)
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "randomSampleWithRange", new object[] { lb, ub, seed })));
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "randomSampleWithRange", new object[] { lb, ub, seed })));
         }
 
 
         public void Cache()
         {
-            SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "cache");
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "cache");
         }
 
         public void Persist(StorageLevelType storageLevelType)
         {
-            var jstorageLevel = GetJavaStorageLevel(storageLevelType);
-            SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "persist", new object[] { jstorageLevel });
+            var jstorageLevel = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "persist", new object[] { jstorageLevel });
         }
 
         public void Unpersist()
         {
-            SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "unpersist");
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "unpersist");
         }
 
         public void Checkpoint()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "checkpoint");
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "checkpoint");
         }
 
         public string GetCheckpointFile()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return (string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "getCheckpointFile");
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "getCheckpointFile");
         }
 
         public int GetNumPartitions()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return ((List<JvmObjectReference>)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "partitions")).Count;
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return ((List<JvmObjectReference>)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "partitions")).Count;
         }
 
         public IRDDProxy Intersection(IRDDProxy other)
         {
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "intersection", new object[] { (other as RDDIpcProxy).jvmRddReference })));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "intersection", new object[] { (other as RDDIpcProxy).jvmRddReference })));
         }
 
         public IRDDProxy Repartition(int numPartitions)
         {
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "repartition", new object[] { numPartitions })));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "repartition", new object[] { numPartitions })));
         }
 
         public IRDDProxy Cartesian(IRDDProxy other)
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            var otherRdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod((other as RDDIpcProxy).jvmRddReference, "rdd"));
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "cartesian", new object[] { otherRdd })));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "cartesian", (other as RDDIpcProxy).jvmRddReference)));
         }
 
         public IRDDProxy Pipe(string command)
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "pipe", new object[] { command })));
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "pipe", new object[] { command })));
         }
 
         public void SetName(string name)
         {
-            SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "setName", new object[] { name });
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "setName", new object[] { name });
         }
 
         public IRDDProxy SampleByKey(bool withReplacement, Dictionary<string, double> fractions, long seed)
         {
             var jfractions = SparkContextIpcProxy.GetJavaMap(fractions) as JvmObjectReference;
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "sampleByKey", new object[] { withReplacement, jfractions, seed })));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "sampleByKey", new object[] { withReplacement, jfractions, seed })));
         }
 
         public string ToDebugString()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return (string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "toDebugString");
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "toDebugString");
         }
 
         public IRDDProxy Zip(IRDDProxy other)
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "zip", new object[] { (other as RDDIpcProxy).jvmRddReference })));
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "zip", new object[] { (other as RDDIpcProxy).jvmRddReference })));
         }
 
         public IRDDProxy ZipWithIndex()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "zipWithIndex")));
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "zipWithIndex")));
         }
 
         public IRDDProxy ZipWithUniqueId()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "zipWithUniqueId")));
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "zipWithUniqueId")));
         }
 
         public void SaveAsNewAPIHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
         {
             var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
-            SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopDataset", new object[] { jvmRddReference, false, jconf, null, null, true });
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopDataset", new object[] { jvmRddReference, false, jconf, null, null, true });
         }
 
         public void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf)
         {
             var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
-            SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsNewAPIHadoopFile", new object[] { jvmRddReference, false, path, outputFormatClass, keyClass, valueClass, null, null, jconf });
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsNewAPIHadoopFile", new object[] { jvmRddReference, false, path, outputFormatClass, keyClass, valueClass, null, null, jconf });
         }
 
         public void SaveAsHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
         {
             var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
-            SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopDataset", new object[] { jvmRddReference, false, jconf, null, null, false });
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopDataset", new object[] { jvmRddReference, false, jconf, null, null, false });
         }
 
         public void saveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
         {
             var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
-            SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopFile", new object[] { jvmRddReference, false, path, outputFormatClass, keyClass, valueClass, null, null, jconf, compressionCodecClass });
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopFile", new object[] { jvmRddReference, false, path, outputFormatClass, keyClass, valueClass, null, null, jconf, compressionCodecClass });
         }
 
         public void SaveAsSequenceFile(string path, string compressionCodecClass)
         {
-            SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "SaveAsSequenceFile", new object[] { jvmRddReference, false, path, compressionCodecClass });
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "SaveAsSequenceFile", new object[] { jvmRddReference, false, path, compressionCodecClass });
         }
 
         public void SaveAsTextFile(string path, string compressionCodecClass)
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
             if (!string.IsNullOrEmpty(compressionCodecClass))
             {
-                var codec = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("java.lang.Class", "forName", new object[] { compressionCodecClass }));
-                SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "saveAsTextFile", new object[] { path, codec });
+                var codec = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("java.lang.Class", "forName", new object[] { compressionCodecClass }));
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "saveAsTextFile", new object[] { path, codec });
             }
             else
             {
-                SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "saveAsTextFile", new object[] { path });
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "saveAsTextFile", new object[] { path });
             }
         }
         public StorageLevel GetStorageLevel()
         {
-            var rdd = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            var storageLevel = new JvmObjectReference((string)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(rdd, "getStorageLevel"));
+            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
+            var storageLevel = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "getStorageLevel"));
 
             return new StorageLevel
             (
-                (bool)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(storageLevel, "useDisk"),
-                (bool)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(storageLevel, "useMemory"),
-                (bool)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(storageLevel, "useOffHeap"),
-                (bool)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(storageLevel, "deserialized"),
-                (int)SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(storageLevel, "replication")
+                (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(storageLevel, "useDisk"),
+                (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(storageLevel, "useMemory"),
+                (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(storageLevel, "useOffHeap"),
+                (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(storageLevel, "deserialized"),
+                (int)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(storageLevel, "replication")
             );
-        }
-        private JvmObjectReference GetJavaStorageLevel(StorageLevelType storageLevelType)
-        {
-            return new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.java.StorageLevels", "create",
-                new object[] 
-                { 
-                    StorageLevel.storageLevel[storageLevelType].useDisk,
-                    StorageLevel.storageLevel[storageLevelType].useMemory,
-                    StorageLevel.storageLevel[storageLevelType].useOffHeap,
-                    StorageLevel.storageLevel[storageLevelType].deserialized,
-                    StorageLevel.storageLevel[storageLevelType].replication
-                }).ToString());
         }
     }
 }

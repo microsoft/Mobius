@@ -23,12 +23,10 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             ProcessArugments(args);
 
-            using (SparkCLREnvironment.Initialize())
-            {
-                SparkContext = CreateSparkContext();
-                RunSamples();
-                SparkContext.Stop();
-            }
+            SparkContext = CreateSparkContext();
+            SparkContext.SetCheckpointDir(Path.GetTempPath()); 
+            RunSamples();
+            SparkContext.Stop();
         }
 
         // Creates and returns a context

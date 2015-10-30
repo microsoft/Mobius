@@ -10,7 +10,7 @@ using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 
 
-namespace Microsoft.Spark.CSharp.Proxy
+namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
     internal class SparkConfIpcProxy : ISparkConfProxy
     {
@@ -21,39 +21,39 @@ namespace Microsoft.Spark.CSharp.Proxy
             get { return jvmSparkConfReference; }
         }
 
-        public void CreateSparkConf(bool loadDefaults = true)
+        public SparkConfIpcProxy(JvmObjectReference jvmSparkConfReference)
         {
-            jvmSparkConfReference = SparkCLREnvironment.JvmBridge.CallConstructor("org.apache.spark.SparkConf", new object[] { loadDefaults });
+            this.jvmSparkConfReference = jvmSparkConfReference;
         }
        
         public void SetMaster(string master)
         {
-            jvmSparkConfReference = new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "setMaster", new object[] { master }).ToString());
+            jvmSparkConfReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "setMaster", new object[] { master }).ToString());
         }
 
         public void SetAppName(string appName)
         {
-            jvmSparkConfReference = new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "setAppName", new object[] { appName }).ToString());
+            jvmSparkConfReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "setAppName", new object[] { appName }).ToString());
         }
 
         public void SetSparkHome(string sparkHome)
         {
-            jvmSparkConfReference = new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "setSparkHome", new object[] { sparkHome }).ToString());
+            jvmSparkConfReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "setSparkHome", new object[] { sparkHome }).ToString());
         }
 
         public void Set(string key, string value)
         {
-            jvmSparkConfReference = new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "set", new object[] { key, value }).ToString());
+            jvmSparkConfReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "set", new object[] { key, value }).ToString());
         }
 
         public int GetInt(string key, int defaultValue)
         {
-            return int.Parse(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "getInt", new object[] { key, defaultValue }).ToString());
+            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "getInt", new object[] { key, defaultValue }).ToString());
         }
 
         public string Get(string key, string defaultValue)
         {
-            return SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "get", new object[] { key, defaultValue }).ToString();
+            return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkConfReference, "get", new object[] { key, defaultValue }).ToString();
         }
     }
 }

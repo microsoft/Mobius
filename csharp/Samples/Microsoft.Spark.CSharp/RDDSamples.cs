@@ -14,7 +14,7 @@ namespace Microsoft.Spark.CSharp.Samples
 {
     class RDDSamples
     {
-        //[Sample]
+        [Sample]
         internal static void RDDCheckpointSample()
         {
             var rdd = SparkCLRSamples.SparkContext.Parallelize(Enumerable.Range(0, 100), 4);
@@ -234,7 +234,7 @@ namespace Microsoft.Spark.CSharp.Samples
             rdd.SaveAsTextFile(path);
         }
 
-        //[Sample]
+        [Sample]
         internal static void RDDCartesianSample()
         {
             var rdd = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 2 }, 1);

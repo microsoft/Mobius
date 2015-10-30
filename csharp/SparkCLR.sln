@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adapter", "Adapter\Microsoft.Spark.CSharp\Adapter.csproj", "{CE999A96-F42B-4E80-B208-709D7F49A77C}"
 EndProject
@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples", "Samples\Microsof
 		{CE999A96-F42B-4E80-B208-709D7F49A77C} = {CE999A96-F42B-4E80-B208-709D7F49A77C}
 		{82C9D3B2-E4FB-4713-B980-948C1E96A10A} = {82C9D3B2-E4FB-4713-B980-948C1E96A10A}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdapterTest", "AdapterTest\AdapterTest.csproj", "{D5C2C46E-3FEC-473B-8ABA-3B0FC5A7319C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,10 @@ Global
 		{913E6A56-9839-4379-8B3C-855BA9341663}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{913E6A56-9839-4379-8B3C-855BA9341663}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{913E6A56-9839-4379-8B3C-855BA9341663}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5C2C46E-3FEC-473B-8ABA-3B0FC5A7319C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5C2C46E-3FEC-473B-8ABA-3B0FC5A7319C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5C2C46E-3FEC-473B-8ABA-3B0FC5A7319C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5C2C46E-3FEC-473B-8ABA-3B0FC5A7319C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

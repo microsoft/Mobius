@@ -20,16 +20,11 @@ namespace Microsoft.Spark.CSharp.Sql
     {
         private ISqlContextProxy sqlContextProxy;
         private SparkContext sparkContext;
+        internal ISqlContextProxy SqlContextProxy { get { return sqlContextProxy; } }
         public SqlContext(SparkContext sparkContext)
         {
             this.sparkContext = sparkContext;
-            SetSqlContextProxy();
-            sqlContextProxy.CreateSqlContext(sparkContext.SparkContextProxy);  
-        }
-
-        private void SetSqlContextProxy()
-        {
-            sqlContextProxy = SparkCLREnvironment.SqlContextProxy;
+            sqlContextProxy = sparkContext.SparkContextProxy.CreateSqlContext();  
         }
 
         /// <summary>

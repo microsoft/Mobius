@@ -13,9 +13,6 @@ namespace Microsoft.Spark.CSharp.Proxy
 {
     internal interface ISqlContextProxy
     {
-        void CreateSqlContext(ISparkContextProxy sparkContextProxy);
-        StructField CreateStructField(string name, string dataType, bool isNullable);
-        StructType CreateStructType(List<StructField> fields);
         IDataFrameProxy ReaDataFrame(string path, StructType schema, Dictionary<string, string> options);
         IDataFrameProxy JsonFile(string path);
         IDataFrameProxy TextFile(string path, StructType schema, string delimiter);

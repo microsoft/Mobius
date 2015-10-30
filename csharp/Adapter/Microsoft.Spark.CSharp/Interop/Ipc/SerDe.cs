@@ -3,6 +3,7 @@
 
 using System;
 using System.Text;
+using System.IO;
 
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
@@ -75,6 +76,121 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             var buffer = BitConverter.GetBytes(value);
             Array.Reverse(buffer); //Netty byte order is BigEndian
             return BitConverter.ToDouble(buffer, 0);
+        }
+
+        public static int ReadInt(Stream s)
+        {
+            byte[] buffer = ReadBytes(s, 4);
+            return //Netty byte order is BigEndian
+                (int)buffer[3] | 
+                (int)buffer[2] << 8 | 
+                (int)buffer[1] << 16 | 
+                (int)buffer[0] << 24;
+        }
+        
+        public static long ReadLong(Stream s)
+        {
+            byte[] buffer = ReadBytes(s, 8);
+            return //Netty byte order is BigEndian
+                (long)buffer[7] |
+                (long)buffer[6] << 8 |
+                (long)buffer[5] << 16 |
+                (long)buffer[4] << 24 |
+                (long)buffer[3] << 32 |
+                (long)buffer[2] << 40 |
+                (long)buffer[1] << 48 |
+                (long)buffer[0] << 56;
+        }
+        
+        public static double ReadDouble(Stream s)
+        {
+            byte[] buffer = ReadBytes(s, 8);
+            Array.Reverse(buffer); //Netty byte order is BigEndian
+            return BitConverter.ToDouble(buffer, 0);
+        }
+        
+        public static string ReadString(Stream s)
+        {
+            return ToString(ReadBytes(s));
+        }
+        
+        public static byte[] ReadBytes(Stream s, int length)
+        {
+            if (length <= 0)
+                return null;
+            byte[] buffer = new byte[length];
+            int bytesRead = 0;
+            while (bytesRead < length)
+            {
+                bytesRead += s.Read(buffer, bytesRead, length - bytesRead);
+            }
+            return buffer;
+        }
+        
+        public static byte[] ReadBytes(Stream s)
+        {
+            var length = ReadInt(s);
+            return ReadBytes(s, length);
+        }
+        
+        public static string ReadObjectId(Stream s)
+        {
+            var type = s.ReadByte();
+            if (type != 'j')
+            {
+                Console.WriteLine("Expecting java object identifier type");
+                return null;
+            }
+
+            return ReadString(s);
+        }
+        
+        public static void Write(Stream s, byte value)
+        {
+            s.WriteByte(value);
+        }
+
+        public static void Write(Stream s, byte[] value)
+        {
+            s.Write(value, 0, value.Length);
+        }
+
+        public static void Write(Stream s, int value)
+        {
+            Write(s, new byte[] { 
+                (byte)(value >> 24),
+                (byte)(value >> 16), 
+                (byte)(value >> 8), 
+                (byte)value
+            });
+        }
+
+        public static void Write(Stream s, long value)
+        {
+            Write(s, new byte[] { 
+                (byte)(value >> 56),
+                (byte)(value >> 48), 
+                (byte)(value >> 40), 
+                (byte)(value >> 32), 
+                (byte)(value >> 24), 
+                (byte)(value >> 16), 
+                (byte)(value >> 8), 
+                (byte)value,
+            });
+        }
+
+        public static void Write(Stream s, double value)
+        {
+            byte[] buffer = BitConverter.GetBytes(value);
+            Array.Reverse(buffer);
+            Write(s, buffer);
+        }
+
+        public static void Write(Stream s, string value)
+        {
+            byte[] buffer = Encoding.UTF8.GetBytes(value);
+            Write(s, buffer.Length);
+            Write(s, buffer);
         }
     }
 }

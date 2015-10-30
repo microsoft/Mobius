@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
 
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
@@ -27,8 +28,8 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public string GetDebugInfo()
         {
-            var javaObjectReferenceForClassObject = new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(this, "getClass").ToString());
-            var className = SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(javaObjectReferenceForClassObject, "getName").ToString();
+            var javaObjectReferenceForClassObject = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(this, "getClass").ToString());
+            var className = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(javaObjectReferenceForClassObject, "getName").ToString();
             return string.Format("Java object reference id={0}, type name={1}, creation time (UTC)={2}", Id, className, creationTime.ToString("o"));
         }
     }

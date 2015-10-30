@@ -12,7 +12,6 @@ namespace Microsoft.Spark.CSharp.Proxy
 {
     internal interface ISparkConfProxy
     {
-        void CreateSparkConf(bool loadDefaults = true);
         void SetMaster(string master);
         void SetAppName(string appName);
         void SetSparkHome(string sparkHome);

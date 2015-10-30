@@ -14,7 +14,7 @@ namespace Microsoft.Spark.CSharp.Proxy
 {
     internal interface ISparkContextProxy
     {
-        void CreateSparkContext(string master, string appName, string sparkHome, ISparkConfProxy conf);
+        ISqlContextProxy CreateSqlContext();
         IColumnProxy CreateColumnFromName(string name);
         IColumnProxy CreateFunction(string name, object self);
         IColumnProxy CreateBinaryMathFunction(string name, object self, object other);
@@ -27,7 +27,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         int DefaultMinPartitions { get; }
         void Stop();
         IRDDProxy EmptyRDD<T>();
-        IRDDProxy Parallelize(IEnumerable<byte[]> values, int? numSlices);
+        IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices);
         IRDDProxy TextFile(string filePath, int minPartitions);
         IRDDProxy WholeTextFiles(string filePath, int minPartitions);
         IRDDProxy BinaryFiles(string filePath, int minPartitions);
@@ -48,10 +48,13 @@ namespace Microsoft.Spark.CSharp.Proxy
         void CancelAllJobs();
         IStatusTrackerProxy StatusTracker { get; }
         int RunJob(IRDDProxy rdd, IEnumerable<int> partitions, bool allowLocal);
-        string ReadBroadcastFromFile(string path, out long broadcastId);
-        void UnpersistBroadcast(string broadcastObjId, bool blocking);
+        IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId);
         IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> pythonIncludes, bool preservePartitioning, List<Broadcast> broadcastVariables, List<byte[]> accumulator);
         IRDDProxy CreatePairwiseRDD<K, V>(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions);
         IRDDProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType);
+    }
+    internal interface IBroadcastProxy
+    {
+        void Unpersist(bool blocking);
     }
 }

@@ -23,7 +23,7 @@ namespace Microsoft.Spark.CSharp.Core
 
         public StatCounter(IEnumerable<double> values)
         {
-            this.Merge(values);
+            Merge(values);
         }
 
         /// <summary>

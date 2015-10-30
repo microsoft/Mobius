@@ -27,7 +27,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public List<IStructFieldProxy> GetStructTypeFields()
         {
-            var fieldsReferenceList = SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmStructTypeReference, "fields");
+            var fieldsReferenceList = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructTypeReference, "fields");
             return (fieldsReferenceList as List<JvmObjectReference>).Select(s => new StructFieldIpcProxy(s)).Cast<IStructFieldProxy>().ToList();
         }
     }
@@ -43,12 +43,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public string GetDataTypeString()
         {
-            return SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmStructDataTypeReference, "toString").ToString();
+            return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructDataTypeReference, "toString").ToString();
         }
 
         public string GetDataTypeSimpleString()
         {
-            return SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmStructDataTypeReference, "simpleString").ToString();
+            return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructDataTypeReference, "simpleString").ToString();
         }
     }
 
@@ -64,17 +64,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public string GetStructFieldName()
         {
-            return SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmStructFieldReference, "name").ToString();
+            return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructFieldReference, "name").ToString();
         }
 
         public IStructDataTypeProxy GetStructFieldDataType()
         {
-            return new StructDataTypeIpcProxy(new JvmObjectReference(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmStructFieldReference, "dataType").ToString()));
+            return new StructDataTypeIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructFieldReference, "dataType").ToString()));
         }
 
         public bool GetStructFieldIsNullable()
         {
-            return bool.Parse(SparkCLREnvironment.JvmBridge.CallNonStaticJavaMethod(jvmStructFieldReference, "nullable").ToString());
+            return bool.Parse(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructFieldReference, "nullable").ToString());
         }
     }
 }
