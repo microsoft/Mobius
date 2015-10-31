@@ -23,6 +23,7 @@ namespace AdapterTest
         public static void Initialize(TestContext context)
         {
             SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();
+            SparkCLREnvironment.ConfigurationService = new MockConfigurationService();
         }
     }
 }

@@ -41,6 +41,9 @@ A simple DataFrame application using DataFrame DSL may look like the following
 ```
 Refer to SparkCLR\csharp\Samples folder for complete samples
 
+## Documents
+Refer to the docs @ https://github.com/Microsoft/SparkCLR/tree/master/docs
+
 ## Building SparkCLR
 ### Prerequisites
 * Maven for spark-clr project implemented in scala
@@ -78,9 +81,11 @@ Setting spark.local.dir parameter is optional and it is useful if local setup of
 ```sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata```
 
 ### Running in YARN mode
-//TODO
+To be added
 
 ## Running Unit Tests
+* In Visual Studio: "Test" -> "Run" -> "All Tests"
+* In Developer Command Prompt for VS, navigate to bin folder of unit test project (for example, C:\SparkCLR\csharp\AdapterTest\bin\Debug): mstest /testcontainer:AdapterTest.dll
 
 ## Debugging Tips
 CSharpBackend and C# driver are separately launched for debugging SparkCLR Adapter or driver
@@ -91,4 +96,3 @@ For example, to debug SparkCLR samples
 
 ## License
 SparkCLR is licensed under the MIT license. See LICENSE file in the project root for full license information.
-
