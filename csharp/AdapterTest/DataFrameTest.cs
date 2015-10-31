@@ -18,7 +18,7 @@ namespace AdapterTest
         //TODO - complete impl
 
         [TestMethod]
-        public void TestJoin()
+        public void TestDataFrameJoin()
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
             var dataFrame = sqlContext.JsonFile(@"c:\path\to\input.json"); 

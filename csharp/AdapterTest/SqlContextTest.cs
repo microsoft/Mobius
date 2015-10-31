@@ -27,7 +27,7 @@ namespace AdapterTest
         }
 
         [TestMethod]
-        public void TestJsonFile()
+        public void TestSqlContextJsonFile()
         {
             var sqlContext = new SqlContext(new SparkContext("", "")); 
             var dataFrame = sqlContext.JsonFile(@"c:\path\to\input.json");
@@ -36,7 +36,7 @@ namespace AdapterTest
         }
 
         [TestMethod]
-        public void TestTextFile()
+        public void TestSqlContextTextFile()
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
             var dataFrame = sqlContext.TextFile(@"c:\path\to\input.txt");
