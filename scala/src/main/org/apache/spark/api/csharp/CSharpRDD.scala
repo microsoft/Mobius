@@ -21,12 +21,12 @@ class CSharpRDD(
                                 command: Array[Byte],
                                 envVars: JMap[String, String],
                                 cSharpIncludes: JList[String],
-                                preservePartitoning: Boolean,
+                                preservePartitioning: Boolean,
                                 cSharpExec: String,
                                 cSharpVer: String,
                                 broadcastVars: JList[Broadcast[PythonBroadcast]],
                                 accumulator: Accumulator[JList[Array[Byte]]])
-  extends PythonRDD (parent, command, envVars, cSharpIncludes, preservePartitoning, cSharpExec, cSharpVer, broadcastVars, accumulator) {
+  extends PythonRDD (parent, command, envVars, cSharpIncludes, preservePartitioning, cSharpExec, cSharpVer, broadcastVars, accumulator) {
 
 }
 
