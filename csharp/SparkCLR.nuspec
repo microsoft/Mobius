@@ -10,7 +10,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>C# language binding and extensions to Apache Spark</description>
     <releaseNotes>See release notes on GitHub https://github.com/Microsoft/SparkCLR/releases</releaseNotes>
-    <copyright>Copyright 2015</copyright>
+    <copyright>Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.</copyright>
     <tags>C# .NET Apache Spark RDD DataFrame</tags>
     <dependencies>
       <dependency id="Razorvine.Pyrolite" version="4.10.0.0" />
