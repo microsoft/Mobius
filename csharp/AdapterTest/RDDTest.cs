@@ -19,7 +19,7 @@ namespace AdapterTest
         //TODO - complete impl
 
         [TestMethod]
-        public void TestMap()
+        public void TestRddMap()
         {
             var sparkContext = new SparkContext(null);
             var rdd = sparkContext.TextFile(@"c:\path\to\rddinput.txt");
@@ -39,7 +39,7 @@ namespace AdapterTest
         }
 
         [TestMethod]
-        public void TestTextFile()
+        public void TestRddTextFile()
         {
             var sparkContext = new SparkContext(null);
             var rdd = sparkContext.TextFile(@"c:\path\to\rddinput.txt");
@@ -49,7 +49,7 @@ namespace AdapterTest
         }
 
         [TestMethod]
-        public void TestUnion()
+        public void TestRddUnion()
         {
             var sparkContext = new SparkContext(null);
             var rdd = sparkContext.TextFile(@"c:\path\to\rddinput.txt"); 
