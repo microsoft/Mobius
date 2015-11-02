@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.Spark.CSharp.Interop;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -149,7 +148,7 @@ namespace Microsoft.Spark.CSharp.Sql
         ///   df.SelectExpr("colA", "colB as newName", "abs(colC)")
         ///   
         /// </summary>
-        /// <param name="columnNames"></param>
+        /// <param name="columns"></param>
         /// <returns></returns>
         public DataFrame SelectExpr(params string[] columnExpressions)
         {
@@ -235,6 +234,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Join with another DataFrame
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to join with</param>
+        /// <param name="joinColumnName">Column to join with.</param>
         /// <returns>Joined DataFrame</returns>
         public DataFrame Join(DataFrame otherDataFrame, string joinColumnName) //inner equi join using given column name //need aliasing for self join
         {
@@ -247,6 +247,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Join with another DataFrame
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to join with</param>
+        /// <param name="joinColumnNames">Columns to join with.</param>
         /// <returns>Joined DataFrame</returns>
         public DataFrame Join(DataFrame otherDataFrame, string[] joinColumnNames) //inner equi join using given column name //need aliasing for self join
         {
@@ -259,6 +260,8 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Join with another DataFrame
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to join with</param>
+        /// <param name="joinExpression">Column to join with.</param>
+        /// <param name="joinType">Type og join to perform.</param>
         /// <returns>Joined DataFrame</returns>
         public DataFrame Join(DataFrame otherDataFrame, Column joinExpression, JoinType joinType = null) 
         {
