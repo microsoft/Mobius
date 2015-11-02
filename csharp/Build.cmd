@@ -47,12 +47,14 @@ SET CONFIGURATION=%STEP%
 @if ERRORLEVEL 1 GOTO :ErrorStop
 @echo BUILD ok for %CONFIGURATION% %PROJ%
 
-@echo ===== Build NuGet package for %PROJ% =====
-SET STEP=NuGet-Pack
+if EXIST %PROJ_NAME%.nuspec (
+  @echo ===== Build NuGet package for %PROJ% =====
+  SET STEP=NuGet-Pack
 
-nuget pack %PROJ_NAME%.nuspec
-@if ERRORLEVEL 1 GOTO :ErrorStop
-@echo NuGet package ok for %PROJ%
+  nuget pack %PROJ_NAME%.nuspec
+  @if ERRORLEVEL 1 GOTO :ErrorStop
+  @echo NuGet package ok for %PROJ%
+)
 
 @echo ===== Build succeeded for %PROJ% =====
 
