@@ -153,16 +153,15 @@ namespace Microsoft.Spark.CSharp.Configuration
                 : base(configuration)
             {}
 
-            internal override string GetCSharpRDDExternalProcessName()
-            {
-                return appSettings.Settings["CSharpWorkerPath"].Value;
-            }
-            
             internal override string GetCSharpWorkerPath()
             {
-                return new Uri(appSettings.Settings["CSharpWorkerPath"].Value).ToString();
+                KeyValueConfigurationElement workerPathConfig = appSettings.Settings["CSharpWorkerPath"];
+                if (workerPathConfig == null)
+                {
+                    throw new ConfigurationErrorsException("Need to set CSharpWorkerPath value in App.config");
+                }
+                return new Uri(workerPathConfig.Value).ToString();
             }
-
         }
 
         /// <summary>
@@ -177,7 +176,12 @@ namespace Microsoft.Spark.CSharp.Configuration
 
             internal override int GetPortNumber()
             {
-                var cSharpBackendPortNumber = int.Parse(appSettings.Settings["CSharpBackendPortNumber"].Value);
+                KeyValueConfigurationElement portConfig = appSettings.Settings["CSharpBackendPortNumber"];
+                if (portConfig == null)
+                {
+                    throw new ConfigurationErrorsException("Need to set CSharpBackendPortNumber value in App.config");
+                }
+                int cSharpBackendPortNumber = int.Parse(portConfig.Value);
                 logger.LogInfo(string.Format("CSharpBackend port number read from app config {0}", cSharpBackendPortNumber));
                 return cSharpBackendPortNumber;
             }
@@ -196,7 +200,6 @@ namespace Microsoft.Spark.CSharp.Configuration
             {
                 return "CSharpSparkWorker.exe";
             }
-
         }
     }
 
