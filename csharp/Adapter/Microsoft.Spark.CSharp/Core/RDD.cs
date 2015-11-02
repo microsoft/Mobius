@@ -558,11 +558,11 @@ namespace Microsoft.Spark.CSharp.Core
 
             using (BinaryReader br = new BinaryReader(ns))
             {
-                byte[] buffer = null;
+                byte[] buffer;
                 do
                 {
                     buffer = br.ReadBytes(4);
-                    if (buffer != null && buffer.Length > 0)
+                    if (buffer.Length > 0)
                     {
                         Array.Reverse(buffer);
                         int len = BitConverter.ToInt32(buffer, 0);
@@ -588,7 +588,7 @@ namespace Microsoft.Spark.CSharp.Core
                             items.Add(ci.Invoke(new object[] { formatter.Deserialize(ms), formatter.Deserialize(ms2) }));
                         }
                     }
-                } while (buffer != null && buffer.Length > 0);
+                } while (buffer.Length > 0);
             }
 
             return items.Cast<T>().ToArray();
