@@ -25,7 +25,7 @@ if "%SPARK_ASSEMBLY_JAR%"=="0" (
   exit /b 1
 )
 
-set SPARKCLR_JAR=csharp-spark-1.4.1-SNAPSHOT.jar
+set SPARKCLR_JAR=spark-clr-1.4.1-SNAPSHOT.jar
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
 set LAUNCH_CLASSPATH=%SPARK_ASSEMBLY_JAR%;%SPARKCLR_CLASSPATH%
 set SPARKCLR_SUBMIT_CLASS=org.apache.spark.deploy.csharp.SparkCLRSubmit
