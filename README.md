@@ -52,12 +52,18 @@ Refer to the docs @ https://github.com/Microsoft/SparkCLR/tree/master/docs
 
 ### Instructions
 * Navigate to SparkCLR\scala directory and run the following command to build spark-clr*.jar   
-```mvn package```
+```Batchfile
+mvn package
+```
 * Start Developer Command Prompt for Visual Studio, navigate to SparkCLR\csharp directory, run the following commands to add nuget.exe to the path and build the rest of .Net binaries  
-```set PATH=<fullpath to nuget.exe>;%PATH%```  
-```build.cmd```
+```Batchfile
+set PATH=<fullpath to nuget.exe>;%PATH%  
+build.cmd
+```
 * Under SparkCLR|csharp directory, run the following command to clean the .NET binaries built above  
-```clean.cmd```   
+```Batchfile
+clean.cmd
+```   
 ## Running Samples
 ### Prerequisites
 Set the following environment variables  
@@ -76,12 +82,16 @@ Directory pointed by ```SPARKCLR_HOME``` should have the following directories a
 ### Running in Local mode
 Set ```CSharpWorkerPath``` in SparkCLRSamples.exe.config and run the following. Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
 
-```sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe spark.local.dir D:\temp\SparkCLRTemp sparkclr.sampledata.loc D:\SparkCLRHome\data```   
+```Batchfile
+sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe spark.local.dir D:\temp\SparkCLRTemp sparkclr.sampledata.loc D:\SparkCLRHome\data
+```   
 
 Setting spark.local.dir parameter is optional and it is useful if local setup of Spark uses %TEMP% directory in windows to which adding SparkCLR driver exe file may cause problems (AV programs might automatically delete executables placed in these directories)
 
 ### Running in Standalone cluster mode
-```sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata```
+```Batchfile
+sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
+```
 
 ### Running in YARN mode
 To be added
@@ -89,7 +99,9 @@ To be added
 ## Running Unit Tests
 * In Visual Studio: "Test" -> "Run" -> "All Tests"
 * In Developer Command Prompt for VS, navigate to SparkCLR\csharp and run the following command  
-```test.cmd```
+```Batchfile
+test.cmd
+```
 
 ## Debugging Tips
 CSharpBackend and C# driver are separately launched for debugging SparkCLR Adapter or driver
