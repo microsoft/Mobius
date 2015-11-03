@@ -83,14 +83,19 @@ Directory pointed by ```SPARKCLR_HOME``` should have the following directories a
 Set ```CSharpWorkerPath``` in SparkCLRSamples.exe.config and run the following. Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
 
 ```Batchfile
-sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe spark.local.dir D:\temp\SparkCLRTemp sparkclr.sampledata.loc D:\SparkCLRHome\data
+sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar^ 
+    D:\SparkCLRHome\SparkCLRSamples.exe^  
+    spark.local.dir D:\temp\SparkCLRTemp^   
+    sparkclr.sampledata.loc D:\SparkCLRHome\data
 ```   
 
 Setting spark.local.dir parameter is optional and it is useful if local setup of Spark uses %TEMP% directory in windows to which adding SparkCLR driver exe file may cause problems (AV programs might automatically delete executables placed in these directories)
 
 ### Running in Standalone cluster mode
 ```Batchfile
-sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
+sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar^ 
+    D:\SparkCLRHome\SparkCLRSamples.exe^ 
+    sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
 ```
 
 ### Running in YARN mode
