@@ -19,7 +19,6 @@ namespace Microsoft.Spark.CSharp.Core
 {
     public class SparkContext
     {
-        internal static ISparkContextProxy ActiveSparkContextProxy { get; private set; }
         internal ISparkContextProxy SparkContextProxy { get; private set; }
         internal SparkConf SparkConf { get; private set; }
 
@@ -94,7 +93,6 @@ namespace Microsoft.Spark.CSharp.Core
                 SparkConf.SetSparkHome(sparkHome);
 
             SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
-            ActiveSparkContextProxy = SparkContextProxy;
 
             // AddDriverFilesToSparkContext and AddWorkerToSparkContext
             foreach (var file in SparkCLREnvironment.ConfigurationService.GetDriverFiles())

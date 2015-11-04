@@ -90,9 +90,12 @@
     <Compile Include="Services\ILoggerService.cs" />
     <Compile Include="Services\Log4NetLoggerService.cs" />
     <Compile Include="Services\LoggerServiceFactory.cs" />
+    <Compile Include="Sql\Column.cs" />
     <Compile Include="Sql\DataFrame.cs" />
+    <Compile Include="Sql\Functions.cs" />
     <Compile Include="Sql\SqlContext.cs" />
     <Compile Include="Sql\Struct.cs" />
+    <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\Kafka.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
