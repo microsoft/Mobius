@@ -18,5 +18,6 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy TextFile(string path, StructType schema, string delimiter);
         IDataFrameProxy TextFile(string path, string delimiter, bool hasHeader, bool inferSchema);
         IDataFrameProxy Sql(string query);
+        void RegisterFunction(string name, byte[] command, string returnType);
     }
 }

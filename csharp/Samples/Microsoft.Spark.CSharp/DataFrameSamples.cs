@@ -224,19 +224,6 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to intersect DataFrame using DSL
-        /// </summary>
-        [Sample]
-        internal static void DFIntersectSample()
-        {
-            var peopleDataFrame1 = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var peopleDataFrame2 = peopleDataFrame1.Filter("name = 'Bill'");
-
-            var intersected = peopleDataFrame1.Intersect(peopleDataFrame2);
-            intersected.Show();
-        }
-
-        /// <summary>
         /// Sample to perform aggregatoin on DataFrame using DSL
         /// </summary>
         [Sample]
@@ -248,6 +235,27 @@ namespace Microsoft.Spark.CSharp.Samples
             var maxAggDataFrame = peopleDataFrame.GroupBy("name").Agg(new Dictionary<string, string> {{"age", "max"}});
             var maxAggDataFrameCount = maxAggDataFrame.Count();
             Console.WriteLine("countAggDataFrameCount: {0}, maxAggDataFrameCount: {1}.", countAggDataFrameCount, maxAggDataFrameCount);
+        }
+
+        /// <summary>
+        /// Sample to perform simple select and filter on DataFrame using UDF
+        /// </summary>
+        [Sample]
+        internal static void DFProjectionFilterUDFSample()
+        {
+            GetSqlContext().RegisterFunction<string, string, string>("FullAddress", (city, state) => city + " " + state);
+            GetSqlContext().RegisterFunction<bool, string, int>("PeopleFilter", (name, age) => name == "Bill" && age > 30);
+
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            // DataFrame query
+            peopleDataFrame.SelectExpr("name", "age * 2 as age", "FullAddress(address.city, address.state) as address")
+                .Where("name='Bill' and age > 40 and PeopleFilter(name, age)")
+                .Show();
+
+            // equivalent sql script
+            peopleDataFrame.RegisterTempTable("people");
+            GetSqlContext().Sql("SELECT name, age*2 as age, FullAddress(address.city, address.state) as address FROM people where name='Bill' and age > 40 and PeopleFilter(name, age)").Show();
         }
     }
 }
