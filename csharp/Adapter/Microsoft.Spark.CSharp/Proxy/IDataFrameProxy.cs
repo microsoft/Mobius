@@ -21,20 +21,21 @@ namespace Microsoft.Spark.CSharp.Proxy
         IRDDProxy ToJSON();
         IRDDProxy ToRDD();
         IColumnProxy GetColumn(string columnName);
-        object ToObjectSeq(List<object> objectList);
-        IColumnProxy ToColumnSeq(List<IColumnProxy> columnRefList);
-        IDataFrameProxy Select(IColumnProxy columnSequenceReference);
+        IDataFrameProxy Select(string columnName, string[] columnNames);
+        IDataFrameProxy SelectExpr(string[] columnExpressions);
         IDataFrameProxy Filter(string condition);
-        IGroupedDataProxy GroupBy(string firstColumnName, IColumnProxy otherColumnSequenceReference);
-        IGroupedDataProxy GroupBy(IColumnProxy columnSequenceReference);
-        IGroupedDataProxy GroupBy(object columnSequenceReference);
+        IGroupedDataProxy GroupBy(string firstColumnName, string[] otherColumnNames);
+        IGroupedDataProxy GroupBy();
         IDataFrameProxy Agg(IGroupedDataProxy scalaGroupedDataReference, Dictionary<string, string> columnNameAggFunctionDictionary);
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string joinColumnName);
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string[] joinColumnNames);
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, IColumnProxy scalaColumnReference, string joinType);
-        IDataFrameProxy Intersect(IDataFrameProxy otherScalaDataFrameReference);
     }
 
+    internal interface IUDFProxy
+    {
+        IColumnProxy Apply(IColumnProxy[] columns);
+    }
 
     internal interface IColumnProxy
     {

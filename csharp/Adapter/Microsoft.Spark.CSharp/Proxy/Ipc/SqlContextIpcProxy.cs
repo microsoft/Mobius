@@ -66,5 +66,22 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var javaObjectReferenceForDataFrame = new JvmObjectReference(javaDataFrameReference.ToString());
             return new DataFrameIpcProxy(javaObjectReferenceForDataFrame, this);
         }
+
+        public void RegisterFunction(string name, byte[] command, string returnType)
+        {
+            var judf = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "udf"));
+
+            var hashTableReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
+            var arrayListReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
+
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython",
+                new object[]
+                {
+                    name, command, hashTableReference, arrayListReference, 
+                    SparkCLREnvironment.ConfigurationService.GetCSharpRDDExternalProcessName(),
+                    "1.0",
+                    arrayListReference, null, "\"" + returnType + "\""
+                });
+        }
     }
 }
