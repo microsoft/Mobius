@@ -335,7 +335,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
     public class Column
     {
-        private IColumnProxy columnProxy;
+        private readonly IColumnProxy columnProxy;
 
         internal IColumnProxy ColumnProxy
         {
@@ -359,6 +359,29 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Mitigate compiler warning CS0661: 
+        ///     'Microsoft.Spark.CSharp.Sql.Column' defines operator == or operator != but does not override Object.GetHashCode()
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return (columnProxy != null ? columnProxy.GetHashCode() : 0);
+        }
+
+        /// <summary>
+        /// Mitigate compiler warning CS0660: 
+        ///     'Microsoft.Spark.CSharp.Sql.Column' defines operator == or operator != but does not override Object.Equals(object o)
+        /// </summary>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == this.GetType() && Equals(this.columnProxy, ((Column)obj).columnProxy);
+        }
+	
     }
 
     public class GroupedData
