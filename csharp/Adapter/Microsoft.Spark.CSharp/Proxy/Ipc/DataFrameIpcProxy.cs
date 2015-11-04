@@ -219,6 +219,15 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                             joinType
                         }).ToString()), sqlContextProxy);
         }
+
+        public IDataFrameProxy Intersect(IDataFrameProxy otherScalaDataFrameReference)
+        {
+            return 
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "intersect", 
+                        new object[]{(otherScalaDataFrameReference as DataFrameIpcProxy).jvmDataFrameReference}).ToString()), sqlContextProxy);
+        }
     }
 
     internal class ColumnIpcProxy : IColumnProxy

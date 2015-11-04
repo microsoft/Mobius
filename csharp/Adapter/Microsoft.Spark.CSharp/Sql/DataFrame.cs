@@ -259,6 +259,17 @@ namespace Microsoft.Spark.CSharp.Sql
             return
                 new DataFrame(dataFrameProxy.Join(otherDataFrame.dataFrameProxy, joinExpression.ColumnProxy, joinType.Value), sparkContext);
         }
+
+        /// <summary>
+        /// Intersect with another DataFrame
+        /// </summary>
+        /// <param name="otherDataFrame">DataFrame to intersect with</param>
+        /// <returns>Intersected DataFrame</returns>
+        public DataFrame Intersect(DataFrame otherDataFrame)
+        {
+            return
+                new DataFrame(dataFrameProxy.Intersect(otherDataFrame.dataFrameProxy), sparkContext);
+        }
     }
 
     //TODO - complete impl
