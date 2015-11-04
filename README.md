@@ -11,37 +11,37 @@ wordCounts.SaveAsTextFile(@"hdfs://path/to/wordcount.txt");
 ```
 A simple DataFrame application using TempTable may look like the following
 ```c#
-var requestDataFrame = sqlContext.TextFile(@"hdfs://path/to/requests.csv");
-var metricsDateFrame = sqlContext.TextFile(@"hdfs://path/to/metrics.csv");
-requestDataFrame.RegisterTempTable("requests");
-metricsDateFrame.RegisterTempTable("metrics");
-// C0 - guid in requests DF, C3 - guid in metrics DF  
-var join = GetSqlContext().Sql(  
+var reqDataFrame = sqlContext.TextFile(@"hdfs://path/to/requests.csv");
+var metricDataFrame = sqlContext.TextFile(@"hdfs://path/to/metrics.csv");
+reqDataFrame.RegisterTempTable("requests");
+metricDataFrame.RegisterTempTable("metrics");
+// C0 - guid in requests DataFrame, C3 - guid in metrics DataFrame  
+var joinDataFrame = GetSqlContext().Sql(  
     "SELECT joinedtable.datacenter" +
          ", MAX(joinedtable.latency) maxlatency" +
          ", AVG(joinedtable.latency) avglatency " + 
     "FROM (" +
        "SELECT a.C1 as datacenter, b.C6 as latency " +  
        "FROM requests a JOIN metrics b ON a.C0  = b.C3) joinedtable " +   
-       "GROUP BY datacenter");
-join.ShowSchema();
-join.Show();
+    "GROUP BY datacenter");
+joinDataFrame.ShowSchema();
+joinDataFrame.Show();
 ```
 A simple DataFrame application using DataFrame DSL may look like the following
 ```  c#
 // C0 - guid, C1 - datacenter
-var requestDataFrame = sqlContext.TextFile(@"hdfs://path/to/requests.csv")  
-                                 .Select("C0", "C1");    
+var reqDataFrame = sqlContext.TextFile(@"hdfs://path/to/requests.csv")  
+                             .Select("C0", "C1");    
 // C3 - guid, C6 - latency   
-var metricsDateFrame = sqlContext.TextFile(@"hdfs://path/to/metrics.csv", ",", false, true)
-                                 .Select("C3", "C6"); //override delimiter, hasHeader & inferSchema
-var joinDataFrame = requestDataFrame.Join(metricsDateFrame, requestDataFrame["C0"] == metricsDateFrame["C3"])
-                                    .GroupBy("C1");
+var metricDataFrame = sqlContext.TextFile(@"hdfs://path/to/metrics.csv", ",", false, true)
+                                .Select("C3", "C6"); //override delimiter, hasHeader & inferSchema
+var joinDataFrame = reqDataFrame.Join(metricDataFrame, reqDataFrame["C0"] == metricDataFrame["C3"])
+                                .GroupBy("C1");
 var maxLatencyByDcDataFrame = joinDataFrame.Agg(new Dictionary<string, string> { { "C6", "max" } });
 maxLatencyByDcDataFrame.ShowSchema();
 maxLatencyByDcDataFrame.Show();
 ```
-Refer to SparkCLR\csharp\Samples directory for complete samples
+Refer to `SparkCLR\csharp\Samples` directory for complete samples
 
 ## Documents
 Refer to the docs @ https://github.com/Microsoft/SparkCLR/tree/master/docs
@@ -54,11 +54,11 @@ Refer to the docs @ https://github.com/Microsoft/SparkCLR/tree/master/docs
 * [Nuget command-line utility](https://docs.nuget.org/release-notes) 3.2 and above
 
 ### Instructions
-* Navigate to SparkCLR\scala directory and run the following command to build spark-clr*.jar   
+* Navigate to `SparkCLR\scala` directory and run the following command to build spark-clr*.jar   
         ```
         mvn package
         ```
-* Start Developer Command Prompt for Visual Studio, navigate to SparkCLR\csharp directory, run the following commands to add nuget.exe to the path  
+* Start Developer Command Prompt for Visual Studio, navigate to `SparkCLR\csharp` directory, run the following commands to add `nuget.exe` to the path  
         ```  
         set PATH=<fullpath to nuget.exe>;%PATH%  
         ```  
@@ -66,37 +66,39 @@ Refer to the docs @ https://github.com/Microsoft/SparkCLR/tree/master/docs
         ```  
         build.cmd  
         ```  
-* Under SparkCLR\csharp directory, run the following command to clean the .NET binaries built above  
+* Optional. Under `SparkCLR\csharp` directory, run the following command to clean the .NET binaries built above  
         ```
         clean.cmd
         ```   
 
 ## Running Samples
 ### Prerequisites
-Set the following environment variables  
+DataFrame TextFile API uses `spark-csv` package to load data from CSV file. Latest [commons-csv-*.jar](http://commons.apache.org/proper/commons-csv/download_csv.cgi) and [spark-csv*.jar (Scala version:2.10)](http://spark-packages.org/package/databricks/spark-csv) should be downloaded manually.
+
+The following environment variables should be set properly:
 * ```JAVA_HOME```  
 * ```SCALA_HOME```  
-* ```SPARKCLR_HOME```  
-* ```SPARKCSV_JARS``` (if sqlContext.TextFile method is used to create DataFrame from csv files)
-
-Directory pointed by ```SPARKCLR_HOME``` should have the following directories and files  
-* **lib** (spark-clr*.jar)  
-* **bin** (Microsoft.Spark.CSharp.Adapter.dll, CSharpWorker.exe)  
-* **scripts** (sparkclr-submit.cmd)  
-* **samples** (SparkCLRSamples.exe, Microsoft.Spark.CSharp.Adapter.dll, CSharpWorker.exe)  
-* **data** (all the data files used by samples)  
+* ```SPARKCSV_JARS``` should include fullpaths to `commons-csv*.jar` and `spark-csv*.jar`. For example:     
+    ```
+    set SPARKCSV_JARS=%SPARKCLR_HOME%\lib\commons-csv-1.2.jar;%SPARKCLR_HOME%\lib\spark-csv_2.10-1.2.0.jar
+    ```
+* ```SPARKCLR_HOME``` should point to a directory prapared with following subdirectories:  
+  * **lib** (`spark-clr*.jar`)  
+  * **bin** (`SparkCLR\csharp\Samples\Microsft.Spark.CSharp\bin\[Debug|Release]\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` and etc.)  
+  * **scripts** (`sparkclr-submit.cmd`)  
+  * **data** (`SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\data\*`)  
 
 ### Running in Local mode
-Set ```CSharpWorkerPath``` in SparkCLRSamples.exe.config and run the following. Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
+Set `CSharpWorkerPath` in `SparkCLRSamples.exe.config` and run the following. Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
 ```
-sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe spark.local.dir D:\temp\SparkCLRTemp sparkclr.sampledata.loc D:\SparkCLRHome\data
+sparkclr-submit.cmd --verbose %SPARKCLR_HOME%\lib\spark-clr-1.4.1-SNAPSHOT.jar %SPARKCLR_HOME%\bin\SparkCLRSamples.exe spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
 ```   
 
-Setting spark.local.dir parameter is optional and it is useful if local setup of Spark uses %TEMP% directory in windows to which adding SparkCLR driver exe file may cause problems (AV programs might automatically delete executables placed in these directories)
+Setting `spark.local.dir` parameter is important. When local Spark instance distributes SparkCLR driver executables to Windows `%TEMP%` directory, anti-virus software may detect and report the executables showed up in `%TEMP%` directory as malware.
 
 ### Running in Standalone cluster mode
 ```
-sparkclr-submit.cmd --verbose D:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar D:\SparkCLRHome\SparkCLRSamples.exe sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
+sparkclr-submit.cmd --verbose  %SPARKCLR_HOME%\lib\spark-clr-1.4.1-SNAPSHOT.jar  %SPARKCLR_HOME%\bin\SparkCLRSamples.exe sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
 ```
 
 ### Running in YARN mode
@@ -104,7 +106,7 @@ To be added
 
 ## Running Unit Tests
 * In Visual Studio: "Test" -> "Run" -> "All Tests"
-* In Developer Command Prompt for VS, navigate to SparkCLR\csharp and run the following command  
+* In Developer Command Prompt for VS, navigate to `SparkCLR\csharp` and run the following command  
         ```
         test.cmd
         ```
@@ -113,8 +115,8 @@ To be added
 CSharpBackend and C# driver are separately launched for debugging SparkCLR Adapter or driver
 For example, to debug SparkCLR samples  
 * Launch CSharpBackend using ```sparkclr-submit.cmd debug``` and get the port number displayed in the console  
-* Navigate to csharp/Samples/Microsoft.Spark.CSharp and edit App.Config to use the port number from the previous step for CSharpBackendPortNumber config and also set CSharpWorkerPath config  
-* Run SparkCLRSamples.exe in Visual Studio
+* Navigate to `csharp/Samples/Microsoft.Spark.CSharp` and edit `App.Config` to use the port number from the previous step for CSharpBackendPortNumber config and also set CSharpWorkerPath config  
+* Run `SparkCLRSamples.exe` in Visual Studio
 
 ## License
 SparkCLR is licensed under the MIT license. See LICENSE file in the project root for full license information.
