@@ -51,7 +51,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId);
         IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> pythonIncludes, bool preservePartitioning, List<Broadcast> broadcastVariables, List<byte[]> accumulator);
         IRDDProxy CreatePairwiseRDD<K, V>(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions);
-        IUDFProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType);
+        IRDDProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType);
     }
     internal interface IBroadcastProxy
     {

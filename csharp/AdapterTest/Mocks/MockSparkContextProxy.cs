@@ -154,7 +154,7 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public IUDFProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType)
+        public IRDDProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType)
         {
             throw new NotImplementedException();
         }
