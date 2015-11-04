@@ -27,11 +27,6 @@ namespace Microsoft.Spark.CSharp.Sql
             this.columnProxy = columnProxy;
         }
 
-        public static implicit operator Column(string name)
-        {
-            return new Column(CSharpSparkEnvironment.SparkContextProxy.CreateColumnFromName(name));
-        }
-
         public static Column operator !(Column self)
         {
             return new Column(self.columnProxy.FuncOp("not"));
@@ -44,72 +39,72 @@ namespace Microsoft.Spark.CSharp.Sql
 
         public static Column operator +(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("plus", other));
+            return new Column(self.columnProxy.BinOp("plus", (other is Column) ? ((Column)other).columnProxy : other));
         }
-        
+
         public static Column operator -(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("minus", other));
+            return new Column(self.columnProxy.BinOp("minus", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator *(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("multiply", other));
+            return new Column(self.columnProxy.BinOp("multiply", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator /(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("divide", other));
+            return new Column(self.columnProxy.BinOp("divide", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator %(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("mod", other));
+            return new Column(self.columnProxy.BinOp("mod", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator ==(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("equalTo", other));
+            return new Column(self.columnProxy.BinOp("equalTo", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator !=(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("notEqual", other));
+            return new Column(self.columnProxy.BinOp("notEqual", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator <(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("lt", other));
+            return new Column(self.columnProxy.BinOp("lt", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator <=(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("leq", other));
+            return new Column(self.columnProxy.BinOp("leq", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator >=(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("geq", other));
+            return new Column(self.columnProxy.BinOp("geq", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator >(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("gt", other));
+            return new Column(self.columnProxy.BinOp("gt", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator |(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("bitwiseOR", other));
+            return new Column(self.columnProxy.BinOp("bitwiseOR", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator &(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("bitwiseAND", other));
+            return new Column(self.columnProxy.BinOp("bitwiseAND", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         public static Column operator ^(Column self, object other)
         {
-            return new Column(self.columnProxy.BinOp("bitwiseXOR", other));
+            return new Column(self.columnProxy.BinOp("bitwiseXOR", (other is Column) ? ((Column)other).columnProxy : other));
         }
 
         /// <summary>
@@ -119,7 +114,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public Column Like(string literal)
         {
-            return new Column(this.columnProxy.BinOp("like", literal));
+            return new Column(columnProxy.BinOp("like", literal));
         }
 
         /// <summary>
@@ -129,7 +124,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public Column RLike(string literal)
         {
-            return new Column(this.columnProxy.BinOp("rlike", literal));
+            return new Column(columnProxy.BinOp("rlike", literal));
         }
 
         /// <summary>
@@ -139,7 +134,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public Column StartsWith(Column other)
         {
-            return new Column(this.columnProxy.BinOp("startsWith", other));
+            return new Column(columnProxy.BinOp("startsWith", other.columnProxy));
         }
 
         /// <summary>
@@ -149,7 +144,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public Column EndsWith(Column other)
         {
-            return new Column(this.columnProxy.BinOp("endsWith", other));
+            return new Column(columnProxy.BinOp("endsWith", other.columnProxy));
         }
     }
 }

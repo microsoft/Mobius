@@ -249,5 +249,26 @@ namespace Microsoft.Spark.CSharp.Samples
             var maxAggDataFrameCount = maxAggDataFrame.Count();
             Console.WriteLine("countAggDataFrameCount: {0}, maxAggDataFrameCount: {1}.", countAggDataFrameCount, maxAggDataFrameCount);
         }
+
+        /// <summary>
+        /// Sample to perform simple select and filter on DataFrame using UDF
+        /// </summary>
+        [Sample]
+        internal static void DFProjectionFilterUDFSample()
+        {
+            GetSqlContext().RegisterFunction<string, string, string>("FullAddress", (city, state) => city + " " + state);
+            GetSqlContext().RegisterFunction<bool, string, int>("PeopleFilter", (name, age) => name == "Bill" && age > 30);
+
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            // DataFrame query
+            peopleDataFrame.SelectExpr("name", "age * 2 as age", "FullAddress(address.city, address.state) as address")
+                .Where("name='Bill' and age > 40 and PeopleFilter(name, age)")
+                .Show();
+
+            // equivalent sql script
+            peopleDataFrame.RegisterTempTable("people");
+            GetSqlContext().Sql("SELECT name, age*2 as age, FullAddress(address.city, address.state) as address FROM people where name='Bill' and age > 40 and PeopleFilter(name, age)").Show();
+        }
     }
 }
