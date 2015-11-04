@@ -61,7 +61,11 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                     //TODO - add boolean instead of int in the backend
                     if (isMethodCallFailed != 0)
                     {
-                        throw new Exception("Method execution failed"); //TODO - add more info to the exception
+                        var jvmFullStackTrace = socket.ReadString();
+                        const string errorMessage = @"JVM method execution failed";
+                        logger.LogError(errorMessage);
+                        logger.LogError(jvmFullStackTrace);
+                        throw new Exception(errorMessage);
                     }
 
                     var typeAsChar = socket.ReadChar();

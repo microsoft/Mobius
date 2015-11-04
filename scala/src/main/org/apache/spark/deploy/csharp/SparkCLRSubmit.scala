@@ -116,6 +116,12 @@ object SparkCLRSubmit {
       System.setProperty(key, value)
     }
 
+    //override spark.app.name with C# driver name to differentiate apps in SparkUI
+    //without override, app name is set to org.apache.spark.deploy.csharp.SparkCLRSubmit
+    var appName = new File(childArgs(0)).getName
+    println("overriding spark.app.name to " + appName)
+    System.setProperty("spark.app.name", appName)
+
     var mainClass: Class[_] = null
 
     try {
