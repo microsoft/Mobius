@@ -19,9 +19,10 @@ namespace Microsoft.Spark.CSharp.Configuration
     /// to be used in SparkCLR runtime
     /// </summary>
     internal class ConfigurationService : IConfigurationService
-    {    
+    {
+        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(ConfigurationService));
         private SparkCLRConfiguration configuration;
-        private RunMode runMode; //not used anywhere for now but may come handy in the future
+        private RunMode runMode = RunMode.UNKNOWN; //not used anywhere for now but may come handy in the future
 
         public int BackendPortNumber
         {
@@ -52,12 +53,17 @@ namespace Microsoft.Spark.CSharp.Configuration
             }
             else if (sparkMaster.StartsWith("yarn"))
             {
+                runMode = RunMode.YARN;
                 throw new NotSupportedException("YARN is not currently supported");
             }
             else
             {
-                throw new NotSupportedException(string.Format("Spark master value {0} not reconginzed", sparkMaster));
+                throw new NotSupportedException(string.Format("Spark master value {0} not recognized", sparkMaster));
             }
+
+            // Workaround compiler warning CS0414:
+            // The variable runMode is assigned not used
+            logger.LogInfo(string.Format("ConfigurationService runMode is {0}", runMode));
         }
 
         public string GetCSharpRDDExternalProcessName()
@@ -177,6 +183,7 @@ namespace Microsoft.Spark.CSharp.Configuration
 
     public enum RunMode
     {
+        UNKNOWN,
         DEBUG, //not a Spark mode but exists for dev debugging purpose
         LOCAL,
         CLUSTER,
