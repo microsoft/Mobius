@@ -35,9 +35,3 @@ csharp/Samples/Microsoft.Spark.CSharp/obj/**
 csharp/Worker/Microsoft.Spark.CSharp/bin/**
 csharp/Worker/Microsoft.Spark.CSharp/obj/**
 scala/.idea/**
-scripts/sparkclr-submit.cmd
-csharp/pingme.txt
-*.cmd
-csharp/Samples/Microsoft.Spark.CSharp/App.config
-*.config
-scripts/sparkclr-submit.cmd
