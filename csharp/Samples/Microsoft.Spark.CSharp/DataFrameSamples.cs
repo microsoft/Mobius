@@ -224,6 +224,19 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Sample to intersect DataFrame using DSL
+        /// </summary>
+        [Sample]
+        internal static void DFIntersectSample()
+        {
+            var peopleDataFrame1 = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var peopleDataFrame2 = peopleDataFrame1.Filter("name = 'Bill'");
+
+            var intersected = peopleDataFrame1.Intersect(peopleDataFrame2);
+            intersected.Show();
+        }
+
+        /// <summary>
         /// Sample to perform aggregatoin on DataFrame using DSL
         /// </summary>
         [Sample]

@@ -32,6 +32,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string joinColumnName);
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string[] joinColumnNames);
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, IColumnProxy scalaColumnReference, string joinType);
+        IDataFrameProxy Intersect(IDataFrameProxy otherScalaDataFrameReference);
     }
 
 
