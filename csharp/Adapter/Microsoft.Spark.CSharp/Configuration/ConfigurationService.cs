@@ -61,8 +61,6 @@ namespace Microsoft.Spark.CSharp.Configuration
                 throw new NotSupportedException(string.Format("Spark master value {0} not recognized", sparkMaster));
             }
 
-            // Workaround compiler warning CS0414:
-            // The variable runMode is assigned not used
             logger.LogInfo(string.Format("ConfigurationService runMode is {0}", runMode));
         }
 

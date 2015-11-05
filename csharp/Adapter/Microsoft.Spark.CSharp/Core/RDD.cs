@@ -255,7 +255,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Distinct(int numPartitions = 0)
         {
-            return Map(x => new KeyValuePair<T, int>(x, 0)).ReduceByKey((x,y) => x, numPartitions).Map(x => x.Key);
+            return Map(x => new KeyValuePair<T, int>(x, 0)).ReduceByKey((x,y) => x, numPartitions).Map<T>(x => x.Key);
         }
 
         /// <summary>

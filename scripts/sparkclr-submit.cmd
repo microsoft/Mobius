@@ -31,9 +31,6 @@ set LAUNCH_CLASSPATH=%SPARK_ASSEMBLY_JAR%;%SPARKCLR_CLASSPATH%
 set SPARKCLR_SUBMIT_CLASS=org.apache.spark.deploy.csharp.SparkCLRSubmit
 set SPARK_SUBMIT_CLASS=org.apache.spark.deploy.SparkSubmit
 set JARS=%SPARKCLR_CLASSPATH%
-if not "%SPARKCSV_JARS%" == "" (
-	SET JARS=%JARS%,%SPARKCSV_JARS%
-)
 if not "%CSHARPSPARK_APP_JARS%" == "" (
 	SET JARS=%JARS%,%CSHARPSPARK_APP_JARS%
 )
