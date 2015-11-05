@@ -84,7 +84,7 @@ The following environment variables should be set properly:
     ```
 * ```SPARKCLR_HOME``` should point to a directory prapared with following subdirectories:  
   * **lib** (`spark-clr*.jar`)  
-  * **bin** (`SparkCLR\csharp\Samples\Microsft.Spark.CSharp\bin\[Debug|Release]\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` and etc.)  
+  * **bin** (`SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\bin\[Debug|Release]\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` and etc.)  
   * **scripts** (`sparkclr-submit.cmd`)  
   * **data** (`SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\data\*`)  
 
