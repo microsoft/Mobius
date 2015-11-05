@@ -148,7 +148,7 @@ namespace Microsoft.Spark.CSharp.Sql
         ///   df.SelectExpr("colA", "colB as newName", "abs(colC)")
         ///   
         /// </summary>
-        /// <param name="columns"></param>
+        /// <param name="columnExpressions"></param>
         /// <returns></returns>
         public DataFrame SelectExpr(params string[] columnExpressions)
         {
