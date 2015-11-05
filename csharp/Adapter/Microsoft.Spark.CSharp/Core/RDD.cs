@@ -1074,6 +1074,9 @@ namespace Microsoft.Spark.CSharp.Core
         }
     }
 
+    /// <summary>
+    /// Some useful utility functions for <c>RDD{string}</c>
+    /// </summary>
     public static class StringRDDFunctions
     {
         /// <summary>
@@ -1090,6 +1093,9 @@ namespace Microsoft.Spark.CSharp.Core
         }
     }
 
+    /// <summary>
+    /// Some useful utility functions for RDD's containing IComparable values.
+    /// </summary>
     public static class ComparableRDDFunctions
     {
         /// <summary>
