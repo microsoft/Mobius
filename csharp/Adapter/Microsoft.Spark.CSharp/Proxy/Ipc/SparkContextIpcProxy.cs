@@ -260,16 +260,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(csRdd, "asJavaRDD")));
 
         }
-        public IRDDProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType = "string")
+        
+        public IUDFProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType = "string")
         {
             var jSqlContext = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.SQLContext", new object[] { jvmSparkContextReference });
-            var jDataType = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jSqlContext, "parseDataType", new object[] { "\"" + returnType + "\"" });
+            var jDataType = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jSqlContext, "parseDataType", new object[] { "\"" + returnType + "\"" }));
             var jbroadcastVariables = GetJavaList<JvmObjectReference>(jvmBroadcastReferences);
 
             var hashTableReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
             var arrayListReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
 
-            return new RDDIpcProxy(SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.UserDefinedPythonFunction",
+            return new UDFIpcProxy(SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.UserDefinedPythonFunction",
                 new object[]
                 {
                     name, command, hashTableReference, arrayListReference, 

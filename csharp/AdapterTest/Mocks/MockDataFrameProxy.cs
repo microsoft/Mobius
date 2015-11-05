@@ -72,17 +72,12 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public object ToObjectSeq(List<object> objectList)
+        public IDataFrameProxy Select(string columnName, string[] columnNames)
         {
             throw new NotImplementedException();
         }
 
-        public IColumnProxy ToColumnSeq(List<IColumnProxy> columnRefList)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDataFrameProxy Select(IColumnProxy columnSequenceReference)
+        public IDataFrameProxy SelectExpr(string[] columnExpressions)
         {
             throw new NotImplementedException();
         }
@@ -92,17 +87,12 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public IGroupedDataProxy GroupBy(string firstColumnName, IColumnProxy otherColumnSequenceReference)
+        public IGroupedDataProxy GroupBy(string firstColumnName, string[] otherColumnNames)
         {
             throw new NotImplementedException();
         }
 
-        public IGroupedDataProxy GroupBy(IColumnProxy columnSequenceReference)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IGroupedDataProxy GroupBy(object columnSequenceReference)
+        public IGroupedDataProxy GroupBy()
         {
             throw new NotImplementedException();
         }
@@ -188,11 +178,6 @@ namespace AdapterTest.Mocks
         }
 
         public IDataFrameProxy Describe(string[] columns)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDataFrameProxy SelectExpr(string[] expressions)
         {
             throw new NotImplementedException();
         }

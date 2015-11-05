@@ -129,28 +129,49 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
-        /// Select a list of columns
+        /// Selects a set of columns. This is a variant of `select` that can only select
+        /// existing columns using column names (i.e. cannot construct expressions).
+        /// 
+        /// df.Select("colA", "colB")
+        /// 
         /// </summary>
-        /// <param name="columnNames">name of the columns</param>
-        /// <returns>DataFrame with selected columns</returns>
-        public DataFrame Select(params string[] columnNames)
+        /// <param name="firstColumnName">first column name - required</param>
+        /// <param name="otherColumnNames">other column names - optional</param>
+        /// <returns></returns>
+        public DataFrame Select(string firstColumnName, params string[] otherColumnNames)
         {
-            List<IColumnProxy> columnReferenceList = columnNames.Select(columnName => dataFrameProxy.GetColumn(columnName)).ToList();
-            IColumnProxy columnReferenceSeq = dataFrameProxy.ToColumnSeq(columnReferenceList);
-            return new DataFrame(dataFrameProxy.Select(columnReferenceSeq), sparkContext);
+            return new DataFrame(dataFrameProxy.Select(firstColumnName, otherColumnNames), sparkContext);
         }
 
         /// <summary>
+        /// Selects a set of SQL expressions. This is a variant of `select` that accepts SQL expressions.
+        ///
+        ///   df.SelectExpr("colA", "colB as newName", "abs(colC)")
+        ///   
+        /// </summary>
+        /// <param name="columnNames"></param>
+        /// <returns></returns>
+        public DataFrame SelectExpr(params string[] columnExpressions)
+        {
+            return new DataFrame(dataFrameProxy.SelectExpr(columnExpressions), sparkContext);
+        }
+
+        /// <summary>
+        /// TO DO:  to be decided whether to expose this API
+        /// 
+        ///     1. has alternative - sql("<SQL scripts>")
+        ///     2. perf impact comapred to sql() - 1 more java call per each Column in select list
+        ///     
         /// Select a list of columns
         /// </summary>
         /// <param name="columnNames"></param>
         /// <returns></returns>
-        public DataFrame Select(params Column[] columns)
-        {
-            List<IColumnProxy> columnReferenceList = columns.Select(column => column.ColumnProxy).ToList();
-            IColumnProxy columnReferenceSeq = dataFrameProxy.ToColumnSeq(columnReferenceList);
-            return new DataFrame(dataFrameProxy.Select(columnReferenceSeq), sparkContext);
-        }
+        //public DataFrame Select(params Column[] columns)
+        //{
+        //    List<IColumnProxy> columnReferenceList = columns.Select(column => column.ColumnProxy).ToList();
+        //    IColumnProxy columnReferenceSeq = dataFrameProxy.ToColumnSeq(columnReferenceList);
+        //    return new DataFrame(dataFrameProxy.Select(columnReferenceSeq), sparkContext);
+        //}
 
         /// <summary>
         /// Filters rows using the given condition
@@ -175,28 +196,18 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// Groups the DataFrame using the specified columns, so we can run aggregation on them.
         /// </summary>
-        /// <param name="columnNames"></param>
+        /// <param name="firstColumnName">first column name - required</param>
+        /// <param name="otherColumnNames">other column names - optional</param>
         /// <returns></returns>
-        public GroupedData GroupBy(params string[] columnNames)
+        public GroupedData GroupBy(string firstColumnName, params string[] otherColumnNames)
         {
-            if (columnNames.Length == 0)
-            {
-                throw new NotSupportedException("Invalid number of columns");
-            }
-
-            string firstColumnName = columnNames[0];
-            string[] otherColumnNames = columnNames.Skip(1).ToArray();
-
-            List<IColumnProxy> otherColumnReferenceList = otherColumnNames.Select(columnName => dataFrameProxy.GetColumn(columnName)).ToList();
-            IColumnProxy otherColumnReferenceSeq = dataFrameProxy.ToColumnSeq(otherColumnReferenceList);
-            var scalaGroupedDataReference = dataFrameProxy.GroupBy(firstColumnName, otherColumnReferenceSeq);
+            var scalaGroupedDataReference = dataFrameProxy.GroupBy(firstColumnName, otherColumnNames);
             return new GroupedData(scalaGroupedDataReference, this);
         }
 
         private GroupedData GroupBy()
         {
-            object otherColumnReferenceSeq = dataFrameProxy.ToObjectSeq(new List<object>());
-            var scalaGroupedDataReference = dataFrameProxy.GroupBy(otherColumnReferenceSeq);
+            var scalaGroupedDataReference = dataFrameProxy.GroupBy();
             return new GroupedData(scalaGroupedDataReference, this);
         }
 
@@ -330,34 +341,6 @@ namespace Microsoft.Spark.CSharp.Sql
             {
                 return LeftSemiJoinType;
             }
-        }
-    }
-
-    public class Column
-    {
-        private IColumnProxy columnProxy;
-
-        internal IColumnProxy ColumnProxy
-        {
-            get
-            {
-                return columnProxy;
-            }
-        }
-
-        internal Column(IColumnProxy columnProxy)
-        {
-            this.columnProxy = columnProxy;
-        }
-
-        public static Column operator ==(Column firstColumn, Column secondColumn)
-        {
-            return new Column(firstColumn.columnProxy.EqualsOperator(secondColumn.columnProxy));
-        }
-
-        public static Column operator !=(Column firstColumn, Column secondColumn)
-        {
-            throw new NotImplementedException();
         }
     }
 

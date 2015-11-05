@@ -51,5 +51,11 @@ namespace AdapterTest.Mocks
         {
             return new MockDataFrameProxy(new object[] { query }, this);
         }
+
+
+        public void RegisterFunction(string name, byte[] command, string returnType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -131,10 +131,18 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
       }
     } catch {
       case e: Exception =>
-        logError(s"$methodName on $objId failed", e)
+        //TODO - logError does not work now..fix //logError(s"$methodName on $objId failed", e)
+        val jvmObj = JVMObjectTracker.get(objId)
+        val jvmObjName = jvmObj match
+        {
+          case Some(jObj) => jObj.getClass.getName
+          case None => "NullObject"
+        }
+        println(s"$methodName on object of type $jvmObjName failed")
         println(e.getMessage)
         println(e.printStackTrace())
         writeInt(dos, -1)
+        writeString(dos, Utils.exceptionString(e.getCause))
     }
   }
 
