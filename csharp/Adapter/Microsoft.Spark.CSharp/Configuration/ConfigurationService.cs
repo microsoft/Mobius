@@ -110,7 +110,7 @@ namespace Microsoft.Spark.CSharp.Configuration
 
             internal virtual string GetCSharpRDDExternalProcessName()
             {
-                //SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. Thse files available in spark executing directory at executor
+                //SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. These files available in spark executing directory at executor
                 return "CSharpWorker.exe";
             }
 

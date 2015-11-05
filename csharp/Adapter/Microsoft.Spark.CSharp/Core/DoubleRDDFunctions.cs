@@ -40,7 +40,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Compute a histogram using the provided buckets. The buckets
         /// are all open to the right except for the last which is closed.
         /// e.g. [1,10,20,50] means the buckets are [1,10) [10,20) [20,50],
-        /// which means 1<=x<10, 10<=x<20, 20<=x<=50. And on the input of 1
+        /// which means 1&lt;=x&lt;10, 10&lt;=x&lt;20, 20&lt;=x&lt;=50. And on the input of 1
         /// and 50 we would have a histogram of 1,0,1.
         /// 
         /// If your histogram is evenly spaced (e.g. [0, 10, 20, 30]),
@@ -73,6 +73,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <param name="self"></param>
+        /// <param name="bucketCount"></param>
         /// <returns></returns>
         public static Tuple<double[], long[]> Histogram(this RDD<double> self, int bucketCount)
         {

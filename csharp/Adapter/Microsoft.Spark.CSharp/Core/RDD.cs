@@ -114,7 +114,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// True
         /// 
         /// </summary>
-        /// <param name="storageLevel"></param>
+        /// <param name="storageLevelType"></param>
         /// <returns></returns>
         public RDD<T> Persist(StorageLevelType storageLevelType)
         {
@@ -159,7 +159,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Return a new RDD by applying a function to each element of this RDD.
         /// 
-        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new KeyValuePair<string, int>(x, 1)).Collect()
+        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new KeyValuePair&lt;string, int>(x, 1)).Collect()
         /// [('a', 1), ('b', 1), ('c', 1)]
         /// 
         /// </summary>
@@ -209,7 +209,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Return a new RDD by applying a function to each partition of this RDD,
         /// while tracking the index of the original partition.
         /// 
-        /// sc.Parallelize(new int[]{1, 2, 3, 4}, 4).MapPartitionsWithIndex<double>((pid, iter) => (double)pid).Sum()
+        /// sc.Parallelize(new int[]{1, 2, 3, 4}, 4).MapPartitionsWithIndex&lt;double>((pid, iter) => (double)pid).Sum()
         /// 6
         /// </summary>
         /// <typeparam name="U"></typeparam>
@@ -262,7 +262,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Return a sampled subset of this RDD.
         ///
         /// var rdd = sc.Parallelize(Enumerable.Range(0, 100), 4)
-        /// 6 <= rdd.Sample(False, 0.1, 81).count() <= 14
+        /// 6 &lt;= rdd.Sample(False, 0.1, 81).count() &lt;= 14
         /// true
         /// 
         /// </summary>
@@ -282,8 +282,8 @@ namespace Microsoft.Spark.CSharp.Core
         ///
         /// var rdd = sc.Parallelize(Enumerable.Range(0, 500), 1)
         /// var rdds = rdd.RandomSplit(new double[] {2, 3}, 17)
-        /// 150 < rdds[0].Count() < 250
-        /// 250 < rdds[1].Count() < 350
+        /// 150 &lt; rdds[0].Count() &lt; 250
+        /// 250 &lt; rdds[1].Count() &lt; 350
         /// 
         /// </summary>
         /// <param name="weights">weights for splits, will be normalized if they don't sum to 1</param>
@@ -362,9 +362,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// q > p such that
         ///   - when sampling with replacement, we're drawing each data point
         ///     with prob_i ~ Pois(q), where we want to guarantee
-        ///     Pr[s < num] < 0.0001 for s = sum(prob_i for i from 0 to
+        ///     Pr[s &lt; num] &lt; 0.0001 for s = sum(prob_i for i from 0 to
         ///     total), i.e. the failure rate of not having a sufficiently large
-        ///     sample < 0.0001. Setting q = p + 5 * sqrt(p/total) is sufficient
+        ///     sample &lt; 0.0001. Setting q = p + 5 * sqrt(p/total) is sufficient
         ///     to guarantee 0.9999 success rate for num > 12, but we need a
         ///     slightly larger q (9 empirically determined).
         ///   - when sampling without replacement, we're drawing each data point
@@ -431,21 +431,21 @@ namespace Microsoft.Spark.CSharp.Core
                 .Keys();
         }
 
-        /// <summary>
-        /// Sorts this RDD by the given keyfunc
-        /// 
-        /// >>> tmp = [('a', 1), ('b', 2), ('1', 3), ('d', 4), ('2', 5)]
-        /// >>> sc.Parallelize(tmp).sortBy(lambda x: x[0]).collect()
-        /// [('1', 3), ('2', 5), ('a', 1), ('b', 2), ('d', 4)]
-        /// >>> sc.Parallelize(tmp).sortBy(lambda x: x[1]).collect()
-        /// [('a', 1), ('b', 2), ('1', 3), ('d', 4), ('2', 5)]
-        /// 
-        /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <param name="keyfunc"></param>
-        /// <param name="ascending"></param>
-        /// <param name="numPartitions"></param>
-        /// <returns></returns>
+        // /// <summary>
+        // /// Sorts this RDD by the given keyfunc
+        // /// 
+        // /// >>> tmp = [('a', 1), ('b', 2), ('1', 3), ('d', 4), ('2', 5)]
+        // /// >>> sc.Parallelize(tmp).sortBy(lambda x: x[0]).collect()
+        // /// [('1', 3), ('2', 5), ('a', 1), ('b', 2), ('d', 4)]
+        // /// >>> sc.Parallelize(tmp).sortBy(lambda x: x[1]).collect()
+        // /// [('a', 1), ('b', 2), ('1', 3), ('d', 4), ('2', 5)]
+        // /// 
+        // /// </summary>
+        // /// <typeparam name="K"></typeparam>
+        // /// <param name="keyfunc"></param>
+        // /// <param name="ascending"></param>
+        // /// <param name="numPartitions"></param>
+        // /// <returns></returns>
         //public RDD<T> SortBy<K>(Func<T, K> keyfunc, bool ascending = true, int? numPartitions = null)
         //{
         //    return KeyBy<K>(keyfunc).SortByKey<K, T>(ascending, numPartitions).Map<T>(kv => kv.Value);
@@ -868,6 +868,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <param name="other"></param>
+        /// <param name="numPartitions"></param>
         /// <returns></returns>
         public RDD<T> Subtract(RDD<T> other, int numPartitions = 0)
         {
@@ -926,6 +927,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <param name="numPartitions"></param>
+        /// <param name="shuffle"></param>
         /// <returns></returns>
         public RDD<T> Coalesce(int numPartitions, bool shuffle = false)
         {
@@ -1072,13 +1074,14 @@ namespace Microsoft.Spark.CSharp.Core
         }
     }
 
+    /// <summary>
+    /// Some useful utility functions for <c>RDD{string}</c>
+    /// </summary>
     public static class StringRDDFunctions
     {
         /// <summary>
         /// Save this RDD as a text file, using string representations of elements.
         /// </summary>
-        /// <typeparam name="K"></typeparam>
-        /// <typeparam name="V"></typeparam>
         /// <param name="self"></param>
         /// <param name="path">path to text file</param>
         /// <param name="compressionCodecClass">(None by default) string i.e. "org.apache.hadoop.io.compress.GzipCodec"</param>
@@ -1090,6 +1093,9 @@ namespace Microsoft.Spark.CSharp.Core
         }
     }
 
+    /// <summary>
+    /// Some useful utility functions for RDD's containing IComparable values.
+    /// </summary>
     public static class ComparableRDDFunctions
     {
         /// <summary>
