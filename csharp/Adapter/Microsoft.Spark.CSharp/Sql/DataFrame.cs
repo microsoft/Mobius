@@ -155,16 +155,16 @@ namespace Microsoft.Spark.CSharp.Sql
             return new DataFrame(dataFrameProxy.SelectExpr(columnExpressions), sparkContext);
         }
 
-        /// <summary>
-        /// TO DO:  to be decided whether to expose this API
-        /// 
-        ///     1. has alternative - sql("<SQL scripts>")
-        ///     2. perf impact comapred to sql() - 1 more java call per each Column in select list
-        ///     
-        /// Select a list of columns
-        /// </summary>
-        /// <param name="columnNames"></param>
-        /// <returns></returns>
+        // /// <summary>
+        // /// TO DO:  to be decided whether to expose this API
+        // /// 
+        // ///     1. has alternative - sql("<SQL scripts>")
+        // ///     2. perf impact comapred to sql() - 1 more java call per each Column in select list
+        // ///     
+        // /// Select a list of columns
+        // /// </summary>
+        // /// <param name="columns"></param>
+        // /// <returns></returns>
         //public DataFrame Select(params Column[] columns)
         //{
         //    List<IColumnProxy> columnReferenceList = columns.Select(column => column.ColumnProxy).ToList();
