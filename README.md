@@ -57,6 +57,8 @@ Refer to the [docs folder](https://github.com/Microsoft/SparkCLR/tree/master/doc
 
 ## Building SparkCLR
 
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/Microsoft/SparkCLR?svg=true&branch=master)](https://ci.appveyor.com/project/skaarthik/SparkCLR/branch/master)
+
 ### Prerequisites
 
 * [Apache Maven](http://maven.apache.org) for spark-clr project implemented in Scala.
