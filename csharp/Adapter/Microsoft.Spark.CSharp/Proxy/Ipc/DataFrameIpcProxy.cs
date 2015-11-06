@@ -102,14 +102,18 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDataFrameProxy Select(string columnName, string[] columnNames)
         {
-            return new DataFrameIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                jvmDataFrameReference, 
-                "select", 
+            var parameters = columnNames.Length > 0 ? 
                 new object[] 
                 { 
                     columnName,
                     new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", new object[] { columnNames })) 
-                })), 
+                } :
+                new object[] { columnName, new string[0] }; // when columnNames is empty, pass an empty array to JVM instead calling SQLUtils.toSeq
+
+            return new DataFrameIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                jvmDataFrameReference, 
+                "select",
+                parameters)), 
                 sqlContextProxy);
         }
 
@@ -218,13 +222,62 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         }
 
         public IDataFrameProxy Intersect(IDataFrameProxy otherScalaDataFrameReference) 
-        { 
-            return  
-                new DataFrameIpcProxy(new JvmObjectReference( 
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod( 
-                        jvmDataFrameReference, "intersect",  
-                        new object[]{(otherScalaDataFrameReference as DataFrameIpcProxy).jvmDataFrameReference}).ToString()), sqlContextProxy); 
-        } 
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "intersect",
+                        new object[] { (otherScalaDataFrameReference as DataFrameIpcProxy).jvmDataFrameReference }).ToString()), sqlContextProxy); 
+        }
+
+        public IDataFrameProxy UnionAll(IDataFrameProxy otherScalaDataFrameReference)
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "unionAll",
+                        new object[] { (otherScalaDataFrameReference as DataFrameIpcProxy).jvmDataFrameReference }).ToString()), sqlContextProxy); 
+        }
+
+        public IDataFrameProxy Subtract(IDataFrameProxy otherScalaDataFrameReference)
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "except",
+                        new object[] { (otherScalaDataFrameReference as DataFrameIpcProxy).jvmDataFrameReference }).ToString()), sqlContextProxy); 
+        }
+
+        public IDataFrameProxy Drop(string columnName)
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "drop",
+                        new object[] { columnName }).ToString()), sqlContextProxy); 
+        }
+
+        public IDataFrameProxy DropNa(string how, int? thresh, string[] subset)
+        {
+            if(how != "any" && how != "all") 
+                throw new ArgumentException(string.Format(@"how ({0}) should be 'any' or 'all'.", how));
+
+            string[] columnNames = null;
+            if (subset == null || subset.Length == 0)
+                columnNames = GetSchema().GetStructTypeFields().Select(f => f.GetStructFieldName().ToString()).ToArray();
+
+            if (thresh == null)
+                thresh = how == "any" ? (subset == null ? columnNames.Length : subset.Length) : 1;
+
+            var dataFrameNaRef = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "na"));
+
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        dataFrameNaRef, "drop",
+                        new object[] { thresh, subset ?? columnNames }).ToString()), sqlContextProxy); 
+        }
     }
 
     internal class UDFIpcProxy : IUDFProxy
