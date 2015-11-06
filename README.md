@@ -101,17 +101,18 @@ Latest [commons-csv-*.jar](http://commons.apache.org/proper/commons-csv/download
 
 The following environment variables should be set properly:
 
-* ```JAVA_HOME```  
-* ```SCALA_HOME```  
+* `JAVA_HOME`
 
-* ```SPARKCSV_JARS``` should include full paths to `commons-csv*.jar` and `spark-csv*.jar`. 
+* `SCALA_HOME`  
+
+* `SPARKCSV_JARS` should include full paths to `commons-csv*.jar` and `spark-csv*.jar`. 
 
 	For example:     
 	```
 	set SPARKCSV_JARS=%SPARKCLR_HOME%\lib\commons-csv-1.2.jar;%SPARKCLR_HOME%\lib\spark-csv_2.10-1.2.0.jar
 	```
 
-* ```SPARKCLR_HOME``` should point to a directory prepared with following sub-directories:  
+* `SPARKCLR_HOME` should point to a directory prepared with following sub-directories:  
 
   * **lib** ( `spark-clr*.jar` )  
   * **bin** ( The contents of `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\bin\[Debug|Release]\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` etc. )  
@@ -154,7 +155,7 @@ CSharpBackend and C# driver are separately launched for debugging SparkCLR Adapt
 
 For example, to debug SparkCLR samples:
 
-* Launch CSharpBackend.exe using ```sparkclr-submit.cmd debug``` and get the port number displayed in the console.  
+* Launch CSharpBackend.exe using `sparkclr-submit.cmd debug` and get the port number displayed in the console.  
 * Navigate to `csharp/Samples/Microsoft.Spark.CSharp` and edit `App.Config` to use the port number from the previous step for `CSharpBackendPortNumber` config and also set `CSharpWorkerPath` config values.  
 * Run `SparkCLRSamples.exe` in Visual Studio.
 
