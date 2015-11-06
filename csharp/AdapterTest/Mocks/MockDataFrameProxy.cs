@@ -216,5 +216,15 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public IDataFrameProxy Drop(string columnName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy DropNa(string how, int? thresh, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
