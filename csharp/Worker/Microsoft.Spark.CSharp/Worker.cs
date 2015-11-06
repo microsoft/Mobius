@@ -31,6 +31,8 @@ namespace Microsoft.Spark.CSharp
         private const int END_OF_STREAM = -4;
         private const int NULL = -5;
 
+        private static readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         static void Main(string[] args)
         {
             PrintFiles();
@@ -268,8 +270,9 @@ namespace Microsoft.Spark.CSharp
 
         private static long ToUnixTime(DateTime dt)
         {
-            return (long)(dt - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            return (long)(dt - UnixTimeEpoch).TotalMilliseconds;
         }
+
         private static IEnumerable<dynamic> GetIterator(ISparkCLRSocket socket, string serializedMode)
         {
             Log("Serialized mode in GetIterator: " + serializedMode);

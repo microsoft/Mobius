@@ -108,6 +108,26 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
+        /// Required when operator == or operator != is defined
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return (columnProxy != null ? columnProxy.GetHashCode() : 0);
+        }
+
+        /// <summary>
+        /// Required when operator == or operator != is defined
+        /// </summary>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == this.GetType() && Equals(this.columnProxy, ((Column)obj).columnProxy);
+        }
+
+        /// <summary>
         /// SQL like expression.
         /// </summary>
         /// <param name="literal"></param>

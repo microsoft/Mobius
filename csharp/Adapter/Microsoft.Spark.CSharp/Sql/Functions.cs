@@ -396,7 +396,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
             if (types.Any(t => !returnTypes.ContainsKey(t)))
             {
-                throw new ArgumentException(string.Format("{0} not supported. Supported types: {1}", type.Name), string.Join(",", returnTypes.Keys));
+                throw new ArgumentException(string.Format("{0} not supported. Supported types: {1}", type.Name, string.Join(",", returnTypes.Keys)));
             }
 
             return string.Format(returnTypeFormat, types.Select(t => returnTypes[t]).ToArray());

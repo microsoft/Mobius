@@ -61,8 +61,6 @@ namespace Microsoft.Spark.CSharp.Configuration
                 throw new NotSupportedException(string.Format("Spark master value {0} not recognized", sparkMaster));
             }
 
-            // Workaround compiler warning CS0414:
-            // The variable runMode is assigned not used
             logger.LogInfo(string.Format("ConfigurationService runMode is {0}", runMode));
         }
 
@@ -110,7 +108,7 @@ namespace Microsoft.Spark.CSharp.Configuration
 
             internal virtual string GetCSharpRDDExternalProcessName()
             {
-                //SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. Thse files available in spark executing directory at executor
+                //SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. These files available in spark executing directory at executor
                 return "CSharpWorker.exe";
             }
 

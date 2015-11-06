@@ -16,7 +16,7 @@ namespace Microsoft.Spark.CSharp.Samples
         /// Sample to compute th evalue of Pi
         /// </summary>
         [Sample]
-        private static void PiSample()
+        internal static void PiSample()
         {
             var slices = 2;
             var n = (int) Math.Min(100000L*slices, int.MaxValue);
@@ -48,7 +48,6 @@ namespace Microsoft.Spark.CSharp.Samples
             /********************************************************************/
         }
 
-        
         [Serializable]
         private class PiHelper
         {
@@ -61,7 +60,5 @@ namespace Microsoft.Spark.CSharp.Samples
                 return (x * x + y * y) < 1 ? 1 : 0;    
             }
         }
-        
-
     }
 }

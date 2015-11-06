@@ -150,7 +150,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Hadoop-supported file system URI. Each file is read as a single record and returned in a
         /// key-value pair, where the key is the path of each file, the value is the content of each file.
         ///
-        /// <p> For example, if you have the following files:
+        /// &lt;p> For example, if you have the following files:
         /// {{{
         ///   hdfs://a-hdfs-path/part-00000
         ///   hdfs://a-hdfs-path/part-00001
@@ -160,10 +160,10 @@ namespace Microsoft.Spark.CSharp.Core
         ///
         /// Do
         /// {{{
-        ///   JavaPairRDD<String, String> rdd = sparkContext.wholeTextFiles("hdfs://a-hdfs-path")
+        ///   JavaPairRDD&lt;String, String> rdd = sparkContext.wholeTextFiles("hdfs://a-hdfs-path")
         /// }}}
         ///
-        /// <p> then `rdd` contains
+        /// &lt;p> then `rdd` contains
         /// {{{
         ///   (a-hdfs-path/part-00000, its content)
         ///   (a-hdfs-path/part-00001, its content)
@@ -198,7 +198,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// }}}
         ///
         /// Do
-        /// `JavaPairRDD<String, byte[]> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+        /// `JavaPairRDD&lt;String, byte[]> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
         ///
         /// then `rdd` contains
         /// {{{
@@ -259,7 +259,6 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="keyConverterClass">(None by default)</param>
         /// <param name="valueConverterClass">(None by default)</param>
         /// <param name="conf"> Hadoop configuration, passed in as a dict (None by default)</param>
-        /// <param name="batchSize"></param>
         /// <returns></returns>
         public RDD<byte[]> NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
         {

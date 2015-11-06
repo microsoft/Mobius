@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.Spark.CSharp.Interop;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -149,23 +148,23 @@ namespace Microsoft.Spark.CSharp.Sql
         ///   df.SelectExpr("colA", "colB as newName", "abs(colC)")
         ///   
         /// </summary>
-        /// <param name="columnNames"></param>
+        /// <param name="columnExpressions"></param>
         /// <returns></returns>
         public DataFrame SelectExpr(params string[] columnExpressions)
         {
             return new DataFrame(dataFrameProxy.SelectExpr(columnExpressions), sparkContext);
         }
 
-        /// <summary>
-        /// TO DO:  to be decided whether to expose this API
-        /// 
-        ///     1. has alternative - sql("<SQL scripts>")
-        ///     2. perf impact comapred to sql() - 1 more java call per each Column in select list
-        ///     
-        /// Select a list of columns
-        /// </summary>
-        /// <param name="columnNames"></param>
-        /// <returns></returns>
+        // /// <summary>
+        // /// TO DO:  to be decided whether to expose this API
+        // /// 
+        // ///     1. has alternative - sql("<SQL scripts>")
+        // ///     2. perf impact comapred to sql() - 1 more java call per each Column in select list
+        // ///     
+        // /// Select a list of columns
+        // /// </summary>
+        // /// <param name="columns"></param>
+        // /// <returns></returns>
         //public DataFrame Select(params Column[] columns)
         //{
         //    List<IColumnProxy> columnReferenceList = columns.Select(column => column.ColumnProxy).ToList();
@@ -222,21 +221,22 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
-        /// Join with another DataFrame
+        /// Join with another DataFrame - Cartesian join
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to join with</param>
         /// <returns>Joined DataFrame</returns>
-        public DataFrame Join(DataFrame otherDataFrame) //cartesian join
+        public DataFrame Join(DataFrame otherDataFrame)
         {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Join with another DataFrame
+        /// Join with another DataFrame - Inner equi-join using given column name
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to join with</param>
+        /// <param name="joinColumnName">Column to join with.</param>
         /// <returns>Joined DataFrame</returns>
-        public DataFrame Join(DataFrame otherDataFrame, string joinColumnName) //inner equi join using given column name //need aliasing for self join
+        public DataFrame Join(DataFrame otherDataFrame, string joinColumnName) // TODO: need aliasing for self join
         {
             return new DataFrame(
                 dataFrameProxy.Join(otherDataFrame.dataFrameProxy, joinColumnName),
@@ -244,11 +244,12 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
-        /// Join with another DataFrame
+        /// Join with another DataFrame - Inner equi-join using given column name 
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to join with</param>
+        /// <param name="joinColumnNames">Columns to join with.</param>
         /// <returns>Joined DataFrame</returns>
-        public DataFrame Join(DataFrame otherDataFrame, string[] joinColumnNames) //inner equi join using given column name //need aliasing for self join
+        public DataFrame Join(DataFrame otherDataFrame, string[] joinColumnNames) // TODO: need aliasing for self join
         {
             return new DataFrame(
                 dataFrameProxy.Join(otherDataFrame.dataFrameProxy, joinColumnNames),
@@ -256,9 +257,11 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
-        /// Join with another DataFrame
+        /// Join with another DataFrame, using the specified JoinType
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to join with</param>
+        /// <param name="joinExpression">Column to join with.</param>
+        /// <param name="joinType">Type of join to perform (default null value means <c>JoinType.Inner</c>)</param>
         /// <returns>Joined DataFrame</returns>
         public DataFrame Join(DataFrame otherDataFrame, Column joinExpression, JoinType joinType = null) 
         {
