@@ -204,7 +204,7 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to join DataFrame using DSL
+        /// Sample to join DataFrames using DSL
         /// </summary>
         [Sample]
         internal static void DFJoinSample()
@@ -224,7 +224,7 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to intersect DataFrame using DSL
+        /// Sample to intersect DataFrames using DSL.
         /// </summary>
         [Sample]
         internal static void DFIntersectSample()
@@ -237,7 +237,57 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to perform aggregatoin on DataFrame using DSL
+        /// Sample to unionAll DataFrames using DSL.
+        /// </summary>
+        [Sample]
+        internal static void DFUnionAllSample()
+        {
+            var peopleDataFrame1 = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var peopleDataFrame2 = peopleDataFrame1.Filter("name = 'Bill'");
+
+            var unioned = peopleDataFrame1.UnionAll(peopleDataFrame2);
+            unioned.Show();
+        }
+
+        /// <summary>
+        /// Sample to subtract a DataFrame from another DataFrame using DSL.
+        /// </summary>
+        [Sample]
+        internal static void DFSubtractSample()
+        {
+            var peopleDataFrame1 = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var peopleDataFrame2 = peopleDataFrame1.Filter("name = 'Bill'");
+
+            var subtracted = peopleDataFrame1.Subtract(peopleDataFrame2);
+            subtracted.Show();
+        }
+
+        /// <summary>
+        /// Sample to subtract a DataFrame from another DataFrame using DSL.
+        /// </summary>
+        [Sample]
+        internal static void DFDropSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var dropped = peopleDataFrame.Drop("name");
+            dropped.Show();
+        }
+
+        /// <summary>
+        /// Sample to subtract a DataFrame from another DataFrame using DSL.
+        /// </summary>
+        [Sample]
+        internal static void DFDropNaSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var dropped = peopleDataFrame.DropNa(thresh: 2, subset: new []{"name", "address"});
+            dropped.Show();
+        }
+
+        /// <summary>
+        /// Sample to perform aggregation on DataFrame using DSL
         /// </summary>
         [Sample]
         internal static void DFAggregateDSLSample()

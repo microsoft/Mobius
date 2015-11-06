@@ -272,14 +272,67 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
-        /// Intersect with another DataFrame
+        /// Intersect with another DataFrame.
+        /// This is equivalent to `INTERSECT` in SQL.
         /// </summary>
-        /// <param name="otherDataFrame">DataFrame to intersect with</param>
-        /// <returns>Intersected DataFrame</returns>
+        /// <param name="otherDataFrame">DataFrame to intersect with.</param>
+        /// <returns>Intersected DataFrame.</returns>
         public DataFrame Intersect(DataFrame otherDataFrame)
         {
             return
                 new DataFrame(dataFrameProxy.Intersect(otherDataFrame.dataFrameProxy), sparkContext);
+        }
+
+        /// <summary>
+        /// Union with another DataFrame WITHOUT removing duplicated rows.
+        /// This is equivalent to `UNION ALL` in SQL.
+        /// </summary>
+        /// <param name="otherDataFrame">DataFrame to union all with.</param>
+        /// <returns>Unioned DataFrame.</returns>
+        public DataFrame UnionAll(DataFrame otherDataFrame)
+        {
+            return
+                new DataFrame(dataFrameProxy.UnionAll(otherDataFrame.dataFrameProxy), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame containing rows in this frame but not in another frame.
+        /// This is equivalent to `EXCEPT` in SQL.
+        /// </summary>
+        /// <param name="otherDataFrame">DataFrame to subtract from this frame.</param>
+        /// <returns>A new DataFrame containing rows in this frame but not in another frame.</returns>
+        public DataFrame Subtract(DataFrame otherDataFrame)
+        {
+            return
+                new DataFrame(dataFrameProxy.Subtract(otherDataFrame.dataFrameProxy), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame with a column dropped.
+        /// </summary>
+        /// <param name="columnName"> a string name of the column to drop</param>
+        /// <returns>A new new DataFrame that drops the specified column.</returns>
+        public DataFrame Drop(string columnName)
+        {
+            return
+                new DataFrame(dataFrameProxy.Drop(columnName), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame omitting rows with null values.
+        /// </summary>
+        /// <param name="how">'any' or 'all'. 
+        /// If 'any', drop a row if it contains any nulls.
+        /// If 'all', drop a row only if all its values are null.</param>
+        /// <param name="thresh">thresh: int, default null.
+        /// If specified, drop rows that have less than `thresh` non-null values.
+        /// This overwrites the `how` parameter.</param>
+        /// <param name="subset">optional list of column names to consider.</param>
+        /// <returns>A new DataFrame omitting rows with null values</returns>
+        public DataFrame DropNa(string how = "any", int? thresh = null, string[] subset = null)
+        {
+            return
+                new DataFrame(dataFrameProxy.DropNa(how, thresh, subset), sparkContext);
         }
     }
 
