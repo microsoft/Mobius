@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.Sql
 {
     public class Column
     {
-        private IColumnProxy columnProxy;
+        private readonly IColumnProxy columnProxy;
 
         internal IColumnProxy ColumnProxy
         {

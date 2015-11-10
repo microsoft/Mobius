@@ -3,56 +3,49 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using log4net;
 
 namespace Microsoft.Spark.CSharp.Services
 {
-    //TODO - add log4net NuGet and complete impl
     public class Log4NetLoggerService : ILoggerService
     {
-        /*
-        private ILog logger;
+        private readonly ILog logger;
         private const string exceptionLogDelimiter = "*******************************************************************************************************************************";
-        */
+        public static Log4NetLoggerService Instance = new Log4NetLoggerService(typeof(Type));
+
         public Log4NetLoggerService(Type type)
         {
-            //logger = log4net.LogManager.GetLogger(type);
-            throw new NotImplementedException();
+            logger = LogManager.GetLogger(type);
         }
 
         public void LogDebug(string message)
         {
-            //logger.Debug(message);
-            throw new NotImplementedException();
+            logger.Debug(message);
         }
 
         public void LogInfo(string message)
         {
-            //logger.Info(message);
-            throw new NotImplementedException();
+            logger.Info(message);
         }
 
         public void LogWarn(string message)
         {
-            //logger.Warn(message);
-            throw new NotImplementedException();
+            logger.Warn(message);
         }
 
         public void LogFatal(string message)
         {
-            //logger.Fatal(message);
-            throw new NotImplementedException();
+            logger.Fatal(message);
         }
 
         public void LogError(string message)
         {
-            //logger.Error(message);
-            throw new NotImplementedException();
+            logger.Error(message);
         }
 
         public void LogException(Exception e)
         {
-            throw new NotImplementedException();
-            /*
+            
             if (e.GetType() != typeof(AggregateException))
             {
                 logger.Error(e.Message);
@@ -78,7 +71,7 @@ namespace Microsoft.Spark.CSharp.Services
             else
             {
                 LogError("Aggregate Exception thrown...");
-                AggregateException aggregateException = e as AggregateException;
+                var aggregateException = e as AggregateException;
                 int count = 1;
                 foreach (var innerException in aggregateException.InnerExceptions)
                 {
@@ -87,12 +80,12 @@ namespace Microsoft.Spark.CSharp.Services
                 }
 
             }
-            */
+            
         }
          
         public ILoggerService GetLoggerInstance(Type type)
         {
-            throw new NotImplementedException();
+            return new Log4NetLoggerService(type);
         }
     }
 

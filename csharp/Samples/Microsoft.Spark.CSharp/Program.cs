@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -22,7 +23,7 @@ namespace Microsoft.Spark.CSharp.Samples
         static void Main(string[] args)
         {
             ProcessArugments(args);
-
+            LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance);
             SparkContext = CreateSparkContext();
             SparkContext.SetCheckpointDir(Path.GetTempPath()); 
             RunSamples();

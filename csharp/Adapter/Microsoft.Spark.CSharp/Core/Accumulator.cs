@@ -46,7 +46,7 @@ namespace Microsoft.Spark.CSharp.Core
     {
         [NonSerialized]
         private T value;
-        private AccumulatorParam<T> accumulatorParam = new AccumulatorParam<T>();
+        private readonly AccumulatorParam<T> accumulatorParam = new AccumulatorParam<T>();
 
         internal Accumulator(int accumulatorId, T value)
         {

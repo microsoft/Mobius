@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     {
         private SparkContextIpcProxy sparkContextProxy;
 
-        private static IJvmBridge jvmBridge = new JvmBridge();
+        private static readonly IJvmBridge jvmBridge = new JvmBridge();
         internal static IJvmBridge JvmBridge
         {
             get
@@ -67,7 +67,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IStructTypeProxy CreateStructType(List<StructField> fields)
         {
             var fieldsReference = fields.Select(s => (s.StructFieldProxy as StructFieldIpcProxy).JvmStructFieldReference).ToList().Cast<JvmObjectReference>();
-            //var javaObjectReferenceList = objectList.Cast<JvmObjectReference>().ToList();
+            
             var seq =
                 new JvmObjectReference(
                     JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",

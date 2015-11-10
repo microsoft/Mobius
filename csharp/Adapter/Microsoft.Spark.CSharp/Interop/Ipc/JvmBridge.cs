@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     internal class JvmBridge : IJvmBridge
     {
         private ISparkCLRSocket socket;
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof (JvmBridge));
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof (JvmBridge));
 
         public void Initialize(int portNumber)
         {
