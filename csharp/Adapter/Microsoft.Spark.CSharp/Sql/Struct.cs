@@ -38,6 +38,12 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        public string ToJson()
+        {
+            return structTypeProxy.ToJson();
+        }
+
+
         internal StructType(IStructTypeProxy structTypeProxy)
         {
             this.structTypeProxy = structTypeProxy;

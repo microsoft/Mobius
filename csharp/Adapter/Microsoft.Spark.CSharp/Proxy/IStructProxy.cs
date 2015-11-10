@@ -12,6 +12,7 @@ namespace Microsoft.Spark.CSharp.Proxy
     interface IStructTypeProxy
     {
         List<IStructFieldProxy> GetStructTypeFields();
+        string ToJson();
     }
 
     interface IStructDataTypeProxy
