@@ -40,7 +40,7 @@ namespace Microsoft.Spark.CSharp.Samples
             if (SampleDataLocation.StartsWith("hdfs://"))
             {
                 var clusterPath = SampleDataLocation + "/" + fileName;
-                Console.WriteLine("Cluster path " + clusterPath);
+                SparkCLRSamples.Logger.LogInfo("Cluster path " + clusterPath);
                 return clusterPath;
             }
             else

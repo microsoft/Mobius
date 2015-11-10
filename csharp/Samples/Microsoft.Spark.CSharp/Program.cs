@@ -20,10 +20,13 @@ namespace Microsoft.Spark.CSharp.Samples
     {
         internal static Configuration Configuration = new Configuration();
         internal static SparkContext SparkContext;
+        internal static ILoggerService Logger;
+
         static void Main(string[] args)
         {
             ProcessArugments(args);
-            LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance);
+            LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance); //this is optional - DefaultLoggerService will be used if not set
+            Logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRSamples));
             SparkContext = CreateSparkContext();
             SparkContext.SetCheckpointDir(Path.GetTempPath()); 
             RunSamples();
@@ -64,7 +67,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
                 if (runSample)
                 {
-                    Console.WriteLine("----- Running sample {0} -----", sample.Name);
+                    Logger.LogInfo(string.Format("----- Running sample {0} -----", sample.Name));
                     sample.Invoke(null, new object[] { });
                 }
             }
@@ -75,7 +78,7 @@ namespace Microsoft.Spark.CSharp.Samples
         //simple commandline arg processor
         private static void ProcessArugments(string[] args)
         {
-            Console.WriteLine("Arguments to SparkCLRSamples are {0}", string.Join(",", args));
+            Logger.LogInfo(string.Format("Arguments to SparkCLRSamples are {0}", string.Join(",", args)));
             for (int i=0; i<args.Length;i++)
             {
                 if (args[i].Equals("spark.local.dir", StringComparison.InvariantCultureIgnoreCase))

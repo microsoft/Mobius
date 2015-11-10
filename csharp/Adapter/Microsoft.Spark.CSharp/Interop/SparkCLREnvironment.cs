@@ -19,15 +19,7 @@ namespace Microsoft.Spark.CSharp.Interop
         private static ISparkCLRProxy sparkCLRProxy;
         internal static ISparkCLRProxy SparkCLRProxy
         {
-            get
-            {
-                if (sparkCLRProxy == null)
-                {
-                    // TO DO: should get from app.config first, if not configured, then default to IPC
-                    sparkCLRProxy = new SparkCLRIpcProxy();
-                }
-                return sparkCLRProxy;
-            }
+            get { return sparkCLRProxy ?? (sparkCLRProxy = new SparkCLRIpcProxy()); }
             set
             {
                 sparkCLRProxy = value;   // for plugging test environment
@@ -38,12 +30,7 @@ namespace Microsoft.Spark.CSharp.Interop
 
         internal static IConfigurationService ConfigurationService
         {
-            get
-            {
-                if (configurationService == null)
-                    configurationService = new ConfigurationService();
-                return configurationService;
-            }
+            get { return configurationService ?? (configurationService = new ConfigurationService()); }
             set
             {
                 configurationService = value;

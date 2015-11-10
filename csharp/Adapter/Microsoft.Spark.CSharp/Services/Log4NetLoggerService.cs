@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using log4net;
+using log4net.Config;
 
 namespace Microsoft.Spark.CSharp.Services
 {
@@ -12,6 +13,11 @@ namespace Microsoft.Spark.CSharp.Services
         private readonly ILog logger;
         private const string exceptionLogDelimiter = "*******************************************************************************************************************************";
         public static Log4NetLoggerService Instance = new Log4NetLoggerService(typeof(Type));
+
+        static Log4NetLoggerService()
+        {
+            XmlConfigurator.Configure();
+        }
 
         public Log4NetLoggerService(Type type)
         {
