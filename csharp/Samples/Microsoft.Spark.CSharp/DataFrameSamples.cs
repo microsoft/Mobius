@@ -37,6 +37,60 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Sample to get schema of DataFrame in json format
+        /// </summary>
+        [Sample]
+        internal static void DFGetSchemaToJsonSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            string json = peopleDataFrame.Schema.ToJson();
+            Console.WriteLine("schema in json format: {0}", json);
+        }
+
+        /// <summary>
+        /// Sample to run collect for DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFCollectSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            IEnumerable<Row> rows = peopleDataFrame.Collect();
+            Console.WriteLine("peopleDataFrame:");
+            int i = 0;
+
+            foreach (var row in rows)
+            {
+                if (i == 0)
+                {
+                    Console.WriteLine("schema: {0}", row.GetSchema());
+                }
+
+                // output the whole row as a string
+                Console.WriteLine(row);
+
+                // output each field of the row, including fields in subrow
+                string id = row.GetAs<string>("id");
+                string name = row.GetAs<string>("name");
+                int age = row.GetAs<int>("age");
+                Console.Write("id: {0}, name: {1}, age: {2}", id, name, age);
+
+                Row address = row.GetAs<Row>("address");
+                if (address != null)
+                {
+                    string city = address.GetAs<string>("city");
+                    string state = address.GetAs<string>("state");
+                    Console.WriteLine(", state: {0}, city: {1}", state, city);
+                }
+                else
+                {
+                    Console.WriteLine();
+                }
+
+                i++;
+            }
+        }
+
+        /// <summary>
         /// Sample to register a DataFrame as temptable and run queries
         /// </summary>
         [Sample]

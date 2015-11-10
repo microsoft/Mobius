@@ -14,6 +14,7 @@ namespace Microsoft.Spark.CSharp.Proxy
     {
         void RegisterTempTable(string tableName);
         long Count();
+        int CollectAndServe();
         string GetQueryExecution();
         string GetExecutedPlan();
         string GetShowString(int numberOfRows, bool truncate);

@@ -30,6 +30,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var fieldsReferenceList = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructTypeReference, "fields");
             return (fieldsReferenceList as List<JvmObjectReference>).Select(s => new StructFieldIpcProxy(s)).Cast<IStructFieldProxy>().ToList();
         }
+
+        public string ToJson()
+        {
+            return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStructTypeReference, "json").ToString();
+        }
     }
 
     internal class StructDataTypeIpcProxy : IStructDataTypeProxy
