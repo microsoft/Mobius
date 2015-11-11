@@ -294,6 +294,15 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         dataFrameNaRef, "drop",
                         new object[] { thresh, subset ?? columnNames }).ToString()), sqlContextProxy); 
         }
+
+        public IDataFrameProxy Limit(int num)
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "limit",
+                        new object[] { num }).ToString()), sqlContextProxy);
+        }
     }
 
     internal class UDFIpcProxy : IUDFProxy
