@@ -31,64 +31,28 @@ if not "%SPARKCSV_JARS%" == "" (
     SET SPARKCLR_CLASSPATH=%SPARKCLR_CLASSPATH%;%SPARKCSV_JARS%
 )
 set LAUNCH_CLASSPATH=%SPARK_ASSEMBLY_JAR%;%SPARKCLR_CLASSPATH%
-set SPARKCLR_SUBMIT_CLASS=org.apache.spark.deploy.csharp.SparkCLRSubmit
-set SPARK_SUBMIT_CLASS=org.apache.spark.deploy.SparkSubmit
-set JARS=%SPARKCLR_CLASSPATH%
-if not "%CSHARPSPARK_APP_JARS%" == "" (
-	SET JARS=%JARS%,%CSHARPSPARK_APP_JARS%
-)
 
 if "%1"=="debug" (
   goto :debugmode
 )
 
-rem The launcher library prints the command to be executed in a single line suitable for being
-rem executed by the batch interpreter. So read all the output of the launcher into a variable.
+rem The launcher library prints the arguments to be submitted to spark-submit.cmd. So read all the output of the launcher into a variable.
 set LAUNCHER_OUTPUT=%temp%\spark-class-launcher-output-%RANDOM%.txt
-%JAVA_HOME%\bin\java -cp %LAUNCH_CLASSPATH% org.apache.spark.launcher.Main %SPARK_SUBMIT_CLASS% --jars %JARS% --class %SPARKCLR_SUBMIT_CLASS% %* > %LAUNCHER_OUTPUT%
+%JAVA_HOME%\bin\java -cp %LAUNCH_CLASSPATH% org.apache.spark.launcher.SparkCLRSubmitArguments %* > %LAUNCHER_OUTPUT%
 
-REM *********************************************************************************
-REM ** TODO ** - replace the following sections in the script with a functionality that is implemented in scala 
-REM ** TODO ** - that will call org.apache.spark.launcher.Main, perform class name substituition, do classpath prefixing and generate the command to run
-REM Following sections are simply a hack to leverage existing Spark artifacts - this will also help keeping CSharpSpark aligned with Spark's approach for arg parsing etc.
-REM Following block replaces SparkSubmit with SparkCLRSubmit
-REM *********************************************************************************  
-set LAUNCHER_OUTPUT_TEMP=sparkclr-submit-temp.txt
-for /f "tokens=* delims= " %%A in ( '"type %LAUNCHER_OUTPUT%"') do (
-SET originalstring=%%A
-SET modifiedstring=!originalstring:%SPARK_SUBMIT_CLASS%=%SPARKCLR_SUBMIT_CLASS%!
+if %ERRORLEVEL% EQU 0 (
+   goto :eof
+)
 
-echo !modifiedstring! >> %LAUNCHER_OUTPUT_TEMP%
+for /f "tokens=*" %%i in (%LAUNCHER_OUTPUT%) do (
+  set SPARK_ARGS=%%i
 )
 
 del %LAUNCHER_OUTPUT%
-REM *********************************************************************************
 
-REM *********************************************************************************
-REM Following block prefixes classpath with SPARKCLR_JAR
-REM *********************************************************************************
-set LAUNCHER_OUTPUT_TEMP2=sparkclr-submit-temp2.txt
-set CLASSPATH_SUBSTRING=-cp "
-set UPDATED_CLASSPATH_SUBSTRING=-cp "%SPARKCLR_CLASSPATH%;
-for /f "tokens=* delims= " %%A in ( '"type %LAUNCHER_OUTPUT_TEMP%"') do (
-SET originalstring2=%%A
-SET modifiedstring2=!originalstring2:%CLASSPATH_SUBSTRING%=%UPDATED_CLASSPATH_SUBSTRING%!
-
-echo !modifiedstring2! >> %LAUNCHER_OUTPUT_TEMP2%
-)
-
-del %LAUNCHER_OUTPUT_TEMP%
-REM *********************************************************************************
-
-
-for /f "tokens=*" %%i in (%LAUNCHER_OUTPUT_TEMP2%) do (
-  set SPARK_CMD=%%i
-)
-
-del %LAUNCHER_OUTPUT_TEMP2%
-REM launches the Spark job with SparkCLRSubmit as the Main class
-echo Command to run %SPARK_CMD%
-%SPARK_CMD%
+REM launches the Spark job with Spark-Submit.cmd
+echo Command to run %SPARK_ARGS%
+%SPARK_HOME%/bin/spark-submit.cmd %SPARK_ARGS%
 
 goto :eof
 
@@ -115,4 +79,7 @@ goto :eof
 :usage
 	@echo Error - usage error.
 	@echo Correct usage is as follows
-	@echo sparkclr-submit.cmd [--verbose] [--master local] [--name testapp] d:\SparkCLRHome\lib\spark-clr-1.4.1-SNAPSHOT.jar c:\sparkclrapp\driver\csdriver.exe arg1 arg2 arg3
+	@echo Example 1:
+	@echo sparkclr-submit.cmd [--verbose] [--master local] [--deploy-mode client] [--name testapp] --exe csdriver.exe c:\sparkclrapp\driver arg1 arg2 arg3
+	@echo Example 2:
+	@echo sparkclr-submit.cmd [--verbose] [--master local] [--deploy-mode client] [--name testapp] --exe csdriver.exe c:\sparkclrapp\driver.zip arg1 arg2 arg3

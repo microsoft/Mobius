@@ -51,10 +51,15 @@ namespace Microsoft.Spark.CSharp.Configuration
                 configuration = new SparkCLRConfiguration(appConfig);
                 runMode = RunMode.CLUSTER;
             }
-            else if (sparkMaster.StartsWith("yarn"))
+            else if (sparkMaster.Equals("yarn-client", StringComparison.OrdinalIgnoreCase))
             {
+                configuration = new SparkCLRConfiguration(appConfig);
                 runMode = RunMode.YARN;
-                throw new NotSupportedException("YARN is not currently supported");
+            }
+            else if (sparkMaster.Equals("yarn-cluster", StringComparison.OrdinalIgnoreCase))
+            {
+                configuration = new SparkCLRYarnClusterConfiguration(appConfig);
+                runMode = RunMode.YARN;
             }
             else
             {
@@ -177,6 +182,22 @@ namespace Microsoft.Spark.CSharp.Configuration
                 return cSharpBackendPortNumber;
             }
         }
+
+        /// <summary>
+        /// Configuration for SparkCLR jobs in ** Yarn-Cluster ** mode
+        /// </summary>
+        private class SparkCLRYarnClusterConfiguration : SparkCLRConfiguration
+        {
+            internal SparkCLRYarnClusterConfiguration(System.Configuration.Configuration configuration)
+                : base(configuration)
+            { }
+
+            internal override string GetCSharpWorkerPath()
+            {
+                return "CSharpSparkWorker.exe";
+            }
+
+        }
     }
 
     public enum RunMode
@@ -185,8 +206,8 @@ namespace Microsoft.Spark.CSharp.Configuration
         DEBUG, //not a Spark mode but exists for dev debugging purpose
         LOCAL,
         CLUSTER,
-        //following are not currently supported
         YARN,
+        //following are not currently supported
         MESOS
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp.Proxy
 {
     internal interface ISqlContextProxy
     {
-        IDataFrameProxy ReaDataFrame(string path, StructType schema, Dictionary<string, string> options);
+        IDataFrameProxy ReadDataFrame(string path, StructType schema, Dictionary<string, string> options);
         IDataFrameProxy JsonFile(string path);
         IDataFrameProxy TextFile(string path, StructType schema, string delimiter);
         IDataFrameProxy TextFile(string path, string delimiter, bool hasHeader, bool inferSchema);

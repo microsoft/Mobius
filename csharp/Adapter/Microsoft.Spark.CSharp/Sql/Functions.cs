@@ -363,7 +363,7 @@ namespace Microsoft.Spark.CSharp.Sql
         }
         #endregion
 
-        private static Dictionary<Type, string> returnTypes = new Dictionary<Type, string>
+        private static readonly Dictionary<Type, string> returnTypes = new Dictionary<Type, string>
         {
             {typeof(string), "string"},
             {typeof(byte[]), "binary"},

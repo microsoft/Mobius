@@ -50,19 +50,44 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         private string version;
         public string Version
         {
-            get { if (version == null) { version = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "version"); } return version; }
+            get {
+                return version ??
+                       (version =
+                           (string)
+                               SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "version"));
+            }
         }
 
         private long? startTime;
         public long StartTime
         {
-            get { if (startTime == null) { startTime = (long)(double)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "startTime"); } return (long)startTime; }
+            get
+            {
+                if (startTime == null)
+                {
+                    startTime =
+                        (long)
+                            (double)
+                                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "startTime");
+                }
+                return (long) startTime;
+            }
         }
 
         private int? defaultParallelism;
         public int DefaultParallelism
         {
-            get { if (defaultParallelism == null) { defaultParallelism = (int)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "defaultParallelism"); } return (int)defaultParallelism; }
+            get
+            {
+                if (defaultParallelism == null)
+                {
+                    defaultParallelism =
+                        (int)
+                            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference,
+                                "defaultParallelism");
+                }
+                return (int) defaultParallelism;
+            }
         }
 
         private int? defaultMinPartitions;
@@ -117,14 +142,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy SequenceFile(string filePath, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, int minSplits, int batchSize)
         {
-            var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "sequenceFile",
+            var jvmRddReference = new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "sequenceFile",
                 new object[] { jvmJavaContextReference, filePath, keyClass, valueClass, keyConverterClass, valueConverterClass, minSplits, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
         }
 
         public IRDDProxy NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaMap<string, string>(conf) as JvmObjectReference;
+            var jconf = GetJavaMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "newAPIHadoopFile",
                 new object[] { jvmJavaContextReference, filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -132,7 +157,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaMap<string, string>(conf) as JvmObjectReference;
+            var jconf = GetJavaMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "newAPIHadoopRDD",
                 new object[] { jvmJavaContextReference, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -140,7 +165,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaMap<string, string>(conf) as JvmObjectReference;
+            var jconf = GetJavaMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "hadoopFile",
                 new object[] { jvmJavaContextReference, filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -148,7 +173,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaMap<string, string>(conf) as JvmObjectReference;
+            var jconf = GetJavaMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "hadoopRDD",
                 new object[] { jvmJavaContextReference, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -169,7 +194,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 return rdds.First().RddProxy;
 
             var jfirst = (rdds.First().RddProxy as RDDIpcProxy).JvmRddReference;
-            var jrest = GetJavaList(rdds.TakeWhile((r, i) => i > 0).Select(r => (r.RddProxy as RDDIpcProxy).JvmRddReference)) as JvmObjectReference;
+            var jrest = GetJavaList(rdds.TakeWhile((r, i) => i > 0).Select(r => (r.RddProxy as RDDIpcProxy).JvmRddReference));
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "union", new object[] { jfirst, jrest }));
             return new RDDIpcProxy(jvmRddReference);
         }
@@ -217,13 +242,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         private IStatusTrackerProxy statusTracker;
         public IStatusTrackerProxy StatusTracker
         {
-            get
-            {
-                if (statusTracker == null)
-                {
-                    statusTracker = new StatusTrackerIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "statusTracker")));
-                }
-                return statusTracker;
+            get {
+                return statusTracker ??
+                       (statusTracker =
+                           new StatusTrackerIpcProxy(
+                               new JvmObjectReference(
+                                   (string)
+                                       SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference,
+                                           "statusTracker"))));
             }
         }
 

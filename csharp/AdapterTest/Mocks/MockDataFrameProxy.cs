@@ -34,6 +34,12 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+
+        public int CollectAndServe()
+        {
+            throw new NotImplementedException();
+        }
+
         public string GetQueryExecution()
         {
             throw new NotImplementedException();

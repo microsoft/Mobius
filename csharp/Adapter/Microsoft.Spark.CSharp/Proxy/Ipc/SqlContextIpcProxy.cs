@@ -21,9 +21,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             this.jvmSqlContextReference = jvmSqlContextReference;
         }
 
-        public IDataFrameProxy ReaDataFrame(string path, StructType schema, Dictionary<string, string> options)
+        public IDataFrameProxy ReadDataFrame(string path, StructType schema, Dictionary<string, string> options)
         {
-            //parameter Dictionary<string, string> options is not used right now - it is meant to be passed on to data sources
+            //TODO parameter Dictionary<string, string> options is not used right now - it is meant to be passed on to data sources
             return new DataFrameIpcProxy(
                         new JvmObjectReference(
                                SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "loadDF", new object[] { jvmSqlContextReference, path, (schema.StructTypeProxy as StructTypeIpcProxy).JvmStructTypeReference }).ToString()

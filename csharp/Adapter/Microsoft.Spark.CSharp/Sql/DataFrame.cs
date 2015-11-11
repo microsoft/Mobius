@@ -4,8 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using System.Net.Sockets;
+
+using Razorvine.Pickle;
+
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Interop;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -16,9 +24,10 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class DataFrame
     {
-        private IDataFrameProxy dataFrameProxy;
+        private readonly IDataFrameProxy dataFrameProxy;
         private readonly SparkContext sparkContext;
         private StructType schema;
+        private RowSchema rowSchema;
         
         internal SparkContext SparkContext
         {
@@ -90,9 +99,65 @@ namespace Microsoft.Spark.CSharp.Sql
             Console.WriteLine(string.Join(", ", nameTypeList));
         }
 
+        /// <summary>
+        /// Returns all of Rows in this DataFrame
+        /// </summary>
         public IEnumerable<Row> Collect()
         {
-            throw new NotImplementedException();
+            int port = dataFrameProxy.CollectAndServe();
+            RowSchema rs = GetRowSchema();
+            List<Row> items = Collect(port, rs);
+            return items.AsEnumerable<Row>();
+        }
+
+        private RowSchema GetRowSchema()
+        {
+            if (rowSchema == null)
+            {
+                string json = Schema.ToJson();
+                rowSchema = RowSchema.ParseRowSchemaFromJson(json);
+            }
+            return rowSchema;
+        }
+
+        private List<Row> Collect(int port, RowSchema dataType)
+        {
+            List<Row> items = new List<Row>();
+            IFormatter formatter = new BinaryFormatter();
+            Unpickler unpickler = new Unpickler();
+            Socket sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            sock.Connect("127.0.0.1", port);
+            NetworkStream ns = new NetworkStream(sock);
+
+            using (BinaryReader br = new BinaryReader(ns))
+            {
+                byte[] buffer = null;
+                do
+                {
+                    buffer = br.ReadBytes(4);
+                    if (buffer != null && buffer.Length > 0)
+                    {
+                        //In JVM, Multibyte data items are always stored in big-endian order, where the high bytes come first
+                        //http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
+                        //So we should handle revert buffer if our system is little-endian
+                        //https://msdn.microsoft.com/en-us/library/system.bitconverter(v=vs.110).aspx
+                        if (BitConverter.IsLittleEndian)
+                        {
+                            Array.Reverse(buffer);
+                        }
+
+                        int len = BitConverter.ToInt32(buffer, 0);
+                        byte[] data = br.ReadBytes(len);
+                        foreach (var item in (unpickler.loads(data) as object[]))
+                        {
+                            RowImpl row = new RowImpl(item, dataType);
+                            items.Add(row);
+                        }
+                    }
+                } while (buffer != null && buffer.Length > 0);
+            }
+
+            return items;
         }
 
         /// <summary>
@@ -389,12 +454,6 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             return new DataFrame(dataFrameProxy.ReplaceAll(toReplace, value, subset), sparkContext);
         }
-    }
-
-    //TODO - complete impl
-    public class Row
-    {
-        
     }
 
     public class JoinType
