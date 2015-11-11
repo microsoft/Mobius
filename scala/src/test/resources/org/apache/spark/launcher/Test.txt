@@ -1,0 +1,2 @@
+This file should be a .exe file, but this will conflict to the rules in .gitignore.
+Test suite needs to rename it to Test.exe before start to use it.
