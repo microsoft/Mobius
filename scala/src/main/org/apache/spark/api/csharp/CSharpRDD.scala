@@ -26,14 +26,10 @@ class CSharpRDD(
                                 envVars: JMap[String, String],
                                 cSharpIncludes: JList[String],
                                 preservePartitioning: Boolean,
-                                cSharpExec: String,
-                                cSharpVer: String,
+                                cSharpWorkerExecutable: String,
+                                unUsedVersionIdentifier: String,
                                 broadcastVars: JList[Broadcast[PythonBroadcast]],
                                 accumulator: Accumulator[JList[Array[Byte]]])
-<<<<<<< HEAD
-  extends PythonRDD (parent, command, envVars, cSharpIncludes, preservePartitioning, cSharpExec, cSharpVer, broadcastVars, accumulator) {
-
-=======
   extends PythonRDD (parent, command, envVars, cSharpIncludes, preservePartitioning, cSharpWorkerExecutable, unUsedVersionIdentifier, broadcastVars, accumulator) {
 
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {

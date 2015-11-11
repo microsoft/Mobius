@@ -92,27 +92,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IRDDProxy ToJSON()
         {
             return new RDDIpcProxy(
-<<<<<<< HEAD
-                new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDataFrameReference, "toJSON")),
-=======
                 new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDataFrameReference, "toJSON")), 
->>>>>>> ce87d34f8e0bf2ff3f5cfd1a5bc8aa743070fd0b
-                    "toJavaRDD")));
+                        "toJavaRDD")));
         }
 
         public IRDDProxy ToRDD()
         {
             return new RDDIpcProxy(
-<<<<<<< HEAD
-                new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "dfToRowRDD", new object[] { jvmDataFrameReference })),
-=======
                 new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "dfToRowRDD", new object[] {jvmDataFrameReference})),
->>>>>>> ce87d34f8e0bf2ff3f5cfd1a5bc8aa743070fd0b
-                    "toJavaRDD")));
+                        "toJavaRDD")));
         }
 
         public IColumnProxy GetColumn(string columnName)
@@ -133,13 +123,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 } :
                 new object[] { columnName, new string[0] }; // when columnNames is empty, pass an empty array to JVM instead calling SQLUtils.toSeq
 
-<<<<<<< HEAD
-            return new DataFrameIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                jvmDataFrameReference,
-=======
             return new DataFrameIpcProxy(new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                 jvmDataFrameReference, 
->>>>>>> ce87d34f8e0bf2ff3f5cfd1a5bc8aa743070fd0b
                 "select",
                 parameters)),
                 sqlContextProxy);
@@ -169,13 +154,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IGroupedDataProxy GroupBy(string firstColumnName, string[] otherColumnNames)
         {
             return
-<<<<<<< HEAD
-                new GroupedDataIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        jvmDataFrameReference,
-=======
                 new GroupedDataIpcProxy(new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         jvmDataFrameReference, 
->>>>>>> ce87d34f8e0bf2ff3f5cfd1a5bc8aa743070fd0b
                         "groupBy",
                         new object[] 
                         { 
