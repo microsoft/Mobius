@@ -15,7 +15,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
     internal class StatusTrackerIpcProxy : IStatusTrackerProxy
     {
-        private JvmObjectReference jvmStatusTrackerReference;
+        private readonly JvmObjectReference jvmStatusTrackerReference;
         public StatusTrackerIpcProxy(JvmObjectReference jStatusTracker)
         {
             jvmStatusTrackerReference = jStatusTracker;

@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp.Services
 {
+    /// <summary>
+    /// Used to get logger service instances for different types
+    /// </summary>
     public class LoggerServiceFactory
     {
-        private static ILoggerService loggerService = DefaultLoggerService.BootstrappingLoggerService;
+        private static ILoggerService loggerService = DefaultLoggerService.Instance;
         public static void SetLoggerService(ILoggerService loggerServiceOverride)
         {
             loggerService = loggerServiceOverride;

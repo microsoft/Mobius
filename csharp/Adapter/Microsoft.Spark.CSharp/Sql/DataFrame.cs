@@ -24,7 +24,7 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class DataFrame
     {
-        private IDataFrameProxy dataFrameProxy;
+        private readonly IDataFrameProxy dataFrameProxy;
         private readonly SparkContext sparkContext;
         private StructType schema;
         private RowSchema rowSchema;

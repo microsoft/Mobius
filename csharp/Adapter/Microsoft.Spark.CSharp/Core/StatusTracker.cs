@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp.Core
 {
     public class StatusTracker
     {
-        private IStatusTrackerProxy statusTrackerProxy;
+        private readonly IStatusTrackerProxy statusTrackerProxy;
         internal StatusTracker(IStatusTrackerProxy statusTrackerProxy)
         {
             this.statusTrackerProxy = statusTrackerProxy;

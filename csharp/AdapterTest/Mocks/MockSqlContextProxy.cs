@@ -27,7 +27,7 @@ namespace AdapterTest.Mocks
             mockSparkContextProxy = scProxy;
         }
 
-        public IDataFrameProxy ReaDataFrame(string path, StructType schema, System.Collections.Generic.Dictionary<string, string> options)
+        public IDataFrameProxy ReadDataFrame(string path, StructType schema, System.Collections.Generic.Dictionary<string, string> options)
         {
             throw new NotImplementedException();
         }

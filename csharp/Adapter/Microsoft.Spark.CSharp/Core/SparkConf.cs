@@ -19,8 +19,8 @@ namespace Microsoft.Spark.CSharp.Core
     /// </summary>
     public class SparkConf
     {
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
-        private ISparkConfProxy sparkConfProxy;
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
+        private readonly ISparkConfProxy sparkConfProxy;
         internal ISparkConfProxy SparkConfProxy { get { return sparkConfProxy; } }
 
         /// <summary>

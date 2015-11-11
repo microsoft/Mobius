@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.Sql
 {
     internal class UserDefinedFunction<RT>
     {
-        private IUDFProxy udfProxy;
+        private readonly IUDFProxy udfProxy;
 
         internal UserDefinedFunction(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func)
         {

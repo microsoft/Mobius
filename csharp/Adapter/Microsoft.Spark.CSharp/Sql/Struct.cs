@@ -14,7 +14,7 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class StructType
     {
-        private IStructTypeProxy structTypeProxy;
+        private readonly IStructTypeProxy structTypeProxy;
 
         internal IStructTypeProxy StructTypeProxy
         {
