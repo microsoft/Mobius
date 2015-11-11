@@ -374,5 +374,17 @@ namespace Microsoft.Spark.CSharp.Samples
             peopleDataFrame.RegisterTempTable("people");
             GetSqlContext().Sql("SELECT name, age*2 as age, FullAddress(address.city, address.state) as address FROM people where name='Bill' and age > 40 and PeopleFilter(name, age)").Show();
         }
+
+        /// <summary>
+        /// Sample to perform limit on DataFrame using DSL.
+        /// </summary>
+        [Sample]
+        internal static void DFLimitSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var peopleDataFrame2 = peopleDataFrame.Limit(2);
+            peopleDataFrame2.Show();
+        }
     }
 }

@@ -402,6 +402,18 @@ namespace Microsoft.Spark.CSharp.Sql
             return
                 new DataFrame(dataFrameProxy.DropNa(how, thresh, subset), sparkContext);
         }
+
+        /// <summary>
+        /// Returns a new DataFrame by taking the first `n` rows.
+        /// The difference between this function and `head` is that `head` returns an array while `limit` returns a new DataFrame.
+        /// </summary>
+        /// <param name="num">Number of rows to take from current DataFrame</param>
+        /// <returns>A new DataFrame containing the first `n` rows</returns>
+        public DataFrame Limit(int num)
+        {
+            return
+                new DataFrame(dataFrameProxy.Limit(num), sparkContext);
+        }
     }
 
     public class JoinType

@@ -36,6 +36,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Subtract(IDataFrameProxy otherScalaDataFrameReference);
         IDataFrameProxy Drop(string columnName);
         IDataFrameProxy DropNa(string how, int? thresh, string[] subset);
+        IDataFrameProxy Limit(int num);
     }
 
     internal interface IUDFProxy
