@@ -127,7 +127,7 @@ The following environment variables should be set properly:
 Set `CSharpWorkerPath` in `SparkCLRSamples.exe.config` and run the following command: 
 
 ```
-sparkclr-submit.cmd --verbose -exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
+sparkclr-submit.cmd --verbose --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
 ```   
 
 Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
