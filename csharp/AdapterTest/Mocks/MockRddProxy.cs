@@ -3,20 +3,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace AdapterTest.Mocks
 {
     internal class MockRddProxy : IRDDProxy
     {
+        internal IEnumerable<dynamic> result;
+
         internal object[] mockRddReference;
 
         public MockRddProxy(object[] parameterCollection)
         {
             mockRddReference = parameterCollection;
+        }
+
+        public MockRddProxy(IEnumerable<dynamic> result)
+        {
+            this.result = result;
         }
 
         public IRDDProxy Distinct<T>()
@@ -56,17 +67,20 @@ namespace AdapterTest.Mocks
 
         public long Count()
         {
-            throw new NotImplementedException();
+            return default(long);
         }
 
         public IRDDProxy Union(IRDDProxy javaRddReferenceOther)
         {
-            return new MockRddProxy(new object[] { this, javaRddReferenceOther });
+            var union = new MockRddProxy(new object[] { this, javaRddReferenceOther });
+            if (result != null)
+                union.result = result.Union((javaRddReferenceOther as MockRddProxy).result);
+            return union;
         }
 
         public int CollectAndServe()
         {
-            throw new NotImplementedException();
+            return MockSparkContextProxy.RunJob();
         }
 
         public int PartitionLength()
@@ -77,22 +91,23 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy Cache()
         {
-            throw new NotImplementedException();
+            return this;
         }
 
         public IRDDProxy Unpersist()
         {
-            throw new NotImplementedException();
+            return this;
         }
 
         public void Checkpoint()
         {
-            throw new NotImplementedException();
+            isCheckpointed = true; ;
         }
 
+        private bool isCheckpointed;
         public bool IsCheckpointed
         {
-            get { throw new NotImplementedException(); }
+            get { return isCheckpointed; }
         }
 
         public string GetCheckpointFile()
@@ -102,7 +117,7 @@ namespace AdapterTest.Mocks
 
         public int GetNumPartitions()
         {
-            throw new NotImplementedException();
+            return 1;
         }
 
         public IRDDProxy Distinct()

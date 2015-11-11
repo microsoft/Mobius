@@ -107,11 +107,11 @@ The following environment variables should be set properly:
 
 * `SCALA_HOME`  
 
-* `SPARKCSV_JARS` should include full paths to `commons-csv*.jar` and `spark-csv*.jar`. 
+* `SPARKCSV_JARS` should include full paths to `commons-csv*.jar`, `spark-csv*.jar` for CSV and kafka*.jar, metrics-core*.jar, spark-streaming-kafka*.jar for Kafka. 
 
 	For example:     
 	```
-	set SPARKCSV_JARS=%SPARKCLR_HOME%\lib\commons-csv-1.2.jar;%SPARKCLR_HOME%\lib\spark-csv_2.10-1.2.0.jar
+	set SPARKCSV_JARS=%SPARKCLR_HOME%\lib\commons-csv-1.2.jar;%SPARKCLR_HOME%\lib\spark-csv_2.10-1.2.0.jar;%SPARKCLR_HOME%\lib\kafka_2.10-0.8.2.1.jar;%SPARKCLR_HOME%\lib\metrics-core-2.2.0.jar;%SPARKCLR_HOME%\lib\spark-streaming-kafka_2.10-1.4.1.jar
 	```
 
 * `SPARKCLR_HOME` should point to a directory prepared with following sub-directories:  

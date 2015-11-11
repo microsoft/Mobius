@@ -14,6 +14,7 @@ namespace Microsoft.Spark.CSharp.Proxy
 {
     internal interface ISparkContextProxy
     {
+        IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs);
         ISqlContextProxy CreateSqlContext();
         IColumnProxy CreateColumnFromName(string name);
         IColumnProxy CreateFunction(string name, object self);
@@ -50,7 +51,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         int RunJob(IRDDProxy rdd, IEnumerable<int> partitions, bool allowLocal);
         IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId);
         IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> pythonIncludes, bool preservePartitioning, List<Broadcast> broadcastVariables, List<byte[]> accumulator);
-        IRDDProxy CreatePairwiseRDD<K, V>(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions);
+        IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions);
         IUDFProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType);
     }
     internal interface IBroadcastProxy

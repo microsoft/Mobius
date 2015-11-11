@@ -30,6 +30,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             this.jvmSparkContextReference = jvmSparkContextReference;
             this.jvmJavaContextReference = jvmJavaContextReference;
         }
+
+        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
+        {
+            return new StreamingContextIpcProxy(sparkContext, durationMs);
+        }
+        
         public ISqlContextProxy CreateSqlContext()
         {
             return new SqlContextIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createSQLContext", new object[] { jvmSparkContextReference })));
@@ -253,7 +259,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             }
         }
 
-        public IRDDProxy CreatePairwiseRDD<K, V>(IRDDProxy jvmReferenceOfByteArrayRdd, int numPartitions)
+        public IRDDProxy CreatePairwiseRDD(IRDDProxy jvmReferenceOfByteArrayRdd, int numPartitions)
         {
             var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod((jvmReferenceOfByteArrayRdd as RDDIpcProxy).JvmRddReference, "rdd"));
             var pairwiseRdd = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PairwiseRDD", rdd);
