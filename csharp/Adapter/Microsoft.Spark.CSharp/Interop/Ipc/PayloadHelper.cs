@@ -239,16 +239,6 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             throw new NotSupportedException(string.Format("Type {0} not supported yet", type));
         }
 
-        //private static byte[] ToPayloadBytesAsTypeAndValue(Type valueType, object value)
-        //{
-        //    var typeAsBytes = GetTypeId(valueType);
-        //    var valueAsBytes = ConvertParametersToBytes(new object[] { value });
-        //    var payloadBytesAsTypeAndValue = new byte[typeAsBytes.Length + valueAsBytes.Length];
-        //    Array.Copy(typeAsBytes, 0, payloadBytesAsTypeAndValue, 0, typeAsBytes.Length);
-        //    Array.Copy(valueAsBytes, 0, payloadBytesAsTypeAndValue, typeAsBytes.Length, valueAsBytes.Length);
-        //    return payloadBytesAsTypeAndValue;
-        //}
-
         private static bool IsDictionary(Type type)
         {
             return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>));
