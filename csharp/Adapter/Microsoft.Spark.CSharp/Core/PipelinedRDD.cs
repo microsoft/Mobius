@@ -33,7 +33,7 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 var pipelinedRDD = new PipelinedRDD<U1>
                 {
-                    func = new MapPartitionsWithIndexHelper(new NewFuncWrapper<U, U1>(newFunc).Execute, func).Execute,
+                    func = new MapPartitionsWithIndexHelper<U, U1>(newFunc, func).Execute,
                     preservesPartitioning = preservesPartitioning && preservesPartitioningParam,
                     previousRddProxy = this.previousRddProxy,
                     prevSerializedMode = this.prevSerializedMode,
@@ -48,21 +48,6 @@ namespace Microsoft.Spark.CSharp.Core
             return base.MapPartitionsWithIndex(newFunc, preservesPartitioningParam);
         }
 
-        [Serializable]
-        private class NewFuncWrapper<I, O>
-        {
-            private Func<int, IEnumerable<I>, IEnumerable<O>> func;
-            internal NewFuncWrapper(Func<int, IEnumerable<I>, IEnumerable<O>> f)
-            {
-                func = f;
-            }
-
-            internal IEnumerable<dynamic> Execute(int val, IEnumerable<dynamic> input)
-            {
-                return func(val, input.Cast<I>()).Cast<dynamic>();
-            }
-        }
-
         /// <summary>
         /// This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
         /// private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
@@ -70,11 +55,11 @@ namespace Microsoft.Spark.CSharp.Core
         /// on the serializability of compiler generated types
         /// </summary>
         [Serializable]
-        private class MapPartitionsWithIndexHelper
+        private class MapPartitionsWithIndexHelper<I, O>
         {
-            private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> newFunc;
+            private readonly Func<int, IEnumerable<I>, IEnumerable<O>> newFunc;
             private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> prevFunc;
-            internal MapPartitionsWithIndexHelper(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> nFunc, Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> pFunc)
+            internal MapPartitionsWithIndexHelper(Func<int, IEnumerable<I>, IEnumerable<O>> nFunc, Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> pFunc)
             {
                 prevFunc = pFunc;
                 newFunc = nFunc;
@@ -82,7 +67,7 @@ namespace Microsoft.Spark.CSharp.Core
 
             internal IEnumerable<dynamic> Execute(int split, IEnumerable<dynamic> input)
             {
-                return newFunc(split, prevFunc(split, input));
+                return newFunc(split, prevFunc(split, input).Cast<I>()).Cast<dynamic>();
             }
         }
 

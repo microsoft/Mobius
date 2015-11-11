@@ -136,6 +136,10 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         public static string ReadObjectId(Stream s)
         {
             var type = s.ReadByte();
+
+            if (type == 'n')
+                return null;
+            
             if (type != 'j')
             {
                 Console.WriteLine("Expecting java object identifier type");

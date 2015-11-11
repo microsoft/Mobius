@@ -3,16 +3,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace AdapterTest.Mocks
 {
     internal class MockSparkContextProxy : ISparkContextProxy
     {
+        private static IFormatter formatter = new BinaryFormatter();
+        internal static IEnumerable<dynamic> result;
+
         internal object mockSparkContextReference;
 
         public MockSparkContextProxy(ISparkConfProxy conf)
@@ -35,12 +45,40 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> cSharpIncludes, bool preservePartitioning, List<Broadcast> broadcastVariables, List<byte[]> accumulator)
         {
-            throw new NotImplementedException();
+            IEnumerable<dynamic> input = (prefvJavaRddReference as MockRddProxy).result ??
+                (new string[] {
+                "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog",
+                "The quick brown fox jumps over the lazy dog",
+                "The dog lazy"
+            }).AsEnumerable().Cast<dynamic>();
+
+            using (MemoryStream s = new MemoryStream(command))
+            {
+                string deserializerMode = SerDe.ReadString(s);
+                string serializerMode = SerDe.ReadString(s);
+                var func = (Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
+                result = func(default(int), input);
+            }
+
+            if (result.FirstOrDefault() is byte[] && (result.First() as byte[]).Length == 8)
+            {
+                result = result.Where(e => (e as byte[]).Length != 8).Select(e => formatter.Deserialize(new MemoryStream(e as byte[])));
+            }
+
+            return new MockRddProxy(result);
         }
 
-        public IRDDProxy CreatePairwiseRDD<K, V>(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions)
+        public IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions)
         {
-            throw new NotImplementedException();
+            return javaReferenceInByteArrayRdd;
         }
 
 
@@ -61,12 +99,12 @@ namespace AdapterTest.Mocks
 
         public int DefaultParallelism
         {
-            get { throw new NotImplementedException(); }
+            get { return 2; }
         }
 
         public int DefaultMinPartitions
         {
-            get { throw new NotImplementedException(); }
+            get { return 1; }
         }
 
         public IRDDProxy EmptyRDD<T>()
@@ -174,10 +212,32 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+        internal static int RunJob()
+        {
+            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
+            listener.Start();
+
+            Task.Run(() =>
+            {
+                using (Socket socket = listener.AcceptSocket())
+                using (Stream ns = new NetworkStream(socket))
+                {
+                    foreach (var item in MockSparkContextProxy.result)
+                    {
+                        var ms = new MemoryStream();
+                        formatter.Serialize(ms, item);
+                        byte[] buffer = ms.ToArray();
+                        SerDe.Write(ns, buffer.Length);
+                        SerDe.Write(ns, buffer);
+                    }
+                }
+            });
+            return (listener.LocalEndpoint as IPEndPoint).Port;
+        }
 
         public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions, bool allowLocal)
         {
-            throw new NotImplementedException();
+            return RunJob();
         }
 
         public IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> pythonIncludes, bool preservePartitioning, List<Broadcast<dynamic>> broadcastVariables, List<byte[]> accumulator)
@@ -195,7 +255,6 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
-
 
         public IColumnProxy CreateColumnFromName(string name)
         {
@@ -217,7 +276,6 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-
         IBroadcastProxy ISparkContextProxy.ReadBroadcastFromFile(string path, out long broadcastId)
         {
             throw new NotImplementedException();
@@ -228,10 +286,14 @@ namespace AdapterTest.Mocks
             return new MockSqlContextProxy(this);
         }
 
-
         public IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices)
         {
             throw new NotImplementedException();
+        }
+
+        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
+        {
+            return new MockStreamingContextProxy();
         }
     }
 }
