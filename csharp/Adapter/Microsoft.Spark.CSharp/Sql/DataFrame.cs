@@ -337,6 +337,58 @@ namespace Microsoft.Spark.CSharp.Sql
             return
                 new DataFrame(dataFrameProxy.DropNa(how, thresh, subset), sparkContext);
         }
+
+        /// <summary>
+        /// Returns a new DataFrame with duplicate rows removed, considering only the subset of columns.
+        /// </summary>
+        /// <param name="subset">drop duplicated rows on these columns.</param>
+        /// <returns>A new DataFrame with duplicate rows removed.</returns>
+        public DataFrame DropDuplicates(string[] subset = null)
+        {
+            return 
+                new DataFrame(dataFrameProxy.DropDuplicates(subset), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame replacing a value with another value.
+        /// </summary>
+        /// <typeparam name="T">Data type of value to replace.</typeparam>
+        /// <param name="toReplace">Value to be replaced. The value to be replaced must be an int, long, float, or string and must be the same type as <paramref name="value"/>.</param>
+        /// <param name="value">Value to use to replace holes. The replacement value must be an int, long, float, or string and must be the same type as <paramref name="toReplace"/>.</param>
+        /// <param name="subset">Optional list of column names to consider.</param>
+        /// <returns>A new DataFrame replacing a value with another value</returns>
+        public DataFrame Replace<T>(T toReplace, T value, string[] subset = null)
+        {
+            return new DataFrame(dataFrameProxy.Replace(toReplace, value, subset), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame replacing values with other values.
+        /// </summary>
+        /// <typeparam name="T">Data type of values to replace.</typeparam>
+        /// <param name="toReplace">List of values to be replaced. The value to be replaced must be an int, long, float, or string and must be the same type as <paramref name="value"/>. 
+        /// This list should be of the same length with <paramref name="value"/>.</param>
+        /// <param name="value">List of values to replace holes. The replacement must be an int, long, float, or string and must be the same type as <paramref name="toReplace"/>.
+        /// This list should be of the same length with <paramref name="toReplace"/>.</param>
+        /// <param name="subset">Optional list of column names to consider.</param>
+        /// <returns>A new DataFrame replacing values with other values</returns>
+        public DataFrame ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset = null)
+        {
+            return new DataFrame(dataFrameProxy.ReplaceAll(toReplace, value, subset), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame replacing values with another value.
+        /// </summary>
+        /// <typeparam name="T">Data type of values to replace.</typeparam>
+        /// <param name="toReplace">List of values to be replaced. The value to be replaced must be an int, long, float, or string and must be the same type as <paramref name="value"/>.</param>
+        /// <param name="value">Value to use to replace holes. The replacement value must be an int, long, float, or string and must be the same type as <paramref name="toReplace"/>.</param>
+        /// <param name="subset">Optional list of column names to consider.</param>
+        /// <returns>A new DataFrame replacing values with another value</returns>
+        public DataFrame ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset = null)
+        {
+            return new DataFrame(dataFrameProxy.ReplaceAll(toReplace, value, subset), sparkContext);
+        }
     }
 
     //TODO - complete impl

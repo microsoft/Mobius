@@ -3,10 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Samples
@@ -263,7 +259,7 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to subtract a DataFrame from another DataFrame using DSL.
+        /// Sample to drop a DataFrame from another DataFrame using DSL.
         /// </summary>
         [Sample]
         internal static void DFDropSample()
@@ -275,15 +271,45 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to subtract a DataFrame from another DataFrame using DSL.
+        /// Sample to drop a DataFrame with omitting rows with null values using DSL.
         /// </summary>
         [Sample]
         internal static void DFDropNaSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
 
-            var dropped = peopleDataFrame.DropNa(thresh: 2, subset: new []{"name", "address"});
+            var dropped = peopleDataFrame.DropNa(thresh: 2, subset: new[] { "name", "address" });
             dropped.Show();
+        }
+
+        /// <summary>
+        /// Sample to drop a duplicated rows in a DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFDropDuplicatesSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var dropped = peopleDataFrame.DropDuplicates(new[] { "name" });
+            dropped.Show();
+        }
+
+        /// <summary>
+        /// Sample to replace a value in a DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFReplaceSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var singleValueReplaced = peopleDataFrame.Replace("Bill", "Bill.G");
+            singleValueReplaced.Show();
+
+            var multiValueReplaced = peopleDataFrame.ReplaceAll(new List<int> { 14, 34 }, new List<int> { 44, 54 });
+            multiValueReplaced.Show();
+
+            var multiValueReplaced2 = peopleDataFrame.ReplaceAll(new List<string> { "Bill", "Steve" }, "former CEO");
+            multiValueReplaced2.Show();
         }
 
         /// <summary>

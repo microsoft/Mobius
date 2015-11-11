@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Proxy;
 
 namespace AdapterTest.Mocks
@@ -203,6 +200,31 @@ namespace AdapterTest.Mocks
         }
 
         public IDataFrameProxy Subtract(IDataFrameProxy other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Drop(string columnName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy DropNa(string how, int? thresh, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Replace<T>(T toReplace, T value, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset)
         {
             throw new NotImplementedException();
         }
