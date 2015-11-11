@@ -1,0 +1,58 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+package org.apache.spark.util.csharp
+
+import java.io._
+
+import org.apache.commons.io.FileUtils
+import org.apache.spark.csharp.SparkCLRFunSuite
+
+import scala.collection.JavaConversions._
+
+class UtilsSuite extends SparkCLRFunSuite {
+
+  test("Zip&unzip files") {
+
+    // create tmp dir
+    val tmpDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_" + System.currentTimeMillis())
+
+    tmpDir.mkdir()
+    val str = "test string"
+    val size = 10
+
+    // create some files in the tmp dir
+    for (i <- 1 to size) {
+      val f = new File(tmpDir, i + ".txt")
+      FileUtils.writeStringToFile(f, str + i)
+    }
+
+    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Zip_" + System.currentTimeMillis() + ".zip")
+
+    // Compress all files under tmpDir into a zip file
+    Utils.zip(tmpDir, targetZipFile)
+
+    val entries = Utils.listZipFileEntries(targetZipFile)
+
+    assert(entries != null)
+    assert(entries.size == size)
+
+    entries.foreach(f => assert(f.matches("\\d+\\.txt")))
+
+    val destDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Unzip_" + System.currentTimeMillis())
+
+    destDir.mkdir()
+
+    Utils.unzip(targetZipFile, destDir)
+
+    val unzippedFiles = FileUtils.listFiles(destDir, null, true)
+
+    assert(unzippedFiles != null && unzippedFiles.size() == size)
+    unzippedFiles.foreach(f => assert(f.getName.matches("\\d+\\.txt")))
+    unzippedFiles.foreach(f => assert(FileUtils.readFileToString(f).startsWith(str)))
+
+    FileUtils.deleteQuietly(tmpDir)
+    FileUtils.deleteQuietly(destDir)
+    FileUtils.deleteQuietly(targetZipFile)
+  }
+}

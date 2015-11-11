@@ -93,13 +93,6 @@ namespace Microsoft.Spark.CSharp.Core
                 SparkConf.SetSparkHome(sparkHome);
 
             SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
-
-            // AddDriverFilesToSparkContext and AddWorkerToSparkContext
-            foreach (var file in SparkCLREnvironment.ConfigurationService.GetDriverFiles())
-            {
-                AddFile(file);
-            }
-            AddFile(SparkCLREnvironment.ConfigurationService.GetCSharpWorkerPath());
         }
 
         public RDD<string> TextFile(string filePath, int minPartitions = 0)
