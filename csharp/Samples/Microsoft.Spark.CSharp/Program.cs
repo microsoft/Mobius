@@ -24,9 +24,9 @@ namespace Microsoft.Spark.CSharp.Samples
 
         static void Main(string[] args)
         {
-            ProcessArugments(args);
             LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance); //this is optional - DefaultLoggerService will be used if not set
             Logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRSamples));
+            ProcessArugments(args);
             SparkContext = CreateSparkContext();
             SparkContext.SetCheckpointDir(Path.GetTempPath()); 
             RunSamples();
