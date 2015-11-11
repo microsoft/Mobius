@@ -317,7 +317,7 @@ namespace Microsoft.Spark.CSharp.Core
             // convert shuffling version of RDD[(Long, Array[Byte])] back to normal RDD[Array[Byte]]
             // invoking property keyed.RddProxy marks the end of current pipeline RDD after shuffling
             // and potentially starts next pipeline RDD with defult SerializedMode.Byte
-            var rdd = self.sparkContext.SparkContextProxy.CreatePairwiseRDD<K, V>(keyed.RddProxy, numPartitions);
+            var rdd = self.sparkContext.SparkContextProxy.CreatePairwiseRDD(keyed.RddProxy, numPartitions);
             //rdd.partitioner = partitioner
 
             return new RDD<KeyValuePair<K, V>>(rdd, self.sparkContext);

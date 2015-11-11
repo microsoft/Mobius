@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Configuration.cs" />
     <Compile Include="DataFrameSamples.cs" />
+    <Compile Include="DStreamSamples.cs" />
     <Compile Include="MiscSamples.cs" />
     <Compile Include="DoubleRDDSamples.cs" />
     <Compile Include="Program.cs" />
@@ -53,7 +54,9 @@
     <Compile Include="RDDSamples.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="data\market.tab">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

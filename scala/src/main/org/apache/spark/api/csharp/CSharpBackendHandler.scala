@@ -5,6 +5,7 @@ package org.apache.spark.api.csharp
 
 import org.apache.spark.util.Utils
 import java.io.{DataOutputStream, ByteArrayOutputStream, DataInputStream, ByteArrayInputStream}
+import java.net.Socket
 
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import org.apache.spark.api.csharp.SerDe._ //TODO - work with SparkR devs to make this configurable and reuse RBackendHandler
@@ -52,6 +53,27 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
             case e: Exception =>
               logError(s"Removing $objId failed", e)
               writeInt(dos, -1)
+          }
+        case "connectCallback" =>
+		  val t = readObjectType(dis)
+		  assert(t == 'i')
+		  val port = readInt(dis)
+          println("Connecting to a callback server at port " + port)
+          CSharpBackend.callbackSocket = new Socket("localhost", port)
+          writeInt(dos, 0)
+          writeType(dos, "void")
+        case "closeCallback" =>
+          // Send close to CSharp callback server.
+          if (CSharpBackend.callbackSocket != null &&
+              CSharpBackend.callbackSocket.isConnected()) {
+            try {
+              println("Requesting to close a call back server.")
+              val os = new DataOutputStream(CSharpBackend.callbackSocket.getOutputStream())
+              writeString(os, "close")
+              CSharpBackend.callbackSocket.close()
+            }
+            writeInt(dos, 0)
+            writeType(dos, "void")
           }
         case _ => dos.writeInt(-1)
       }
@@ -171,6 +193,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
       if (parameterType.isPrimitive) {
         parameterWrapperType = parameterType match {
           case java.lang.Integer.TYPE => classOf[java.lang.Integer]
+          case java.lang.Long.TYPE => classOf[java.lang.Long]
           case java.lang.Double.TYPE => classOf[java.lang.Double]
           case java.lang.Boolean.TYPE => classOf[java.lang.Boolean]
           case _ => parameterType

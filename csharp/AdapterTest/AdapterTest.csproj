@@ -51,6 +51,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="DStreamTest.cs" />
+    <Compile Include="Mocks\MockDStreamProxy.cs" />
+    <Compile Include="Mocks\MockStreamingContextProxy.cs" />
     <Compile Include="SparkCLRTestEnvironment.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -66,6 +69,7 @@
     <Compile Include="SparkConfTest.cs" />
     <Compile Include="SparkContextTest.cs" />
     <Compile Include="SqlContextTest.cs" />
+    <Compile Include="StreamingContextTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">

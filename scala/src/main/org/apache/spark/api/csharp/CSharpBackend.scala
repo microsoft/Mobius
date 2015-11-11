@@ -3,7 +3,8 @@
 
 package org.apache.spark.api.csharp
 
-import java.net.InetSocketAddress
+import java.io.{DataOutputStream, File, FileOutputStream, IOException}
+import java.net.{InetAddress, InetSocketAddress, ServerSocket, Socket}
 import java.util.concurrent.TimeUnit
 
 import io.netty.bootstrap.ServerBootstrap
@@ -77,5 +78,20 @@ class CSharpBackend {
       bootstrap.childGroup().shutdownGracefully()
     }
     bootstrap = null
+	// Send close to CSharp callback server.
+    if (CSharpBackend.callbackSocket != null && 
+        !CSharpBackend.callbackSocket.isClosed()) {
+      try {
+        println("Requesting to close a call back server.")
+        val dos = new DataOutputStream(CSharpBackend.callbackSocket.getOutputStream())
+        SerDe.writeString(dos, "close")
+        CSharpBackend.callbackSocket.close()
+      }
+    }
   }
+}
+
+object CSharpBackend {
+  // Channel to callback server.
+  private[spark] var callbackSocket: Socket = null
 }
