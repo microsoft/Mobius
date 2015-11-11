@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.Services
     /// </summary>
     public class DefaultLoggerService : ILoggerService
     {
-        internal static DefaultLoggerService Instance = new DefaultLoggerService(typeof (Type));
+        internal readonly static DefaultLoggerService Instance = new DefaultLoggerService(typeof (Type));
         public ILoggerService GetLoggerInstance(Type type)
         {
             return new DefaultLoggerService(type);
