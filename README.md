@@ -117,7 +117,8 @@ The following environment variables should be set properly:
 * `SPARKCLR_HOME` should point to a directory prepared with following sub-directories:  
 
   * **lib** ( `spark-clr*.jar` )  
-  * **bin** ( The contents of `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\bin\[Debug|Release]\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` etc. )  
+  * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
+  * **samples** ( The contents of `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\bin\[Debug|Release]\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` etc. ) 
   * **scripts** ( `sparkclr-submit.cmd` )  
   * **data** ( `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\data\*` )  
 
@@ -126,21 +127,23 @@ The following environment variables should be set properly:
 Set `CSharpWorkerPath` in `SparkCLRSamples.exe.config` and run the following command: 
 
 ```
-sparkclr-submit.cmd --verbose %SPARKCLR_HOME%\lib\spark-clr-1.4.1-SNAPSHOT.jar %SPARKCLR_HOME%\bin\SparkCLRSamples.exe spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
+sparkclr-submit.cmd --verbose -exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
 ```   
 
 Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
 
 Setting `spark.local.dir` parameter is important. When local Spark instance distributes SparkCLR driver executables to Windows `%TEMP%` directory, anti-virus software may detect and report the executables showed up in `%TEMP%` directory as malware.
 
-### Running in Standalone cluster mode
+### Running in Standalone mode
 ```
-sparkclr-submit.cmd --verbose  %SPARKCLR_HOME%\lib\spark-clr-1.4.1-SNAPSHOT.jar  %SPARKCLR_HOME%\bin\SparkCLRSamples.exe sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
+sparkclr-submit.cmd --verbose  --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
 ```
 
 ### Running in YARN mode
 
-To be added
+```
+sparkclr-submit.cmd --verbose --master yarn-cluster --exe SparkCLRSamples.exe %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
+```
 
 ## Running Unit Tests
 
