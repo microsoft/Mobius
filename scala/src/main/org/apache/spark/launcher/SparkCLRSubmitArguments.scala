@@ -44,6 +44,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
   var files: String = null
 
+  var jars: String = env.getOrElse("SPARKCSV_JARS", "").replace(";",",")
+
   var primaryResource: String = null
 
   var propertiesFile: String = null
@@ -132,6 +134,13 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
       case FILES =>
         files = Utils.resolveURIs(value)
+
+      case JARS =>
+        if (jars != "") {
+          jars = s"$jars,$value"
+        } else {
+          jars = value
+        }
 
       case HELP =>
         printUsageAndExit()
@@ -222,6 +231,14 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
       case "yarn-cluster" => deployMode = "cluster"
       case "yarn-client" => deployMode = "client"
       case _ =>
+    }
+
+    if (jars != null && !jars.trim.isEmpty) {
+      if (cmd == "") {
+        cmd += s"--jars $jars"
+      } else {
+        cmd += s" --jars $jars"
+      }
     }
 
     master match {
