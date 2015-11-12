@@ -36,3 +36,5 @@ csharp/Worker/Microsoft.Spark.CSharp/bin/**
 csharp/Worker/Microsoft.Spark.CSharp/obj/**
 scala/.idea/**
 run/
+*.log
+lib/

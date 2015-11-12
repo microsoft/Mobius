@@ -22,6 +22,15 @@ call mvn.cmd package
 copy /y target\*.jar "%SPARKCLR_HOME%\lib\"
 popd
 
+@REM Any .jar files under the lib directory will be copied to the staged runtime lib tree.
+if EXIST "%CMDHOME%\lib" (
+  @echo Copy extra jar library binaries
+  FOR /F "tokens=*" %%G IN ('DIR /B /A-D /S %CMDHOME%\lib\*.jar') DO (
+    @echo %%G
+    copy /y "%%G" "%SPARKCLR_HOME%\lib\"
+  )
+)
+
 @echo Assemble SparkCLR C# components
 pushd "%CMDHOME%\csharp"
 call Build.cmd
