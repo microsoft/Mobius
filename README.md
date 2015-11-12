@@ -166,4 +166,8 @@ For example, to debug SparkCLR samples:
 
 ## License
 
-SparkCLR is licensed under the MIT license. See LICENSE file in the project root for full license information.
+SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
+
+## Contribution
+
+We welcome contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md). 
