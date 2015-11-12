@@ -40,6 +40,7 @@ namespace Microsoft.Spark.CSharp
                     }
                     System.Threading.Thread.Sleep(200);
                 }
+
                 foreach (var file in Directory.GetFiles(testDir, "*"))
                     File.Delete(file);
             });
@@ -62,6 +63,10 @@ namespace Microsoft.Spark.CSharp
 
             state.ForeachRDD((time, rdd) =>
             {
+                // there's chance rdd.Take conflicts with ssc.Stop
+                if (stopFileServer)
+                    return;
+
                 object[] taken = rdd.Take(10);
                 Console.WriteLine("-------------------------------------------");
                 Console.WriteLine("Time: {0}", time);
@@ -82,6 +87,9 @@ namespace Microsoft.Spark.CSharp
             {
                 System.Threading.Thread.Sleep(1000);
             }
+
+            // wait ForeachRDD to complete to let ssc.Stop() gracefully
+            System.Threading.Thread.Sleep(2000);
 
             ssc.Stop();
         }
