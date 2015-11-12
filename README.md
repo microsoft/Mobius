@@ -136,7 +136,7 @@ Setting `spark.local.dir` parameter is important. When local Spark instance dist
 
 ### Running in Standalone mode
 ```
-sparkclr-submit.cmd --verbose  --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
+sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
 ```
 
 ### Running in YARN mode
