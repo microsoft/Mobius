@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -294,16 +295,36 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 Console.WriteLine("'{0}':{1}", kvp.Key, kvp.Value);
             }
-            
 
-            
             var wordCountsCaseInsensitve = words.Map(w => new KeyValuePair<string, int>(w.ToLower().Trim(), 1))
                                                 .ReduceByKey((x, y) => x + y).Collect();
 
-            Console.WriteLine("*** Printing words and their case insesitive counts ***");
+            Console.WriteLine("*** Printing words and their counts ignoring case ***");
             foreach (var kvp in wordCountsCaseInsensitve)
             {
                 Console.WriteLine("'{0}':{1}", kvp.Key, kvp.Value);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var dictionary = new Dictionary<string, int>();
+                foreach (var kvp in wordCounts)
+                {
+                    dictionary[kvp.Key] = kvp.Value;
+                }
+
+                Assert.AreEqual(22, dictionary["the"]);
+                Assert.AreEqual(23, dictionary["The"]);
+                Assert.AreEqual(23, dictionary["dog"]);
+
+                var caseInsenstiveWordCountDictionary = new Dictionary<string, int>();
+                foreach (var kvp in wordCountsCaseInsensitve)
+                {
+                    caseInsenstiveWordCountDictionary[kvp.Key] = kvp.Value;
+                }
+
+                Assert.AreEqual(45, caseInsenstiveWordCountDictionary["the"]);
+                Assert.AreEqual(23, caseInsenstiveWordCountDictionary["dog"]);
             }
 
         }
@@ -358,6 +379,28 @@ namespace Microsoft.Spark.CSharp.Samples
                 Console.WriteLine("Datacenter={0}, Mean latency={1}", keyValuePair.Key, keyValuePair.Value.Item1/keyValuePair.Value.Item2);
             }
 
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var dictionary = new Dictionary<string, int>();
+                foreach (var kvp in maxLatencyByDataCenterList)
+                {
+                    dictionary[kvp.Key] = kvp.Value;
+                }
+
+                Assert.AreEqual(835, dictionary["iowa"]);
+                Assert.AreEqual(1256, dictionary["singapore"]);
+
+                var meanDictionary = new Dictionary<string, Tuple<int, int>>();
+                foreach (var kvp in sumLatencyAndCountByDatacenterList)
+                {
+                    meanDictionary[kvp.Key] = new Tuple<int, int>(kvp.Value.Item1, kvp.Value.Item2);
+                }
+
+                Assert.AreEqual(1621, meanDictionary["iowa"].Item1);
+                Assert.AreEqual(2, meanDictionary["iowa"].Item2);
+                Assert.AreEqual(1256, meanDictionary["singapore"].Item1);
+                Assert.AreEqual(1, meanDictionary["singapore"].Item2);
+            }
         }
 
         /// <summary>
@@ -383,6 +426,12 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 Console.WriteLine(collectedItem);
             }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(6, count);
+                Assert.AreEqual(6, collectedItems.Count());
+            }
         }
 
         /// <summary>
@@ -395,6 +444,11 @@ namespace Microsoft.Spark.CSharp.Samples
             var derivedPersonsRdd = personsRdd.Map(x => new Person { Age = x.Age + 1 });
             var countOfPersonsFiltered = derivedPersonsRdd.Filter(person => person.Age >= 11).Count();
             Console.WriteLine("SerializableObjectCollectionExample: countOfPersonsFiltered " + countOfPersonsFiltered);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(2, countOfPersonsFiltered);
+            }
         }
 
         /// <summary>
@@ -407,7 +461,11 @@ namespace Microsoft.Spark.CSharp.Samples
             var logEntriesColumnRdd = logEntriesRdd.Map(x => x.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries));
             var countOfInvalidLogEntries = logEntriesColumnRdd.Filter(stringarray => stringarray.Length != 2).Count();
             Console.WriteLine("StringCollectionExample: countOfInvalidLogEntries " + countOfInvalidLogEntries);
-        
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(1, countOfInvalidLogEntries);
+            }
         }
 
         /// <summary>
@@ -420,6 +478,11 @@ namespace Microsoft.Spark.CSharp.Samples
             var oddNumbersRdd = numbersRdd.Filter(x => x % 2 != 0);
             var countOfOddNumbers = oddNumbersRdd.Count();
             Console.WriteLine("IntCollectionExample: countOfOddNumbers " + countOfOddNumbers);
+            
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, countOfOddNumbers);
+            }
         }
 
         /// <summary>

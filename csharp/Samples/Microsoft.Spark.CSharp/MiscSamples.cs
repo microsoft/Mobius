@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -42,10 +43,16 @@ namespace Microsoft.Spark.CSharp.Samples
                             .Reduce((x, y) => x + y);
             Console.WriteLine("Pi is roughly " + 4.0 * (int)count / n);
 
-            /********* alternative to the count method provided above ***********/
+            /********* Alternative to the count method provided above. This produces more accurate results because of the way Random is used ***********/
             var countComputedUsingAnotherApproach = SparkCLRSamples.SparkContext.Parallelize(values, slices).Map(new PiHelper().Execute).Reduce((x, y) => x + y);
-            Console.WriteLine("Pi is roughly " + 4.0 * (int)countComputedUsingAnotherApproach / n);
+            var approximatePiValue = 4.0* countComputedUsingAnotherApproach/n;
+            Console.WriteLine("Pi is roughly " + approximatePiValue);
             /********************************************************************/
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(Math.Abs(approximatePiValue - 3.14) <= 0.01);
+            }
         }
 
         [Serializable]

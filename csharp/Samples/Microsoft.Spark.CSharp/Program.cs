@@ -93,6 +93,10 @@ namespace Microsoft.Spark.CSharp.Samples
                 {
                     Configuration.SamplesToRun = args[i + 1];
                 }
+                else if (args[i].Equals("sparkclr.enablevalidation", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Configuration.IsValidationEnabled = true;
+                }
             }
         }
     }
