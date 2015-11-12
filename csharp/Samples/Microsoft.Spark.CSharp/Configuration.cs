@@ -35,6 +35,12 @@ namespace Microsoft.Spark.CSharp.Samples
             set;
         }
 
+        public bool IsValidationEnabled
+        {
+            get;
+            set;
+        }
+
         public string GetInputDataPath(string fileName)
         {
             if (SampleDataLocation.StartsWith("hdfs://"))
