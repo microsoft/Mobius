@@ -153,25 +153,37 @@ namespace Microsoft.Spark.CSharp.Configuration
                 : base(configuration)
             {}
 
-            internal override string GetCSharpWorkerPath()
+            private string workerPath;
+            internal override string GetCSharpRDDExternalProcessName()
             {
+                // SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. 
+                // These files are available in the Spark executing directory at executor node.
+
+                if (workerPath != null) return workerPath; // Return cached value
+
                 KeyValueConfigurationElement workerPathConfig = appSettings.Settings["CSharpWorkerPath"];
-                string workerPath;
                 if (workerPathConfig == null)
                 {
                     // Path for the CSharpWorker.exe was not specified in App.config
                     // Try to work out where location relative to this class.
                     // Construct path based on well-known file name + directory this class was loaded from.
-                    string procFileName = GetCSharpRDDExternalProcessName();
+                    string procFileName = base.GetCSharpRDDExternalProcessName();
                     string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
                     workerPath = Path.Combine(procDir, procFileName);
-                    //throw new ConfigurationErrorsException("Need to set CSharpWorkerPath value in App.config");
+                    logger.LogDebug("Using synthesized value for CSharpWorkerPath : " + workerPath);
                 }
                 else
                 {
                     // Explicit path for the CSharpWorker.exe was listed in App.config
                     workerPath = workerPathConfig.Value;
+                    logger.LogDebug("Using CSharpWorkerPath value from App.config : " + workerPath);
                 }
+                return workerPath;
+            }
+
+            internal override string GetCSharpWorkerPath()
+            {
+                string workerPath = GetCSharpRDDExternalProcessName();
                 return new Uri(workerPath).ToString();
             }
         }
