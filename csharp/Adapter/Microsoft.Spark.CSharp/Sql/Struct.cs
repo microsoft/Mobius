@@ -14,7 +14,7 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class StructType
     {
-        private IStructTypeProxy structTypeProxy;
+        private readonly IStructTypeProxy structTypeProxy;
 
         internal IStructTypeProxy StructTypeProxy
         {
@@ -37,6 +37,12 @@ namespace Microsoft.Spark.CSharp.Sql
                 return structFieldList;
             }
         }
+
+        public string ToJson()
+        {
+            return structTypeProxy.ToJson();
+        }
+
 
         internal StructType(IStructTypeProxy structTypeProxy)
         {

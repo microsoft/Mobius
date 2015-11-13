@@ -9,6 +9,7 @@ import java.util.concurrent.{Semaphore, TimeUnit}
 import org.apache.spark.api.csharp.CSharpBackend
 import org.apache.spark.deploy.{SparkSubmitArguments, PythonRunner}
 import org.apache.spark.util.{Utils, RedirectThread}
+import org.apache.spark.util.csharp.{Utils => CSharpSparkUtils}
 
 /**
  * Launched by sparkclr-submit.cmd. It launches CSharpBackend, gets its port number and launches C# process
@@ -31,10 +32,26 @@ object CSharpRunner {
     }
 
     var csharpExecutable = ""
+    var otherArgs: Array[String] = null
+
     if (!runInDebugMode) {
-      csharpExecutable = PythonRunner.formatPath(args(0)) //reusing windows-specific formatting in PythonRunner
+      if(args(0).toLowerCase().endsWith(".zip")) {
+        println("Unzipping driver!")
+        CSharpSparkUtils.unzip(new File(args(0)), new File(args(0)).getParentFile)
+        csharpExecutable = PythonRunner.formatPath(args(1)) //reusing windows-specific formatting in PythonRunner
+        otherArgs = args.slice(2, args.length)
+      } else if(new File(args(0)).isDirectory) {
+        // In local mode, there will no zip file generated if given a directory, skip uncompression in this case
+        csharpExecutable = PythonRunner.formatPath(args(1)) //reusing windows-specific formatting in PythonRunner
+        otherArgs = args.slice(2, args.length)
+      } else {
+        csharpExecutable = PythonRunner.formatPath(args(0))
+        otherArgs = args.slice(1, args.length)
+      }
+    } else {
+        otherArgs = args.slice(1, args.length)
     }
-    val otherArgs = args.slice(1, args.length)
+
     var processParameters = new java.util.ArrayList[String]()
     processParameters.add(csharpExecutable)
     otherArgs.foreach( arg => processParameters.add(arg) )

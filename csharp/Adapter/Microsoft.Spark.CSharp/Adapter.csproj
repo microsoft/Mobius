@@ -36,6 +36,18 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Razorvine.Pyrolite">
+      <HintPath>..\..\packages\Razorvine.Pyrolite.4.10.0.0\lib\net40\Razorvine.Pyrolite.dll</HintPath>
+    </Reference>
+    <Reference Include="Razorvine.Serpent">
+      <HintPath>..\..\packages\Razorvine.Serpent.1.12.0.0\lib\net40\Razorvine.Serpent.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -71,11 +83,14 @@
     <Compile Include="Interop\Ipc\PayloadHelper.cs" />
     <Compile Include="Interop\Ipc\SerDe.cs" />
     <Compile Include="Proxy\IDataFrameProxy.cs" />
+    <Compile Include="Proxy\IDStreamProxy.cs" />
     <Compile Include="Proxy\Ipc\DataFrameIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DStreamIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\RDDIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\SparkCLRIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\SqlContextIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\StatusTrackerIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\StreamingContextIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\StructIpcProxy.cs" />
     <Compile Include="Proxy\IRDDProxy.cs" />
     <Compile Include="Proxy\ISparkCLRProxy.cs" />
@@ -84,6 +99,7 @@
     <Compile Include="Proxy\Ipc\SparkConfIpcProxy.cs" />
     <Compile Include="Proxy\ISqlContextProxy.cs" />
     <Compile Include="Proxy\IStatusTrackerProxy.cs" />
+    <Compile Include="Proxy\IStreamingContextProxy.cs" />
     <Compile Include="Proxy\IStructProxy.cs" />
     <Compile Include="Proxy\Ipc\SparkContextIpcProxy.cs" />
     <Compile Include="Services\DefaultLoggerService.cs" />
@@ -92,16 +108,21 @@
     <Compile Include="Services\LoggerServiceFactory.cs" />
     <Compile Include="Sql\Column.cs" />
     <Compile Include="Sql\DataFrame.cs" />
+    <Compile Include="Sql\Row.cs" />
     <Compile Include="Sql\Functions.cs" />
     <Compile Include="Sql\SqlContext.cs" />
     <Compile Include="Sql\Struct.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
-    <Compile Include="Streaming\Kafka.cs" />
+    <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
+    <Compile Include="Streaming\TransformedDStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

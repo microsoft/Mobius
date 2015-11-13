@@ -35,12 +35,18 @@ namespace Microsoft.Spark.CSharp.Samples
             set;
         }
 
+        public bool IsValidationEnabled
+        {
+            get;
+            set;
+        }
+
         public string GetInputDataPath(string fileName)
         {
             if (SampleDataLocation.StartsWith("hdfs://"))
             {
                 var clusterPath = SampleDataLocation + "/" + fileName;
-                Console.WriteLine("Cluster path " + clusterPath);
+                SparkCLRSamples.Logger.LogInfo("Cluster path " + clusterPath);
                 return clusterPath;
             }
             else

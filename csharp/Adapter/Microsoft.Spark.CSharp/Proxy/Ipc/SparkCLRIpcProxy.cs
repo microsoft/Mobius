@@ -1,9 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Services;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Interop;
 
@@ -13,7 +17,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     {
         private SparkContextIpcProxy sparkContextProxy;
 
-        private static IJvmBridge jvmBridge = new JvmBridge();
+        private static readonly IJvmBridge jvmBridge = new JvmBridge();
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRIpcProxy));
         internal static IJvmBridge JvmBridge
         {
             get
@@ -30,7 +35,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 throw new Exception("Port number is not set");
             }
 
-            Console.WriteLine("CSharpBackend port number to be used in JvMBridge is " + portNo);//TODO - send to logger
+            logger.LogInfo("CSharpBackend port number to be used in JvMBridge is " + portNo);
             JvmBridge.Initialize(portNo);
         }
 
@@ -67,7 +72,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IStructTypeProxy CreateStructType(List<StructField> fields)
         {
             var fieldsReference = fields.Select(s => (s.StructFieldProxy as StructFieldIpcProxy).JvmStructFieldReference).ToList().Cast<JvmObjectReference>();
-            //var javaObjectReferenceList = objectList.Cast<JvmObjectReference>().ToList();
+            
             var seq =
                 new JvmObjectReference(
                     JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
@@ -78,6 +83,46 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createStructType", new object[] { seq }).ToString()
                         )
                     );
+        }
+
+        public IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string deserializer)
+        {
+            return new DStreamIpcProxy(
+                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpDStream",
+                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, deserializer })
+            );
+        }
+
+        public IDStreamProxy CreateCSharpTransformed2DStream(IDStreamProxy jdstream, IDStreamProxy jother, byte[] func, string deserializer, string deserializerOther)
+        {
+            var dstream = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod((jdstream as DStreamIpcProxy).jvmDStreamReference, "dstream"));
+            var dother = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod((jother as DStreamIpcProxy).jvmDStreamReference, "dstream"));
+
+            return new DStreamIpcProxy(
+                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpTransformed2DStream",
+                new object[] { dstream, dother, func, deserializer, deserializerOther })
+            );
+        }
+
+        public IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string deserializer)
+        {
+            var windowDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { windowSeconds * 1000 });
+            var slideDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { slideSeconds * 1000 });
+
+            return new DStreamIpcProxy(
+                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpReducedWindowedDStream",
+                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, invFunc, windowDurationReference, slideDurationReference, deserializer })
+            );
+        }
+
+        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer)
+        {
+            var dstream = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod((jdstream as DStreamIpcProxy).jvmDStreamReference, "dstream"));
+
+            return new DStreamIpcProxy(
+                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpStateDStream",
+                new object[] { dstream, func, deserializer })
+            );
         }
     }
 }

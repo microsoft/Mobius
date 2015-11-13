@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy
 {
@@ -14,6 +9,7 @@ namespace Microsoft.Spark.CSharp.Proxy
     {
         void RegisterTempTable(string tableName);
         long Count();
+        int CollectAndServe();
         string GetQueryExecution();
         string GetExecutedPlan();
         string GetShowString(int numberOfRows, bool truncate);
@@ -35,6 +31,11 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Subtract(IDataFrameProxy otherScalaDataFrameReference);
         IDataFrameProxy Drop(string columnName);
         IDataFrameProxy DropNa(string how, int? thresh, string[] subset);
+        IDataFrameProxy DropDuplicates(string[] subset);
+        IDataFrameProxy Replace<T>(T toReplace, T value, string[] subset);
+        IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset);
+        IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset);
+        IDataFrameProxy Limit(int num);
     }
 
     internal interface IUDFProxy

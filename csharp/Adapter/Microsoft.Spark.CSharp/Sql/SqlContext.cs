@@ -36,7 +36,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public DataFrame ReadDataFrame(string path, StructType schema, Dictionary<string, string> options)
         {
-            return new DataFrame(sqlContextProxy.ReaDataFrame(path, schema, options), sparkContext);
+            return new DataFrame(sqlContextProxy.ReadDataFrame(path, schema, options), sparkContext);
         }
 
         public DataFrame CreateDataFrame(RDD<byte[]> rdd, StructType schema)

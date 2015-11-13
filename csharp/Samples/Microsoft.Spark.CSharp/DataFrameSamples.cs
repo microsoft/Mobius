@@ -3,11 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -37,6 +34,60 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Sample to get schema of DataFrame in json format
+        /// </summary>
+        [Sample]
+        internal static void DFGetSchemaToJsonSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            string json = peopleDataFrame.Schema.ToJson();
+            Console.WriteLine("schema in json format: {0}", json);
+        }
+
+        /// <summary>
+        /// Sample to run collect for DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFCollectSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            IEnumerable<Row> rows = peopleDataFrame.Collect();
+            Console.WriteLine("peopleDataFrame:");
+            int i = 0;
+
+            foreach (var row in rows)
+            {
+                if (i == 0)
+                {
+                    Console.WriteLine("schema: {0}", row.GetSchema());
+                }
+
+                // output the whole row as a string
+                Console.WriteLine(row);
+
+                // output each field of the row, including fields in subrow
+                string id = row.GetAs<string>("id");
+                string name = row.GetAs<string>("name");
+                int age = row.GetAs<int>("age");
+                Console.Write("id: {0}, name: {1}, age: {2}", id, name, age);
+
+                Row address = row.GetAs<Row>("address");
+                if (address != null)
+                {
+                    string city = address.GetAs<string>("city");
+                    string state = address.GetAs<string>("state");
+                    Console.WriteLine(", state: {0}, city: {1}", state, city);
+                }
+                else
+                {
+                    Console.WriteLine();
+                }
+
+                i++;
+            }
+        }
+
+        /// <summary>
         /// Sample to register a DataFrame as temptable and run queries
         /// </summary>
         [Sample]
@@ -51,6 +102,13 @@ namespace Microsoft.Spark.CSharp.Samples
             long nameFilteredDataFrameRowsCount = nameFilteredDataFrame.Count();
             long countDataFrameRowsCount = countDataFrame.Count();
             Console.WriteLine("nameFilteredDataFrameRowsCount={0}, maxAgeDataFrameRowsCount={1}, countDataFrameRowsCount={2}", nameFilteredDataFrameRowsCount, maxAgeDataFrameRowsCount, countDataFrameRowsCount);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(1, maxAgeDataFrameRowsCount);
+                Assert.AreEqual(2, nameFilteredDataFrameRowsCount);
+                Assert.AreEqual(1, countDataFrameRowsCount);
+            }
         }
 
         /// <summary>
@@ -76,11 +134,17 @@ namespace Microsoft.Spark.CSharp.Samples
 
             requestsDateFrame.ShowSchema();
             requestsDateFrame.Show();
-            //var count = requestsDateFrame.Count();
+            var count = requestsDateFrame.Count();
 
             guidFilteredDataFrame.ShowSchema();
             guidFilteredDataFrame.Show();
-            //var filteredCount = guidFilteredDataFrame.Count();
+            var filteredCount = guidFilteredDataFrame.Count();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(10, count);
+                Assert.AreEqual(1, filteredCount);
+            }
         }
 
         private static DataFrame GetMetricsDataFrame()
@@ -124,7 +188,12 @@ namespace Microsoft.Spark.CSharp.Samples
             
             join.ShowSchema();
             join.Show();
-            //var count = join.Count();    
+            var count = join.Count();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, count);
+            }
         }
 
         /// <summary>
@@ -263,7 +332,7 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to subtract a DataFrame from another DataFrame using DSL.
+        /// Sample to drop a DataFrame from another DataFrame using DSL.
         /// </summary>
         [Sample]
         internal static void DFDropSample()
@@ -275,15 +344,45 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to subtract a DataFrame from another DataFrame using DSL.
+        /// Sample to drop a DataFrame with omitting rows with null values using DSL.
         /// </summary>
         [Sample]
         internal static void DFDropNaSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
 
-            var dropped = peopleDataFrame.DropNa(thresh: 2, subset: new []{"name", "address"});
+            var dropped = peopleDataFrame.DropNa(thresh: 2, subset: new[] { "name", "address" });
             dropped.Show();
+        }
+
+        /// <summary>
+        /// Sample to drop a duplicated rows in a DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFDropDuplicatesSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var dropped = peopleDataFrame.DropDuplicates(new[] { "name" });
+            dropped.Show();
+        }
+
+        /// <summary>
+        /// Sample to replace a value in a DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFReplaceSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var singleValueReplaced = peopleDataFrame.Replace("Bill", "Bill.G");
+            singleValueReplaced.Show();
+
+            var multiValueReplaced = peopleDataFrame.ReplaceAll(new List<int> { 14, 34 }, new List<int> { 44, 54 });
+            multiValueReplaced.Show();
+
+            var multiValueReplaced2 = peopleDataFrame.ReplaceAll(new List<string> { "Bill", "Steve" }, "former CEO");
+            multiValueReplaced2.Show();
         }
 
         /// <summary>
@@ -319,6 +418,18 @@ namespace Microsoft.Spark.CSharp.Samples
             // equivalent sql script
             peopleDataFrame.RegisterTempTable("people");
             GetSqlContext().Sql("SELECT name, age*2 as age, FullAddress(address.city, address.state) as address FROM people where name='Bill' and age > 40 and PeopleFilter(name, age)").Show();
+        }
+
+        /// <summary>
+        /// Sample to perform limit on DataFrame using DSL.
+        /// </summary>
+        [Sample]
+        internal static void DFLimitSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var peopleDataFrame2 = peopleDataFrame.Limit(2);
+            peopleDataFrame2.Show();
         }
     }
 }
