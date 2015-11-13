@@ -91,15 +91,19 @@ namespace Microsoft.Spark.CSharp.Configuration
         /// </summary>
         private class SparkCLRConfiguration
         {
-            protected AppSettingsSection appSettings;
-            private string sparkCLRHome = Environment.GetEnvironmentVariable("SPARKCLR_HOME"); //set by sparkclr-submit.cmd
-            protected ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRConfiguration));
+            protected readonly AppSettingsSection appSettings;
+            private readonly string sparkCLRHome = Environment.GetEnvironmentVariable("SPARKCLR_HOME"); //set by sparkclr-submit.cmd
+            protected readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRConfiguration));
+
             internal SparkCLRConfiguration(System.Configuration.Configuration configuration)
             {
                 appSettings = configuration.AppSettings;
             }
 
-            internal virtual  int GetPortNumber()
+            /// <summary>
+            /// The port number used for communicating with the CSharp external backend worker process.
+            /// </summary>
+            internal virtual int GetPortNumber()
             {
                 int portNo;
                 if (!int.TryParse(Environment.GetEnvironmentVariable("CSHARPBACKEND_PORT"), out portNo))
@@ -111,17 +115,26 @@ namespace Microsoft.Spark.CSharp.Configuration
                 return portNo;
             }
 
+            /// <summary>
+            /// The short-name (filename part) of the CSharp external backend worker process.
+            /// </summary>
             internal virtual string GetCSharpRDDExternalProcessName()
             {
                 //SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. These files available in spark executing directory at executor
                 return "CSharpWorker.exe";
             }
 
+            /// <summary>
+            /// The full path of the CSharp external backend worker process.
+            /// </summary>
             internal virtual string GetCSharpWorkerPath()
             {
                 return new Uri(GetSparkCLRArtifactsPath("bin", "CSharpWorker.exe")).ToString();
             }
 
+            /// <summary>
+            /// List of the files required for the CSharp external backend worker process.
+            /// </summary>
             //this works for Standlone cluster //TODO fix for YARN support
             internal virtual IEnumerable<string> GetDriverFiles()
             {
@@ -203,7 +216,7 @@ namespace Microsoft.Spark.CSharp.Configuration
                 KeyValueConfigurationElement portConfig = appSettings.Settings["CSharpBackendPortNumber"];
                 if (portConfig == null)
                 {
-                    throw new ConfigurationErrorsException("Need to set CSharpBackendPortNumber value in App.config");
+                    throw new ConfigurationErrorsException("Need to set CSharpBackendPortNumber value in App.config for running in DEBUG mode.");
                 }
                 int cSharpBackendPortNumber = int.Parse(portConfig.Value);
                 logger.LogInfo(string.Format("CSharpBackend port number read from app config {0}", cSharpBackendPortNumber));
