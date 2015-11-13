@@ -64,30 +64,39 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 string sampleName = sample.Name;
                 bool runSample = true;
+
+                if (Configuration.SamplesCategory != null) 
+                {
+                    SampleAttribute[] sampleAttributes = (SampleAttribute[])sample.GetCustomAttributes(typeof(SampleAttribute), false);
+                    runSample = sampleAttributes.Any(attribute => attribute.Match(Configuration.SamplesCategory));
+                    if (!runSample)
+                    {
+                        continue;
+                    }
+                }
+
                 if (Configuration.SamplesToRun != null)
                 {
                     if (!Configuration.SamplesToRun.Contains(sampleName)) //assumes method/sample names are unique
                     {
                         runSample = false;
+                        continue;
                     }
                 }
 
-                if (runSample)
+                try
                 {
-                    try
-                    {
-                        numSamples++;
-                        Logger.LogInfo(string.Format("----- Running sample {0} -----", sampleName));
-                        sample.Invoke(null, new object[] {});
-                        Logger.LogInfo(string.Format("----- Finished runnning sample {0} -----", sampleName));
-                        completed.Add(sampleName);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(string.Format("----- Error runnning sample {0} -----{1}{2}", 
-                            sampleName, Environment.NewLine, ex));
-                        errors.Add(sampleName);
-                    }
+                    numSamples++;
+                    Logger.LogInfo(string.Format("----- Running sample {0} -----", sampleName));
+                    sample.Invoke(null, new object[] {});
+                    Logger.LogInfo(string.Format("----- Finished runnning sample {0} -----", sampleName));
+                    completed.Add(sampleName);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(string.Format("----- Error runnning sample {0} -----{1}{2}", 
+                        sampleName, Environment.NewLine, ex));
+                    errors.Add(sampleName);
                 }
             }
             sw.Stop();
@@ -155,6 +164,10 @@ namespace Microsoft.Spark.CSharp.Samples
                 {
                     Configuration.SamplesToRun = args[i + 1];
                 }
+                else if (args[i].Equals("sparkclr.samples.category", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Configuration.SamplesCategory = args[i + 1];
+                }
                 else if (args[i].Equals("sparkclr.enablevalidation", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Configuration.IsValidationEnabled = true;
@@ -168,5 +181,36 @@ namespace Microsoft.Spark.CSharp.Samples
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     internal class SampleAttribute : Attribute
-    {}
+    {
+        public const string CATEGORY_ALL = "all";   // run all sample tests
+        public const string CATEGORY_DEFAULT = "default"; // run default tests
+
+        private string category;
+
+        public SampleAttribute(string category)
+        {
+            this.category = category;
+        }
+
+        public SampleAttribute()
+        {
+            this.category = CATEGORY_DEFAULT;
+        }
+
+        public string Category
+        {
+            get
+            {
+                return category;
+            }
+        }
+
+        /// <summary>
+        /// whether this category matches the target category
+        /// </summary>
+        public bool Match(string targetCategory)
+        {
+            return (CATEGORY_ALL.Equals(targetCategory) || (this.category.Equals(targetCategory)));
+        }
+    }
 }
