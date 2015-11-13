@@ -100,12 +100,13 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
 
   test("handle a normal case") {
     val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
-
-    FileUtils.copyFile(new File(driverDir, "Test.txt"), new File(driverDir, "Test.exe"))
+    val executableName = "Test.exe"
+    val executableFile = new File(driverDir, executableName)
+    FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
 
     val clArgs = Array(
       "--name", "myApp",
-      "--exe", "Test.exe",
+      "--exe", executableName,
       driverDir,
       "arg1", "arg2"
     )
@@ -115,6 +116,57 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     options should include(driverDir + File.separator + "Test.exe")
     options should include("--name myApp")
     options should endWith("arg1 arg2")
+
+    FileUtils.deleteQuietly(executableFile)
+  }
+
+  test("handle the case that env variable `SPARKCSV_JARS` is set") {
+    val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
+    val executableName = "Test2.exe"
+    val executableFile = new File(driverDir, executableName)
+
+    FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
+
+    val clArgs = Array(
+      "--name", "myApp",
+      "--exe", executableName,
+      driverDir,
+      "arg1", "arg2"
+    )
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map(("SPARKCSV_JARS", "path/to/commons-csv-1.2.jar;path/to/spark-csv_2.10-1.2.0"))).buildCmdOptions()
+
+    options should include(driverDir + File.separator + executableName)
+    options should include("--jars path/to/commons-csv-1.2.jar,path/to/spark-csv_2.10-1.2.0")
+    options should include("--name myApp")
+    options should endWith("arg1 arg2")
+
+    FileUtils.deleteQuietly(executableFile)
+  }
+
+  test("handle the case that env variable `SPARKCSV_JARS` and `--jars` option are both set") {
+    val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
+    val executableName = "Test2.exe"
+    val executableFile = new File(driverDir, executableName)
+
+    FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
+
+    val clArgs = Array(
+      "--name", "myApp",
+      "--jars", "path/to/user.jar",
+      "--exe", executableName,
+      driverDir,
+      "arg1", "arg2"
+    )
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map(("SPARKCSV_JARS", "path/to/commons-csv-1.2.jar;path/to/spark-csv_2.10-1.2.0"))).buildCmdOptions()
+
+    options should include(driverDir + File.separator + executableName)
+    options should include("--jars path/to/commons-csv-1.2.jar,path/to/spark-csv_2.10-1.2.0,path/to/user.jar")
+    options should include("--name myApp")
+    options should endWith("arg1 arg2")
+
+    FileUtils.deleteQuietly(executableFile)
   }
 
 }
