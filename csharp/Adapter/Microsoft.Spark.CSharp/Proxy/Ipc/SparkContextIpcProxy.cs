@@ -284,7 +284,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 new object[]
                 {
                     rdd, command, hashTableReference, arrayListReference, preservesPartitioning, 
-                    SparkCLREnvironment.ConfigurationService.GetCSharpRDDExternalProcessName(),
+                    SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
                     jbroadcastVariables, jvmAccumulatorReference
                 });
@@ -306,7 +306,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 new object[]
                 {
                     name, command, hashTableReference, arrayListReference, 
-                    SparkCLREnvironment.ConfigurationService.GetCSharpRDDExternalProcessName(),
+                    SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
                     jbroadcastVariables, jvmAccumulatorReference, jDataType
                 }));

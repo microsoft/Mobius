@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace AdapterTest.Mocks
         }
 
         private string workerPath;
-        public string GetCSharpRDDExternalProcessName()
+        public string GetCSharpWorkerExePath()
         {
             return workerPath;
         }
@@ -34,12 +35,6 @@ namespace AdapterTest.Mocks
         {
             get { throw new NotImplementedException(); }
         }
-
-        public string GetCSharpWorkerPath()
-        {
-            return "";
-        }
-
 
         public IEnumerable<string> GetDriverFiles()
         {

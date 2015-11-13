@@ -14,9 +14,17 @@ namespace Microsoft.Spark.CSharp.Configuration
     /// </summary>
     internal interface IConfigurationService
     {
+        /// <summary>
+        /// The port number used for communicating with the CSharp external backend worker process.
+        /// </summary>
         int BackendPortNumber { get; }
-        string GetCSharpRDDExternalProcessName();
-        string GetCSharpWorkerPath();
+        /// <summary>
+        /// The full path of the CSharp external backend worker process executable.
+        /// </summary>
+        string GetCSharpWorkerExePath();
+        /// <summary>
+        /// List of the files required for the CSharp external backend worker process.
+        /// </summary>
         IEnumerable<string> GetDriverFiles();
     }
 }

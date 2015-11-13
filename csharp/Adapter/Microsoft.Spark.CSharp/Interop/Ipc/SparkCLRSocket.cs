@@ -101,7 +101,11 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public void Dispose()
         {
-            socket.Dispose();
+            if (socket != null)
+            {
+                socket.Dispose();
+                socket = null;
+            }
         }
 
         public void Flush()
