@@ -83,11 +83,14 @@
     <Compile Include="Interop\Ipc\PayloadHelper.cs" />
     <Compile Include="Interop\Ipc\SerDe.cs" />
     <Compile Include="Proxy\IDataFrameProxy.cs" />
+    <Compile Include="Proxy\IDStreamProxy.cs" />
     <Compile Include="Proxy\Ipc\DataFrameIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DStreamIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\RDDIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\SparkCLRIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\SqlContextIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\StatusTrackerIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\StreamingContextIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\StructIpcProxy.cs" />
     <Compile Include="Proxy\IRDDProxy.cs" />
     <Compile Include="Proxy\ISparkCLRProxy.cs" />
@@ -96,6 +99,7 @@
     <Compile Include="Proxy\Ipc\SparkConfIpcProxy.cs" />
     <Compile Include="Proxy\ISqlContextProxy.cs" />
     <Compile Include="Proxy\IStatusTrackerProxy.cs" />
+    <Compile Include="Proxy\IStreamingContextProxy.cs" />
     <Compile Include="Proxy\IStructProxy.cs" />
     <Compile Include="Proxy\Ipc\SparkContextIpcProxy.cs" />
     <Compile Include="Services\DefaultLoggerService.cs" />
@@ -110,8 +114,9 @@
     <Compile Include="Sql\Struct.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
-    <Compile Include="Streaming\Kafka.cs" />
+    <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
+    <Compile Include="Streaming\TransformedDStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

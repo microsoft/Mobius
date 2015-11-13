@@ -40,7 +40,7 @@ rem The launcher library prints the arguments to be submitted to spark-submit.cm
 set LAUNCHER_OUTPUT=%temp%\spark-class-launcher-output-%RANDOM%.txt
 %JAVA_HOME%\bin\java -cp %LAUNCH_CLASSPATH% org.apache.spark.launcher.SparkCLRSubmitArguments %* > %LAUNCHER_OUTPUT%
 
-if %ERRORLEVEL% EQU 0 (
+if %ERRORLEVEL% NEQ 0 (
    goto :eof
 )
 

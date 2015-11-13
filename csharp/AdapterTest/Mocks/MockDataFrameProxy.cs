@@ -3,6 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Net;
+using System.Net.Sockets;
+using System.IO;
+
+using Razorvine.Pickle;
 using Microsoft.Spark.CSharp.Proxy;
 
 namespace AdapterTest.Mocks
@@ -11,6 +19,10 @@ namespace AdapterTest.Mocks
     {
         internal object[] mockDataFrameReference;
         private ISqlContextProxy mockSqlContextProxy;
+        private List<object> mockRows;
+        private int mockPort;
+        private IStructTypeProxy mockSchema;
+        private Task mockSocketServerTask;
 
         public ISqlContextProxy SqlContextProxy
         {
@@ -22,6 +34,15 @@ namespace AdapterTest.Mocks
         {
             mockDataFrameReference = parameterCollection;
             mockSqlContextProxy = scProxy;
+        }
+
+        // prepare data for mock CollectAndServe()
+        // input data is List of Rows and each row is modeled as array of columns 
+        internal MockDataFrameProxy(int port, List<object> rows, IStructTypeProxy schema)
+        {
+            mockPort = port;
+            mockRows = rows;
+            mockSchema = schema;
         }
 
         public void RegisterTempTable(string tableName)
@@ -37,7 +58,46 @@ namespace AdapterTest.Mocks
 
         public int CollectAndServe()
         {
-            throw new NotImplementedException();
+            // start a new task to mock the Socket server side
+            mockSocketServerTask = Task.Run(() =>
+                {
+                    // listen to localPort, and create socket
+                    TcpListener listener = new TcpListener(IPAddress.Any, mockPort);
+                    listener.Start();
+                    Socket socket = listener.AcceptSocket();
+                    Stream ns = new NetworkStream(socket);
+
+                    Pickler picker = new Pickler();
+                    BinaryWriter bw = new BinaryWriter(ns);
+
+                    // write picked data via socket
+                    foreach (var row in mockRows)
+                    {
+
+                        byte[] pickledRowData = picker.dumps(new object[] { row });
+                        int pickledRowLength = pickledRowData.Count();
+
+                        // write the length in BigEndian format
+                        byte[] lengthBuffer = new byte[4];
+                        lengthBuffer[0] = (byte)(pickledRowLength >> 24);
+                        lengthBuffer[1] = (byte)(pickledRowLength >> 16);
+                        lengthBuffer[2] = (byte)(pickledRowLength >> 8);
+                        lengthBuffer[3] = (byte)(pickledRowLength);
+
+                        bw.Write(lengthBuffer);
+                        bw.Write(pickledRowData);
+                    }
+
+                    // close the stream and socket
+                    ns.Close();
+                    socket.Close();
+                }
+            );
+
+            // sleep some time to let the server side start first
+            Thread.Sleep(100);
+
+            return mockPort;
         }
 
         public string GetQueryExecution()
@@ -57,7 +117,7 @@ namespace AdapterTest.Mocks
 
         public IStructTypeProxy GetSchema()
         {
-            throw new NotImplementedException();
+            return mockSchema;
         }
 
         public IRDDProxy ToJSON()

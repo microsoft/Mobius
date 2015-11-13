@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Spark.CSharp.Sql;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -101,6 +102,13 @@ namespace Microsoft.Spark.CSharp.Samples
             long nameFilteredDataFrameRowsCount = nameFilteredDataFrame.Count();
             long countDataFrameRowsCount = countDataFrame.Count();
             Console.WriteLine("nameFilteredDataFrameRowsCount={0}, maxAgeDataFrameRowsCount={1}, countDataFrameRowsCount={2}", nameFilteredDataFrameRowsCount, maxAgeDataFrameRowsCount, countDataFrameRowsCount);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(1, maxAgeDataFrameRowsCount);
+                Assert.AreEqual(2, nameFilteredDataFrameRowsCount);
+                Assert.AreEqual(1, countDataFrameRowsCount);
+            }
         }
 
         /// <summary>
@@ -126,11 +134,17 @@ namespace Microsoft.Spark.CSharp.Samples
 
             requestsDateFrame.ShowSchema();
             requestsDateFrame.Show();
-            //var count = requestsDateFrame.Count();
+            var count = requestsDateFrame.Count();
 
             guidFilteredDataFrame.ShowSchema();
             guidFilteredDataFrame.Show();
-            //var filteredCount = guidFilteredDataFrame.Count();
+            var filteredCount = guidFilteredDataFrame.Count();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(10, count);
+                Assert.AreEqual(1, filteredCount);
+            }
         }
 
         private static DataFrame GetMetricsDataFrame()
@@ -174,7 +188,12 @@ namespace Microsoft.Spark.CSharp.Samples
             
             join.ShowSchema();
             join.Show();
-            //var count = join.Count();    
+            var count = join.Count();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, count);
+            }
         }
 
         /// <summary>
@@ -399,6 +418,18 @@ namespace Microsoft.Spark.CSharp.Samples
             // equivalent sql script
             peopleDataFrame.RegisterTempTable("people");
             GetSqlContext().Sql("SELECT name, age*2 as age, FullAddress(address.city, address.state) as address FROM people where name='Bill' and age > 40 and PeopleFilter(name, age)").Show();
+        }
+
+        /// <summary>
+        /// Sample to perform limit on DataFrame using DSL.
+        /// </summary>
+        [Sample]
+        internal static void DFLimitSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var peopleDataFrame2 = peopleDataFrame.Limit(2);
+            peopleDataFrame2.Show();
         }
     }
 }

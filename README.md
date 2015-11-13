@@ -107,11 +107,11 @@ The following environment variables should be set properly:
 
 * `SCALA_HOME`  
 
-* `SPARKCSV_JARS` should include full paths to `commons-csv*.jar` and `spark-csv*.jar`. 
+* `SPARKCSV_JARS` should include full paths to `commons-csv*.jar`, `spark-csv*.jar` for CSV and kafka*.jar, metrics-core*.jar, spark-streaming-kafka*.jar for Kafka. 
 
 	For example:     
 	```
-	set SPARKCSV_JARS=%SPARKCLR_HOME%\lib\commons-csv-1.2.jar;%SPARKCLR_HOME%\lib\spark-csv_2.10-1.2.0.jar
+	set SPARKCSV_JARS=%SPARKCLR_HOME%\lib\commons-csv-1.2.jar;%SPARKCLR_HOME%\lib\spark-csv_2.10-1.2.0.jar;%SPARKCLR_HOME%\lib\kafka_2.10-0.8.2.1.jar;%SPARKCLR_HOME%\lib\metrics-core-2.2.0.jar;%SPARKCLR_HOME%\lib\spark-streaming-kafka_2.10-1.4.1.jar
 	```
 
 * `SPARKCLR_HOME` should point to a directory prepared with following sub-directories:  
@@ -127,7 +127,7 @@ The following environment variables should be set properly:
 Set `CSharpWorkerPath` in `SparkCLRSamples.exe.config` and run the following command: 
 
 ```
-sparkclr-submit.cmd --verbose -exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
+sparkclr-submit.cmd --verbose --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
 ```   
 
 Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
@@ -136,7 +136,7 @@ Setting `spark.local.dir` parameter is important. When local Spark instance dist
 
 ### Running in Standalone mode
 ```
-sparkclr-submit.cmd --verbose  --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
+sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
 ```
 
 ### Running in YARN mode
@@ -166,4 +166,8 @@ For example, to debug SparkCLR samples:
 
 ## License
 
-SparkCLR is licensed under the MIT license. See LICENSE file in the project root for full license information.
+SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
+
+## Contribution
+
+We welcome contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md). 
