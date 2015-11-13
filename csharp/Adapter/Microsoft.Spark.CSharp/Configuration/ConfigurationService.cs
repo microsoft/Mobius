@@ -20,8 +20,8 @@ namespace Microsoft.Spark.CSharp.Configuration
     /// </summary>
     internal class ConfigurationService : IConfigurationService
     {
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(ConfigurationService));
-        private SparkCLRConfiguration configuration;
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(ConfigurationService));
+        private readonly SparkCLRConfiguration configuration;
         private RunMode runMode = RunMode.UNKNOWN; //not used anywhere for now but may come handy in the future
 
         public int BackendPortNumber
@@ -69,14 +69,9 @@ namespace Microsoft.Spark.CSharp.Configuration
             logger.LogInfo(string.Format("ConfigurationService runMode is {0}", runMode));
         }
 
-        public string GetCSharpRDDExternalProcessName()
+        public string GetCSharpWorkerExePath()
         {
-            return configuration.GetCSharpRDDExternalProcessName();
-        }
-
-        public string GetCSharpWorkerPath()
-        {
-            return configuration.GetCSharpWorkerPath();
+            return configuration.GetCSharpWorkerExePath();
         }
 
         public IEnumerable<string> GetDriverFiles()
@@ -127,9 +122,10 @@ namespace Microsoft.Spark.CSharp.Configuration
             /// <summary>
             /// The full path of the CSharp external backend worker process.
             /// </summary>
-            internal virtual string GetCSharpWorkerPath()
+            internal virtual string GetCSharpWorkerExePath()
             {
-                return new Uri(GetSparkCLRArtifactsPath("bin", "CSharpWorker.exe")).ToString();
+                string procFileName = GetCSharpRDDExternalProcessName();
+                return GetSparkCLRArtifactsPath("bin", procFileName);
             }
 
             /// <summary>
@@ -167,7 +163,7 @@ namespace Microsoft.Spark.CSharp.Configuration
             {}
 
             private string workerPath;
-            internal override string GetCSharpRDDExternalProcessName()
+            internal override string GetCSharpWorkerExePath()
             {
                 // SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. 
                 // These files are available in the Spark executing directory at executor node.
@@ -180,7 +176,7 @@ namespace Microsoft.Spark.CSharp.Configuration
                     // Path for the CSharpWorker.exe was not specified in App.config
                     // Try to work out where location relative to this class.
                     // Construct path based on well-known file name + directory this class was loaded from.
-                    string procFileName = base.GetCSharpRDDExternalProcessName();
+                    string procFileName = GetCSharpRDDExternalProcessName();
                     string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
                     workerPath = Path.Combine(procDir, procFileName);
                     logger.LogDebug("Using synthesized value for CSharpWorkerPath : " + workerPath);
@@ -192,12 +188,6 @@ namespace Microsoft.Spark.CSharp.Configuration
                     logger.LogDebug("Using CSharpWorkerPath value from App.config : " + workerPath);
                 }
                 return workerPath;
-            }
-
-            internal override string GetCSharpWorkerPath()
-            {
-                string workerPath = GetCSharpRDDExternalProcessName();
-                return new Uri(workerPath).ToString();
             }
         }
 
@@ -233,7 +223,7 @@ namespace Microsoft.Spark.CSharp.Configuration
                 : base(configuration)
             { }
 
-            internal override string GetCSharpWorkerPath()
+            internal override string GetCSharpRDDExternalProcessName()
             {
                 return "CSharpSparkWorker.exe";
             }

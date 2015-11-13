@@ -78,7 +78,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 new object[]
                 {
                     name, command, hashTableReference, arrayListReference, 
-                    SparkCLREnvironment.ConfigurationService.GetCSharpRDDExternalProcessName(),
+                    SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
                     arrayListReference, null, "\"" + returnType + "\""
                 });

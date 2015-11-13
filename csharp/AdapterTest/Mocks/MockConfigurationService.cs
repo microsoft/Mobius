@@ -21,13 +21,9 @@ namespace AdapterTest.Mocks
         }
 
         private string workerPath;
-        public string GetCSharpWorkerPath()
+        public string GetCSharpWorkerExePath()
         {
             return workerPath;
-        }
-        public string GetCSharpRDDExternalProcessName()
-        {
-            return Path.GetFileName(workerPath);
         }
 
         public int BackendPortNumber

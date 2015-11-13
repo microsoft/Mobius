@@ -19,13 +19,9 @@ namespace Microsoft.Spark.CSharp.Configuration
         /// </summary>
         int BackendPortNumber { get; }
         /// <summary>
-        /// The short-name (filename part) of the CSharp external backend worker process.
+        /// The full path of the CSharp external backend worker process executable.
         /// </summary>
-        string GetCSharpRDDExternalProcessName();
-        /// <summary>
-        /// The full path of the CSharp external backend worker process.
-        /// </summary>
-        string GetCSharpWorkerPath();
+        string GetCSharpWorkerExePath();
         /// <summary>
         /// List of the files required for the CSharp external backend worker process.
         /// </summary>
