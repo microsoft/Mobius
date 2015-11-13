@@ -292,6 +292,18 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         new object[] { thresh, subset ?? columnNames }).ToString()), sqlContextProxy);
         }
 
+        public IDataFrameProxy DropDuplicates(string[] subset)
+        {
+            return (subset == null || subset.Length == 0) ?
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "dropDuplicates").ToString()), sqlContextProxy) :
+            new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "dropDuplicates",
+                        new object[] { subset }).ToString()), sqlContextProxy);
+        }
+
         public IDataFrameProxy Replace<T>(T toReplace, T value, string[] subset)
         {
             return ReplaceCore(new Dictionary<T, T> { { toReplace, value } }, subset);
@@ -340,18 +352,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         dataFrameNaRef, "replace",
                         new object[] { subsetRepresentation, toReplaceAndValueDict }).ToString()), sqlContextProxy);
-        }
-
-        public IDataFrameProxy DropDuplicates(string[] subset)
-        {
-            return (subset == null || subset.Length == 0) ?
-                new DataFrameIpcProxy(new JvmObjectReference(
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        jvmDataFrameReference, "dropDuplicates").ToString()), sqlContextProxy) :
-            new DataFrameIpcProxy(new JvmObjectReference(
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        jvmDataFrameReference, "dropDuplicates",
-                        new object[] { subset }).ToString()), sqlContextProxy);
         }
     }
 

@@ -71,7 +71,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             {
                 if (parameter != null)
                 {
-                    if(addTypeIdPrefix) paramtersBytes.Add(GetTypeId(parameter.GetType()));
+                    if (addTypeIdPrefix) paramtersBytes.Add(GetTypeId(parameter.GetType()));
 
                     if (parameter is int)
                     {
@@ -140,18 +140,23 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                     }
                     else if (IsDictionary(parameter.GetType()))
                     {
+                        // Generic Dictionary 'parameter' passed into this function is a object which lost its Generic Type T (namely Dictionary<T, T>). 
+                        // Cannot neither cast to Dictionary<T, T> nor Dictionary<dynamic, dynamic>, so we need to first cast to Non-Generic interface IDictionary and then
+                        // rebuild a Dictionary<dynamic, dynamic>. 
+                        var nonGenericDict = (IDictionary)parameter;
+                        var dict = new Dictionary<dynamic, dynamic>();
+                        foreach (var k in nonGenericDict.Keys)
+                        {
+                            dict[k] = nonGenericDict[k];
+                        }
+
                         Type keyType = parameter.GetType().GetGenericArguments()[0];
 
-                        var dict = new Dictionary<dynamic, dynamic>();
-                        var id = (IDictionary)parameter;
-                        foreach (var k in id.Keys)
-                        {
-                            dict[k] = id[k];
-                        }
+                        // Below serialization is coressponding to deserialization method ReadMap() of SerDe.scala
                         paramtersBytes.Add(SerDe.ToBytes(dict.Count())); // dictionary's length
-                        paramtersBytes.Add(GetTypeId(keyType)); // key's data type
+                        paramtersBytes.Add(GetTypeId(keyType)); // keys' data type
                         paramtersBytes.Add(SerDe.ToBytes(dict.Count())); // keys' length, same as dictionary's length
-                        paramtersBytes.AddRange(from kv in dict select ConvertParametersToBytes(new object[] { kv.Key }, false)); // keys, not need type prefix
+                        paramtersBytes.AddRange(from kv in dict select ConvertParametersToBytes(new object[] { kv.Key }, false)); // keys, do not need type prefix
                         paramtersBytes.Add(SerDe.ToBytes(dict.Count())); // values' length, same as dictionary's length
                         paramtersBytes.AddRange(from kv in dict select ConvertParametersToBytes(new object[] { kv.Value })); // values, need type prefix
                     }

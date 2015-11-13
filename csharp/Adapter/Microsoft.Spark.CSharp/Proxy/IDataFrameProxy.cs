@@ -31,10 +31,10 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Subtract(IDataFrameProxy otherScalaDataFrameReference);
         IDataFrameProxy Drop(string columnName);
         IDataFrameProxy DropNa(string how, int? thresh, string[] subset);
+        IDataFrameProxy DropDuplicates(string[] subset);
         IDataFrameProxy Replace<T>(T toReplace, T value, string[] subset);
         IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset);
         IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset);
-        IDataFrameProxy DropDuplicates(string[] subset);
     }
 
     internal interface IUDFProxy
