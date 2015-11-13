@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
@@ -12,7 +11,6 @@ using System.Net.Sockets;
 using System.IO;
 
 using Razorvine.Pickle;
-
 using Microsoft.Spark.CSharp.Proxy;
 
 namespace AdapterTest.Mocks
@@ -272,22 +270,37 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public IDataFrameProxy DropDuplicates(string[] subset)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Drop(IColumnProxy column)
-        {
-            throw new NotImplementedException();
-        }
-
         public IDataFrameProxy Drop(string columnName)
         {
             throw new NotImplementedException();
         }
 
         public IDataFrameProxy DropNa(string how, int? thresh, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Replace<T>(T toReplace, T value, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy DropDuplicates(string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Drop(IColumnProxy column)
         {
             throw new NotImplementedException();
         }
