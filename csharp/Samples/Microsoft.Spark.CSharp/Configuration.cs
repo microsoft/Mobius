@@ -17,6 +17,8 @@ namespace Microsoft.Spark.CSharp.Samples
 {
     internal class Configuration
     {
+        private string samplesCategory = SampleAttribute.CATEGORY_DEFAULT;
+
         public string SparkLocalDirectoryOverride
         {
             get;
@@ -33,6 +35,19 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             get;
             set;
+        }
+
+        public string SamplesCategory
+        {
+            get
+            {
+                return samplesCategory;
+            }
+
+            set
+            {
+                samplesCategory = value;
+            }
         }
 
         public bool IsValidationEnabled
