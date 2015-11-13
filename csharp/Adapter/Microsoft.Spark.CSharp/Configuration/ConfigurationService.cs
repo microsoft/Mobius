@@ -156,11 +156,23 @@ namespace Microsoft.Spark.CSharp.Configuration
             internal override string GetCSharpWorkerPath()
             {
                 KeyValueConfigurationElement workerPathConfig = appSettings.Settings["CSharpWorkerPath"];
+                string workerPath;
                 if (workerPathConfig == null)
                 {
-                    throw new ConfigurationErrorsException("Need to set CSharpWorkerPath value in App.config");
+                    // Path for the CSharpWorker.exe was not specified in App.config
+                    // Try to work out where location relative to this class.
+                    // Construct path based on well-known file name + directory this class was loaded from.
+                    string procFileName = GetCSharpRDDExternalProcessName();
+                    string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
+                    workerPath = Path.Combine(procDir, procFileName);
+                    //throw new ConfigurationErrorsException("Need to set CSharpWorkerPath value in App.config");
                 }
-                return new Uri(workerPathConfig.Value).ToString();
+                else
+                {
+                    // Explicit path for the CSharpWorker.exe was listed in App.config
+                    workerPath = workerPathConfig.Value;
+                }
+                return new Uri(workerPath).ToString();
             }
         }
 
