@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,9 +45,8 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         internal static byte[] ToPayloadBytes(string value)
         {
             var inputAsBytes = SerDe.ToBytes(value);
-            var lengthOfInputBytes = inputAsBytes.Length;
-            var byteRepresentationofInputLength = SerDe.ToBytes(lengthOfInputBytes);
-            var sendPayloadBytes = new byte[byteRepresentationofInputLength.Length + lengthOfInputBytes];
+            var byteRepresentationofInputLength = SerDe.ToBytes(inputAsBytes.Length);
+            var sendPayloadBytes = new byte[byteRepresentationofInputLength.Length + inputAsBytes.Length];
 
             Array.Copy(byteRepresentationofInputLength, 0, sendPayloadBytes, 0, byteRepresentationofInputLength.Length);
             Array.Copy(inputAsBytes, 0, sendPayloadBytes, byteRepresentationofInputLength.Length, inputAsBytes.Length);
@@ -64,14 +64,15 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             return payloadBytesList.SelectMany(byteArray => byteArray).ToArray();
         }
 
-        internal static byte[] ConvertParametersToBytes(object[] parameters)
+        internal static byte[] ConvertParametersToBytes(object[] parameters, bool addTypeIdPrefix = true)
         {
             var paramtersBytes = new List<byte[]>();
             foreach (var parameter in parameters)
             {
                 if (parameter != null)
                 {
-                    paramtersBytes.Add(GetTypeId(parameter.GetType()));
+                    if (addTypeIdPrefix) paramtersBytes.Add(GetTypeId(parameter.GetType()));
+
                     if (parameter is int)
                     {
                         paramtersBytes.Add(SerDe.ToBytes((int)parameter));
@@ -136,6 +137,28 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                         paramtersBytes.Add(GetTypeId(typeof(JvmObjectReference)));
                         paramtersBytes.Add(SerDe.ToBytes(((IEnumerable<JvmObjectReference>)parameter).Count())); //TODO - Count() will traverse the collection - change interface?
                         paramtersBytes.AddRange(from jObj in (IEnumerable<JvmObjectReference>)parameter select ToPayloadBytes(jObj.Id));
+                    }
+                    else if (IsDictionary(parameter.GetType()))
+                    {
+                        // Generic Dictionary 'parameter' passed into this function is a object which lost its Generic Type T (namely Dictionary<T, T>). 
+                        // Cannot neither cast to Dictionary<T, T> nor Dictionary<dynamic, dynamic>, so we need to first cast to Non-Generic interface IDictionary and then
+                        // rebuild a Dictionary<dynamic, dynamic>. 
+                        var nonGenericDict = (IDictionary)parameter;
+                        var dict = new Dictionary<dynamic, dynamic>();
+                        foreach (var k in nonGenericDict.Keys)
+                        {
+                            dict[k] = nonGenericDict[k];
+                        }
+
+                        Type keyType = parameter.GetType().GetGenericArguments()[0];
+
+                        // Below serialization is coressponding to deserialization method ReadMap() of SerDe.scala
+                        paramtersBytes.Add(SerDe.ToBytes(dict.Count())); // dictionary's length
+                        paramtersBytes.Add(GetTypeId(keyType)); // keys' data type
+                        paramtersBytes.Add(SerDe.ToBytes(dict.Count())); // keys' length, same as dictionary's length
+                        paramtersBytes.AddRange(from kv in dict select ConvertParametersToBytes(new object[] { kv.Key }, false)); // keys, do not need type prefix
+                        paramtersBytes.Add(SerDe.ToBytes(dict.Count())); // values' length, same as dictionary's length
+                        paramtersBytes.AddRange(from kv in dict select ConvertParametersToBytes(new object[] { kv.Value })); // values, need type prefix
                     }
                     else if (parameter is JvmObjectReference)
                     {
@@ -208,12 +231,22 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 return new [] { Convert.ToByte('l') };
             }
 
+            if (IsDictionary(type))
+            {
+                return new [] { Convert.ToByte('e') };
+            }
+
             if (typeof(IEnumerable<JvmObjectReference>).IsAssignableFrom(type))
             {
                 return new [] { Convert.ToByte('l') };
             }
 
             throw new NotSupportedException(string.Format("Type {0} not supported yet", type));
+        }
+
+        private static bool IsDictionary(Type type)
+        {
+            return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>));
         }
     }
 }
