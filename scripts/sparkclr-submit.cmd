@@ -27,6 +27,15 @@ if "%SPARK_ASSEMBLY_JAR%"=="0" (
 
 set SPARKCLR_JAR=spark-clr-1.4.1-SNAPSHOT.jar
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
+
+if  "%SPARKCSV_JARS%" == "" (
+    set "j="
+    for %%d in (%SPARKCLR_HOME%\lib\*.jar) do (
+      if not %%d == %SPARKCLR_JAR% (set j=%%d;!j!)
+    )
+    set SPARKCSV_JARS=!j!
+)
+
 if not "%SPARKCSV_JARS%" == "" (
     SET SPARKCLR_CLASSPATH=%SPARKCLR_CLASSPATH%;%SPARKCSV_JARS%
 )
