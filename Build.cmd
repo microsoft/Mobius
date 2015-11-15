@@ -31,36 +31,6 @@ if EXIST "%CMDHOME%\lib" (
   )
 )
 
-@echo Retrieve dependent jars
-pushd %HOMEDRIVE%%HOMEPATH%
-
-if NOT EXIST ".m2\repository" (
-@echo "WARNING: Local maven repository is not at %HOMEDRIVE%%HOMEPATH%\.m2\repository."
-@echo "         Please manually download and copy following jars to %SPARKCLR_HOME%\lib\, before running samples."
-@echo "         See README.md at https://github.com/Microsoft/SparkCLR for more details."
-@echo.           
-@echo "         (1) commons-csv*.jar"
-@echo "         (2) spark-csv_2.10*.jar"
-@echo "         (3) kafka_2.10*.jar"
-@echo "         (4) metrics-core*.jar"
-@echo "         (5) spark-streaming-kafka_2.10*.jar"
-@echo.
-
-goto dependencydone
-)
-
-pushd ".m2\repository"
-@rem Copy depedent jars from local maven repository
-FORFILES /S /M commons-csv*.jar /C "cmd /c copy /y @file %SPARKCLR_HOME%\lib\"
-FORFILES /S /M spark-csv_2.10*.jar /C "cmd /c copy /y @file %SPARKCLR_HOME%\lib\"
-FORFILES /S /M kafka_2.10*.jar /C "cmd /c copy /y @file %SPARKCLR_HOME%\lib\"
-FORFILES /S /M metrics-core*.jar /C "cmd /c copy /y @file %SPARKCLR_HOME%\lib\"
-FORFILES /S /M spark-streaming-kafka_2.10*.jar /C "cmd /c copy /y @file %SPARKCLR_HOME%\lib\"
-popd
-
-:dependencydone
-popd
-
 @echo Assemble SparkCLR C# components
 pushd "%CMDHOME%\csharp"
 call Build.cmd
