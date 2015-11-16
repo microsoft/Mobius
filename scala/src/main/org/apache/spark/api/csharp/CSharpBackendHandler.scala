@@ -7,6 +7,7 @@ import org.apache.spark.util.Utils
 import java.io.{DataOutputStream, ByteArrayOutputStream, DataInputStream, ByteArrayInputStream}
 import java.net.Socket
 
+import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import org.apache.spark.api.csharp.SerDe._ //TODO - work with SparkR devs to make this configurable and reuse RBackendHandler
 
@@ -20,6 +21,7 @@ import scala.collection.mutable.HashMap
  */
 // Since SparkCLR is a package to Spark and not a part of spark-core it mirrors the implementation of
 // selected parts from RBackend with SparkCLR customizations
+@Sharable
 class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHandler[Array[Byte]] {
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: Array[Byte]): Unit = {
