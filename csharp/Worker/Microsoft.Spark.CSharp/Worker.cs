@@ -282,9 +282,9 @@ namespace Microsoft.Spark.CSharp
             {
                 messageLength = socket.ReadInt();
 
-                if (messageLength > 0)
+                if (messageLength != END_OF_DATA_SECTION && (messageLength > 0 || serializedMode == "Pair"))
                 {
-                    byte[] buffer = socket.ReadBytes(messageLength);
+                    byte[] buffer = messageLength > 0 ? socket.ReadBytes(messageLength) : null;
                     switch (serializedMode)
                     {
                         case "String":
@@ -301,7 +301,7 @@ namespace Microsoft.Spark.CSharp
 
                         case "Pair":
                             messageLength = socket.ReadInt();
-                            byte[] value = socket.ReadBytes(messageLength);
+                            byte[] value = messageLength > 0 ? socket.ReadBytes(messageLength) : null;
                             yield return new KeyValuePair<byte[], byte[]>(buffer, value);
                             break;
 
@@ -314,7 +314,7 @@ namespace Microsoft.Spark.CSharp
                     }
                 }
 
-            } while (messageLength >= 0);
+            } while (messageLength != END_OF_DATA_SECTION);
         }
 
         private static void Log(string message)
