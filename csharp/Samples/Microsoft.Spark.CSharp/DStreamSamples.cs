@@ -46,7 +46,7 @@ namespace Microsoft.Spark.CSharp
             });
         }
 
-        [Sample("DStream")]
+        [Sample("experimental")]
         internal static void DStreamTextFileSamples()
         {
             SparkContext sc = SparkCLRSamples.SparkContext;
