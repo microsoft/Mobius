@@ -366,7 +366,7 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
    */
   private def printUsageAndExit(exitCode: Int = 1): Unit = {
     printStream.println(
-      """Usage: sparkclr-submit [options] -exe <driver.exe> <app zip file | app directory> [app arguments]
+      """Usage: sparkclr-submit [options] <app zip file | app directory> [app arguments]
         |
         |Options:
         |

@@ -210,7 +210,8 @@ namespace Microsoft.Spark.CSharp.Samples
         /// </summary>
         public bool Match(string targetCategory)
         {
-            return (CATEGORY_ALL.Equals(targetCategory) || (this.category.Equals(targetCategory)));
+            return (CATEGORY_ALL.Equals(targetCategory, StringComparison.OrdinalIgnoreCase)
+                || (this.category.Equals(targetCategory, StringComparison.OrdinalIgnoreCase)));
         }
     }
 }
