@@ -37,5 +37,6 @@ csharp/Worker/Microsoft.Spark.CSharp/obj/**
 scala/.idea/**
 scala/dependency-reduced-pom.xml
 run/
+tools/
 *.log
 lib/

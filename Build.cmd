@@ -1,5 +1,15 @@
-@setlocal
 @echo OFF
+
+@rem check prerequisites
+call precheck.cmd
+
+if %precheck% == "bad" (goto :eof)
+
+@rem download build tools
+pushd %~dp0
+powershell -f downloadtools.ps1 build
+call tools\updatebuildtoolenv.cmd
+popd
 
 SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
