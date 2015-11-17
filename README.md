@@ -49,11 +49,11 @@ maxLatencyByDcDataFrame.ShowSchema();
 maxLatencyByDcDataFrame.Show();
 ```
 
-Refer to `SparkCLR\csharp\Samples` directory for complete samples.
+Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory for complete samples.
 
 ## Documents
 
-Refer to the [docs folder](https://github.com/Microsoft/SparkCLR/tree/master/docs).
+Refer to the [docs folder](docs).
 
 ## Building SparkCLR
 
@@ -61,82 +61,64 @@ Refer to the [docs folder](https://github.com/Microsoft/SparkCLR/tree/master/doc
 
 ### Prerequisites
 
-* [Apache Maven](http://maven.apache.org) for spark-clr project implemented in Scala.
-* MSBuild in [Visual Studio](https://www.visualstudio.com/) 2013 and above.
-* .NET Framework 4.5 and above.
-* [Nuget command-line utility](https://docs.nuget.org/release-notes) 3.2 and above.
+* Windows Server 2012 or above; or, 64-bit Windows 7 or above.
+* Developer Command Prompt for [Visual Studio](https://www.visualstudio.com/) 2013 or above, which comes with .NET Framework 4.5 or above. Note: [Visual Studio 2015 Community. Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) is **FREE**.
+* 64-bit JDK 7u85 or above; or, 64-bit JDK 8u60 or above. OpenJDK for Windows can be downloaded from [http://www.azul.com/downloads/zulu/zulu-windows/](http://www.azul.com/downloads/zulu/zulu-windows/); Oracle JDK8 for Windows is available at Orcale website.
+
+JDK should be downloaded manually, and the following environment variables should be set properly in the Developer Command Prompt for Visual Studio:
+
+* `JAVA_HOME`
+
 
 ### Instructions
 
-* Navigate to `SparkCLR\scala` directory and run the following command to build spark-clr*.jar
+* In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set properly, navigate to [SparkCLR](./) directory: 
 
+	```  
+	Build.cmd  
 	```
-	mvn package
-	```
 
-* Start Developer Command Prompt for Visual Studio, and navigate to `SparkCLR\csharp` directory.
-
-	- If `nuget.exe` is not already in your PATH, then run the following commands to add it.
+* Optional: 
+	- Under [SparkCLR\scala](./scala) directory, run the following command to clean spark-clr*.jar built above: 
 
 		```  
-		set PATH=<fullpath to nuget.exe>;%PATH%  
-		```
-  
-	- Then  build the rest of the .NET binaries  
+		mvn clean
+		```  
+
+ 	- Under [SparkCLR\csharp](./csharp) directory, run the following command to clean the .NET binaries built above:
 
 		```  
-		Build.cmd  
-		```
-  
-* Optional: Under `SparkCLR\csharp` directory, run the following command to clean the .NET binaries built above  
+		Clean.cmd  
+		```  
+		
+[Build.cmd](build.cmd) downloads necessary build tools; after the build is done, it prepares the folowing directories under `SparkCLR\run`:
 
-    ```
-    Clean.cmd
-    ```   
+  * **lib** ( `spark-clr*.jar` )  
+  * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
+  * **samples** ( The contents of `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\bin\Release\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` etc. ) 
+  * **scripts** ( `sparkclr-submit.cmd` )  
+  * **data** ( `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\data\*` )    
 
 ## Running Samples
 
 ### Prerequisites
 
-DataFrame TextFile API uses `spark-csv` package to load data from CSV file. 
-Latest [commons-csv-*.jar](http://commons.apache.org/proper/commons-csv/download_csv.cgi) and [spark-csv*.jar (Scala version:2.10)](http://spark-packages.org/package/databricks/spark-csv) should be downloaded manually.
-
-The following environment variables should be set properly:
+JDK should be downloaded manually, and the following environment variables should be set properly in the Developer Command Prompt for Visual Studio:
 
 * `JAVA_HOME`
 
-* `SPARK_HOME` currently SparkCLR only supports Spark 1.4.x.
-
-* `HADOOP_HOME` hadoop version should be consistent with spark version. For example, if spark build version is spark-1.4.1-bin-hadoop2.6, then only hadoop release 2.6.x should be used.
-
-* `SPARKCSV_JARS` should include full paths to `commons-csv*.jar`, `spark-csv*.jar` for CSV and kafka*.jar, metrics-core*.jar, spark-streaming-kafka*.jar for Kafka. 
-
-	For example:     
-	```
-	set SPARKCSV_JARS=%SPARKCLR_HOME%\lib\commons-csv-1.2.jar;%SPARKCLR_HOME%\lib\spark-csv_2.10-1.2.0.jar;%SPARKCLR_HOME%\lib\kafka_2.10-0.8.2.1.jar;%SPARKCLR_HOME%\lib\metrics-core-2.2.0.jar;%SPARKCLR_HOME%\lib\spark-streaming-kafka_2.10-1.4.1.jar
-	```
-
-* `SPARKCLR_HOME` should point to a directory prepared with following sub-directories:  
-
-  * **lib** ( `spark-clr*.jar` )  
-  * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
-  * **samples** ( The contents of `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\bin\[Debug|Release]\*`, including `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`, `SparkCLRSamples.exe`, `SparkCLRSamples.exe.Config` etc. ) 
-  * **scripts** ( `sparkclr-submit.cmd` )  
-  * **data** ( `SparkCLR\csharp\Samples\Microsoft.Spark.CSharp\data\*` )  
-
 ### Running in Local mode
 
-Set `CSharpWorkerPath` in `SparkCLRSamples.exe.config` and run the following command: 
+In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set properly, navigate to [SparkCLR](./) directory:
 
+```  
+Runsamples.cmd  
 ```
-sparkclr-submit.cmd --verbose --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples spark.local.dir C:\temp\SparkCLRTemp sparkclr.sampledata.loc %SPARKCLR_HOME%\data
-```   
 
-Note that SparkCLR jar version (**1.4.1**) should be aligned with Apache Spark version.  
-
-Setting `spark.local.dir` parameter is important. When local Spark instance distributes SparkCLR driver executables to Windows `%TEMP%` directory, anti-virus software may detect and report the executables showed up in `%TEMP%` directory as malware.
+[Runsamples.cmd](./Runsamples.cmd) downloads Apache Spark 1.4.1, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](./build.cmd), and invokes [sparkclr-submit.cmd](./scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
 
 ### Running in Standalone mode
+
 ```
 sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
 ```
