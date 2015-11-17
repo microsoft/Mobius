@@ -54,7 +54,7 @@ namespace Microsoft.Spark.CSharp
             sc.SetCheckpointDir(directory);
             StreamingContext ssc = new StreamingContext(sc, 2000);
 
-            var lines = ssc.TextFileStream(directory);
+            var lines = ssc.TextFileStream(Path.Combine(directory, "test"));
             var words = lines.FlatMap(l => l.Split(' '));
             var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
             var wordCounts = pairs.ReduceByKey((x, y) => x + y);
