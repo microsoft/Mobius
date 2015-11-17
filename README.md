@@ -105,7 +105,9 @@ The following environment variables should be set properly:
 
 * `JAVA_HOME`
 
-* `SCALA_HOME`  
+* `SPARK_HOME` currently SparkCLR only supports Spark 1.4.x.
+
+* `HADOOP_HOME` hadoop version should be consistent with spark version. For example, if spark build version is spark-1.4.1-bin-hadoop2.6, then only hadoop release 2.6.x should be used.
 
 * `SPARKCSV_JARS` should include full paths to `commons-csv*.jar`, `spark-csv*.jar` for CSV and kafka*.jar, metrics-core*.jar, spark-streaming-kafka*.jar for Kafka. 
 
