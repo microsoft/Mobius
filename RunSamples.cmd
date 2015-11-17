@@ -22,4 +22,4 @@ cd %SPARKCLR_HOME%
 
 @echo ON
 
-%SPARKCLR_HOME%\scripts\sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data
+%SPARKCLR_HOME%\scripts\sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
