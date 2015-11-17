@@ -1,5 +1,22 @@
-@setlocal
 @echo OFF
+
+@rem check prerequisites
+call precheck.cmd
+if %precheck% == "bad" (goto :eof)
+
+@rem 
+@rem setup Hadoop and Spark versions
+@rem
+set SPARK_VERSION=1.4.1
+set HADOOP_VERSION=2.6
+@echo SPARK_VERSION=%SPARK_VERSION%
+@echo HADOOP_VERSION=%HADOOP_VERSION%
+
+@rem download runtime dependencies
+pushd %~dp0
+powershell -f downloadtools.ps1 run
+call tools\updateruntime.cmd
+popd
 
 SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
