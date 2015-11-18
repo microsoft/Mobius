@@ -374,11 +374,10 @@ namespace Microsoft.Spark.CSharp.Core
         {
             if (accumulatorServer == null)
             {
-                string host = "localhost";
-                accumulatorServer = new AccumulatorServer(host);
+                accumulatorServer = new AccumulatorServer();
                 int port = accumulatorServer.StartUpdateServer();
 
-                SparkContextProxy.Accumulator(host, port);
+                SparkContextProxy.Accumulator(port);
             }
             return new Accumulator<T>(nextAccumulatorId++, value);
         }

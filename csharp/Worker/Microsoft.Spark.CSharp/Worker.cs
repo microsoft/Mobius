@@ -5,6 +5,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -25,12 +27,6 @@ namespace Microsoft.Spark.CSharp
     /// </summary>
     public class Worker
     {
-        private const int END_OF_DATA_SECTION = -1;
-        private const int DOTNET_EXCEPTION_THROWN = -2;
-        private const int TIMING_DATA = -3;
-        private const int END_OF_STREAM = -4;
-        private const int NULL = -5;
-
         private static readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         static void Main(string[] args)
@@ -38,71 +34,57 @@ namespace Microsoft.Spark.CSharp
             PrintFiles();
             int javaPort = int.Parse(Console.ReadLine());
             Log("java_port: " + javaPort);
-            var socket = new SparkCLRSocket();
-            socket.Initialize(javaPort);
+            var sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock.Connect(IPAddress.Parse("127.0.0.1"), javaPort);
 
-            using (socket)
-            using (socket.InitializeStream())
+            using (NetworkStream s = new NetworkStream(sock))
             {
                 try
                 {
                     DateTime bootTime = DateTime.UtcNow;
 
-                    int splitIndex = socket.ReadInt();
+                    int splitIndex = SerDe.ReadInt(s);
                     Log("split_index: " + splitIndex);
                     if (splitIndex == -1)
                         Environment.Exit(-1);
 
-                    int versionLength = socket.ReadInt();
-                    Log("ver_len: " + versionLength);
-
-                    if (versionLength > 0)
-                    {
-                        string ver = socket.ReadString(versionLength);
-                        Log("ver: " + ver);
-                    }
+                    string ver = SerDe.ReadString(s);
+                    Log("ver: " + ver);
 
                     //// initialize global state
                     //shuffle.MemoryBytesSpilled = 0
                     //shuffle.DiskBytesSpilled = 0
-                    //_accumulatorRegistry.clear()
 
                     // fetch name of workdir
-                    int sparkFilesDirectoryLength = socket.ReadInt();
-                    Log("sparkFilesDirectoryLength: " + sparkFilesDirectoryLength);
-
-                    if (sparkFilesDirectoryLength > 0)
-                    {
-                        string sparkFilesDir = socket.ReadString(sparkFilesDirectoryLength);
-                        Log("spark_files_dir: " + sparkFilesDir);
-                        //SparkFiles._root_directory = spark_files_dir
-                        //SparkFiles._is_running_on_worker = True
-                    }
+                    string sparkFilesDir = SerDe.ReadString(s);
+                    Log("spark_files_dir: " + sparkFilesDir);
+                    //SparkFiles._root_directory = sparkFilesDir
+                    //SparkFiles._is_running_on_worker = True
 
                     // fetch names of includes - not used //TODO - complete the impl
-                    int numberOfIncludesItems = socket.ReadInt();
+                    int numberOfIncludesItems = SerDe.ReadInt(s);
                     Log("num_includes: " + numberOfIncludesItems);
 
                     if (numberOfIncludesItems > 0)
                     {
                         for (int i = 0; i < numberOfIncludesItems; i++)
                         {
-                            string filename = socket.ReadString();
+                            string filename = SerDe.ReadString(s);
                         }
                     }
 
                     // fetch names and values of broadcast variables
-                    int numBroadcastVariables = socket.ReadInt();
+                    int numBroadcastVariables = SerDe.ReadInt(s);
                     Log("num_broadcast_variables: " + numBroadcastVariables);
 
                     if (numBroadcastVariables > 0)
                     {
                         for (int i = 0; i < numBroadcastVariables; i++)
                         {
-                            long bid = socket.ReadLong();
+                            long bid = SerDe.ReadLong(s);
                             if (bid >= 0)
                             {
-                                string path = socket.ReadString();
+                                string path = SerDe.ReadString(s);
                                 Broadcast.broadcastRegistry[bid] = new Broadcast(path);
                             }
                             else
@@ -115,26 +97,20 @@ namespace Microsoft.Spark.CSharp
 
                     Accumulator.accumulatorRegistry.Clear();
 
-                    int lengthOCommandByteArray = socket.ReadInt();
+                    int lengthOCommandByteArray = SerDe.ReadInt(s);
                     Log("command_len: " + lengthOCommandByteArray);
 
                     IFormatter formatter = new BinaryFormatter();
 
                     if (lengthOCommandByteArray > 0)
                     {
-                        int length = socket.ReadInt();
-                        Log("Deserializer mode length: " + length);
-                        string deserializerMode = socket.ReadString(length);
+                        string deserializerMode = SerDe.ReadString(s);
                         Log("Deserializer mode: " + deserializerMode);
 
-                        length = socket.ReadInt();
-                        Log("Serializer mode length: " + length);
-                        string serializerMode = socket.ReadString(length);
+                        string serializerMode = SerDe.ReadString(s);
                         Log("Serializer mode: " + serializerMode);
 
-                        int lengthOfFunc = socket.ReadInt();
-                        Log("Length of func: " + lengthOfFunc);
-                        byte[] command = socket.ReadBytes(lengthOfFunc);
+                        byte[] command = SerDe.ReadBytes(s);
 
                         Log("command bytes read: " + command.Length);
                         var stream = new MemoryStream(command);
@@ -144,7 +120,7 @@ namespace Microsoft.Spark.CSharp
                         DateTime initTime = DateTime.UtcNow;
 
                         int count = 0;
-                        foreach (var message in func(splitIndex, GetIterator(socket, deserializerMode)))
+                        foreach (var message in func(splitIndex, GetIterator(s, deserializerMode)))
                         {
                             byte[] buffer;
 
@@ -177,8 +153,8 @@ namespace Microsoft.Spark.CSharp
                             }
 
                             count++;
-                            socket.Write(buffer.Length);
-                            socket.Write(buffer);
+                            SerDe.Write(s, buffer.Length);
+                            SerDe.Write(s, buffer);
                         }
 
                         //TODO - complete the impl
@@ -191,23 +167,23 @@ namespace Microsoft.Spark.CSharp
 
                         DateTime finish_time = DateTime.UtcNow;
 
-                        socket.Write(TIMING_DATA);
-                        socket.Write(ToUnixTime(bootTime));
-                        socket.Write(ToUnixTime(initTime));
-                        socket.Write(ToUnixTime(finish_time));
+                        SerDe.Write(s, (int)SpecialLengths.TIMING_DATA);
+                        SerDe.Write(s, ToUnixTime(bootTime));
+                        SerDe.Write(s, ToUnixTime(initTime));
+                        SerDe.Write(s, ToUnixTime(finish_time));
 
-                        socket.Write(0L); //shuffle.MemoryBytesSpilled  
-                        socket.Write(0L); //shuffle.DiskBytesSpilled
+                        SerDe.Write(s, 0L); //shuffle.MemoryBytesSpilled  
+                        SerDe.Write(s, 0L); //shuffle.DiskBytesSpilled
                     }
                     else
                     {
                         Log("Nothing to execute :-(");
                     }
 
-                    //// Mark the beginning of the accumulators section of the output
-                    socket.Write(END_OF_DATA_SECTION);
+                    // Mark the beginning of the accumulators section of the output
+                    SerDe.Write(s, (int)SpecialLengths.END_OF_DATA_SECTION);
 
-                    socket.Write(Accumulator.accumulatorRegistry.Count);
+                    SerDe.Write(s, Accumulator.accumulatorRegistry.Count);
                     foreach (var item in Accumulator.accumulatorRegistry)
                     {
                         var ms = new MemoryStream();
@@ -215,25 +191,25 @@ namespace Microsoft.Spark.CSharp
                         Log(string.Format("({0}, {1})", item.Key, value));
                         formatter.Serialize(ms, new KeyValuePair<int, dynamic>(item.Key, value));
                         byte[] buffer = ms.ToArray();
-                        socket.Write(buffer.Length);
-                        socket.Write(buffer);
+                        SerDe.Write(s, buffer.Length);
+                        SerDe.Write(s, buffer);
                     }
 
-                    int end = socket.ReadInt();
+                    int end = SerDe.ReadInt(s);
 
                     // check end of stream
-                    if (end == END_OF_DATA_SECTION || end == END_OF_STREAM)
+                    if (end == (int)SpecialLengths.END_OF_DATA_SECTION || end == (int)SpecialLengths.END_OF_STREAM)
                     {
-                        socket.Write(END_OF_STREAM);
-                        Log("END_OF_STREAM: " + END_OF_STREAM);
+                        SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
+                        Log("END_OF_STREAM: " + (int)SpecialLengths.END_OF_STREAM);
                     }
                     else
                     {
                         // write a different value to tell JVM to not reuse this worker
-                        socket.Write(END_OF_DATA_SECTION);
+                        SerDe.Write(s, (int)SpecialLengths.END_OF_DATA_SECTION);
                         Environment.Exit(-1);
                     }
-                    socket.Flush();
+                    s.Flush();
                     System.Threading.Thread.Sleep(1000); //TODO - not sure if this is really needed
                 }
                 catch (Exception e)
@@ -241,7 +217,7 @@ namespace Microsoft.Spark.CSharp
                     Log(e.ToString());
                     try
                     {
-                        socket.Write(e.ToString());
+                        SerDe.Write(s, e.ToString());
                     }
                     catch (IOException)
                     {
@@ -273,18 +249,16 @@ namespace Microsoft.Spark.CSharp
             return (long)(dt - UnixTimeEpoch).TotalMilliseconds;
         }
 
-        private static IEnumerable<dynamic> GetIterator(ISparkCLRSocket socket, string serializedMode)
+        private static IEnumerable<dynamic> GetIterator(Stream s, string serializedMode)
         {
             Log("Serialized mode in GetIterator: " + serializedMode);
             IFormatter formatter = new BinaryFormatter();
             int messageLength;
-            do
+            while ((messageLength = SerDe.ReadInt(s)) != (int)SpecialLengths.END_OF_DATA_SECTION)
             {
-                messageLength = socket.ReadInt();
-
-                if (messageLength != END_OF_DATA_SECTION && (messageLength > 0 || serializedMode == "Pair"))
+                if (messageLength > 0 || serializedMode == "Pair")
                 {
-                    byte[] buffer = messageLength > 0 ? socket.ReadBytes(messageLength) : null;
+                    byte[] buffer = messageLength > 0 ? SerDe.ReadBytes(s, messageLength) : null;
                     switch (serializedMode)
                     {
                         case "String":
@@ -300,9 +274,11 @@ namespace Microsoft.Spark.CSharp
                             break;
 
                         case "Pair":
-                            messageLength = socket.ReadInt();
-                            byte[] value = messageLength > 0 ? socket.ReadBytes(messageLength) : null;
-                            yield return new KeyValuePair<byte[], byte[]>(buffer, value);
+                            messageLength = SerDe.ReadInt(s);
+                            if (messageLength > 0)
+                            {
+                                yield return new KeyValuePair<byte[], byte[]>(buffer, SerDe.ReadBytes(s, messageLength));
+                            }
                             break;
 
                         case "Byte":
@@ -313,8 +289,7 @@ namespace Microsoft.Spark.CSharp
                             break;
                     }
                 }
-
-            } while (messageLength != END_OF_DATA_SECTION);
+            }
         }
 
         private static void Log(string message)

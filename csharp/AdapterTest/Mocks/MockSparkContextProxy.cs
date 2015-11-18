@@ -251,7 +251,7 @@ namespace AdapterTest.Mocks
         }
 
 
-        public void Accumulator(string host, int port)
+        public void Accumulator(int port)
         {
             throw new NotImplementedException();
         }
