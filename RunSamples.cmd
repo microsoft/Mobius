@@ -34,9 +34,12 @@ set SAMPLES_DIR=%SPARKCLR_HOME%\samples
 @echo SPARKCLR_HOME=%SPARKCLR_HOME%
 @echo SPARKCSV_JARS=%SPARKCSV_JARS%
 
-cd %SPARKCLR_HOME%
+pushd %SPARKCLR_HOME%
 @cd
 
 @echo ON
 
-%SPARKCLR_HOME%\scripts\sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+call %SPARKCLR_HOME%\scripts\sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+
+@echo OFF
+popd
