@@ -7,7 +7,16 @@ using System.IO;
 
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
-    /// <summary>
+    public enum SpecialLengths : int
+    {
+        END_OF_DATA_SECTION = -1,
+        DOTNET_EXCEPTION_THROWN = -2,
+        TIMING_DATA = -3,
+        END_OF_STREAM = -4,
+        NULL = -5,
+    }
+
+/// <summary>
     /// Serialization and Deserialization of data types between JVM & CLR
     /// </summary>
     public class SerDe //TODO - add ToBytes() for other types
@@ -116,20 +125,27 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         
         public static byte[] ReadBytes(Stream s, int length)
         {
-            if (length <= 0)
-                return null;
             byte[] buffer = new byte[length];
-            int bytesRead = 0;
-            while (bytesRead < length)
+            int bytesRead;
+            int totalBytesRead = 0;
+            do
             {
-                bytesRead += s.Read(buffer, bytesRead, length - bytesRead);
+                bytesRead = s.Read(buffer, totalBytesRead, length - totalBytesRead);
+                totalBytesRead += bytesRead;
             }
+            while (totalBytesRead < length && bytesRead > 0);
+
+            if (totalBytesRead < length && totalBytesRead > 0)
+                throw new ArgumentException(string.Format("Incomplete bytes read: {0}, expected: {1}", totalBytesRead, length));
+
             return buffer;
         }
         
         public static byte[] ReadBytes(Stream s)
         {
             var length = ReadInt(s);
+            if (length == (int)SpecialLengths.NULL)
+                return null;
             return ReadBytes(s, length);
         }
         
