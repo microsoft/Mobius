@@ -20,7 +20,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IColumnProxy CreateFunction(string name, object self);
         IColumnProxy CreateBinaryMathFunction(string name, object self, object other);
         IColumnProxy CreateWindowFunction(string name);
-        void Accumulator(string host, int port);
+        void Accumulator(int port);
         void SetLogLevel(string logLevel);
         string Version { get; }
         long StartTime { get; }

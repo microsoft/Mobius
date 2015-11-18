@@ -101,11 +101,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             get { if (defaultMinPartitions == null) { defaultMinPartitions = (int)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "defaultMinPartitions"); } return (int)defaultMinPartitions; }
         }
-        public void Accumulator(string host, int port)
+        public void Accumulator(int port)
         {
             jvmAccumulatorReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "accumulator", 
                 SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList"),
-                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorParam", host, port)
+                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorParam", "127.0.0.1", port)
             ));
         }
 

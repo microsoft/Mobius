@@ -14,6 +14,7 @@ using Razorvine.Pickle;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Interop;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -127,34 +128,18 @@ namespace Microsoft.Spark.CSharp.Sql
             Unpickler unpickler = new Unpickler();
             Socket sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             sock.Connect("127.0.0.1", port);
-            NetworkStream ns = new NetworkStream(sock);
 
-            using (BinaryReader br = new BinaryReader(ns))
+            using (NetworkStream s = new NetworkStream(sock))
             {
-                byte[] buffer = null;
-                do
+                byte[] buffer;
+                while ((buffer = SerDe.ReadBytes(s)) != null && buffer.Length > 0)
                 {
-                    buffer = br.ReadBytes(4);
-                    if (buffer != null && buffer.Length > 0)
+                    foreach (var item in (unpickler.loads(buffer) as object[]))
                     {
-                        //In JVM, Multibyte data items are always stored in big-endian order, where the high bytes come first
-                        //http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
-                        //So we should handle revert buffer if our system is little-endian
-                        //https://msdn.microsoft.com/en-us/library/system.bitconverter(v=vs.110).aspx
-                        if (BitConverter.IsLittleEndian)
-                        {
-                            Array.Reverse(buffer);
-                        }
-
-                        int len = BitConverter.ToInt32(buffer, 0);
-                        byte[] data = br.ReadBytes(len);
-                        foreach (var item in (unpickler.loads(data) as object[]))
-                        {
-                            RowImpl row = new RowImpl(item, dataType);
-                            items.Add(row);
-                        }
+                        RowImpl row = new RowImpl(item, dataType);
+                        items.Add(row);
                     }
-                } while (buffer != null && buffer.Length > 0);
+                }
             }
 
             return items;
