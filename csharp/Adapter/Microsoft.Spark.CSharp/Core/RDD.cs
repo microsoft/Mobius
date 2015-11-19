@@ -12,6 +12,7 @@ using System.Reflection;
 using System.IO;
 using System.Net.Sockets;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -548,47 +549,37 @@ namespace Microsoft.Spark.CSharp.Core
             int port = RddProxy.CollectAndServe();
             return Collect(port);
         }
+        
         internal T[] Collect(int port)
         {
             List<object> items = new List<object>();
             IFormatter formatter = new BinaryFormatter();
             Socket sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             sock.Connect("127.0.0.1", port);
-            NetworkStream ns = new NetworkStream(sock);
 
-            using (BinaryReader br = new BinaryReader(ns))
+            using (NetworkStream s = new NetworkStream(sock))
             {
                 byte[] buffer;
-                do
+                while ((buffer = SerDe.ReadBytes(s)) != null && buffer.Length > 0)
                 {
-                    buffer = br.ReadBytes(4);
-                    if (buffer.Length > 0)
+                    if (serializedMode == SerializedMode.Byte)
                     {
-                        Array.Reverse(buffer);
-                        int len = BitConverter.ToInt32(buffer, 0);
-                        buffer = br.ReadBytes(len);
-                        if (serializedMode == SerializedMode.Byte)
-                        {
-                            MemoryStream ms = new MemoryStream(buffer);
-                            items.Add(formatter.Deserialize(ms));
-                        }
-                        else if (serializedMode == SerializedMode.String)
-                        {
-                            items.Add(Encoding.UTF8.GetString(buffer));
-                        }
-                        else if (serializedMode == SerializedMode.Pair)
-                        {
-                            MemoryStream ms = new MemoryStream(buffer);
-
-                            byte[] buffer2 = br.ReadBytes(4);
-                            Array.Reverse(buffer2);
-                            MemoryStream ms2 = new MemoryStream(br.ReadBytes(BitConverter.ToInt32(buffer2, 0)));
-                            
-                            ConstructorInfo ci = typeof(T).GetConstructors()[0];
-                            items.Add(ci.Invoke(new object[] { formatter.Deserialize(ms), formatter.Deserialize(ms2) }));
-                        }
+                        MemoryStream ms = new MemoryStream(buffer);
+                        items.Add(formatter.Deserialize(ms));
                     }
-                } while (buffer.Length > 0);
+                    else if (serializedMode == SerializedMode.String)
+                    {
+                        items.Add(Encoding.UTF8.GetString(buffer));
+                    }
+                    else if (serializedMode == SerializedMode.Pair)
+                    {
+                        MemoryStream ms = new MemoryStream(buffer);
+                        MemoryStream ms2 = new MemoryStream(SerDe.ReadBytes(s));
+                            
+                        ConstructorInfo ci = typeof(T).GetConstructors()[0];
+                        items.Add(ci.Invoke(new object[] { formatter.Deserialize(ms), formatter.Deserialize(ms2) }));
+                    }
+                }
             }
 
             return items.Cast<T>().ToArray();

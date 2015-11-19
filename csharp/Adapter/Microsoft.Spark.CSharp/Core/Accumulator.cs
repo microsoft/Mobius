@@ -149,8 +149,8 @@ namespace Microsoft.Spark.CSharp.Core
         private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(AccumulatorServer));
         private bool serverShutdown;
 
-        internal AccumulatorServer(string host)
-            : base(Dns.GetHostAddresses(host).First(a => a.AddressFamily == AddressFamily.InterNetwork), 0)
+        internal AccumulatorServer()
+            : base(IPAddress.Parse("127.0.0.1"), 0)
         {
 
         }
