@@ -1,4 +1,5 @@
 @echo OFF
+setlocal
 
 @rem check prerequisites
 call precheck.cmd
@@ -24,6 +25,10 @@ set CMDHOME=%CMDHOME:~0,-1%
 
 set SPARKCLR_HOME=%CMDHOME%\run
 set SPARKCSV_JARS=
+
+@rem RunSamples.cmd is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
+set HADOOP_CONF_DIR=
+set YARN_CONF_DIR=
 
 set TEMP_DIR=%SPARKCLR_HOME%\Temp
 if NOT EXIST "%TEMP_DIR%" mkdir "%TEMP_DIR%"
