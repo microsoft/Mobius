@@ -21,7 +21,6 @@ namespace AdapterTest.Mocks
     internal class MockSparkContextProxy : ISparkContextProxy
     {
         private static IFormatter formatter = new BinaryFormatter();
-        internal static IEnumerable<dynamic> result;
 
         internal object mockSparkContextReference;
 
@@ -65,15 +64,16 @@ namespace AdapterTest.Mocks
                 string deserializerMode = SerDe.ReadString(s);
                 string serializerMode = SerDe.ReadString(s);
                 var func = (Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
-                result = func(default(int), input);
-            }
+                IEnumerable<dynamic> output = func(default(int), input);
 
-            if (result.FirstOrDefault() is byte[] && (result.First() as byte[]).Length == 8)
-            {
-                result = result.Where(e => (e as byte[]).Length != 8).Select(e => formatter.Deserialize(new MemoryStream(e as byte[])));
-            }
+                // number 8 indicates shuffling scenario's leading 8-byte hash code of each data row which should be filtered
+                if (output.FirstOrDefault() is byte[] && (output.First() as byte[]).Length == 8)
+                {
+                    output = output.Where(e => (e as byte[]).Length != 8).Select(e => formatter.Deserialize(new MemoryStream(e as byte[])));
+                }
 
-            return new MockRddProxy(result);
+                return new MockRddProxy(output);
+            }
         }
 
         public IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions)
@@ -212,8 +212,17 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        internal static int RunJob()
+        internal static int RunJob(IRDDProxy rdd)
         {
+            var mockRdd = (rdd as MockRddProxy);
+            IEnumerable<byte[]> result = mockRdd.pickle ? mockRdd.result.Cast<byte[]>() :
+                mockRdd.result.Select(x =>
+                {
+                    var ms = new MemoryStream();
+                    formatter.Serialize(ms, x);
+                    return ms.ToArray();
+                });
+
             TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
             listener.Start();
 
@@ -222,13 +231,10 @@ namespace AdapterTest.Mocks
                 using (Socket socket = listener.AcceptSocket())
                 using (Stream ns = new NetworkStream(socket))
                 {
-                    foreach (var item in MockSparkContextProxy.result)
+                    foreach (var item in result)
                     {
-                        var ms = new MemoryStream();
-                        formatter.Serialize(ms, item);
-                        byte[] buffer = ms.ToArray();
-                        SerDe.Write(ns, buffer.Length);
-                        SerDe.Write(ns, buffer);
+                        SerDe.Write(ns, item.Length);
+                        SerDe.Write(ns, item);
                     }
                 }
             });
@@ -237,7 +243,7 @@ namespace AdapterTest.Mocks
 
         public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions, bool allowLocal)
         {
-            return RunJob();
+            return RunJob(rdd);
         }
 
         public IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> pythonIncludes, bool preservePartitioning, List<Broadcast<dynamic>> broadcastVariables, List<byte[]> accumulator)

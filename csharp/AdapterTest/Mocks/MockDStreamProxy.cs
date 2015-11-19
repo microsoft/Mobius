@@ -46,7 +46,7 @@ namespace AdapterTest.Mocks
         public void CallForeachRDD(byte[] func, string deserializer)
         {
             Action<double, RDD<dynamic>> f = (Action<double, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
-            f(DateTime.UtcNow.Ticks, new RDD<dynamic>(new MockRddProxy(null), new SparkContext("", "")));
+            f(DateTime.UtcNow.Ticks, new RDD<dynamic>(rddProxy, new SparkContext("", "")));
         }
 
         public void Print(int num = 10)
@@ -63,7 +63,7 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy[] Slice(long fromUnixTime, long toUnixTime)
         {
-            return new IRDDProxy[] {(new MockDStreamProxy()) as IRDDProxy};
+            return new IRDDProxy[] { rddProxy };
         }
     }
 }
