@@ -51,14 +51,9 @@ namespace Microsoft.Spark.CSharp.Configuration
                 configuration = new SparkCLRConfiguration(appConfig);
                 runMode = RunMode.CLUSTER;
             }
-            else if (sparkMaster.Equals("yarn-client", StringComparison.OrdinalIgnoreCase))
+            else if (sparkMaster.Equals("yarn-client", StringComparison.OrdinalIgnoreCase) || sparkMaster.Equals("yarn-cluster", StringComparison.OrdinalIgnoreCase))
             {
                 configuration = new SparkCLRConfiguration(appConfig);
-                runMode = RunMode.YARN;
-            }
-            else if (sparkMaster.Equals("yarn-cluster", StringComparison.OrdinalIgnoreCase))
-            {
-                configuration = new SparkCLRYarnClusterConfiguration(appConfig);
                 runMode = RunMode.YARN;
             }
             else
@@ -74,11 +69,6 @@ namespace Microsoft.Spark.CSharp.Configuration
             return configuration.GetCSharpWorkerExePath();
         }
 
-        public IEnumerable<string> GetDriverFiles()
-        {
-            return configuration.GetDriverFiles();
-        }
-
         /// <summary>
         /// Default configuration for SparkCLR jobs.
         /// Works with Standalone cluster mode
@@ -87,8 +77,9 @@ namespace Microsoft.Spark.CSharp.Configuration
         private class SparkCLRConfiguration
         {
             protected readonly AppSettingsSection appSettings;
-            private readonly string sparkCLRHome = Environment.GetEnvironmentVariable("SPARKCLR_HOME"); //set by sparkclr-submit.cmd
+            protected readonly string sparkCLRHome = Environment.GetEnvironmentVariable("SPARKCLR_HOME"); //set by sparkclr-submit.cmd
             protected readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRConfiguration));
+            protected readonly string procFileName = "CSharpWorker.exe";
 
             internal SparkCLRConfiguration(System.Configuration.Configuration configuration)
             {
@@ -111,42 +102,11 @@ namespace Microsoft.Spark.CSharp.Configuration
             }
 
             /// <summary>
-            /// The short-name (filename part) of the CSharp external backend worker process.
-            /// </summary>
-            internal virtual string GetCSharpRDDExternalProcessName()
-            {
-                //SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. These files available in spark executing directory at executor
-                return "CSharpWorker.exe";
-            }
-
-            /// <summary>
-            /// The full path of the CSharp external backend worker process.
+            /// The path of the CSharp external backend worker process.
             /// </summary>
             internal virtual string GetCSharpWorkerExePath()
             {
-                string procFileName = GetCSharpRDDExternalProcessName();
-                return GetSparkCLRArtifactsPath("bin", procFileName);
-            }
-
-            /// <summary>
-            /// List of the files required for the CSharp external backend worker process.
-            /// </summary>
-            //this works for Standlone cluster //TODO fix for YARN support
-            internal virtual IEnumerable<string> GetDriverFiles()
-            {
-                var driverFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location); 
-                var files = Directory.EnumerateFiles(driverFolder);
-                return files.Select(s => new Uri(s).ToString());
-            }
-
-            private string GetSparkCLRArtifactsPath(string sparkCLRSubFolderName, string fileName)
-            {
-                var filePath = Path.Combine(sparkCLRHome, sparkCLRSubFolderName, fileName);
-                if (!File.Exists(filePath))
-                {
-                    throw new Exception(string.Format("Path {0} not exists", filePath));
-                }
-                return filePath;
+                return procFileName;
             }
         }
 
@@ -176,7 +136,6 @@ namespace Microsoft.Spark.CSharp.Configuration
                     // Path for the CSharpWorker.exe was not specified in App.config
                     // Try to work out where location relative to this class.
                     // Construct path based on well-known file name + directory this class was loaded from.
-                    string procFileName = GetCSharpRDDExternalProcessName();
                     string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
                     workerPath = Path.Combine(procDir, procFileName);
                     logger.LogDebug("Using synthesized value for CSharpWorkerPath : " + workerPath);
@@ -212,20 +171,28 @@ namespace Microsoft.Spark.CSharp.Configuration
                 logger.LogInfo(string.Format("CSharpBackend port number read from app config {0}", cSharpBackendPortNumber));
                 return cSharpBackendPortNumber;
             }
-        }
 
-        /// <summary>
-        /// Configuration for SparkCLR jobs in ** Yarn-Cluster ** mode
-        /// </summary>
-        private class SparkCLRYarnClusterConfiguration : SparkCLRConfiguration
-        {
-            internal SparkCLRYarnClusterConfiguration(System.Configuration.Configuration configuration)
-                : base(configuration)
-            { }
-
-            internal override string GetCSharpRDDExternalProcessName()
+            /// <summary>
+            /// The full path of the CSharp external backend worker process.
+            /// </summary>
+            internal string GetCSharpWorkerExePath()
             {
-                return "CSharpSparkWorker.exe";
+                KeyValueConfigurationElement workerPathConfig = appSettings.Settings["CSharpWorkerPath"];
+                if (workerPathConfig != null)
+                {
+                    return workerPathConfig.Value;
+                }
+                return GetSparkCLRArtifactsPath("bin", procFileName);
+            }
+
+            private string GetSparkCLRArtifactsPath(string sparkCLRSubFolderName, string fileName)
+            {
+                var filePath = Path.Combine(sparkCLRHome, sparkCLRSubFolderName, fileName);
+                if (!File.Exists(filePath))
+                {
+                    throw new Exception(string.Format("Path {0} not exists", filePath));
+                }
+                return filePath;
             }
         }
     }
