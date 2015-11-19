@@ -22,7 +22,6 @@ namespace AdapterTest.Mocks
         private List<object> mockRows;
         private int mockPort;
         private IStructTypeProxy mockSchema;
-        private Task mockSocketServerTask;
 
         public ISqlContextProxy SqlContextProxy
         {
@@ -53,51 +52,6 @@ namespace AdapterTest.Mocks
         public long Count()
         {
             throw new NotImplementedException();
-        }
-
-
-        public int CollectAndServe()
-        {
-            // start a new task to mock the Socket server side
-            mockSocketServerTask = Task.Run(() =>
-                {
-                    // listen to localPort, and create socket
-                    TcpListener listener = new TcpListener(IPAddress.Any, mockPort);
-                    listener.Start();
-                    Socket socket = listener.AcceptSocket();
-                    Stream ns = new NetworkStream(socket);
-
-                    Pickler picker = new Pickler();
-                    BinaryWriter bw = new BinaryWriter(ns);
-
-                    // write picked data via socket
-                    foreach (var row in mockRows)
-                    {
-
-                        byte[] pickledRowData = picker.dumps(new object[] { row });
-                        int pickledRowLength = pickledRowData.Count();
-
-                        // write the length in BigEndian format
-                        byte[] lengthBuffer = new byte[4];
-                        lengthBuffer[0] = (byte)(pickledRowLength >> 24);
-                        lengthBuffer[1] = (byte)(pickledRowLength >> 16);
-                        lengthBuffer[2] = (byte)(pickledRowLength >> 8);
-                        lengthBuffer[3] = (byte)(pickledRowLength);
-
-                        bw.Write(lengthBuffer);
-                        bw.Write(pickledRowData);
-                    }
-
-                    // close the stream and socket
-                    ns.Close();
-                    socket.Close();
-                }
-            );
-
-            // sleep some time to let the server side start first
-            Thread.Sleep(100);
-
-            return mockPort;
         }
 
         public string GetQueryExecution()
@@ -202,7 +156,8 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy JavaToCSharp()
         {
-            throw new NotImplementedException();
+            Pickler pickler = new Pickler();
+            return new MockRddProxy(mockRows.Select(r => pickler.dumps(new object[] { r })), true);
         }
 
         public IDataFrameProxy Limit(int num)

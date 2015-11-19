@@ -13,6 +13,7 @@ using System.IO;
 using System.Net.Sockets;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -544,15 +545,14 @@ namespace Microsoft.Spark.CSharp.Core
         /// Return a list that contains all of the elements in this RDD.
         /// </summary>
         /// <returns></returns>
-        public T[] Collect() //TODO - hardcoded for now - need to fix
+        public T[] Collect()
         {
             int port = RddProxy.CollectAndServe();
-            return Collect(port);
+            return Collect(port).Cast<T>().ToArray();
         }
         
-        internal T[] Collect(int port)
+        internal IEnumerable<dynamic> Collect(int port)
         {
-            List<object> items = new List<object>();
             IFormatter formatter = new BinaryFormatter();
             Socket sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             sock.Connect("127.0.0.1", port);
@@ -565,11 +565,11 @@ namespace Microsoft.Spark.CSharp.Core
                     if (serializedMode == SerializedMode.Byte)
                     {
                         MemoryStream ms = new MemoryStream(buffer);
-                        items.Add(formatter.Deserialize(ms));
+                        yield return formatter.Deserialize(ms);
                     }
                     else if (serializedMode == SerializedMode.String)
                     {
-                        items.Add(Encoding.UTF8.GetString(buffer));
+                        yield return Encoding.UTF8.GetString(buffer);
                     }
                     else if (serializedMode == SerializedMode.Pair)
                     {
@@ -577,12 +577,18 @@ namespace Microsoft.Spark.CSharp.Core
                         MemoryStream ms2 = new MemoryStream(SerDe.ReadBytes(s));
                             
                         ConstructorInfo ci = typeof(T).GetConstructors()[0];
-                        items.Add(ci.Invoke(new object[] { formatter.Deserialize(ms), formatter.Deserialize(ms2) }));
+                        yield return ci.Invoke(new object[] { formatter.Deserialize(ms), formatter.Deserialize(ms2) });
+                    }
+                    else if (serializedMode == SerializedMode.Row)
+                    {
+                        Unpickler unpickler = new Unpickler();
+                        foreach (var item in (unpickler.loads(buffer) as object[]))
+                        {
+                            yield return item;
+                        }
                     }
                 }
             }
-
-            return items.Cast<T>().ToArray();
         }
 
         /// <summary>
@@ -812,7 +818,7 @@ namespace Microsoft.Spark.CSharp.Core
                 IEnumerable<int> partitions = Enumerable.Range(partsScanned, Math.Min(numPartsToTry, totalParts - partsScanned));
                 var mappedRDD = MapPartitions<T>(new TakeHelper<T>(left).Execute);
                 int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, partitions, true);
-                T[] res = Collect(port);
+                IEnumerable<T> res = Collect(port).Cast<T>();
 
                 items.AddRange(res);
                 partsScanned += numPartsToTry;
@@ -1046,8 +1052,7 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 var mappedRDD = MapPartitions<T>(iter => iter);
                 int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, Enumerable.Range(partition, 1), true);
-                T[] rows = Collect(port);
-                foreach (T row in rows)
+                foreach (T row in Collect(port))
                     yield return row;
             }
         }

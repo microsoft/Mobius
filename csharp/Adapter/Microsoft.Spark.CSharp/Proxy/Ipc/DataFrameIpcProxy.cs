@@ -33,20 +33,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         jvmDataFrameReference, "count").ToString());
         }
 
-        /// <summary>
-        /// Call CollectAndServe() in Java side, it will collect an RDD as an iterator, then serve it via socket
-        /// </summary>
-        /// <returns>the port number of a local socket which serves the data collected</returns>
-        public int CollectAndServe()
+        public IRDDProxy JavaToCSharp()
         {
             var javaRDDReference = new JvmObjectReference(
                 (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDataFrameReference, "javaToPython"));
-            var rddReference = new JvmObjectReference(
-                (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(javaRDDReference, "rdd"));
-            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
-                "org.apache.spark.api.python.PythonRDD",
-                "collectAndServe",
-                new object[] { rddReference }).ToString());
+            return new RDDIpcProxy(javaRDDReference);
         }
 
         public string GetQueryExecution()
