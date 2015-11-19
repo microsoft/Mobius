@@ -22,9 +22,5 @@ namespace Microsoft.Spark.CSharp.Configuration
         /// The full path of the CSharp external backend worker process executable.
         /// </summary>
         string GetCSharpWorkerExePath();
-        /// <summary>
-        /// List of the files required for the CSharp external backend worker process.
-        /// </summary>
-        IEnumerable<string> GetDriverFiles();
     }
 }
