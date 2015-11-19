@@ -1,4 +1,5 @@
 @echo OFF
+setlocal
 
 @rem check prerequisites
 call precheck.cmd
