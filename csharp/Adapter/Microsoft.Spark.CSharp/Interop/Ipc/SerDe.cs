@@ -7,6 +7,9 @@ using System.IO;
 
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
+    /// <summary>
+    /// see PythonRDD.scala with which Work.cs communicates
+    /// </summary>
     public enum SpecialLengths : int
     {
         END_OF_DATA_SECTION = -1,
@@ -125,19 +128,26 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         
         public static byte[] ReadBytes(Stream s, int length)
         {
-            byte[] buffer = new byte[length];
-            int bytesRead;
-            int totalBytesRead = 0;
-            do
+            if (length < 0)
             {
-                bytesRead = s.Read(buffer, totalBytesRead, length - totalBytesRead);
-                totalBytesRead += bytesRead;
+                throw new ArgumentOutOfRangeException("length", length, "length can't be negative.");
             }
-            while (totalBytesRead < length && bytesRead > 0);
 
-            if (totalBytesRead < length && totalBytesRead > 0)
-                throw new ArgumentException(string.Format("Incomplete bytes read: {0}, expected: {1}", totalBytesRead, length));
+            byte[] buffer = new byte[length];
+            if (length > 0)
+            {
+                int bytesRead;
+                int totalBytesRead = 0;
+                do
+                {
+                    bytesRead = s.Read(buffer, totalBytesRead, length - totalBytesRead);
+                    totalBytesRead += bytesRead;
+                }
+                while (totalBytesRead < length && bytesRead > 0);
 
+                if (totalBytesRead < length && totalBytesRead > 0)
+                    throw new ArgumentException(string.Format("Incomplete bytes read: {0}, expected: {1}", totalBytesRead, length));
+            }
             return buffer;
         }
         

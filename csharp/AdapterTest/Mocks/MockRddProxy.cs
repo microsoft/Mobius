@@ -17,6 +17,7 @@ namespace AdapterTest.Mocks
     internal class MockRddProxy : IRDDProxy
     {
         internal IEnumerable<dynamic> result;
+        internal bool pickle;
 
         internal object[] mockRddReference;
 
@@ -25,9 +26,10 @@ namespace AdapterTest.Mocks
             mockRddReference = parameterCollection;
         }
 
-        public MockRddProxy(IEnumerable<dynamic> result)
+        public MockRddProxy(IEnumerable<dynamic> result, bool pickle = false)
         {
             this.result = result;
+            this.pickle = pickle;
         }
 
         public IRDDProxy Distinct<T>()
@@ -80,7 +82,7 @@ namespace AdapterTest.Mocks
 
         public int CollectAndServe()
         {
-            return MockSparkContextProxy.RunJob();
+            return MockSparkContextProxy.RunJob(this);
         }
 
         public int PartitionLength()

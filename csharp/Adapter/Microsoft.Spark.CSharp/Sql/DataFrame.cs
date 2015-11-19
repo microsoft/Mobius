@@ -105,44 +105,19 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public IEnumerable<Row> Collect()
         {
-            int port = dataFrameProxy.CollectAndServe();
-            RowSchema rs = GetRowSchema();
-            List<Row> items = Collect(port, rs);
-            return items.AsEnumerable<Row>();
-        }
-
-        private RowSchema GetRowSchema()
-        {
             if (rowSchema == null)
             {
-                string json = Schema.ToJson();
-                rowSchema = RowSchema.ParseRowSchemaFromJson(json);
+                rowSchema = RowSchema.ParseRowSchemaFromJson(Schema.ToJson());
             }
-            return rowSchema;
-        }
 
-        private List<Row> Collect(int port, RowSchema dataType)
-        {
-            List<Row> items = new List<Row>();
-            IFormatter formatter = new BinaryFormatter();
-            Unpickler unpickler = new Unpickler();
-            Socket sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            sock.Connect("127.0.0.1", port);
-
-            using (NetworkStream s = new NetworkStream(sock))
+            IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
+            RDD<Row> rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
+            
+            int port = rddProxy.CollectAndServe();
+            foreach (var item in rdd.Collect(port))
             {
-                byte[] buffer;
-                while ((buffer = SerDe.ReadBytes(s)) != null && buffer.Length > 0)
-                {
-                    foreach (var item in (unpickler.loads(buffer) as object[]))
-                    {
-                        RowImpl row = new RowImpl(item, dataType);
-                        items.Add(row);
-                    }
-                }
+                yield return new RowImpl(item, rowSchema);
             }
-
-            return items;
         }
 
         /// <summary>
