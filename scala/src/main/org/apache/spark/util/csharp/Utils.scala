@@ -5,7 +5,7 @@ package org.apache.spark.util.csharp
 
 import java.io._
 import java.util.zip.{ZipEntry, ZipOutputStream, ZipFile}
-import util.control.Breaks._
+import org.apache.commons.io.IOUtils
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -37,35 +37,44 @@ object Utils {
 
   /**
    * Compress all files under given directory into one zip file and drop it to the target directory
-   * @param directory the directory where the zip file will be created
+   * @param sourceDir the directory where the zip file will be created
    * @param targetZipFile
    */
-  def zip(directory: File, targetZipFile: File): Unit = {
-    if (!directory.exists() || !directory.isDirectory) {
+  def zip(sourceDir: File, targetZipFile: File): Unit = {
+    if (!sourceDir.exists() || !sourceDir.isDirectory) {
       return
     }
 
+    var fos: FileOutputStream = null
+    var zos: ZipOutputStream = null
     try {
-
-      val fos = new FileOutputStream(targetZipFile)
-      val zos = new ZipOutputStream(fos)
-
-      for (f <- directory.list()) {
-
-        val ze = new ZipEntry(f)
-        zos.putNextEntry(ze)
-        val in = new FileInputStream(new File(directory, f))
-
-        copy(in, zos)
-
-        in.close()
-        zos.closeEntry()
-      }
-
-      zos.close()
-      fos.close()
+      fos = new FileOutputStream(targetZipFile)
+      zos = new ZipOutputStream(fos)
+      zipDir(sourceDir, sourceDir, zos)
     } catch {
       case e: Exception => throw e
+    } finally {
+      IOUtils.closeQuietly(zos)
+      IOUtils.closeQuietly(fos)
+    }
+  }
+
+  private def zipDir(rootDir: File, sourceDir: File, out: ZipOutputStream): Unit = {
+    for (file <- sourceDir.listFiles()) {
+      if (file.isDirectory()) {
+        zipDir(rootDir, new File(sourceDir, file.getName()), out)
+      } else {
+        var in: FileInputStream = null
+        try {
+          val entry = new ZipEntry(file.getPath.substring(rootDir.getPath.length + 1))
+          out.putNextEntry(entry)
+          in = new FileInputStream(file)
+          IOUtils.copy(in, out)
+        }
+        finally {
+          IOUtils.closeQuietly(in)
+        }
+      }
     }
   }
 
@@ -75,56 +84,31 @@ object Utils {
    * @param targetDir target directory
    */
   def unzip(file: File, targetDir: File): Unit = {
+    if(!targetDir.exists()){
+      targetDir.mkdir()
+    }
 
     val zipFile = new ZipFile(file)
-
     try {
-
       val entries = zipFile.entries()
-
       while (entries.hasMoreElements()) {
-
-        breakable {
-          val entry = entries.nextElement()
-
-          val targetFile = new File(targetDir, entry.getName())
-
-          if (targetFile.exists()) {
-            break
-          }
-
-          if (entry.isDirectory()) {
-            targetFile.mkdirs()
-
-          } else {
-            val input = zipFile.getInputStream(entry);
-            try {
-              val output = new FileOutputStream(targetFile);
-              try {
-                copy(input, output)
-              } finally {
-                output.close()
-              }
-            } finally {
-              input.close()
-            }
-          }
+        val entry = entries.nextElement()
+        val targetFile = new File(targetDir, entry.getName)
+        if (!targetFile.getParentFile.exists()) {
+          targetFile.getParentFile.mkdir()
+        }
+        if (entry.isDirectory) {
+          targetFile.mkdirs()
+        } else {
+          val input = zipFile.getInputStream(entry)
+          val output = new FileOutputStream(targetFile)
+          IOUtils.copy(input, output)
+          IOUtils.closeQuietly(input)
+          IOUtils.closeQuietly(output)
         }
       }
     } finally {
       zipFile.close()
     }
-
   }
-
-  private def copy(input: InputStream, output: OutputStream): Unit = {
-    val buffer = new Array[Byte](4096)
-    var size: Int = -1
-    while (true) {
-      size = input.read(buffer)
-      if (size == -1) return
-      output.write(buffer, 0, size)
-    }
-  }
-
 }
