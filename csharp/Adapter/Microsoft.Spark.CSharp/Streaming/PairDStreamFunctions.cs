@@ -86,7 +86,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static DStream<KeyValuePair<K, U>> MapValues<K, V, U>(this DStream<KeyValuePair<K, V>> self, Func<V, U> func)
         {
-            return self.Map(kvp => new KeyValuePair<K, U>(kvp.Key, func(kvp.Value)), true);
+            return self.Map(new MapValuesHelper<K, V, U>(func).Execute, true);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static DStream<KeyValuePair<K, U>> FlatMapValues<K, V, U>(this DStream<KeyValuePair<K, V>> self, Func<V, IEnumerable<U>> func)
         {
-            return self.FlatMap(kvp => func(kvp.Value).Select(v => new KeyValuePair<K, U>(kvp.Key, v)), true);
+            return self.FlatMap(new FlatMapValuesHelper<K, V, U>(func).Execute, true);
         }
 
         /// <summary>
@@ -275,31 +275,20 @@ namespace Microsoft.Spark.CSharp.Streaming
             // dstream to be transformed by substracting old RDDs and adding new RDDs based on the window
             var reduced = self.ReduceByKey(reduceFunc, numPartitions);
 
+            var helper = new ReduceByKeyAndWindowHelper<K, V>(reduceFunc, invReduceFunc, numPartitions, filterFunc);
             // function to reduce the new values that entered the window (e.g., adding new counts)
-            Func<double, RDD<KeyValuePair<K, V>>, RDD<KeyValuePair<K, V>>, RDD<KeyValuePair<K, V>>> reduceF = (t, a, b) =>
-            {
-                b = b.ReduceByKey<K, V>(reduceFunc);
-                var r = a != null ? a.Union(b).ReduceByKey<K, V>(reduceFunc) : b;
-                if (filterFunc != null)
-                    r.Filter(filterFunc);
-                return r;
-            };
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> reduceF = helper.Reduce;
 
             MemoryStream stream = new MemoryStream();
             var formatter = new BinaryFormatter();
             formatter.Serialize(stream, reduceF);
 
             // function to "inverse reduce" the old values that left the window (e.g., subtracting old counts)
-            Func<double, RDD<KeyValuePair<K, V>>, RDD<KeyValuePair<K, V>>, RDD<KeyValuePair<K, V>>> invReduceF = null;
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> invReduceF = null;
             MemoryStream invStream = null;
             if (invReduceFunc != null)
             {
-                invReduceF = (t, a, b) =>
-                {
-                    b = b.ReduceByKey<K, V>(reduceFunc);
-                    RDD<KeyValuePair<K, Tuple<V, V>>> joined = a.Join<K, V, V>(b, numPartitions);
-                    return joined.MapValues<K, Tuple<V, V>, V>(kv => kv.Item2 != null ? invReduceFunc(kv.Item1, kv.Item2) : kv.Item1);
-                };
+                invReduceF = helper.InvReduce;
 
                 invStream = new MemoryStream();
                 formatter.Serialize(stream, invReduceF);
@@ -391,6 +380,36 @@ namespace Microsoft.Spark.CSharp.Streaming
     }
 
     [Serializable]
+    internal class MapValuesHelper<K, V, U>
+    {
+        private Func<V, U> func;
+        internal MapValuesHelper(Func<V, U> f)
+        {
+            func = f;
+        }
+
+        internal KeyValuePair<K, U> Execute(KeyValuePair<K, V> kvp)
+        {
+            return new KeyValuePair<K, U>(kvp.Key, func(kvp.Value));
+        }
+    }
+
+    [Serializable]
+    internal class FlatMapValuesHelper<K, V, U>
+    {
+        private Func<V, IEnumerable<U>> func;
+        internal FlatMapValuesHelper(Func<V, IEnumerable<U>> f)
+        {
+            func = f;
+        }
+
+        internal IEnumerable<KeyValuePair<K, U>> Execute(KeyValuePair<K, V> kvp)
+        {
+            return func(kvp.Value).Select(v => new KeyValuePair<K, U>(kvp.Key, v));
+        }
+    }
+    
+    [Serializable]
     internal class GroupByKeyHelper<K, V>
     {
         private int numPartitions = 0;
@@ -477,6 +496,48 @@ namespace Microsoft.Spark.CSharp.Streaming
         internal RDD<KeyValuePair<K, Tuple<V, W>>> Execute(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
         {
             return l.FullOuterJoin<K, V, W>(r, numPartitions);
+        }
+    }
+
+    [Serializable]
+    internal class ReduceByKeyAndWindowHelper<K, V>
+    {
+        private Func<V, V, V> reduceFunc;
+        private Func<V, V, V> invReduceFunc;
+        private int numPartitions;
+        private Func<KeyValuePair<K, V>, bool> filterFunc;
+
+        internal ReduceByKeyAndWindowHelper(Func<V, V, V> reduceF, Func<V, V, V> invReduceF, int numPartitions, Func<KeyValuePair<K, V>, bool> filterF)
+        {
+            reduceFunc = reduceF;
+            invReduceFunc = invReduceF;
+            this.numPartitions = numPartitions;
+            filterFunc = filterF;
+        }
+
+        internal RDD<dynamic> Reduce(double t, RDD<dynamic> a, RDD<dynamic> b)
+        {
+            RDD<KeyValuePair<K, V>> rddb = new RDD<KeyValuePair<K, V>>(b.rddProxy, b.sparkContext, b.serializedMode) { previousRddProxy = b.previousRddProxy };
+            rddb = rddb.ReduceByKey<K, V>(reduceFunc);
+            var r = rddb;
+            if (a != null)
+            {
+                RDD<KeyValuePair<K, V>> rdda = new RDD<KeyValuePair<K, V>>(a.rddProxy, a.sparkContext, a.serializedMode) { previousRddProxy = a.previousRddProxy };
+                r = rdda.Union(rddb).ReduceByKey<K, V>(reduceFunc);
+            }
+            if (filterFunc != null)
+                r.Filter(filterFunc);
+            return new RDD<dynamic>(r.RddProxy, r.sparkContext) { previousRddProxy = r.previousRddProxy };
+        }
+
+        internal RDD<dynamic> InvReduce(double t, RDD<dynamic> a, RDD<dynamic> b)
+        {
+            RDD<KeyValuePair<K, V>> rddb = new RDD<KeyValuePair<K, V>>(b.rddProxy, b.sparkContext, b.serializedMode) { previousRddProxy = b.previousRddProxy };
+            rddb = rddb.ReduceByKey<K, V>(reduceFunc);
+            RDD<KeyValuePair<K, V>> rdda = new RDD<KeyValuePair<K, V>>(a.rddProxy, a.sparkContext, a.serializedMode) { previousRddProxy = a.previousRddProxy };
+            RDD<KeyValuePair<K, Tuple<V, V>>> joined = rdda.Join<K, V, V>(rddb, numPartitions);
+            var r = joined.MapValues<K, Tuple<V, V>, V>(kv => kv.Item2 != null ? invReduceFunc(kv.Item1, kv.Item2) : kv.Item1);
+            return new RDD<dynamic>(r.RddProxy, r.sparkContext) { previousRddProxy = r.previousRddProxy };
         }
     }
 

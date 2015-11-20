@@ -22,7 +22,7 @@ namespace AdapterTest.Mocks
 
         public int SlideDuration
         {
-            get; set;
+            get { return 1000 ;}
         }
 
         public MockDStreamProxy()
