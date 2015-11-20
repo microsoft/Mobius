@@ -20,6 +20,10 @@ namespace Microsoft.Spark.CSharp.Configuration
     /// </summary>
     internal class ConfigurationService : IConfigurationService
     {
+        public const string ProcFileName = "CSharpWorker.exe";
+        public const string CSharpWorkerPathSettingKey = "CSharpWorkerPath";
+        public const string CSharpBackendPortNumberSettingKey = "CSharpBackendPortNumber";
+
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(ConfigurationService));
         private readonly SparkCLRConfiguration configuration;
         private RunMode runMode = RunMode.UNKNOWN; //not used anywhere for now but may come handy in the future
@@ -79,7 +83,6 @@ namespace Microsoft.Spark.CSharp.Configuration
             protected readonly AppSettingsSection appSettings;
             protected readonly string sparkCLRHome = Environment.GetEnvironmentVariable("SPARKCLR_HOME"); //set by sparkclr-submit.cmd
             protected readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRConfiguration));
-            protected readonly string procFileName = "CSharpWorker.exe";
 
             internal SparkCLRConfiguration(System.Configuration.Configuration configuration)
             {
@@ -106,7 +109,7 @@ namespace Microsoft.Spark.CSharp.Configuration
             /// </summary>
             internal virtual string GetCSharpWorkerExePath()
             {
-                return procFileName;
+                return ProcFileName;
             }
         }
 
@@ -120,7 +123,7 @@ namespace Microsoft.Spark.CSharp.Configuration
         {
             internal SparkCLRLocalConfiguration(System.Configuration.Configuration configuration)
                 : base(configuration)
-            {}
+            { }
 
             private string workerPath;
             internal override string GetCSharpWorkerExePath()
@@ -130,14 +133,14 @@ namespace Microsoft.Spark.CSharp.Configuration
 
                 if (workerPath != null) return workerPath; // Return cached value
 
-                KeyValueConfigurationElement workerPathConfig = appSettings.Settings["CSharpWorkerPath"];
+                KeyValueConfigurationElement workerPathConfig = appSettings.Settings[CSharpWorkerPathSettingKey];
                 if (workerPathConfig == null)
                 {
                     // Path for the CSharpWorker.exe was not specified in App.config
                     // Try to work out where location relative to this class.
                     // Construct path based on well-known file name + directory this class was loaded from.
                     string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
-                    workerPath = Path.Combine(procDir, procFileName);
+                    workerPath = Path.Combine(procDir, ProcFileName);
                     logger.LogDebug("Using synthesized value for CSharpWorkerPath : " + workerPath);
                 }
                 else
@@ -162,10 +165,10 @@ namespace Microsoft.Spark.CSharp.Configuration
 
             internal override int GetPortNumber()
             {
-                KeyValueConfigurationElement portConfig = appSettings.Settings["CSharpBackendPortNumber"];
+                KeyValueConfigurationElement portConfig = appSettings.Settings[CSharpBackendPortNumberSettingKey];
                 if (portConfig == null)
                 {
-                    throw new ConfigurationErrorsException("Need to set CSharpBackendPortNumber value in App.config for running in DEBUG mode.");
+                    throw new ConfigurationErrorsException(string.Format("Need to set {0} value in App.config for running in DEBUG mode.", CSharpBackendPortNumberSettingKey));
                 }
                 int cSharpBackendPortNumber = int.Parse(portConfig.Value);
                 logger.LogInfo(string.Format("CSharpBackend port number read from app config {0}", cSharpBackendPortNumber));
@@ -175,14 +178,14 @@ namespace Microsoft.Spark.CSharp.Configuration
             /// <summary>
             /// The full path of the CSharp external backend worker process.
             /// </summary>
-            internal string GetCSharpWorkerExePath()
+            internal override string GetCSharpWorkerExePath()
             {
-                KeyValueConfigurationElement workerPathConfig = appSettings.Settings["CSharpWorkerPath"];
+                KeyValueConfigurationElement workerPathConfig = appSettings.Settings[CSharpWorkerPathSettingKey];
                 if (workerPathConfig != null)
                 {
                     return workerPathConfig.Value;
                 }
-                return GetSparkCLRArtifactsPath("bin", procFileName);
+                return GetSparkCLRArtifactsPath("bin", ProcFileName);
             }
 
             private string GetSparkCLRArtifactsPath(string sparkCLRSubFolderName, string fileName)
