@@ -352,6 +352,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         jvmDataFrameReference, "limit",
                         new object[] { num }).ToString()), sqlContextProxy);
+        }    
+
+        public IDataFrameProxy Distinct()
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "distinct").ToString()), sqlContextProxy);
         }
     }
 
