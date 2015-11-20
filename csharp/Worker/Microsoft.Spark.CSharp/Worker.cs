@@ -13,6 +13,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Services;
 
 using Razorvine.Pickle;
 
@@ -28,14 +29,32 @@ namespace Microsoft.Spark.CSharp
     public class Worker
     {
         private static readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static ILoggerService logger;
 
         static void Main(string[] args)
         {
-            PrintFiles();
-            int javaPort = int.Parse(Console.ReadLine());
-            Log("java_port: " + javaPort);
-            var sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            sock.Connect(IPAddress.Parse("127.0.0.1"), javaPort);
+            // if there exists exe.config file, then use log4net
+            if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile))
+            {
+                LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance);
+            }
+            logger = LoggerServiceFactory.GetLogger(typeof(Worker));
+
+            Socket sock = null;
+            try
+            {
+                PrintFiles();
+                int javaPort = int.Parse(Console.ReadLine());
+                logger.LogInfo("java_port: " + javaPort);
+                sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                sock.Connect(IPAddress.Parse("127.0.0.1"), javaPort);
+            }
+            catch (Exception e)
+            {
+                logger.LogError("CSharpWorker failed with exception:");
+                logger.LogException(e);
+                Environment.Exit(-1);
+            }
 
             using (NetworkStream s = new NetworkStream(sock))
             {
@@ -44,12 +63,12 @@ namespace Microsoft.Spark.CSharp
                     DateTime bootTime = DateTime.UtcNow;
 
                     int splitIndex = SerDe.ReadInt(s);
-                    Log("split_index: " + splitIndex);
+                    logger.LogInfo("split_index: " + splitIndex);
                     if (splitIndex == -1)
                         Environment.Exit(-1);
 
                     string ver = SerDe.ReadString(s);
-                    Log("ver: " + ver);
+                    logger.LogInfo("ver: " + ver);
 
                     //// initialize global state
                     //shuffle.MemoryBytesSpilled = 0
@@ -57,13 +76,13 @@ namespace Microsoft.Spark.CSharp
 
                     // fetch name of workdir
                     string sparkFilesDir = SerDe.ReadString(s);
-                    Log("spark_files_dir: " + sparkFilesDir);
+                    logger.LogInfo("spark_files_dir: " + sparkFilesDir);
                     //SparkFiles._root_directory = sparkFilesDir
                     //SparkFiles._is_running_on_worker = True
 
                     // fetch names of includes - not used //TODO - complete the impl
                     int numberOfIncludesItems = SerDe.ReadInt(s);
-                    Log("num_includes: " + numberOfIncludesItems);
+                    logger.LogInfo("num_includes: " + numberOfIncludesItems);
 
                     if (numberOfIncludesItems > 0)
                     {
@@ -75,7 +94,7 @@ namespace Microsoft.Spark.CSharp
 
                     // fetch names and values of broadcast variables
                     int numBroadcastVariables = SerDe.ReadInt(s);
-                    Log("num_broadcast_variables: " + numBroadcastVariables);
+                    logger.LogInfo("num_broadcast_variables: " + numBroadcastVariables);
 
                     if (numBroadcastVariables > 0)
                     {
@@ -98,21 +117,21 @@ namespace Microsoft.Spark.CSharp
                     Accumulator.accumulatorRegistry.Clear();
 
                     int lengthOCommandByteArray = SerDe.ReadInt(s);
-                    Log("command_len: " + lengthOCommandByteArray);
+                    logger.LogInfo("command_len: " + lengthOCommandByteArray);
 
                     IFormatter formatter = new BinaryFormatter();
 
                     if (lengthOCommandByteArray > 0)
                     {
                         string deserializerMode = SerDe.ReadString(s);
-                        Log("Deserializer mode: " + deserializerMode);
+                        logger.LogInfo("Deserializer mode: " + deserializerMode);
 
                         string serializerMode = SerDe.ReadString(s);
-                        Log("Serializer mode: " + serializerMode);
+                        logger.LogInfo("Serializer mode: " + serializerMode);
 
                         byte[] command = SerDe.ReadBytes(s);
 
-                        Log("command bytes read: " + command.Length);
+                        logger.LogInfo("command bytes read: " + command.Length);
                         var stream = new MemoryStream(command);
 
                         var func = (Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>)formatter.Deserialize(stream);
@@ -147,7 +166,7 @@ namespace Microsoft.Spark.CSharp
                                 }
                                 catch (Exception)
                                 {
-                                    Log(string.Format("{0} : {1}", message.GetType().Name, message.GetType().FullName));
+                                    logger.LogError(string.Format("{0} : {1}", message.GetType().Name, message.GetType().FullName));
                                     throw;
                                 }
                             }
@@ -158,7 +177,7 @@ namespace Microsoft.Spark.CSharp
                         }
 
                         //TODO - complete the impl
-                        Log("Count: " + count);
+                        logger.LogInfo("Count: " + count);
 
                         //if profiler:
                         //    profiler.profile(process)
@@ -166,7 +185,9 @@ namespace Microsoft.Spark.CSharp
                         //    process()
 
                         DateTime finish_time = DateTime.UtcNow;
-
+                        string format = "MM/dd/yyyy hh:mm:ss.fff tt";
+                        logger.LogInfo(string.Format("bootTime: {0}, initTime: {1}, finish_time: {2}",
+                            bootTime.ToString(format), initTime.ToString(format), finish_time.ToString(format)));
                         SerDe.Write(s, (int)SpecialLengths.TIMING_DATA);
                         SerDe.Write(s, ToUnixTime(bootTime));
                         SerDe.Write(s, ToUnixTime(initTime));
@@ -177,7 +198,7 @@ namespace Microsoft.Spark.CSharp
                     }
                     else
                     {
-                        Log("Nothing to execute :-(");
+                        logger.LogWarn("Nothing to execute :-(");
                     }
 
                     // Mark the beginning of the accumulators section of the output
@@ -188,7 +209,7 @@ namespace Microsoft.Spark.CSharp
                     {
                         var ms = new MemoryStream();
                         var value = item.Value.GetType().GetField("value", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(item.Value);
-                        Log(string.Format("({0}, {1})", item.Key, value));
+                        logger.LogInfo(string.Format("({0}, {1})", item.Key, value));
                         formatter.Serialize(ms, new KeyValuePair<int, dynamic>(item.Key, value));
                         byte[] buffer = ms.ToArray();
                         SerDe.Write(s, buffer.Length);
@@ -201,7 +222,7 @@ namespace Microsoft.Spark.CSharp
                     if (end == (int)SpecialLengths.END_OF_DATA_SECTION || end == (int)SpecialLengths.END_OF_STREAM)
                     {
                         SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
-                        Log("END_OF_STREAM: " + (int)SpecialLengths.END_OF_STREAM);
+                        logger.LogInfo("END_OF_STREAM: " + (int)SpecialLengths.END_OF_STREAM);
                     }
                     else
                     {
@@ -214,7 +235,7 @@ namespace Microsoft.Spark.CSharp
                 }
                 catch (Exception e)
                 {
-                    Log(e.ToString());
+                    logger.LogError(e.ToString());
                     try
                     {
                         SerDe.Write(s, e.ToString());
@@ -225,22 +246,24 @@ namespace Microsoft.Spark.CSharp
                     }
                     catch (Exception ex)
                     {
-                        LogError("CSharpWorker failed with exception:");
-                        LogError(ex.ToString());
+                        logger.LogError("CSharpWorker failed with exception:");
+                        logger.LogException(ex);
                     }
                     Environment.Exit(-1);
                 }
             }
+
+            sock.Close();
         }
 
         private static void PrintFiles()
         {
-            Console.WriteLine("Files available in executor");
+            logger.LogInfo("Files available in executor");
             var driverFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var files = Directory.EnumerateFiles(driverFolder);
             foreach (var file in files)
             {
-                Console.WriteLine(file);
+                logger.LogDebug(file);
             }
         }
 
@@ -251,7 +274,7 @@ namespace Microsoft.Spark.CSharp
 
         private static IEnumerable<dynamic> GetIterator(Stream s, string serializedMode)
         {
-            Log("Serialized mode in GetIterator: " + serializedMode);
+            logger.LogInfo("Serialized mode in GetIterator: " + serializedMode);
             IFormatter formatter = new BinaryFormatter();
             int messageLength;
             while ((messageLength = SerDe.ReadInt(s)) != (int)SpecialLengths.END_OF_DATA_SECTION)
@@ -290,16 +313,6 @@ namespace Microsoft.Spark.CSharp
                     }
                 }
             }
-        }
-
-        private static void Log(string message)
-        {
-            Console.WriteLine(message);
-        }
-
-        private static void LogError(string message)
-        {
-            Console.WriteLine(message);
         }
     }
 }
