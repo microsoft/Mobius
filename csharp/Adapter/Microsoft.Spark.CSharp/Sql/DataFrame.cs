@@ -426,6 +426,38 @@ namespace Microsoft.Spark.CSharp.Sql
             return
                 new DataFrame(dataFrameProxy.Limit(num), sparkContext);
         }
+
+        /// <summary>
+        /// Returns the first `n` rows.
+        /// </summary>
+        public IEnumerable<Row> Head(int num)
+        {
+            return Limit(num).Collect();
+        }
+
+        /// <summary>
+        /// Returns the first row.
+        /// </summary>
+        public Row First()
+        {
+            return Head(1).First();
+        }
+
+        /// <summary>
+        /// Returns the first `n` rows in the DataFrame.
+        /// </summary>
+        public IEnumerable<Row> Take(int num)
+        {
+            return Head(num);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame that contains only the unique rows from this DataFrame.
+        /// </summary>
+        public DataFrame Distinct()
+        {
+            return new DataFrame(dataFrameProxy.Distinct(), sparkContext);
+        }
     }
 
     public class JoinType
