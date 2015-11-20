@@ -334,7 +334,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<T> Repartition(int numPartitions)
         {
-            return Transform<T>(rdd => rdd.Repartition(numPartitions));
+            return Transform<T>(new RepartitionHelper<T>(numPartitions).Execute);
         }
 
         /// <summary>
@@ -420,7 +420,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="windowSeconds">width of the window; must be a multiple of this DStream's batching interval</param>
         /// <param name="slideSeconds">sliding interval of the window (i.e., the interval after which the new DStream will generate RDDs); must be a multiple of this DStream's batching interval</param>
         /// <returns></returns>
-        public DStream<T> ReduceBydWindow(Func<T, T, T> reduceFunc, Func<T, T, T> invReduceFunc, int windowSeconds, int slideSeconds = 0)
+        public DStream<T> ReduceByWindow(Func<T, T, T> reduceFunc, Func<T, T, T> invReduceFunc, int windowSeconds, int slideSeconds = 0)
         {
             var keyed = Map(v => new KeyValuePair<int, T>(1, v));
             var reduced = keyed.ReduceByKeyAndWindow(reduceFunc, invReduceFunc, windowSeconds, slideSeconds, 1);
@@ -440,7 +440,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<long> CountByWindow(int windowSeconds, int slideSeconds = 0)
         {
-            return Map(x => 1L).ReduceBydWindow((x, y) => x + y, (x, y) => x - y, windowSeconds, slideSeconds);
+            return Map(x => 1L).ReduceByWindow((x, y) => x + y, (x, y) => x - y, windowSeconds, slideSeconds);
         }
 
         /// <summary>
@@ -548,6 +548,21 @@ namespace Microsoft.Spark.CSharp.Streaming
             RDD<U> rddu = new RDD<U>(rdd2.rddProxy, rdd2.sparkContext, rdd2.serializedMode) { previousRddProxy = rdd2.previousRddProxy };
             RDD<V> rddv = func(t, rddt, rddu);
             return new RDD<dynamic>(rddv.RddProxy, rddv.sparkContext) { previousRddProxy = rddv.previousRddProxy };
+        }
+    }
+
+    [Serializable]
+    internal class RepartitionHelper<T>
+    {
+        private int numPartitions;
+        internal RepartitionHelper(int numPartitions)
+        {
+            this.numPartitions = numPartitions;
+        }
+
+        internal RDD<T> Execute(RDD<T> rdd)
+        {
+            return rdd.Repartition(numPartitions);
         }
     }
 

@@ -76,7 +76,7 @@ namespace AdapterTest.Mocks
         {
             var union = new MockRddProxy(new object[] { this, javaRddReferenceOther });
             if (result != null)
-                union.result = result.Union((javaRddReferenceOther as MockRddProxy).result);
+                union.result = result.Concat((javaRddReferenceOther as MockRddProxy).result);
             return union;
         }
 
@@ -87,7 +87,7 @@ namespace AdapterTest.Mocks
 
         public int PartitionLength()
         {
-            throw new NotImplementedException();
+            return 1;
         }
 
 
@@ -159,7 +159,7 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy Repartition(int numPartitions)
         {
-            throw new NotImplementedException();
+            return this;
         }
 
         public IRDDProxy Coalesce(int numPartitions)
