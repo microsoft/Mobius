@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,6 +15,7 @@ namespace Microsoft.Spark.CSharp.Samples
         private const string OrderJson = @"order.json";
         private const string RequestsLog = @"requestslog.txt";
         private const string MetricsLog = @"metricslog.txt";
+        private const string CSVTestLog = @"csvtestlog.txt";
 
         private static SqlContext sqlContext;
 
@@ -426,10 +428,217 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFLimitSample()
         {
+            var num = 2;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var peopleDataFrame2 = peopleDataFrame.Limit(num);
 
-            var peopleDataFrame2 = peopleDataFrame.Limit(2);
-            peopleDataFrame2.Show();
+            PrintAndVerifyPeopleDataFrameRows(peopleDataFrame2.Head(num), num);
+        }
+
+        /// <summary>
+        /// Sample to run head for DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFHeadSample()
+        {
+            var num = 3;
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var rows = peopleDataFrame.Head(num);
+
+            PrintAndVerifyPeopleDataFrameRows(rows, num);
+        }
+
+        [Sample]
+        internal static void DFTakeSample()
+        {
+            var num = 2;
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var rows = peopleDataFrame.Take(num);
+
+            PrintAndVerifyPeopleDataFrameRows(rows, num);
+        }
+
+        /// <summary>
+        /// Print given rows from people dataframe, and verify schema and contents if validation is enabled.
+        /// </summary>
+        /// <param name="rows"> Rows from people DataFrame </param>
+        /// <param name="num"> Expected number of rows from people DataFrame </param>
+        internal static void PrintAndVerifyPeopleDataFrameRows(IEnumerable<Row> rows, int num)
+        {
+            Console.WriteLine("peopleDataFrame:");
+
+            var count = 0;
+            RowSchema schema = null;
+            Row firstRow = null;
+            foreach (var row in rows)
+            {
+                if (count == 0)
+                {
+                    firstRow = row;
+
+                    schema = row.GetSchema();
+                    Console.WriteLine("schema: {0}", schema);
+                }
+
+                // output each row
+                Console.WriteLine(row);
+                Console.Write("id: {0}, name: {1}, age: {2}", row.GetAs<string>("id"), row.GetAs<string>("name"), row.GetAs<int>("age"));
+
+                var address = row.GetAs<Row>("address");
+                if (address != null)
+                {
+                    Console.WriteLine(", state: {0}, city: {1}", address.GetAs<string>("state"), address.GetAs<string>("city"));
+                }
+                else
+                {
+                    Console.WriteLine();
+                }
+
+                count++;
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(count, num);
+                VerifySchemaOfPeopleDataFrame(schema);
+                VerifyFirstRowOfPeopleDataFrame(firstRow);
+            }
+        }
+
+        /// <summary>
+        /// Sample to run first() method on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFFirstSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var row = peopleDataFrame.First();
+            var schema = row.GetSchema();
+
+            Console.WriteLine("peopleDataFrame:");
+            Console.WriteLine("schema: {0}", schema);
+
+            // output 1st row
+            Console.WriteLine(row);
+            Console.Write("id: {0}, name: {1}, age: {2}", row.GetAs<string>("id"), row.GetAs<string>("name"), row.GetAs<int>("age"));
+
+            var address = row.GetAs<Row>("address");
+            if (address != null)
+            {
+                Console.WriteLine(", state: {0}, city: {1}", address.GetAs<string>("state"), address.GetAs<string>("city"));
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                VerifySchemaOfPeopleDataFrame(schema);
+                VerifyFirstRowOfPeopleDataFrame(row);
+            }
+
+            try
+            {
+                peopleDataFrame.Filter("age < -1").First();
+
+                if (SparkCLRSamples.Configuration.IsValidationEnabled)
+                {
+                    Assert.Fail("Invoking First() on a empty DataFrame should throw an InvalidOperationException.");
+                }
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine("Invoking First() methold on an empty DataFrame causes InvalidOperationException, which is expected.");
+                // do nothing
+            }
+        }
+
+        /// <summary>
+        /// Verify the schema of people dataframe.
+        /// </summary>
+        /// <param name="schema"> RowSchema of people DataFrame </param>
+        internal static void VerifySchemaOfPeopleDataFrame(RowSchema schema)
+        {
+            Assert.IsNotNull(schema);
+            Assert.AreEqual("struct", schema.type);
+            Assert.IsNotNull(schema.columns);
+            Assert.AreEqual(4, schema.columns.Count);
+
+            // name
+            var nameColSchema = schema.columns.Find(c => c.name.Equals("name"));
+            Assert.IsNotNull(nameColSchema);
+            Assert.AreEqual("name", nameColSchema.name);
+            Assert.IsTrue(nameColSchema.nullable);
+            Assert.AreEqual("string", nameColSchema.type.ToString());
+
+            // id
+            var idColSchema = schema.columns.Find(c => c.name.Equals("id"));
+            Assert.IsNotNull(idColSchema);
+            Assert.AreEqual("id", idColSchema.name);
+            Assert.IsTrue(idColSchema.nullable);
+            Assert.AreEqual("string", nameColSchema.type.ToString());
+
+            // age
+            var ageColSchema = schema.columns.Find(c => c.name.Equals("age"));
+            Assert.IsNotNull(ageColSchema);
+            Assert.AreEqual("age", ageColSchema.name);
+            Assert.IsTrue(ageColSchema.nullable);
+            Assert.AreEqual("long", ageColSchema.type.ToString());
+
+            // address
+            var addressColSchema = schema.columns.Find(c => c.name.Equals("address"));
+            Assert.IsNotNull(addressColSchema);
+            Assert.AreEqual("address", addressColSchema.name);
+            Assert.IsTrue(addressColSchema.nullable);
+            Assert.IsNotNull(addressColSchema.type);
+            Assert.AreEqual("struct", addressColSchema.type.type);
+            Assert.IsNotNull(addressColSchema.type.columns.Find(c => c.name.Equals("state")));
+            Assert.IsNotNull(addressColSchema.type.columns.Find(c => c.name.Equals("city")));
+        }
+
+        /// <summary>
+        /// Verify the contents of 1st row of people dataframe.
+        /// </summary>
+        /// <param name="firstRow"> First row of people DataFrame </param>
+        internal static void VerifyFirstRowOfPeopleDataFrame(Row firstRow)
+        {
+            Assert.IsNotNull(firstRow);
+            Assert.AreEqual(4, firstRow.Size());
+            Assert.AreEqual("123", firstRow.GetAs<string>("id"));
+            Assert.AreEqual("Bill", firstRow.GetAs<string>("name"));
+            Assert.AreEqual(34, firstRow.GetAs<int>("age"));
+
+            var addressCol = firstRow.GetAs<Row>("address");
+            Assert.IsNotNull(addressCol);
+            Assert.AreEqual("Columbus", addressCol.GetAs<string>("city"));
+            Assert.AreEqual("Ohio", addressCol.GetAs<string>("state"));
+        }
+
+        /// <summary>
+        /// Sample to run distinct() operation on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFDistinctSample()
+        {
+            var csvTestLogDataFrame = GetSqlContext().TextFile(SparkCLRSamples.Configuration.GetInputDataPath(CSVTestLog));
+
+            var row = csvTestLogDataFrame.First();
+            var schema = row.GetSchema();
+
+            Console.WriteLine("csvTestLogDataFrame:");
+            Console.WriteLine("schema: {0}", schema);
+
+            // output 1st row
+            Console.WriteLine(row);
+
+            var count = csvTestLogDataFrame.Count();
+            var distinctCount = csvTestLogDataFrame.Distinct().Count();
+
+            Console.WriteLine("Count:{0}, distinct count:{1}", count, distinctCount);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(count > 0);
+                Assert.IsTrue(distinctCount > 0);
+                Assert.IsTrue(count > distinctCount);
+            }
         }
     }
 }

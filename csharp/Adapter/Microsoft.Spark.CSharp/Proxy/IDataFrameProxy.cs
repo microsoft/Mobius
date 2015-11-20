@@ -36,6 +36,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset);
         IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset);
         IDataFrameProxy Limit(int num);
+        IDataFrameProxy Distinct();
     }
 
     internal interface IUDFProxy
