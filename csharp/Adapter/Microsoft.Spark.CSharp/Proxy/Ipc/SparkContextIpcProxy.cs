@@ -194,7 +194,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IRDDProxy Union(IEnumerable<IRDDProxy> rdds)
         {
             var jfirst = (rdds.First() as RDDIpcProxy).JvmRddReference;
-            var jrest = rdds.Skip(1).Select(r => (r as RDDIpcProxy).JvmRddReference);
+            var jrest = GetJavaList<JvmObjectReference>(rdds.Skip(1).Select(r => (r as RDDIpcProxy).JvmRddReference));
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "union", new object[] { jfirst, jrest }));
             return new RDDIpcProxy(jvmRddReference);
         }
