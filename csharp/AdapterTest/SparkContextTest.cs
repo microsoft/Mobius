@@ -22,6 +22,32 @@ namespace AdapterTest
         //TODO - complete impl
 
         [TestMethod]
+        public void TestSparkContextProxy()
+        {
+            var sparkContext = new SparkContext("masterUrl", "appName");
+            sparkContext.AddFile(null);
+            sparkContext.BinaryFiles(null, null);
+            sparkContext.CancelAllJobs();
+            sparkContext.CancelJobGroup(null);
+            sparkContext.EmptyRDD<string>();
+            sparkContext.GetLocalProperty(null);
+            sparkContext.HadoopFile(null, null, null, null);
+            sparkContext.HadoopRDD(null, null, null);
+            sparkContext.NewAPIHadoopFile(null, null, null, null);
+            sparkContext.NewAPIHadoopRDD(null, null, null);
+            sparkContext.Parallelize<int>(new int[] { 1, 2, 3, 4, 5 });
+            sparkContext.SequenceFile(null, null, null, null, null, null);
+            sparkContext.SetCheckpointDir(null);
+            sparkContext.SetJobGroup(null, null);
+            sparkContext.SetLocalProperty(null, null);
+            sparkContext.SetLogLevel(null);
+            sparkContext.TextFile(null);
+            sparkContext.WholeTextFiles(null);
+            sparkContext.Stop();
+            sparkContext.Union<string>(null);
+        }
+
+        [TestMethod]
         public void TestSparkContextConstructor()
         {
             var sparkContext = new SparkContext("masterUrl", "appName");

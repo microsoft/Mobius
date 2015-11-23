@@ -27,7 +27,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         int DefaultParallelism { get; }
         int DefaultMinPartitions { get; }
         void Stop();
-        IRDDProxy EmptyRDD<T>();
+        IRDDProxy EmptyRDD();
         IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices);
         IRDDProxy TextFile(string filePath, int minPartitions);
         IRDDProxy WholeTextFiles(string filePath, int minPartitions);
@@ -38,7 +38,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IRDDProxy HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize);
         IRDDProxy HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize);
         IRDDProxy CheckpointFile(string filePath);
-        IRDDProxy Union<T>(IEnumerable<RDD<T>> rdds);
+        IRDDProxy Union(IEnumerable<IRDDProxy> rdds);
         void AddFile(string path);
         void SetCheckpointDir(string directory);
         void SetJobGroup(string groupId, string description, bool interruptOnCancel);
