@@ -6,6 +6,9 @@ call precheck.cmd
 
 if %precheck% == "bad" (goto :eof)
 
+@rem Windows 7/8/10 may not allow powershell scripts by default
+powershell -Command Set-ExecutionPolicy Unrestricted
+
 @rem download build tools
 pushd %~dp0
 powershell -f downloadtools.ps1 build
@@ -19,6 +22,11 @@ set CMDHOME=%CMDHOME:~0,-1%
 set SPARKCLR_HOME=%CMDHOME%\run
 @echo SPARKCLR_HOME=%SPARKCLR_HOME%
 
+if EXIST "%SPARKCLR_HOME%" (
+    @echo Delete existing %SPARKCLR_HOME% ...
+    rd /s /q %SPARKCLR_HOME%
+)
+
 if NOT EXIST "%SPARKCLR_HOME%" mkdir "%SPARKCLR_HOME%"
 if NOT EXIST "%SPARKCLR_HOME%\bin" mkdir "%SPARKCLR_HOME%\bin"
 if NOT EXIST "%SPARKCLR_HOME%\data" mkdir "%SPARKCLR_HOME%\data"
@@ -28,7 +36,13 @@ if NOT EXIST "%SPARKCLR_HOME%\scripts" mkdir "%SPARKCLR_HOME%\scripts"
 
 @echo Assemble SparkCLR Scala components
 pushd "%CMDHOME%\scala"
+
+@rem clean the target directory first
+call mvn.cmd clean
+
+@rem build the package
 call mvn.cmd package
+
 @echo SparkCLR Scala binaries
 copy /y target\*.jar "%SPARKCLR_HOME%\lib\"
 popd
@@ -44,7 +58,12 @@ if EXIST "%CMDHOME%\lib" (
 
 @echo Assemble SparkCLR C# components
 pushd "%CMDHOME%\csharp"
+
+@rem clean any possible previous build first
+call Clean.cmd
+
 call Build.cmd
+
 @echo SparkCLR C# binaries
 copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\bin\"
 @echo SparkCLR C# Samples binaries
@@ -56,4 +75,10 @@ popd
 @echo Assemble SparkCLR script components
 pushd "%CMDHOME%\scripts"
 copy /y *.cmd  "%SPARKCLR_HOME%\scripts\"
+popd
+
+@echo zip run directory
+pushd %~dp0
+if not exist ".\target" (mkdir .\target)
+powershell -f .\scripts\zipdir.ps1 -dir %SPARKCLR_HOME% -target ".\target\run.zip"
 popd

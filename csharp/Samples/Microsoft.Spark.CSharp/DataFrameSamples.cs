@@ -543,7 +543,7 @@ namespace Microsoft.Spark.CSharp.Samples
                     Assert.Fail("Invoking First() on a empty DataFrame should throw an InvalidOperationException.");
                 }
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 Console.WriteLine("Invoking First() methold on an empty DataFrame causes InvalidOperationException, which is expected.");
                 // do nothing
