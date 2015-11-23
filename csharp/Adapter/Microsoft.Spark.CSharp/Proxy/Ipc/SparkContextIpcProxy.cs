@@ -115,7 +115,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "stopBackend", new object[] { }); //className and methodName hardcoded in CSharpBackendHandler
         }
 
-        public IRDDProxy EmptyRDD<T>()
+        public IRDDProxy EmptyRDD()
         {
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "emptyRDD"));
             return new RDDIpcProxy(jvmRddReference);
@@ -191,16 +191,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(jvmRddReference);
         }
 
-        public IRDDProxy Union<T>(IEnumerable<RDD<T>> rdds)
+        public IRDDProxy Union(IEnumerable<IRDDProxy> rdds)
         {
-            int count = rdds == null ? 0 : rdds.Count();
-            if (count == 0)
-                return null;
-            if (count == 1)
-                return rdds.First().RddProxy;
-
-            var jfirst = (rdds.First().RddProxy as RDDIpcProxy).JvmRddReference;
-            var jrest = GetJavaList(rdds.TakeWhile((r, i) => i > 0).Select(r => (r.RddProxy as RDDIpcProxy).JvmRddReference));
+            var jfirst = (rdds.First() as RDDIpcProxy).JvmRddReference;
+            var jrest = rdds.Skip(1).Select(r => (r as RDDIpcProxy).JvmRddReference);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "union", new object[] { jfirst, jrest }));
             return new RDDIpcProxy(jvmRddReference);
         }
