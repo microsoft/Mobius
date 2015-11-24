@@ -300,8 +300,8 @@ namespace Microsoft.Spark.CSharp.Streaming
                     invStream == null ? null : invStream.ToArray(),
                     windowSeconds,
                     slideSeconds,
-                    null
-                ), self.streamingContext
+                    null), 
+                self.streamingContext
             );
         }
 
@@ -331,7 +331,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             return new DStream<KeyValuePair<K, S>>(SparkCLREnvironment.SparkCLRProxy.CreateCSharpStateDStream(
                     self.DStreamProxy,
                     stream.ToArray(),
-                    self.serializedMode.ToString()).AsJavaDStream(),
+                    self.serializedMode.ToString()),
                 self.streamingContext);
         }
     }
