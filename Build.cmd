@@ -43,6 +43,11 @@ call mvn.cmd clean
 @rem build the package
 call mvn.cmd package
 
+if %ERRORLEVEL% NEQ 0 (
+	@echo Build SparkCLR Scala components failed, stop building.
+	popd
+	goto :eof
+)
 @echo SparkCLR Scala binaries
 copy /y target\*.jar "%SPARKCLR_HOME%\lib\"
 popd
@@ -64,6 +69,11 @@ call Clean.cmd
 
 call Build.cmd
 
+if %ERRORLEVEL% NEQ 0 (
+	@echo Build SparkCLR C# components failed, stop building.
+	popd
+	goto :eof
+)
 @echo SparkCLR C# binaries
 copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\bin\"
 @echo SparkCLR C# Samples binaries
