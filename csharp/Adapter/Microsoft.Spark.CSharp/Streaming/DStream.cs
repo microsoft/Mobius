@@ -321,8 +321,7 @@ namespace Microsoft.Spark.CSharp.Streaming
                     other.DStreamProxy, 
                     stream.ToArray(), 
                     serializedMode.ToString(), 
-                    other.serializedMode.ToString()
-                ).AsJavaDStream(), 
+                    other.serializedMode.ToString()), 
                 streamingContext,
                 keepSerializer ? serializedMode : SerializedMode.Byte);
         }

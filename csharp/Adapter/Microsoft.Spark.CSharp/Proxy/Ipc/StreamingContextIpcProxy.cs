@@ -18,6 +18,9 @@ using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    /// <summary>
+    /// calling Spark jvm side API in JavaStreamingContext.scala, StreamingContext.scala or external KafkaUtils.scala
+    /// </summary>
     internal class StreamingContextIpcProxy : IStreamingContextProxy
     {
         private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
@@ -65,14 +68,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDStreamProxy TextFileStream(string directory)
         {
-            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "textFileStream", new object[] { directory }).ToString());
+            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "textFileStream", new object[] { directory }).ToString());
             return new DStreamIpcProxy(jstream);
         }
 
         public IDStreamProxy SocketTextStream(string hostname, int port, StorageLevelType storageLevelType)
         {
             JvmObjectReference jlevel = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
-            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "socketTextStream", hostname, port, jlevel).ToString());
+            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "socketTextStream", hostname, port, jlevel).ToString());
             return new DStreamIpcProxy(jstream);
         }
 
@@ -85,6 +88,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jlevel }).ToString());
             return new DStreamIpcProxy(jstream);
         }
+        
         public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
         {
             JvmObjectReference jtopics = SparkContextIpcProxy.GetJavaSet<string>(topics);
@@ -101,8 +105,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             JvmObjectReference jfromOffsets = SparkContextIpcProxy.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
             JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsPythonHelper", new object[] { });
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createDirectStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jfromOffsets }).ToString());
-            var dstream = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jstream, "dstream"));
-            return new DStreamIpcProxy(dstream);
+            return new DStreamIpcProxy(jstream);
         }
         
         public IDStreamProxy Union(IDStreamProxy firstDStream, IDStreamProxy[] otherDStreams)
@@ -112,8 +115,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "union", 
                         new object[] 
                         { 
-                            (firstDStream as DStreamIpcProxy).jvmDStreamReference,
-                            otherDStreams.Select(x => (x as DStreamIpcProxy).jvmDStreamReference).ToArray()
+                            (firstDStream as DStreamIpcProxy).javaDStreamReference,
+                            otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference).ToArray()
                         }
                     )));
         }

@@ -12,13 +12,18 @@ using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    /// <summary>
+    /// calling Spark jvm side API in JavaDStream.scala, DStream.scala or CSharpDStream.scala
+    /// </summary>
     internal class DStreamIpcProxy : IDStreamProxy
     {
         internal readonly JvmObjectReference jvmDStreamReference;
+        internal readonly JvmObjectReference javaDStreamReference;
 
-        internal DStreamIpcProxy(JvmObjectReference jvmDStreamReference)
+        internal DStreamIpcProxy(JvmObjectReference javaDStreamReference, JvmObjectReference jvmDStreamReference = null)
         {
-            this.jvmDStreamReference = jvmDStreamReference;
+            this.jvmDStreamReference = jvmDStreamReference ?? new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(javaDStreamReference, "dstream"));
+            this.javaDStreamReference = javaDStreamReference;
         }
 
         public int SlideDuration
@@ -37,12 +42,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
             if (slideSeconds <= 0)
             {
-                windowId = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "window", new object[] { windowDurationReference });
+                windowId = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(javaDStreamReference, "window", new object[] { windowDurationReference });
                 return new DStreamIpcProxy(new JvmObjectReference(windowId));
             }
 
             var slideDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { slideSeconds * 1000 });
-            windowId = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "window", new object[] { windowDurationReference, slideDurationReference });
+            windowId = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(javaDStreamReference, "window", new object[] { windowDurationReference, slideDurationReference });
 
             return new DStreamIpcProxy(new JvmObjectReference(windowId));
         }
@@ -55,7 +60,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void CallForeachRDD(byte[] func, string deserializer)
         {
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpDStream", "callForeachRDD", new object[] { jvmDStreamReference, func, deserializer });
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpDStream", "callForeachRDD", new object[] { javaDStreamReference, func, deserializer });
         }
 
 
