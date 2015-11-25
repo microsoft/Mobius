@@ -231,7 +231,9 @@ namespace Microsoft.Spark.CSharp
                         Environment.Exit(-1);
                     }
                     s.Flush();
-                    System.Threading.Thread.Sleep(1000); //TODO - not sure if this is really needed
+                    
+                    while (s.CanRead)
+                        System.Threading.Thread.Sleep(1);
                 }
                 catch (Exception e)
                 {
