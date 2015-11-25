@@ -160,6 +160,11 @@ namespace AdapterTest.Mocks
             return new MockRddProxy(mockRows.Select(r => pickler.dumps(new object[] { r })), true);
         }
 
+        public IDataFrameProxy Replace<T>(object subset, Dictionary<T, T> toReplaceAndValueDict)
+        {
+            throw new NotImplementedException();
+        }
+
         public IDataFrameProxy Limit(int num)
         {
             throw new NotImplementedException();
@@ -226,6 +231,16 @@ namespace AdapterTest.Mocks
         }
 
         public IDataFrameProxy Drop(string columnName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy DropNa(int? thresh, string[] subset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy DropDuplicates()
         {
             throw new NotImplementedException();
         }
