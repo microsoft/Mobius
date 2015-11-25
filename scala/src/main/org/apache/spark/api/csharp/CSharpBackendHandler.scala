@@ -57,9 +57,9 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
               writeInt(dos, -1)
           }
         case "connectCallback" =>
-		  val t = readObjectType(dis)
-		  assert(t == 'i')
-		  val port = readInt(dis)
+          val t = readObjectType(dis)
+          assert(t == 'i')
+          val port = readInt(dis)
           println("Connecting to a callback server at port " + port)
           CSharpBackend.callbackSocket = new Socket("localhost", port)
           writeInt(dos, 0)
@@ -77,6 +77,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
             writeInt(dos, 0)
             writeType(dos, "void")
           }
+          CSharpBackend.callbackSocketShutdown = true
         case _ => dos.writeInt(-1)
       }
     } else {

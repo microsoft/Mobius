@@ -192,7 +192,8 @@ object SerDe {
   }
 
   def writeObject(dos: DataOutputStream, value: Object): Unit = {
-    if (value == null) {
+    // for some method invocation, the return type is Unit. Use () to denote Unit here
+    if (value == null || value == ()) {
       writeType(dos, "void")
     } else {
       value.getClass.getName match {
