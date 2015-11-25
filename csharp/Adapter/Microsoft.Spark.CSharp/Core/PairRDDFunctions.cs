@@ -864,7 +864,7 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     var ms = new MemoryStream();
                     formatter.Serialize(ms, kvp.Key);
-                    yield return md5.ComputeHash(ms).Take(8).ToArray();
+                    yield return md5.ComputeHash(ms.ToArray()).Take(8).ToArray();
                     ms = new MemoryStream();
                     formatter.Serialize(ms, kvp);
                     yield return ms.ToArray();
