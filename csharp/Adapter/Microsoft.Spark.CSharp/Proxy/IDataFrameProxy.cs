@@ -30,11 +30,10 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy UnionAll(IDataFrameProxy otherScalaDataFrameReference);
         IDataFrameProxy Subtract(IDataFrameProxy otherScalaDataFrameReference);
         IDataFrameProxy Drop(string columnName);
-        IDataFrameProxy DropNa(string how, int? thresh, string[] subset);
+        IDataFrameProxy DropNa(int? thresh, string[] subset);
+        IDataFrameProxy DropDuplicates();
         IDataFrameProxy DropDuplicates(string[] subset);
-        IDataFrameProxy Replace<T>(T toReplace, T value, string[] subset);
-        IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset);
-        IDataFrameProxy ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset);
+        IDataFrameProxy Replace<T>(object subset, Dictionary<T, T> toReplaceAndValueDict);
         IDataFrameProxy Limit(int num);
         IDataFrameProxy Distinct();
     }
