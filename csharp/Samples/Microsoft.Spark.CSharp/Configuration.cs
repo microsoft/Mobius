@@ -56,6 +56,12 @@ namespace Microsoft.Spark.CSharp.Samples
             set;
         }
 
+        public bool IsDryrun
+        {
+            get;
+            set;
+        }
+
         public string GetInputDataPath(string fileName)
         {
             if (SampleDataLocation.StartsWith("hdfs://"))
