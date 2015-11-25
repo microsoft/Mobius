@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -355,6 +356,12 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var dropped = peopleDataFrame.DropNa(thresh: 2, subset: new[] { "name", "address" });
             dropped.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var expected = peopleDataFrame.Collect().Where(row => row.Get("name") != null && row.Get("address") != null).ToList();
+                Assert.IsTrue(AreRowListEquivalent(expected, dropped.Collect().ToList()));
+            }
         }
 
         /// <summary>
@@ -379,12 +386,42 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var singleValueReplaced = peopleDataFrame.Replace("Bill", "Bill.G");
             singleValueReplaced.Show();
-
+            
             var multiValueReplaced = peopleDataFrame.ReplaceAll(new List<int> { 14, 34 }, new List<int> { 44, 54 });
             multiValueReplaced.Show();
 
             var multiValueReplaced2 = peopleDataFrame.ReplaceAll(new List<string> { "Bill", "Steve" }, "former CEO");
             multiValueReplaced2.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(AreRowListEquivalent(peopleDataFrame.Collect().ToList(), singleValueReplaced.Collect().ToList(),
+                                new Dictionary<string, Func<object, object, bool>>
+                            {
+                                {"name", (x, y) => x.ToString() == "Bill" ? 
+                                    y.ToString() == "Bill.G" : x.ToString() == y.ToString()}
+                            }));
+
+
+                Assert.IsTrue(AreRowListEquivalent(peopleDataFrame.Collect().ToList(), multiValueReplaced.Collect().ToList(),
+                            new Dictionary<string, Func<object, object, bool>>
+                            {
+                                {"age", (x, y) =>
+                                        {
+                                            if ((int)x == 14) return (int)y == 44;
+                                            if ((int)x == 34) return (int)y == 54;
+                                            return (int)x == (int)y;
+                                        }
+                                }
+                            }));
+
+                Assert.IsTrue(AreRowListEquivalent(peopleDataFrame.Collect().ToList(), multiValueReplaced2.Collect().ToList(),
+                            new Dictionary<string, Func<object, object, bool>>
+                            {
+                                {"name", (x, y) => x.ToString() == "Bill" || x.ToString() == "Steve"? 
+                                    y.ToString() == "former CEO" : x.ToString() == y.ToString()}
+                            }));
+            }
         }
 
         /// <summary>
@@ -639,6 +676,60 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.IsTrue(distinctCount > 0);
                 Assert.IsTrue(count > distinctCount);
             }
+        }
+
+        /// <summary>
+        /// Verifies that the two List of Rows are equivalent. 
+        /// Two List are equivalent if they have the same Rows in the same quantity, but in any order.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="columnsComparer">Specify custom comparer for certain columns. The key of dictionary is column name, the value is comparer.</param>
+        /// <returns>True if two lists are equivalent.</returns>
+        private static bool AreRowListEquivalent(List<Row> x, List<Row> y, Dictionary<string, Func<object, object, bool>> columnsComparer = null)
+        {
+            if ((x == null && y != null) || (x != null && y == null)) return false;
+
+            if (x == null && y == null) return true;
+
+            return x.Count == y.Count && x.All(xRow => y.Any(yRow => IsRowEqual(xRow, yRow, columnsComparer)));
+        }
+
+        /// <summary>
+        /// Verifies that the two Rows are equal. 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="columnsComparer">Specify custom comparer for certain columns. The key of dictionary is column name, the value is comparer.</param>
+        /// <returns>True if two Rows are equal.</returns>
+        private static bool IsRowEqual(Row x, Row y, Dictionary<string, Func<object, object, bool>> columnsComparer = null)
+        {
+            if (x == null && y == null) return true;
+            if (x == null && y != null || x != null && y == null) return false;
+
+            foreach (var col in x.GetSchema().columns)
+            {
+                if (!y.GetSchema().columns.Any(c => c.ToString() == col.ToString())) return false;
+
+                if (col.type.columns.Any())
+                {
+                    if (!IsRowEqual(x.GetAs<Row>(col.name), y.GetAs<Row>(col.name), columnsComparer)) return false;
+                }
+                else if (x.Get(col.name) == null && y.Get(col.name) != null || x.Get(col.name) != null && y.Get(col.name) == null) return false;
+                else if (x.Get(col.name) != null && y.Get(col.name) != null)
+                {
+                    Func<object, object, bool> colComparer;
+                    if (columnsComparer != null && columnsComparer.TryGetValue(col.name, out colComparer))
+                    {
+                        if (!colComparer(x.Get(col.name), y.Get(col.name))) return false;
+                    }
+                    else
+                    {
+                        if (x.Get(col.name).ToString() != y.Get(col.name).ToString()) return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 }
