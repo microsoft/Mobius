@@ -86,6 +86,7 @@ class CSharpBackend {
         val dos = new DataOutputStream(CSharpBackend.callbackSocket.getOutputStream())
         SerDe.writeString(dos, "close")
         CSharpBackend.callbackSocket.close()
+        CSharpBackend.callbackSocketShutdown = true
       }
     }
   }
@@ -94,4 +95,7 @@ class CSharpBackend {
 object CSharpBackend {
   // Channel to callback server.
   private[spark] var callbackSocket: Socket = null
+
+  // flag to denote whether the callback socket is shutdown explicitly
+  @volatile private[spark] var callbackSocketShutdown: Boolean = false
 }

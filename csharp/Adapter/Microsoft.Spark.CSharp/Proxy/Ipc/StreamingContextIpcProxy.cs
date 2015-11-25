@@ -29,6 +29,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         private readonly ISparkContextProxy sparkContextProxy;
         private readonly SparkContext sparkContext;
 
+        // flag to denote whether the callback socket is shutdown explicitly
+        private volatile bool callbackSocketShutdown = false;
+
         public StreamingContextIpcProxy(SparkContext sparkContext, long durationMs)
         {
             this.sparkContext = sparkContext;
@@ -50,8 +53,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void Stop()
         {
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "closeCallback");
+            // stop streamingContext first, then close the callback socket
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "stop", new object[] { false });
+            callbackSocketShutdown = true;
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "closeCallback");
         }
 
         public void Remember(long durationMs)
@@ -150,6 +155,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                                 string cmd = SerDe.ReadString(s);
                                 if (cmd == "close")
                                 {
+                                    logger.LogInfo("receive close cmd from Scala side");
                                     break;
                                 }
                                 else if (cmd == "callback")
@@ -193,7 +199,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                             }
                             catch (Exception e)
                             {
-                                logger.LogInfo(e.ToString());
+                                //log exception only when callback socket is not shutdown explicitly
+                                if (!callbackSocketShutdown)
+                                {
+                                    logger.LogInfo(e.ToString());
+                                }
                             }
                         }
                     }
