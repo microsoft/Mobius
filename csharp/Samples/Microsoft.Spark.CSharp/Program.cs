@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Services;
@@ -29,10 +30,18 @@ namespace Microsoft.Spark.CSharp.Samples
             LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance); //this is optional - DefaultLoggerService will be used if not set
             Logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRSamples));
             ProcessArugments(args);
-            SparkContext = CreateSparkContext();
-            SparkContext.SetCheckpointDir(Path.GetTempPath()); 
-            RunSamples();
-            SparkContext.Stop();
+
+            if (Configuration.IsDryrun)
+            {
+                RunSamples();
+            }
+            else
+            {
+                SparkContext = CreateSparkContext();
+                SparkContext.SetCheckpointDir(Path.GetTempPath()); 
+                RunSamples();
+                SparkContext.Stop();
+            }
         }
 
         // Creates and returns a context
@@ -57,27 +66,64 @@ namespace Microsoft.Spark.CSharp.Samples
                       .OrderByDescending(method => method.Name);
 
             int numSamples = 0;
-            List<string> completed = new List<string>();
-            List<string> errors = new List<string>();
-            Stopwatch sw = Stopwatch.StartNew();
+            // track <SampleName, Category> in "completed" and "error" list, for reporting
+            var completed = new List<Tuple<string, string>>();
+            var errors = new List<Tuple<string, string>>();
+
+            Regex regex = null;
+            if (!string.IsNullOrEmpty(Configuration.SamplesToRun))
+            {
+                var s = Configuration.SamplesToRun; 
+                if (s.StartsWith("/") && s.EndsWith("/") && s.Length > 2)
+                {
+                    // forward-slashes enclose .Net regular expression 
+                    regex = new Regex(s.Substring(1, s.Length - 2));
+                }
+                else
+                {
+                    // default to Unix or Windows command line wild card matching, case insensitive
+                    regex = new Regex("^" + Regex.Escape(s).Replace(@"\*", ".*").Replace(@"\?", ".") + "$", RegexOptions.IgnoreCase);
+                }
+            }
+
+            Regex categoryRegex = null;
+            if (!string.IsNullOrEmpty(Configuration.SamplesCategory))
+            {
+                var s = Configuration.SamplesCategory;
+                if (s.StartsWith("/") && s.EndsWith("/") && s.Length > 2)
+                {
+                    // forward-slashes enclose .Net regular expression 
+                    categoryRegex = new Regex(s.Substring(1, s.Length - 2));
+                }
+                else
+                {
+                    // default to Unix or Windows command line wild card matching, case insensitive
+                    categoryRegex = new Regex("^" + Regex.Escape(s).Replace(@"\*", ".*").Replace(@"\?", ".") + "$", RegexOptions.IgnoreCase);
+                }
+            }
+
+            var sw = Stopwatch.StartNew();
+
             foreach (var sample in samples)
             {
-                string sampleName = sample.Name;
-                bool runSample = true;
+                var sampleName = sample.Name;
+                var runSample = true;
+                var sampleAttributes = (SampleAttribute[])sample.GetCustomAttributes(typeof(SampleAttribute), false);
+                var categoryNames = string.Join<SampleAttribute>(",", sampleAttributes);
 
-                if (Configuration.SamplesCategory != null) 
+                if (categoryRegex != null) 
                 {
-                    SampleAttribute[] sampleAttributes = (SampleAttribute[])sample.GetCustomAttributes(typeof(SampleAttribute), false);
-                    runSample = sampleAttributes.Any(attribute => attribute.Match(Configuration.SamplesCategory));
+                    runSample = sampleAttributes.Any(attribute => attribute.Match(categoryRegex));
                     if (!runSample)
                     {
                         continue;
                     }
                 }
 
-                if (Configuration.SamplesToRun != null)
+                if (regex != null)
                 {
-                    if (!Configuration.SamplesToRun.Contains(sampleName)) //assumes method/sample names are unique
+                    if ((Configuration.SamplesToRun.IndexOf(sampleName, StringComparison.InvariantCultureIgnoreCase) < 0) //assumes method/sample names are unique
+                        && !regex.IsMatch(sampleName)) 
                     {
                         runSample = false;
                         continue;
@@ -87,25 +133,39 @@ namespace Microsoft.Spark.CSharp.Samples
                 try
                 {
                     numSamples++;
-                    Logger.LogInfo(string.Format("----- Running sample {0} -----", sampleName));
-                    sample.Invoke(null, new object[] {});
-                    Logger.LogInfo(string.Format("----- Finished runnning sample {0} -----", sampleName));
-                    completed.Add(sampleName);
+
+                    if (!Configuration.IsDryrun)
+                    {
+                        Logger.LogInfo(string.Format("----- Running sample {0} -----", sampleName));
+                        sample.Invoke(null, new object[] {});
+                        Logger.LogInfo(string.Format("----- Finished running sample {0} -----", sampleName));
+                    }
+
+                    completed.Add(new Tuple<string, string>(sampleName, categoryNames));
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(string.Format("----- Error runnning sample {0} -----{1}{2}", 
+                    Logger.LogError(string.Format("----- Error running sample {0} -----{1}{2}", 
                         sampleName, Environment.NewLine, ex));
-                    errors.Add(sampleName);
+                    errors.Add(new Tuple<string, string>(sampleName, categoryNames));
                 }
             }
             sw.Stop();
             ReportOutcome(numSamples, completed, errors, sw.Elapsed);
         }
 
-        private static void ReportOutcome(int numSamples, IList<string> completed, IList<string> errors, TimeSpan duration)
+        private static void ReportOutcome(int numSamples, IList<Tuple<string, string>> completed, IList<Tuple<string, string>> errors, TimeSpan duration)
         {
-            StringBuilder msg = new StringBuilder();
+            if (completed == null)
+            {
+                throw new ArgumentNullException("completed");
+            }
+            if (errors == null)
+            {
+                throw new ArgumentNullException("errors");
+            }
+
+            var msg = new StringBuilder();
 
             msg.Append("----- ")
                 .Append("Finished running ")
@@ -120,15 +180,15 @@ namespace Microsoft.Spark.CSharp.Samples
                 .AppendLine(" -----");
 
             msg.AppendLine("Successful samples:");
-            foreach (string s in completed)
+            foreach (var s in completed)
             {
-                msg.Append("    ").AppendLine(s);
+                msg.Append("    ").AppendLine(string.Format("{0} (category: {1})", s.Item1, s.Item2));
             }
 
             msg.AppendLine("Failed samples:");
-            foreach (string s in errors)
+            foreach (var s in errors)
             {
-                msg.Append("    ").AppendLine(s);
+                msg.Append("    ").AppendLine(string.Format("{0} (category: {1})", s.Item1, s.Item2));
             }
 
             if (errors.Count == 0)
@@ -145,32 +205,110 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             return num + " " + things + (num == 1 ? "" : "s");
         }
+        private static void PrintUsage()
+        {
+            var p = AppDomain.CurrentDomain.FriendlyName;
+            Console.WriteLine("   ");
+            Console.WriteLine(" {0} supports following options:", p);
+            Console.WriteLine("   ");
+            Console.WriteLine("   [--temp | spark.local.dir] <TEMP_DIR>                 TEMP_DIR is the directory used as \"scratch\" space in Spark, including map output files and RDDs that get stored on disk. ");
+            Console.WriteLine("                                                         See http://spark.apache.org/docs/latest/configuration.html for details.");
+            Console.WriteLine("   ");
+            Console.WriteLine("   [--data | sparkclr.sampledata.loc] <SAMPLE_DATA_DIR>  SAMPLE_DATA_DIR is the directory where Sample data resides. ");
+            Console.WriteLine("   ");
+            Console.WriteLine("   [--torun | sparkclr.samples.torun] <SAMPLE_LIST>      SAMPLE_LIST specifies a list of samples to run. ");
+            Console.WriteLine("                                                         Case-insensitive command line wild card matching by default. Or, use \"/\" (forward slash) to enclose regular expression. ");
+            Console.WriteLine("   ");
+            Console.WriteLine("   [--cat | sparkclr.samples.category] <SAMPLE_CATEGORY> SAMPLE_CATEGORY can be \"all\", \"default\", \"experimental\" or any new categories. ");
+            Console.WriteLine("                                                         Case-insensitive command line wild card matching by default. Or, use \"/\" (forward slash) to enclose regular expression. ");
+            Console.WriteLine("   ");
+            Console.WriteLine("   [--validate | sparkclr.enablevalidation]              Enable validation. ");
+            Console.WriteLine("   ");
+            Console.WriteLine("   [--dryrun | sparkclr.dryrun]                          Dry-run mode. ");
+            Console.WriteLine("   ");
+            Console.WriteLine("   [--help | -h | -?]                                    Display usage. ");
+            Console.WriteLine("   ");
+            Console.WriteLine("   ");
+            Console.WriteLine(" Usage examples:  ");
+            Console.WriteLine("   ");
+            Console.WriteLine("   Example 1 - run default samples:");
+            Console.WriteLine("   ");
+            Console.WriteLine(@"     {0} --temp C:\gitsrc\SparkCLR\run\Temp --data C:\gitsrc\SparkCLR\run\data ", p);
+            Console.WriteLine("   ");
+            Console.WriteLine("   Example 2 - dryrun default samples:");
+            Console.WriteLine("   ");
+            Console.WriteLine(@"     {0} --dryrun ", p);
+            Console.WriteLine("   ");
+            Console.WriteLine("   Example 3 - dryrun all samples:");
+            Console.WriteLine("   ");
+            Console.WriteLine(@"     {0} --dryrun --cat all ", p);
+            Console.WriteLine("   ");
+            Console.WriteLine("   Example 4 - dryrun PiSample (commandline wildcard matching, case-insensitive):");
+            Console.WriteLine("   ");
+            Console.WriteLine(@"     {0} --dryrun --torun pi*", p);
+            Console.WriteLine("   ");
+            Console.WriteLine("   Example 5 - dryrun all DF* samples (commandline wildcard matching, case-insensitive):");
+            Console.WriteLine("   ");
+            Console.WriteLine(@"     {0} --dryrun --cat a* --torun DF*", p);
+            Console.WriteLine("   ");
+            Console.WriteLine("   Example 6 - dryrun all RD* samples (regular expression):");
+            Console.WriteLine("   ");
+            Console.WriteLine(@"     {0} --dryrun --cat a* --torun /\bRD.*Sample.*\b/", p);
+            Console.WriteLine("   ");
+            Console.WriteLine("   Example 7 - dryrun specific samples (case insensitive): ");
+            Console.WriteLine("   ");
+            Console.WriteLine("     {0} --dryrun --torun \"DFShowSchemaSample,DFHeadSample\"", p);
+            Console.WriteLine("   ");
+        }
 
         //simple commandline arg processor
         private static void ProcessArugments(string[] args)
         {
+            if (args.Length == 0)
+            {
+                PrintUsage();
+                Environment.Exit(0);
+            }
+
             Logger.LogInfo(string.Format("Arguments to SparkCLRSamples are {0}", string.Join(",", args)));
             for (int i=0; i<args.Length;i++)
             {
-                if (args[i].Equals("spark.local.dir", StringComparison.InvariantCultureIgnoreCase))
+                if (args[i].Equals("--help", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("-h", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("-?", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    PrintUsage();
+                    Environment.Exit(0);
+                }
+                else if (args[i].Equals("spark.local.dir", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("--temp", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Configuration.SparkLocalDirectoryOverride = args[i + 1];
                 }
-                else if (args[i].Equals("sparkclr.sampledata.loc", StringComparison.InvariantCultureIgnoreCase))
+                else if (args[i].Equals("sparkclr.sampledata.loc", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("--data", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Configuration.SampleDataLocation = args[i + 1];
                 }
-                else if (args[i].Equals("sparkclr.samples.torun", StringComparison.InvariantCultureIgnoreCase))
+                else if (args[i].Equals("sparkclr.samples.torun", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("--torun", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Configuration.SamplesToRun = args[i + 1];
                 }
-                else if (args[i].Equals("sparkclr.samples.category", StringComparison.InvariantCultureIgnoreCase))
+                else if (args[i].Equals("sparkclr.samples.category", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("--cat", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Configuration.SamplesCategory = args[i + 1];
                 }
-                else if (args[i].Equals("sparkclr.enablevalidation", StringComparison.InvariantCultureIgnoreCase))
+                else if (args[i].Equals("sparkclr.enablevalidation", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("--validate", StringComparison.InvariantCultureIgnoreCase))
                 {
                     Configuration.IsValidationEnabled = true;
+                }
+                else if (args[i].Equals("sparkclr.dryrun", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("--dryrun", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Configuration.IsDryrun = true;
                 }
             }
         }
@@ -208,10 +346,21 @@ namespace Microsoft.Spark.CSharp.Samples
         /// <summary>
         /// whether this category matches the target category
         /// </summary>
-        public bool Match(string targetCategory)
+        // public bool Match(string targetCategory)
+        public bool Match(Regex targetCategory)
         {
-            return (CATEGORY_ALL.Equals(targetCategory, StringComparison.OrdinalIgnoreCase)
-                || (this.category.Equals(targetCategory, StringComparison.OrdinalIgnoreCase)));
+            if (null == targetCategory)
+            {
+                throw new ArgumentNullException("targetCategory");
+            }
+
+            return targetCategory.IsMatch(CATEGORY_ALL)
+                || targetCategory.IsMatch(this.category);
+        }
+
+        public override string ToString()
+        {
+            return category;
         }
     }
 }
