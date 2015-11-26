@@ -35,9 +35,11 @@ object CSharpRunner {
     var otherArgs: Array[String] = null
 
     if (!runInDebugMode) {
-      if(args(0).toLowerCase().endsWith(".zip")) {
-        println("Unzipping driver!")
-        CSharpSparkUtils.unzip(new File(args(0)), new File(args(0)).getParentFile)
+      if(args(0).toLowerCase.endsWith(".zip")) {
+        val zipFileName = args(0)
+        val driverDir = new File(zipFileName).getAbsoluteFile.getParentFile
+        println(s"Unzipping driver $zipFileName in $driverDir")
+        CSharpSparkUtils.unzip(new File(zipFileName), driverDir)
         csharpExecutable = PythonRunner.formatPath(args(1)) //reusing windows-specific formatting in PythonRunner
         otherArgs = args.slice(2, args.length)
       } else if(new File(args(0)).isDirectory) {
