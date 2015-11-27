@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace AdapterTest
 {
@@ -19,6 +21,14 @@ namespace AdapterTest
     public class DataFrameTest
     {
         //TODO - complete impl
+
+        private static Mock<IDataFrameProxy> mockDataFrameProxy;
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            mockDataFrameProxy = new Mock<IDataFrameProxy>();
+        }
 
         [TestMethod]
         public void TestDataFrameJoin()
@@ -120,6 +130,200 @@ namespace AdapterTest
             Assert.IsTrue(city.Equals("Columbus"));
             string state = address.GetAs<string>("state");
             Assert.IsTrue(state.Equals("Ohio"));
+        }
+
+        [TestMethod]
+        public void TestIntersect()
+        {
+            // Arrange
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Intersect(It.IsAny<IDataFrameProxy>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var otherDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualDataFrame = originalDataFrame.Intersect(otherDataFrame);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Intersect(otherDataFrame.DataFrameProxy)); // assert Intersect of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+        }
+
+        [TestMethod]
+        public void TestUnionAll()
+        {
+            // Arrange
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.UnionAll(It.IsAny<IDataFrameProxy>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var otherDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.UnionAll(otherDataFrame);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.UnionAll(otherDataFrame.DataFrameProxy)); // assert UnionAll of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+        }
+
+        [TestMethod]
+        public void TestSubtract()
+        {
+            // Arrange
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Subtract(It.IsAny<IDataFrameProxy>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var otherDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.Subtract(otherDataFrame);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Subtract(otherDataFrame.DataFrameProxy)); // assert Subtract of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+        }
+
+        [TestMethod]
+        public void TestDrop()
+        {
+            // Arrange
+            const string columnNameToDrop = "column1";
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Drop(It.IsAny<string>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.Drop(columnNameToDrop);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Drop(columnNameToDrop)); // assert Drop of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+        }
+
+        [TestMethod]
+        public void TestDropNa()
+        {
+            // Arrange
+            const string columnName = "column1";
+            var mockSchemaProxy = new Mock<IStructTypeProxy>();
+            var mockFieldProxy = new Mock<IStructFieldProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.DropNa(It.IsAny<int?>(), It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+            mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockSchemaProxy.Object);
+            mockSchemaProxy.Setup(m => m.GetStructTypeFields()).Returns(new List<IStructFieldProxy> { mockFieldProxy.Object });
+            mockFieldProxy.Setup(m => m.GetStructFieldName()).Returns(columnName);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.DropNa();
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.DropNa(1, It.Is<string[]>(subset => subset.Length == 1 && 
+                subset.Contains(columnName)))); // assert DropNa of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+        }
+
+        [TestMethod]
+        public void TestDropDuplicates()
+        {
+            #region subset is null
+            // Arrange
+            const string columnNameToDropDups = "column1";
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.DropDuplicates()).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.DropDuplicates();
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.DropDuplicates()); // assert DropDuplicates of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+            #endregion
+
+            #region subset is not null
+            // Arrange
+            mockDataFrameProxy.Setup(m => m.DropDuplicates(It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+
+            // Act
+            actualResultDataFrame = originalDataFrame.DropDuplicates(new []{columnNameToDropDups});
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.DropDuplicates(It.Is<string[]>(subset => subset.Length == 1 &&
+                subset.Contains(columnNameToDropDups)))); // assert DropDuplicates of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+            #endregion
+        }
+
+        [TestMethod]
+        public void TestReplace()
+        {
+            // Arrange
+            const string originalValue = "original";
+            const string toReplaceValue = "toReplace";
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Replace<string>(It.IsAny<object>(), 
+                It.IsAny<Dictionary<string, string>>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.Replace(originalValue, toReplaceValue);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Replace("*", It.Is<Dictionary<string, string>>(dict => dict.Count == 1 &&
+                dict.ContainsKey(originalValue) && dict[originalValue] == toReplaceValue))); // assert Replace of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+        }
+
+        [TestMethod]
+        public void TestReplaceAll_OneToOne()
+        {
+            // Arrange
+            const string originalValue = "original";
+            const string toReplaceValue = "toReplace";
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Replace<string>(It.IsAny<object>(), 
+                It.IsAny<Dictionary<string, string>>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.ReplaceAll(new []{originalValue}, new []{toReplaceValue});
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Replace("*", It.Is<Dictionary<string, string>>(dict => dict.Count == 1 &&
+                dict.ContainsKey(originalValue) && dict[originalValue] == toReplaceValue))); // assert Replace of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
+        }
+
+        [TestMethod]
+        public void TestReplaceAll_ManyToOne()
+        {
+            // Arrange
+            const string originalValue = "original";
+            const string toReplaceValue = "toReplace";
+            const string columnName = "column1";
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Replace<string>(It.IsAny<object>(), 
+                It.IsAny<Dictionary<string, string>>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.ReplaceAll(new[] { originalValue }, toReplaceValue, new[] { columnName });
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Replace(It.Is<string[]>(subset => subset.Length == 1 && subset.Contains(columnName)), 
+                It.Is<Dictionary<string, string>>(dict => dict.Count == 1 &&
+                dict.ContainsKey(originalValue) && dict[originalValue] == toReplaceValue))); // assert Replace of Proxy was invoked with correct parameters
+            Assert.AreEqual(actualResultDataFrame.DataFrameProxy, expectedResultDataFrameProxy);
         }
     }
 
