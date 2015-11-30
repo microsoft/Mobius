@@ -472,8 +472,8 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class MapPartitionsWithIndexHelper<I, O>
     {
-        private Func<int, IEnumerable<I>, IEnumerable<O>> func;
-        private bool preservesPartitioningParam = false;
+        private readonly Func<int, IEnumerable<I>, IEnumerable<O>> func;
+        private readonly bool preservesPartitioningParam = false;
         internal MapPartitionsWithIndexHelper(Func<int, IEnumerable<I>, IEnumerable<O>> f, bool preservesPartitioningParam = false)
         {
             func = f;
@@ -489,7 +489,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class TransformHelper<I, O>
     {
-        private Func<RDD<I>, RDD<O>> func;
+        private readonly Func<RDD<I>, RDD<O>> func;
         internal TransformHelper(Func<RDD<I>, RDD<O>> f)
         {
             func = f;
@@ -504,7 +504,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class TransformDynamicHelper<I, O>
     {
-        private Func<double, RDD<I>, RDD<O>> func;
+        private readonly Func<double, RDD<I>, RDD<O>> func;
         internal TransformDynamicHelper(Func<double, RDD<I>, RDD<O>> f)
         {
             func = f;
@@ -520,7 +520,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class TransformWithHelper<T, U, V>
     {
-        private Func<RDD<T>, RDD<U>, RDD<V>> func;
+        private readonly Func<RDD<T>, RDD<U>, RDD<V>> func;
         internal TransformWithHelper(Func<RDD<T>, RDD<U>, RDD<V>> f)
         {
             func = f;
@@ -535,7 +535,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class TransformWithDynamicHelper<T, U, V>
     {
-        private Func<double, RDD<T>, RDD<U>, RDD<V>> func;
+        private readonly Func<double, RDD<T>, RDD<U>, RDD<V>> func;
         internal TransformWithDynamicHelper(Func<double, RDD<T>, RDD<U>, RDD<V>> f)
         {
             func = f;
@@ -543,9 +543,9 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd1, RDD<dynamic> rdd2)
         {
-            RDD<T> rddt = new RDD<T>(rdd1.rddProxy, rdd1.sparkContext, rdd1.serializedMode) { previousRddProxy = rdd1.previousRddProxy };
-            RDD<U> rddu = new RDD<U>(rdd2.rddProxy, rdd2.sparkContext, rdd2.serializedMode) { previousRddProxy = rdd2.previousRddProxy };
-            RDD<V> rddv = func(t, rddt, rddu);
+            var rddt = new RDD<T>(rdd1.rddProxy, rdd1.sparkContext, rdd1.serializedMode) { previousRddProxy = rdd1.previousRddProxy };
+            var rddu = new RDD<U>(rdd2.rddProxy, rdd2.sparkContext, rdd2.serializedMode) { previousRddProxy = rdd2.previousRddProxy };
+            var rddv = func(t, rddt, rddu);
             return new RDD<dynamic>(rddv.RddProxy, rddv.sparkContext) { previousRddProxy = rddv.previousRddProxy };
         }
     }
@@ -553,7 +553,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class RepartitionHelper<T>
     {
-        private int numPartitions;
+        private readonly int numPartitions;
         internal RepartitionHelper(int numPartitions)
         {
             this.numPartitions = numPartitions;
@@ -568,7 +568,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class ForeachRDDHelper<I>
     {
-        private Action<RDD<I>> func;
+        private readonly Action<RDD<I>> func;
         internal ForeachRDDHelper(Action<RDD<I>> f)
         {
             func = f;
@@ -583,8 +583,8 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class SaveAsTextFileHelper
     {
-        private string prefix; 
-        private string suffix;
+        private readonly string prefix; 
+        private readonly string suffix;
         
         internal SaveAsTextFileHelper(string prefix, string suffix)
         {
