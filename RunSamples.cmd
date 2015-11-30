@@ -1,5 +1,22 @@
 @echo OFF
-setlocal
+setlocal enabledelayedexpansion
+
+set VERBOSE=
+
+:argsloop
+
+if "%1" == "" (
+    rem - no more arguments. 
+) else (
+    rem - check each argument
+    if "%1" == "--verbose" (
+        set VERBOSE="verbose"
+        @echo [RunSamples.cmd] VERBOSE is !VERBOSE!
+    )
+    rem - shift the arguments and examine %1 again
+    shift
+    goto argsloop
+)
 
 @rem check prerequisites
 call precheck.cmd
@@ -10,15 +27,14 @@ if %precheck% == "bad" (goto :eof)
 @rem
 set SPARK_VERSION=1.4.1
 set HADOOP_VERSION=2.6
-@echo SPARK_VERSION=%SPARK_VERSION%
-@echo HADOOP_VERSION=%HADOOP_VERSION%
+@echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
 
 @rem Windows 7/8/10 may not allow powershell scripts by default
 powershell -Command Set-ExecutionPolicy Unrestricted
 
 @rem download runtime dependencies
 pushd %~dp0
-powershell -f downloadtools.ps1 run
+powershell -f downloadtools.ps1 run !VERBOSE!
 call tools\updateruntime.cmd
 popd
 
@@ -37,17 +53,14 @@ set TEMP_DIR=%SPARKCLR_HOME%\Temp
 if NOT EXIST "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 set SAMPLES_DIR=%SPARKCLR_HOME%\samples
 
-@echo JAVA_HOME=%JAVA_HOME%
-@echo SPARK_HOME=%SPARK_HOME%
-@echo SPARKCLR_HOME=%SPARKCLR_HOME%
-@echo SPARKCSV_JARS=%SPARKCSV_JARS%
+@echo [RunSamples.cmd] JAVA_HOME=%JAVA_HOME%
+@echo [RunSamples.cmd] SPARK_HOME=%SPARK_HOME%
+@echo [RunSamples.cmd] SPARKCLR_HOME=%SPARKCLR_HOME%
+@echo [RunSamples.cmd] SPARKCSV_JARS=%SPARKCSV_JARS%
 
-pushd %SPARKCLR_HOME%
-@cd
+pushd %SPARKCLR_HOME%\scripts
 
-@echo ON
+@echo [RunSamples.cmd] call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
 
-call %SPARKCLR_HOME%\scripts\sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
-
-@echo OFF
 popd

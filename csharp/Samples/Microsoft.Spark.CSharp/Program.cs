@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
-using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Samples
@@ -31,6 +29,7 @@ namespace Microsoft.Spark.CSharp.Samples
             Logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRSamples));
             ProcessArugments(args);
 
+            PrintLogLocation();
             if (Configuration.IsDryrun)
             {
                 RunSamples();
@@ -40,6 +39,10 @@ namespace Microsoft.Spark.CSharp.Samples
                 SparkContext = CreateSparkContext();
                 SparkContext.SetCheckpointDir(Path.GetTempPath()); 
                 RunSamples();
+
+                PrintLogLocation();
+                ConsoleWriteLine("Main", "Completed RunSamples. Calling SparkContext.Stop() to tear down ...");
+                ConsoleWriteLine("Main", "If the program does not terminate in 10 seconds, please manually terminate java process !!!");
                 SparkContext.Stop();
             }
         }
@@ -66,9 +69,9 @@ namespace Microsoft.Spark.CSharp.Samples
                       .OrderByDescending(method => method.Name);
 
             int numSamples = 0;
-            // track <SampleName, Category> in "completed" and "error" list, for reporting
-            var completed = new List<Tuple<string, string>>();
-            var errors = new List<Tuple<string, string>>();
+            // track <SampleName, Category, Duration> in "completed" and "error" list, for reporting
+            var completed = new List<Tuple<string, string, TimeSpan>>();
+            var errors = new List<Tuple<string, string, TimeSpan>>();
 
             Regex regex = null;
             if (!string.IsNullOrEmpty(Configuration.SamplesToRun))
@@ -130,31 +133,35 @@ namespace Microsoft.Spark.CSharp.Samples
                     }
                 }
 
+                var clockStart = sw.Elapsed;
+                var duration = sw.Elapsed - clockStart; 
                 try
                 {
                     numSamples++;
 
                     if (!Configuration.IsDryrun)
                     {
-                        Logger.LogInfo(string.Format("----- Running sample {0} -----", sampleName));
+                        Console.WriteLine("----- Running sample {0} -----", sampleName);;
                         sample.Invoke(null, new object[] {});
-                        Logger.LogInfo(string.Format("----- Finished running sample {0} -----", sampleName));
+                        duration = sw.Elapsed - clockStart;
+                        Console.WriteLine("----- Finished running sample {0}, duration={1} -----", sampleName, duration);
                     }
 
-                    completed.Add(new Tuple<string, string>(sampleName, categoryNames));
+                    completed.Add(new Tuple<string, string, TimeSpan>(sampleName, categoryNames, duration));
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(string.Format("----- Error running sample {0} -----{1}{2}", 
-                        sampleName, Environment.NewLine, ex));
-                    errors.Add(new Tuple<string, string>(sampleName, categoryNames));
+                    duration = sw.Elapsed - clockStart;
+                    Console.WriteLine("----- Error running sample {0} -----{1}{2}, duration={3}",
+                                      sampleName, Environment.NewLine, ex, duration);
+                    errors.Add(new Tuple<string, string, TimeSpan>(sampleName, categoryNames, duration));
                 }
             }
             sw.Stop();
             ReportOutcome(numSamples, completed, errors, sw.Elapsed);
         }
 
-        private static void ReportOutcome(int numSamples, IList<Tuple<string, string>> completed, IList<Tuple<string, string>> errors, TimeSpan duration)
+        private static void ReportOutcome(int numSamples, IList<Tuple<string, string, TimeSpan>> completed, IList<Tuple<string, string, TimeSpan>> errors, TimeSpan duration)
         {
             if (completed == null)
             {
@@ -182,22 +189,22 @@ namespace Microsoft.Spark.CSharp.Samples
             msg.AppendLine("Successful samples:");
             foreach (var s in completed)
             {
-                msg.Append("    ").AppendLine(string.Format("{0} (category: {1})", s.Item1, s.Item2));
+                msg.Append("    ").AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item3));
             }
 
             msg.AppendLine("Failed samples:");
             foreach (var s in errors)
             {
-                msg.Append("    ").AppendLine(string.Format("{0} (category: {1})", s.Item1, s.Item2));
+                msg.Append("    ").AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item3));
             }
 
             if (errors.Count == 0)
             {
-                Logger.LogInfo(msg.ToString());
+                Console.WriteLine(msg.ToString());
             }
             else
             {
-                Logger.LogWarn(msg.ToString());
+                Console.WriteLine("[Warning]{0}", msg);
             }
         }
 
@@ -261,6 +268,13 @@ namespace Microsoft.Spark.CSharp.Samples
             Console.WriteLine("   ");
         }
 
+        private static void PrintLogLocation()
+        {
+            ConsoleWriteLine("Main",
+                             string.Format(@"Logs by SparkCLR and Apache Spark are available at {0}\SparkCLRLogs",
+                                           Environment.GetEnvironmentVariable("TEMP")));
+        }
+
         //simple commandline arg processor
         private static void ProcessArugments(string[] args)
         {
@@ -311,6 +325,12 @@ namespace Microsoft.Spark.CSharp.Samples
                     Configuration.IsDryrun = true;
                 }
             }
+        }
+
+        private static void ConsoleWriteLine(string functionName, string message)
+        {
+            var p = AppDomain.CurrentDomain.FriendlyName;
+            Console.WriteLine("[{0}.{1}] {2}", p, functionName, message);
         }
     }
 

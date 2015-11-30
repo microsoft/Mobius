@@ -28,7 +28,7 @@ object CSharpRunner {
 
     if (args.length == 1 && args(0).equalsIgnoreCase("debug")) {
       runInDebugMode = true
-      println("Debug mode is set. CSharp executable will not be launched as a sub-process.")
+      println("[CSharpRunner.main] Debug mode is set. CSharp executable will not be launched as a sub-process.")
     }
 
     var csharpExecutable = ""
@@ -38,7 +38,7 @@ object CSharpRunner {
       if(args(0).toLowerCase.endsWith(".zip")) {
         val zipFileName = args(0)
         val driverDir = new File(zipFileName).getAbsoluteFile.getParentFile
-        println(s"Unzipping driver $zipFileName in $driverDir")
+        println(s"[CSharpRunner.main] Unzipping driver $zipFileName in $driverDir")
         CSharpSparkUtils.unzip(new File(zipFileName), driverDir)
         csharpExecutable = PythonRunner.formatPath(args(1)) //reusing windows-specific formatting in PythonRunner
         otherArgs = args.slice(2, args.length)
@@ -58,7 +58,7 @@ object CSharpRunner {
     processParameters.add(csharpExecutable)
     otherArgs.foreach( arg => processParameters.add(arg) )
 
-    println("Starting CSharpBackend!")
+    println("[CSharpRunner.main] Starting CSharpBackend!")
     // Time to wait for CSharpBackend to initialize in seconds
 
     val backendTimeout = sys.env.getOrElse("CSHARPBACKEND_TIMEOUT", "120").toInt
@@ -71,7 +71,7 @@ object CSharpRunner {
     val csharpBackendThread = new Thread("CSharpBackend") {
       override def run() {
         csharpBackendPortNumber = csharpBackend.init()
-        println("Port number used by CSharpBackend is " + csharpBackendPortNumber) //TODO - send to logger also
+        println("[CSharpRunner.main] Port number used by CSharpBackend is " + csharpBackendPortNumber) //TODO - send to logger also
         initialized.release()
         csharpBackend.run()
       }
@@ -88,7 +88,7 @@ object CSharpRunner {
 
           for ((key, value) <- Utils.getSystemProperties if key.startsWith("spark.")) {
             env.put(key, value)
-            println("adding key=" + key + " and value=" + value + " to environment")
+            println("[CSharpRunner.main] adding key=" + key + " and value=" + value + " to environment")
           }
           builder.redirectErrorStream(true) // Ugly but needed for stdout and stderr to synchronize
           val process = builder.start()
@@ -97,31 +97,31 @@ object CSharpRunner {
 
           process.waitFor()
         } catch {
-          case e: Exception => println(e.getMessage + "\n" + e.getStackTrace)
+          case e: Exception => println("[CSharpRunner.main]" + e.getMessage + "\n" + e.getStackTrace)
         }
         finally {
           closeBackend(csharpBackend)
         }
-        println("Return CSharpBackend code " + returnCode)
+        println("[CSharpRunner.main] Return CSharpBackend code " + returnCode)
         System.exit(returnCode.toString.toInt)
       } else {
-        println("***************************************************")
-        println("* Backend running debug mode. Press enter to exit *")
-        println("***************************************************")
+        println("***********************************************************************")
+        println("* [CSharpRunner.main] Backend running debug mode. Press enter to exit *")
+        println("***********************************************************************")
         Console.readLine()
         closeBackend(csharpBackend)
         System.exit(0)
       }
     } else {
       // scalastyle:off println
-      println("CSharpBackend did not initialize in " + backendTimeout + " seconds")
+      println("[CSharpRunner.main] CSharpBackend did not initialize in " + backendTimeout + " seconds")
       // scalastyle:on println
       System.exit(-1)
     }
   }
 
   def closeBackend(csharpBackend: CSharpBackend): Unit = {
-    println("closing CSharpBackend")
+    println("[CSharpRunner.main] closing CSharpBackend")
     csharpBackend.close()
   }
 }

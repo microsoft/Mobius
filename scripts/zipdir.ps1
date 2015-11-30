@@ -24,18 +24,27 @@ function Zip-Directory($sourceDir, $targetFile)
 {
     if (!(test-path $sourceDir))
     {
-        Write-Output "[Zip-Directory] WARNING!!! $sourceDir does not exist. Please provide a valid directory name !"
+        Write-Output "[zipdir.Zip-Directory] WARNING!!! $sourceDir does not exist. Please provide a valid directory name !"
         return
     }
 
-    if ((test-path $targetFile))
+    while (test-path $targetFile)
     {
-        Write-Output "[Zip-Directory] Delete existing $targetFile"
-        Remove-Item $targetFile
+        try
+        {
+            Write-Output "[zipdir.Zip-Directory] Delete existing $targetFile"
+            remove-item $targetFile -force
+        } 
+        catch [Exception]
+        {
+            Write-Output "[zipdir.Zip-Directory] Delete existing zipFile exception: $_.Exception.GetType().FullName"
+            Write-Output "[zipdir.Zip-Directory] Delete existing zipFile exception: $_.Exception.Message"
+            Start-Sleep -s 1
+        }
     }
 
     $start_time = Get-Date
-    Write-Output "[Zip-Directory] Zip $sourceDir to $targetFile ..."
+    Write-Output "[zipdir.Zip-Directory] Zip $sourceDir to $targetFile ..."
 
     $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
     [System.IO.Compression.ZipFile]::CreateFromDirectory(
@@ -57,7 +66,7 @@ function Zip-Directory($sourceDir, $targetFile)
         $howlong = "$seconds seconds"
     }
 
-    Write-Output "[Zip-Directory] $targetFile completed. Time taken: $howlong"
+    Write-Output "[zipdir.Zip-Directory] $targetFile completed. Time taken: $howlong"
 }
 
 function Print-Usage
