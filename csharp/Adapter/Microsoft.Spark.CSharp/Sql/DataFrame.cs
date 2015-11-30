@@ -16,13 +16,36 @@ namespace Microsoft.Spark.CSharp.Sql
     /// 
     /// See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.DataFrame
     /// </summary>
+    [Serializable]
     public class DataFrame
     {
+        [NonSerialized]
         private readonly IDataFrameProxy dataFrameProxy;
+        [NonSerialized]
         private readonly SparkContext sparkContext;
+        [NonSerialized]
         private StructType schema;
         private RowSchema rowSchema;
-        
+        [NonSerialized]
+        private RDD<Row> rdd;
+
+        public RDD<Row> Rdd
+        {
+            get
+            {
+                if (rdd == null)
+                {
+                    if (rowSchema == null)
+                    {
+                        rowSchema = RowSchema.ParseRowSchemaFromJson(Schema.ToJson());
+                    }
+                    IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
+                    rdd = new RDD<Object[]>(rddProxy, sparkContext, SerializedMode.Row).Map(item => (Row)new RowImpl(item, rowSchema));
+                }
+                return rdd;
+            }
+        }
+   
         internal SparkContext SparkContext
         {
             get

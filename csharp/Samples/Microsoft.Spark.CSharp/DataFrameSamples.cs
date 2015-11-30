@@ -679,6 +679,52 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Sample to get Rdd from DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFRddSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.Show();
+
+            var dfCount = peopleDataFrame.Count();
+            var peopleRdd = peopleDataFrame.Rdd;
+            var peopleRddCount = peopleRdd.Count();
+            Console.WriteLine("Count of people DataFrame: {0}, count of peole RDD: {1}", dfCount, peopleRddCount);
+
+            foreach (var people in peopleRdd.Collect())
+            {
+                Console.WriteLine(people);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(dfCount > 0);
+                Assert.IsTrue(dfCount == peopleRddCount);
+            }
+
+            var nameRdd = peopleDataFrame.Rdd.Map(item => (string) item.Get("name")).Filter(name => name.Equals("steve", StringComparison.OrdinalIgnoreCase));
+            var nameRddCount = nameRdd.Count();
+            Console.WriteLine("There are {0} people whose name is steve.", nameRddCount);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(nameRddCount == 1);
+            }
+
+            var peopleDataFrame2 = peopleDataFrame.Filter("age <= 34 ");
+            var peopleDataFrame2Count = peopleDataFrame2.Count();
+            var peopleRdd2Count = peopleDataFrame2.Rdd.Count();
+            Console.WriteLine("Count of peopleRdd2 is: {0}", peopleRdd2Count);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(peopleRdd2Count, 2);
+                Assert.IsTrue(peopleDataFrame2Count == peopleRdd2Count);
+            }
+        }
+
+        /// <summary>
         /// Verifies that the two List of Rows are equivalent. 
         /// Two List are equivalent if they have the same Rows in the same quantity, but in any order.
         /// </summary>
