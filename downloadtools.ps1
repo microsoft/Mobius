@@ -1,7 +1,9 @@
 #
-# This script takes in "stage" parameter, which should be either "build" or "run"
+# Input - 
+#     (1) "stage" parameter, accepts either "build" or "run"
+#     (2) "vebose" parameter, accepts "verbose"
 #
-Param([string] $stage)
+Param([string] $stage, [string] $verbose)
 
 if ($stage.ToLower() -eq "run")
 {
@@ -32,17 +34,46 @@ function Get-ScriptDirectory
     }
 }
 
+#
+# Input: 
+#   (1) $variable to be replaced; 
+#   (2) $value to fill in; 
+#   (3) $sourceFile; 
+#   (4) $targetFile with $variable replaced by $value
+#
+function Replace-VariableInFile($variable, $value, $sourceFile, $targetFile)
+{
+    Write-Output "[downloadtools.Replace-VariableInFile] variable=$variable, value=$value, sourceFile=$sourceFile, targetFile=$targetFile"
+    if (!(test-path $sourceFile))
+    {
+        Write-Output "[downloadtools.Replace-VariableInFile] [WARNING] $sourceFile does not exist. Abort."
+        return
+    }
+
+    if ([string]::IsNullOrEmpty($variable))
+    {
+        Write-Output "[downloadtools.Replace-VariableInFile] [WARNING] variable name is empty. Abort."
+        return
+    }
+
+    $now = Get-Date
+    Write-Host "[Replace-VariableInFile] [$now] replace $variable in $sourceFile to produce $targetFile"
+    (get-content $sourceFile) | Foreach-Object {
+        $_ -replace "$variable", $value `
+        } | Set-Content $targetFile -force
+}
+
 function Download-File($url, $output)
 {
-    if ((test-path $output))
+    if (test-path $output)
     {
-        Write-Output "[Download-File] $output exists. No need to download."
+        Write-Output "[downloadtools.Download-File] $output exists. No need to download."
         return
     }
 
     $start_time = Get-Date
     $wc = New-Object System.Net.WebClient
-    Write-Output "[Download-File] Start downloading $url to $output ..."
+    Write-Output "[downloadtools.Download-File] Start downloading $url to $output ..."
     $wc.DownloadFile($url, $output)
     $duration = $(Get-Date).Subtract($start_time)
     if ($duration.Seconds -lt 2)
@@ -56,26 +87,26 @@ function Download-File($url, $output)
         $howlong = "$seconds seconds"
     }
 
-    Write-Output "[Download-File] Download completed. Time taken: $howlong"
+    Write-Output "[downloadtools.Download-File] Download completed. Time taken: $howlong"
 }
 
 function Unzip-File($zipFile, $targetDir)
 {
     if (!(test-path $zipFile))
     {
-        Write-Output "[Unzip-File] WARNING!!! $zipFile does not exist. Abort."
+        Write-Output "[downloadtools.Unzip-File] WARNING!!! $zipFile does not exist. Abort."
         return
     }
 
     if (!(test-path $targetDir))
     {
-        Write-Output "[Unzip-File] $targetDir does not exist. Creating ..."
+        Write-Output "[downloadtools.Unzip-File] $targetDir does not exist. Creating ..."
         New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
-        Write-Output "[Unzip-File] Created $targetDir."
+        Write-Output "[downloadtools.Unzip-File] Created $targetDir."
     }
 
     $start_time = Get-Date
-    Write-Output "[Unzip-File] Extracting $zipFile to $targetDir ..."
+    Write-Output "[downloadtools.Unzip-File] Extracting $zipFile to $targetDir ..."
     $entries = [IO.Compression.ZipFile]::OpenRead($zipFile).Entries
     $entries | 
         %{
@@ -97,27 +128,27 @@ function Unzip-File($zipFile, $targetDir)
         $howlong = "$seconds seconds"
     }
 
-    Write-Output "[Unzip-File] Extraction completed. Time taken: $howlong"
+    Write-Output "[downloadtools.Unzip-File] Extraction completed. Time taken: $howlong"
 }
 
 function Untar-File($tarFile, $targetDir)
 {
     if (!(test-path $tarFile))
     {
-        Write-Output "[Untar-File] WARNING!!! $tarFile does not exist. Abort."
+        Write-Output "[downloadtools.Untar-File] WARNING!!! $tarFile does not exist. Abort."
         return
     }
 
     if (!(test-path $targetDir))
     {
-        Write-Output "[Untar-File] $targetDir does not exist. Creating ..."
+        Write-Output "[downloadtools.Untar-File] $targetDir does not exist. Creating ..."
         New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
-        Write-Output "[Untar-File] Created $targetDir."
+        Write-Output "[downloadtools.Untar-File] Created $targetDir."
     }
 
     $start_time = Get-Date
 
-    Write-Output "[Untar-File] Extracting $tarFile to $targetDir ..."
+    Write-Output "[downloadtools.Untar-File] Extracting $tarFile to $targetDir ..."
     Invoke-Expression "& `"$tarToolExe`" $tarFile $targetDir"
     
     $duration = $(Get-Date).Subtract($start_time)
@@ -132,7 +163,7 @@ function Untar-File($tarFile, $targetDir)
         $howlong = "$seconds seconds"
     }
 
-    Write-Output "[Untar-File] Extraction completed. Time taken: $howlong"
+    Write-Output "[downloadtools.Untar-File] Extraction completed. Time taken: $howlong"
 }
 
 function Download-BuildTools
@@ -152,7 +183,7 @@ function Download-BuildTools
     }
     else
     {
-        Write-Output "[Download-BuildTools] $tarToolExe exists already. No download and extraction needed"
+        Write-Output "[downloadtools.Download-BuildTools] $tarToolExe exists already. No download and extraction needed"
     }
     
     if (!($path -like "*$toolsDir*"))
@@ -172,7 +203,7 @@ function Download-BuildTools
     }
     else
     {
-        Write-Output "[Download-BuildTools] $mvnCmd exists already. No download and extraction needed"
+        Write-Output "[downloadtools.Download-BuildTools] $mvnCmd exists already. No download and extraction needed"
     }
     
     $mavenBin = "$toolsDir\apache-maven-3.3.3\bin"
@@ -192,7 +223,7 @@ function Download-BuildTools
     }
     else
     {
-        Write-Output "[Download-BuildTools] $nugetExe exists already. No download and extraction needed"
+        Write-Output "[downloadtools.Download-BuildTools] $nugetExe exists already. No download and extraction needed"
     }
 
     $envStream.close()
@@ -215,7 +246,7 @@ function Download-RuntimeDependencies
     }
     else
     {
-        Write-Output "[Download-BuildTools] $tarToolExe exists already. No download and extraction needed"
+        Write-Output "[downloadtools.Download-BuildTools] $tarToolExe exists already. No download and extraction needed"
     }
     
     if (!($path -like "*$toolsDir*"))
@@ -236,7 +267,7 @@ function Download-RuntimeDependencies
     }
     else
     {
-        Write-Output "[Download-RuntimeDependencies] $sparkSubmit exists already. No download and extraction needed"
+        Write-Output "[downloadtools.Download-RuntimeDependencies] $sparkSubmit exists already. No download and extraction needed"
     }
 
     $envStream.WriteLine("set SPARK_HOME=$S_HOME");
@@ -264,12 +295,130 @@ function Download-RuntimeDependencies
     }
     else
     {
-        Write-Output "[Download-RuntimeDependencies] $winutilsExe exists already. No download and extraction needed"
+        Write-Output "[downloadtools.Download-RuntimeDependencies] $winutilsExe exists already. No download and extraction needed"
     }
 
     $envStream.WriteLine("set HADOOP_HOME=$H_HOME");
 
     $envStream.close()
+
+    Update-SparkVerboseMode
+    Update-CSharpVerboseMode
+
+    return
+}
+
+function Update-SparkVerboseMode
+{
+    $temp = [Environment]::GetEnvironmentVariable("temp").ToLower()
+    if ($verbose -ne "verbose")
+    {
+        #
+        # Out of the box, Spark logs to console. 
+        # Customized log4j.properites under spark.conf replaces consoler appender with a rolling file appender,
+        # which creates logs under {env:TEMP} directory.
+        # the script below replaces ${env:TEMP} with actual %TEMP% path
+        #
+        
+        # convert temp path to unix-style path
+        $tempValue = $temp -replace "\\", "/"
+    
+        # replace {env:TEMP} with temp path
+        $targetFile = "$temp\log4j.properties.temp"
+        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\scripts\spark.conf\log4j.properties" $targetFile
+    
+        # copy customized log4j properties to SPARK_HOME\conf
+        copy-item  $scriptDir\scripts\spark.conf\*.properties $S_HOME\conf -force
+        copy-item  $targetFile $S_HOME\conf\log4j.properties -force
+    }
+    else
+    {
+        #
+        # remove customized log4j.properties, revert back to out-of-the-box Spark logging to console
+        #
+        
+        $propertyFiles = get-childitem $S_HOME\conf -filter *.properties
+        if ($propertyFiles.Count -gt 0)
+        {
+            remove-item $S_HOME\conf\*.properties -force
+        }
+    }
+
+    return
+}
+
+function Backup-CSharpConfig($configPath, $originalSuffix)
+{
+    $configFiles = get-childitem $configPath -filter *.config
+
+    pushd $configPath
+    foreach ($file in $configFiles)
+    {
+        $name = $file.Name
+        $original = "$name$originalSuffix"
+        if (! (Test-Path($original)))
+        {
+            copy-item $name $original -force
+        }
+    }
+    popd
+}
+
+function Update-CSharpVerboseMode
+{
+    $configPath = "$scriptDir\run\samples"
+    $originalSuffix = ".orginal"
+    Backup-CSharpConfig $configPath $originalSuffix
+
+    if ($verbose -ne "verbose")
+    {
+        #
+        # Disable (comment out) console appender in worker and sample.config files
+        #
+        $configPath = "$scriptDir\run\samples"
+        $configFiles = get-childitem $configPath -filter *.config
+
+        pushd $configPath
+        foreach ($file in $configFiles)
+        {
+            $name = $file.Name
+            $original = "$name$originalSuffix"
+            if (Test-Path($original))
+            {
+                Replace-VariableInFile '<appender-ref\s*ref="ConsoleAppender"\s*/>' '<!--<appender-ref ref="ConsoleAppender" />-->' $original $name
+                Write-Output "[downloadtools.Update-VerboseMode] enabled console appender in $name, under $configPath"
+            }
+            else
+            {
+                Write-Output "[downloadtools.Update-VerboseMode] [Warning] missing $original under $configPath"
+            }
+        }
+        popd
+    }
+    else
+    {
+        #
+        # Restore worker and sample.config files to the original versions that do have console appender
+        #
+        $configFiles = get-childitem $configPath -filter *.config
+        pushd $configPath
+        foreach ($file in $configFiles)
+        {
+            $name = $file.Name
+            $original = "$name$originalSuffix"
+            if (Test-Path($original))
+            {
+                # original config file supports non-verbose mode, without consoler appender
+                copy-item $original $name -force
+                Write-Output "[downloadtools.Update-VerboseMode] $name restored from $original, under $configPath"
+            }
+            else
+            {
+                Write-Output "[downloadtools.Update-VerboseMode] [Warning] missing $original under $configPath"
+            }
+        }
+        popd
+    }
 
     return
 }

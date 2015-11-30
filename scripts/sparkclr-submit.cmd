@@ -21,7 +21,7 @@ for %%d in (%ASSEMBLY_DIR%\spark-assembly*hadoop*.jar) do (
   set SPARK_ASSEMBLY_JAR=%%d
 )
 if "%SPARK_ASSEMBLY_JAR%"=="0" (
-  echo Failed to find Spark assembly JAR.
+  @echo [sparkclr-submit.cmd] Failed to find Spark assembly JAR.
   exit /b 1
 )
 
@@ -51,7 +51,7 @@ for /f "tokens=*" %%i in (%LAUNCHER_OUTPUT%) do (
 del %LAUNCHER_OUTPUT%
 
 REM launches the Spark job with Spark-Submit.cmd
-echo Command to run %SPARK_ARGS%
+@echo [sparkclr-submit.cmd] Command to run %SPARK_ARGS%
 %SPARK_HOME%/bin/spark-submit.cmd %SPARK_ARGS%
 
 goto :eof
@@ -61,19 +61,19 @@ goto :eof
 goto :eof
 
 :sparkhomeerror
-	@echo Error - SPARK_HOME environment variable is not set
-	@echo Note that SPARK_HOME environment variable should not have trailing \
+	@echo [sparkclr-submit.cmd] Error - SPARK_HOME environment variable is not set
+	@echo [sparkclr-submit.cmd] Note that SPARK_HOME environment variable should not have trailing \
 	goto :eof
 	
 :javahomeerror
-	@echo Error - JAVA_HOME environment variable is not set
-	@echo Note that JAVA_HOME environment variable should not have trailing \
+	@echo [sparkclr-submit.cmd] Error - JAVA_HOME environment variable is not set
+	@echo [sparkclr-submit.cmd] Note that JAVA_HOME environment variable should not have trailing \
 	goto :eof
 	
 :sparkclrhomeerror
-	@echo Error - SPARKCLR_HOME environment variable is not set
-	@echo SPARKCLR_HOME need to be set to the folder path for csharp-spark*.jar
-	@echo Note that SPARKCLR_HOME environment variable should not have trailing \
+	@echo [sparkclr-submit.cmd] Error - SPARKCLR_HOME environment variable is not set
+	@echo [sparkclr-submit.cmd] SPARKCLR_HOME need to be set to the folder path for csharp-spark*.jar
+	@echo [sparkclr-submit.cmd] Note that SPARKCLR_HOME environment variable should not have trailing \
 	goto :eof
 
 :usage
