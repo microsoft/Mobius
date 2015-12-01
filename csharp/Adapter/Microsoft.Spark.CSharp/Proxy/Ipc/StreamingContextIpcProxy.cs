@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Spark.CSharp.Core;
@@ -136,6 +137,83 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTermination", new object[] { timeout });
         }
 
+        private void ProcessCallbackRequest(object socket)
+        {
+            logger.LogInfo("new thread created to process callback request");
+
+            try
+            {
+                using (Socket sock = (Socket)socket)
+                using (var s = new NetworkStream(sock))
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            string cmd = SerDe.ReadString(s);
+                            if (cmd == "close")
+                            {
+                                logger.LogInfo("receive close cmd from Scala side");
+                                break;
+                            }
+                            else if (cmd == "callback")
+                            {
+                                int numRDDs = SerDe.ReadInt(s);
+                                var jrdds = new List<JvmObjectReference>();
+                                for (int i = 0; i < numRDDs; i++)
+                                {
+                                    jrdds.Add(new JvmObjectReference(SerDe.ReadObjectId(s)));
+                                }
+                                double time = SerDe.ReadDouble(s);
+
+                                IFormatter formatter = new BinaryFormatter();
+                                object func = formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
+
+                                string deserializer = SerDe.ReadString(s);
+                                RDD<dynamic> rdd = null;
+                                if (jrdds[0].Id != null)
+                                    rdd = new RDD<dynamic>(new RDDIpcProxy(jrdds[0]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), deserializer));
+
+                                if (func is Func<double, RDD<dynamic>, RDD<dynamic>>)
+                                {
+                                    JvmObjectReference jrdd = (((Func<double, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd).RddProxy as RDDIpcProxy).JvmRddReference;
+                                    SerDe.Write(s, (byte)'j');
+                                    SerDe.Write(s, jrdd.Id);
+                                }
+                                else if (func is Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)
+                                {
+                                    string deserializer2 = SerDe.ReadString(s);
+                                    RDD<dynamic> rdd2 = new RDD<dynamic>(new RDDIpcProxy(jrdds[1]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), deserializer2));
+                                    JvmObjectReference jrdd = (((Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd, rdd2).RddProxy as RDDIpcProxy).JvmRddReference;
+                                    SerDe.Write(s, (byte)'j');
+                                    SerDe.Write(s, jrdd.Id);
+                                }
+                                else
+                                {
+                                    ((Action<double, RDD<dynamic>>)func)(time, rdd);
+                                    SerDe.Write(s, (byte)'n');
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            //log exception only when callback socket is not shutdown explicitly
+                            if (!callbackSocketShutdown)
+                            {
+                                logger.LogException(e);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogException(e);
+            }
+
+            logger.LogInfo("thread to process callback request exit");
+        }
+
         public int StartCallback()
         {
             TcpListener callbackServer = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
@@ -145,72 +223,16 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             {
                 try
                 {
-                    using (Socket sock = callbackServer.AcceptSocket())
-                    using (var s = new NetworkStream(sock))
+                    ThreadPool.SetMaxThreads(10, 10);
+                    while (!callbackSocketShutdown)
                     {
-                        while (true)
-                        {
-                            try
-                            {
-                                string cmd = SerDe.ReadString(s);
-                                if (cmd == "close")
-                                {
-                                    logger.LogInfo("receive close cmd from Scala side");
-                                    break;
-                                }
-                                else if (cmd == "callback")
-                                {
-                                    int numRDDs = SerDe.ReadInt(s);
-                                    var jrdds = new List<JvmObjectReference>();
-                                    for (int i = 0; i < numRDDs; i++)
-                                    {
-                                        jrdds.Add(new JvmObjectReference(SerDe.ReadObjectId(s)));
-                                    }
-                                    double time = SerDe.ReadDouble(s);
-
-                                    IFormatter formatter = new BinaryFormatter();
-                                    object func = formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
-
-                                    string deserializer = SerDe.ReadString(s);
-                                    RDD<dynamic> rdd = null;
-                                    if (jrdds[0].Id != null)
-                                        rdd = new RDD<dynamic>(new RDDIpcProxy(jrdds[0]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), deserializer));
-
-                                    if (func is Func<double, RDD<dynamic>, RDD<dynamic>>)
-                                    {
-                                        JvmObjectReference jrdd = (((Func<double, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd).RddProxy as RDDIpcProxy).JvmRddReference;
-                                        SerDe.Write(s, (byte)'j');
-                                        SerDe.Write(s, jrdd.Id);
-                                    }
-                                    else if (func is Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)
-                                    {
-                                        string deserializer2 = SerDe.ReadString(s);
-                                        RDD<dynamic> rdd2 = new RDD<dynamic>(new RDDIpcProxy(jrdds[1]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), deserializer2));
-                                        JvmObjectReference jrdd = (((Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd, rdd2).RddProxy as RDDIpcProxy).JvmRddReference;
-                                        SerDe.Write(s, (byte)'j');
-                                        SerDe.Write(s, jrdd.Id);
-                                    }
-                                    else
-                                    {
-                                        ((Action<double, RDD<dynamic>>)func)(time, rdd);
-                                        SerDe.Write(s, (byte)'n');
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                //log exception only when callback socket is not shutdown explicitly
-                                if (!callbackSocketShutdown)
-                                {
-                                    logger.LogInfo(e.ToString());
-                                }
-                            }
-                        }
+                        Socket sock = callbackServer.AcceptSocket();
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessCallbackRequest), sock);
                     }
                 }
                 catch (Exception e)
                 {
-                    logger.LogInfo(e.ToString());
+                    logger.LogException(e);
                     throw;
                 }
                 finally

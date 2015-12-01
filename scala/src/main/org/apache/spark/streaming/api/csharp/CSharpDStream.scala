@@ -51,10 +51,16 @@ object CSharpDStream {
   }
 
   def callCSharpTransform(rdds: List[Option[RDD[_]]], time: Time, rfunc: Array[Byte],
-                     deserializers: List[String]): Option[RDD[Array[Byte]]] = synchronized {
+                     deserializers: List[String]): Option[RDD[Array[Byte]]] = {
+    var socket: Socket = null
     try {
-      val dos = new DataOutputStream(CSharpBackend.callbackSocket.getOutputStream())
-      val dis = new DataInputStream(CSharpBackend.callbackSocket.getInputStream())
+      socket = CSharpBackend.callbackSockets.poll()
+      if (socket == null) {
+        socket = new Socket("localhost", CSharpBackend.callbackPort)
+      }
+
+      val dos = new DataOutputStream(socket.getOutputStream())
+      val dis = new DataInputStream(socket.getInputStream())
 
       writeString(dos, "callback")
       writeInt(dos, rdds.size)
@@ -64,7 +70,9 @@ object CSharpDStream {
       writeBytes(dos, rfunc)
       deserializers.foreach(x => writeString(dos, x))
       dos.flush()
-      Option(readObject(dis).asInstanceOf[JavaRDD[Array[Byte]]]).map(_.rdd)
+      val result = Option(readObject(dis).asInstanceOf[JavaRDD[Array[Byte]]]).map(_.rdd)
+      CSharpBackend.callbackSockets.offer(socket)
+      result
     } catch {
       case e: Exception =>
         // log exception only when callback socket is not shutdown explicitly
@@ -72,6 +80,13 @@ object CSharpDStream {
           // TODO: change println to log
           System.err.println("CSharp transform callback failed with " + e)
           e.printStackTrace()
+        }
+
+        // close this socket if error happen
+        if (socket != null) {
+          try {
+            socket.close()
+          }
         }
 
         None
