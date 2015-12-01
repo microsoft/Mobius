@@ -20,7 +20,7 @@ namespace Microsoft.Spark.CSharp.Sql
     public abstract class Row
     {
         [NonSerialized]
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(Row));
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(Row));
 
         /// <summary>
         /// Number of elements in the Row.
@@ -89,7 +89,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public string type;
         public List<ColumnSchema> columns;
 
-        private Dictionary<string, int> columnName2Index = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> columnName2Index = new Dictionary<string, int>();
 
         public RowSchema(string type)
         {
@@ -214,10 +214,10 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class RowImpl : Row
     {
-        private RowSchema schema;
-        private object[] values;
+        private readonly RowSchema schema;
+        private readonly object[] values;
 
-        private int columnCount;
+        private readonly int columnCount;
 
         internal RowImpl(object data, RowSchema schema)
         {

@@ -23,7 +23,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     /// </summary>
     internal class StreamingContextIpcProxy : IStreamingContextProxy
     {
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
         internal readonly JvmObjectReference jvmStreamingContextReference;
         private readonly JvmObjectReference jvmJavaStreamingReference;
         private readonly ISparkContextProxy sparkContextProxy;

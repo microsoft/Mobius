@@ -18,7 +18,7 @@ namespace Microsoft.Spark.CSharp.Services
             return new DefaultLoggerService(type);
         }
 
-        private Type type;
+        private readonly Type type;
         private DefaultLoggerService(Type t)
         {
             type = t;

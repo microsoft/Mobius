@@ -404,8 +404,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     
     internal class BroadcastIpcProxy : IBroadcastProxy
     {
-        private JvmObjectReference jvmBroadcastReference;
-        private SparkContextIpcProxy sparkContextIpcProxy;
+        private readonly JvmObjectReference jvmBroadcastReference;
+        private readonly SparkContextIpcProxy sparkContextIpcProxy;
 
         public BroadcastIpcProxy(JvmObjectReference jvmBroadcastReference, SparkContextIpcProxy sparkContextIpcProxy)
         {

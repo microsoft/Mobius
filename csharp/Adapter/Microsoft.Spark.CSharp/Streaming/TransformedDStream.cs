@@ -55,8 +55,8 @@ namespace Microsoft.Spark.CSharp.Streaming
         [Serializable]
         private class NewFuncWrapper
         {
-            private Func<double, RDD<dynamic>, RDD<dynamic>> func;
-            private Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> func;
+            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
             internal NewFuncWrapper(Func<double, RDD<dynamic>, RDD<dynamic>> func, Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc)
             {
                 this.func = func;

@@ -14,7 +14,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
     internal class SqlContextIpcProxy : ISqlContextProxy
     {
-        private JvmObjectReference jvmSqlContextReference;
+        private readonly JvmObjectReference jvmSqlContextReference;
 
         public SqlContextIpcProxy(JvmObjectReference jvmSqlContextReference)
         {
