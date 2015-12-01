@@ -6,8 +6,11 @@ package org.apache.spark.deploy.csharp
 import java.io.File
 import java.util.concurrent.{Semaphore, TimeUnit}
 
+import org.apache.hadoop.fs.Path
+import org.apache.spark.SparkConf
+import org.apache.spark.SecurityManager
 import org.apache.spark.api.csharp.CSharpBackend
-import org.apache.spark.deploy.{SparkSubmitArguments, PythonRunner}
+import org.apache.spark.deploy.{SparkHadoopUtil, SparkSubmitArguments, PythonRunner}
 import org.apache.spark.util.{Utils, RedirectThread}
 import org.apache.spark.util.csharp.{Utils => CSharpSparkUtils}
 
@@ -36,8 +39,14 @@ object CSharpRunner {
 
     if (!runInDebugMode) {
       if(args(0).toLowerCase.endsWith(".zip")) {
-        val zipFileName = args(0)
-        val driverDir = new File(zipFileName).getAbsoluteFile.getParentFile
+        var zipFileName = args(0)
+        val driverDir = new File("").getAbsoluteFile
+
+        if (zipFileName.toLowerCase.startsWith("hdfs://")) {
+          // standalone cluster mode, need to download the zip file from hdfs.
+          zipFileName = downloadDriverFile(zipFileName, driverDir.getAbsolutePath).getName
+        }
+
         println(s"[CSharpRunner.main] Unzipping driver $zipFileName in $driverDir")
         CSharpSparkUtils.unzip(new File(zipFileName), driverDir)
         csharpExecutable = PythonRunner.formatPath(args(1)) //reusing windows-specific formatting in PythonRunner
@@ -118,6 +127,37 @@ object CSharpRunner {
       // scalastyle:on println
       System.exit(-1)
     }
+  }
+
+  /**
+   * Download HDFS file into the supplied directory and return its local path.
+   * Will throw an exception if there are errors during downloading.
+   */
+  private def downloadDriverFile(hdfsFilePath: String, driverDir: String): File = {
+    val sparkConf = new SparkConf()
+    val filePath = new Path(hdfsFilePath)
+
+    val hadoopConf = SparkHadoopUtil.get.newConfiguration(sparkConf)
+    val jarFileName = filePath.getName
+    val localFile = new File(driverDir, jarFileName)
+
+    if (!localFile.exists()) { // May already exist if running multiple workers on one node
+      println(s"Copying user file $filePath to $driverDir")
+      Utils.fetchFile(
+        hdfsFilePath,
+        new File(driverDir),
+        sparkConf,
+        new SecurityManager(sparkConf),
+        hadoopConf,
+        System.currentTimeMillis(),
+        useCache = false)
+    }
+
+    if (!localFile.exists()) { // Verify copy succeeded
+      throw new Exception(s"Did not see expected $jarFileName in $driverDir")
+    }
+
+    localFile
   }
 
   def closeBackend(csharpBackend: CSharpBackend): Unit = {
