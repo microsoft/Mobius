@@ -310,6 +310,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
+        /// <typeparam name="S"></typeparam>
         /// <param name="self"></param>
         /// <param name="updateFunc">State update function. If this function returns None, then corresponding state key-value pair will be eliminated.</param>
         /// <param name="numPartitions"></param>

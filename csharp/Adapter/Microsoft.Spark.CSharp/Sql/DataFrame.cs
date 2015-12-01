@@ -584,7 +584,7 @@ namespace Microsoft.Spark.CSharp.Sql
     public class GroupedData
     {
         private readonly IGroupedDataProxy groupedDataProxy;
-        private DataFrame dataFrame;
+        private readonly DataFrame dataFrame;
 
         internal GroupedData(IGroupedDataProxy groupedDataProxy, DataFrame dataFrame)
         {

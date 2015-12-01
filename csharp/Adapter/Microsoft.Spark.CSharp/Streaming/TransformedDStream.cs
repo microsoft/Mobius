@@ -22,7 +22,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     /// Multiple continuous transformations of DStream can be combined into
     /// one transformation.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="U"></typeparam>
     [Serializable]
     internal class TransformedDStream<U> : DStream<U>
     {

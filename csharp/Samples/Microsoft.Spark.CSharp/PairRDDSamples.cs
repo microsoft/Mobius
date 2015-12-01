@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -208,7 +209,7 @@ namespace Microsoft.Spark.CSharp.Samples
                     new KeyValuePair<string, int>("b", 1),
                     new KeyValuePair<string, int>("a", 1)
                 }, 2)
-                .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect();
+                .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(CultureInfo.InvariantCulture), (x, y) => x + y).Collect();
 
             foreach (var kv in m)
                 Console.WriteLine(kv);
