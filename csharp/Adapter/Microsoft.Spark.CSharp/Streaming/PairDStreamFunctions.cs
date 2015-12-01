@@ -284,11 +284,10 @@ namespace Microsoft.Spark.CSharp.Streaming
             formatter.Serialize(stream, reduceF);
 
             // function to "inverse reduce" the old values that left the window (e.g., subtracting old counts)
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> invReduceF = null;
             MemoryStream invStream = null;
             if (invReduceFunc != null)
             {
-                invReduceF = helper.InvReduce;
+                Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> invReduceF = helper.InvReduce;
 
                 invStream = new MemoryStream();
                 formatter.Serialize(stream, invReduceF);
@@ -346,10 +345,10 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class CombineByKeyHelper<K, V, C>
     {
-        private Func<C> createCombiner;
-        private Func<C, V, C> mergeValue;
-        private Func<C, C, C> mergeCombiners;
-        private int numPartitions = 0;
+        private readonly Func<C> createCombiner;
+        private readonly Func<C, V, C> mergeValue;
+        private readonly Func<C, C, C> mergeCombiners;
+        private readonly int numPartitions = 0;
         internal CombineByKeyHelper(Func<C> createCombiner, Func<C, V, C> mergeValue, Func<C, C, C> mergeCombiners, int numPartitions = 0)
         {
             this.createCombiner = createCombiner;
@@ -367,7 +366,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class PartitionByHelper<K, V>
     {
-        private int numPartitions = 0;
+        private readonly int numPartitions = 0;
         internal PartitionByHelper(int numPartitions = 0)
         {
             this.numPartitions = numPartitions;
@@ -382,7 +381,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class MapValuesHelper<K, V, U>
     {
-        private Func<V, U> func;
+        private readonly Func<V, U> func;
         internal MapValuesHelper(Func<V, U> f)
         {
             func = f;
@@ -397,7 +396,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class FlatMapValuesHelper<K, V, U>
     {
-        private Func<V, IEnumerable<U>> func;
+        private readonly Func<V, IEnumerable<U>> func;
         internal FlatMapValuesHelper(Func<V, IEnumerable<U>> f)
         {
             func = f;
@@ -412,7 +411,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class GroupByKeyHelper<K, V>
     {
-        private int numPartitions = 0;
+        private readonly int numPartitions = 0;
         internal GroupByKeyHelper(int numPartitions = 0)
         {
             this.numPartitions = numPartitions;
@@ -427,7 +426,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class GroupWithHelper<K, V, W>
     {
-        private int numPartitions;
+        private readonly int numPartitions;
         internal GroupWithHelper(int numPartitions)
         {
             this.numPartitions = numPartitions;
@@ -442,7 +441,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class JoinHelper<K, V, W>
     {
-        private int numPartitions;
+        private readonly int numPartitions;
         internal JoinHelper(int numPartitions)
         {
             this.numPartitions = numPartitions;
@@ -457,7 +456,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class LeftOuterJoinHelper<K, V, W>
     {
-        private int numPartitions;
+        private readonly int numPartitions;
         internal LeftOuterJoinHelper(int numPartitions)
         {
             this.numPartitions = numPartitions;
@@ -472,7 +471,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class RightOuterJoinHelper<K, V, W>
     {
-        private int numPartitions;
+        private readonly int numPartitions;
         internal RightOuterJoinHelper(int numPartitions)
         {
             this.numPartitions = numPartitions;
@@ -487,7 +486,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class FullOuterJoinHelper<K, V, W>
     {
-        private int numPartitions;
+        private readonly int numPartitions;
         internal FullOuterJoinHelper(int numPartitions)
         {
             this.numPartitions = numPartitions;
@@ -502,10 +501,10 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class ReduceByKeyAndWindowHelper<K, V>
     {
-        private Func<V, V, V> reduceFunc;
-        private Func<V, V, V> invReduceFunc;
-        private int numPartitions;
-        private Func<KeyValuePair<K, V>, bool> filterFunc;
+        private readonly Func<V, V, V> reduceFunc;
+        private readonly Func<V, V, V> invReduceFunc;
+        private readonly int numPartitions;
+        private readonly Func<KeyValuePair<K, V>, bool> filterFunc;
 
         internal ReduceByKeyAndWindowHelper(Func<V, V, V> reduceF, Func<V, V, V> invReduceF, int numPartitions, Func<KeyValuePair<K, V>, bool> filterF)
         {
@@ -544,8 +543,8 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class UpdateStateByKeyHelper<K, V, S>
     {
-        private Func<IEnumerable<V>, S, S> func;
-        private int numPartitions;
+        private readonly Func<IEnumerable<V>, S, S> func;
+        private readonly int numPartitions;
         internal UpdateStateByKeyHelper(Func<IEnumerable<V>, S, S> f, int numPartitions)
         {
             func = f;
