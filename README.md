@@ -173,4 +173,7 @@ SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full
 
 ## Contribution
 
+[![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/pr)](http://issuestats.com/github/Microsoft/SparkCLR)
+[![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/issue)](http://issuestats.com/github/Microsoft/SparkCLR)
+
 We welcome contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md). 
