@@ -465,7 +465,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFLimitSample()
         {
-            var num = 2;
+            const int num = 2;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var peopleDataFrame2 = peopleDataFrame.Limit(num);
 
@@ -478,7 +478,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFHeadSample()
         {
-            var num = 3;
+            const int num = 3;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var rows = peopleDataFrame.Head(num);
 
@@ -488,7 +488,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFTakeSample()
         {
-            var num = 2;
+            const int num = 2;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var rows = peopleDataFrame.Take(num);
 

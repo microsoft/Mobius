@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
@@ -385,7 +386,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
             string[] columnNames = null;
             if (subset == null || subset.Length == 0)
-                columnNames = dataFrameProxy.GetSchema().GetStructTypeFields().Select(f => f.GetStructFieldName().ToString()).ToArray();
+                columnNames = dataFrameProxy.GetSchema().GetStructTypeFields().Select(f => f.GetStructFieldName().ToString(CultureInfo.InvariantCulture)).ToArray();
 
             if (thresh == null)
                 thresh = how == "any" ? (subset == null ? columnNames.Length : subset.Length) : 1;

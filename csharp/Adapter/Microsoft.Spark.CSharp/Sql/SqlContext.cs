@@ -104,7 +104,7 @@ namespace Microsoft.Spark.CSharp.Sql
         #region UDF Registration
         /// <summary>
         /// Register UDF with no input argument, e.g:
-        ///     sqlContext.RegisterFunction<bool>("MyFilter", () => true);
+        ///     sqlContext.RegisterFunction&lt;bool&gt;("MyFilter", () => true);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -118,7 +118,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 1 input argument, e.g:
-        ///     sqlContext.RegisterFunction<bool, string>("MyFilter", (arg1) => arg1 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string&gt;("MyFilter", (arg1) => arg1 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -133,7 +133,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 2 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string>("MyFilter", (arg1, arg2) => arg1 != null && arg2 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string&gt;("MyFilter", (arg1, arg2) => arg1 != null && arg2 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -149,7 +149,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 3 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, string>("MyFilter", (arg1, arg2, arg3) => arg1 != null && arg2 != null && arg3 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, string&gt;("MyFilter", (arg1, arg2, arg3) => arg1 != null && arg2 != null && arg3 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -166,7 +166,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 4 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg4) => arg1 != null && arg2 != null && ... && arg3 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg4) => arg1 != null && arg2 != null && ... && arg3 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -184,7 +184,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 5 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg5) => arg1 != null && arg2 != null && ... && arg5 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg5) => arg1 != null && arg2 != null && ... && arg5 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -203,7 +203,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 6 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg6) => arg1 != null && arg2 != null && ... && arg6 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg6) => arg1 != null && arg2 != null && ... && arg6 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -223,7 +223,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 7 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg7) => arg1 != null && arg2 != null && ... && arg7 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg7) => arg1 != null && arg2 != null && ... && arg7 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -244,7 +244,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 8 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg8) => arg1 != null && arg2 != null && ... && arg8 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg8) => arg1 != null && arg2 != null && ... && arg8 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -266,7 +266,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 9 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg9) => arg1 != null && arg2 != null && ... && arg9 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg9) => arg1 != null && arg2 != null && ... && arg9 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>
@@ -289,7 +289,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Register UDF with 10 input arguments, e.g:
-        ///     sqlContext.RegisterFunction<bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg10) => arg1 != null && arg2 != null && ... && arg10 != null);
+        ///     sqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg10) => arg1 != null && arg2 != null && ... && arg10 != null);
         ///     sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");
         /// </summary>
         /// <typeparam name="RT"></typeparam>

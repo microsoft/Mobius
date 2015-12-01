@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -29,31 +30,31 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DoubleRDDMeanSample()
         {
-            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).Mean().ToString());
+            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).Mean().ToString(CultureInfo.InvariantCulture));
         }
 
         [Sample]
         internal static void DoubleRDVarianceSample()
         {
-            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).Variance().ToString());
+            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).Variance().ToString(CultureInfo.InvariantCulture));
         }
 
         [Sample]
         internal static void DoubleRDDStdevSample()
         {
-            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).Stdev().ToString());
+            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).Stdev().ToString(CultureInfo.InvariantCulture));
         }
 
         [Sample]
         internal static void DoubleRDDSampleStdevSample()
         {
-            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).SampleStdev().ToString());
+            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).SampleStdev().ToString(CultureInfo.InvariantCulture));
         }
 
         [Sample]
         internal static void DoubleRDDSampleVarianceSample()
         {
-            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).SampleVariance().ToString());
+            Console.WriteLine(SparkCLRSamples.SparkContext.Parallelize(new double[] { 1, 2, 3 }, 2).SampleVariance().ToString(CultureInfo.InvariantCulture));
         }
     }
 }

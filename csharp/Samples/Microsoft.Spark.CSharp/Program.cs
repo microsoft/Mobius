@@ -141,7 +141,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
                     if (!Configuration.IsDryrun)
                     {
-                        Console.WriteLine("----- Running sample {0} -----", sampleName);;
+                        Console.WriteLine("----- Running sample {0} -----", sampleName);
                         sample.Invoke(null, new object[] {});
                         duration = sw.Elapsed - clockStart;
                         Console.WriteLine("----- Finished running sample {0}, duration={1} -----", sampleName, duration);
@@ -343,7 +343,7 @@ namespace Microsoft.Spark.CSharp.Samples
         public const string CATEGORY_ALL = "all";   // run all sample tests
         public const string CATEGORY_DEFAULT = "default"; // run default tests
 
-        private string category;
+        private readonly string category;
 
         public SampleAttribute(string category)
         {
