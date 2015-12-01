@@ -17,6 +17,8 @@ import scala.collection.mutable.ArrayBuffer
  */
 class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with Timeouts {
 
+  import SparkCLRSubmitArguments._
+
   private val noOpOutputStream = new OutputStream {
     def write(b: Int) = {}
   }
@@ -102,6 +104,7 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
     val executableName = "Test.exe"
     val executableFile = new File(driverDir, executableName)
+    val args = Array("arg1", "arg2")
     FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
 
     val clArgs = Array(
@@ -109,7 +112,7 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
       "--exe", executableName,
       driverDir,
       "arg1", "arg2"
-    )
+    ) ++ args
 
     val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
 
@@ -123,12 +126,13 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
   test("handle the case that env variable `SPARKCSV_JARS` is set") {
     val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
     val executableName = "Test2.exe"
+    val appName = "myApp"
     val executableFile = new File(driverDir, executableName)
 
     FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
 
     val clArgs = Array(
-      "--name", "myApp",
+      "--name", appName,
       "--exe", executableName,
       driverDir,
       "arg1", "arg2"
@@ -169,4 +173,139 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     FileUtils.deleteQuietly(executableFile)
   }
 
+  test("handle the case that spark APP is submitted in standalone client mode") {
+    val appName = "myApp"
+    val master = "spark://host:port"
+    val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
+    val executableName = "Test.exe"
+    val executableFile = new File(driverDir, executableName)
+    val args = Array("arg1", "arg2")
+    FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
+
+    val clArgs = Array(
+      "--name", "myApp",
+      "--master", master,
+      "--exe", executableName,
+      driverDir
+    ) ++ args
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
+
+    print(options)
+
+    options should fullyMatch regex
+      s" --name $appName" +
+        s" --master $master" +
+        s" --files .*zip" +
+        s" --class $csharpRunnerClass" +
+        s" .*" +
+        s" .* .*$executableName" +
+        " " + args.mkString(" ")
+  }
+
+  test("handle the case that spark APP is submitted in standalone client mode with --jars and --files options") {
+    val appName = "myApp"
+    val master = "spark://host:port"
+    val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
+    val executableName = "Test.exe"
+    val executableFile = new File(driverDir, executableName)
+    val files = "file1"
+    val jars = "1.jar,2.jar"
+    val args = Array("arg1", "arg2")
+    FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
+
+    val clArgs = Array(
+      "--name", appName,
+      "--master", master,
+      "--exe", executableName,
+      "--jars", jars,
+      "--files", files,
+      driverDir
+    ) ++ args
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
+
+    print(options)
+
+    options should fullyMatch regex
+      s" --name $appName" +
+      s" --master $master" +
+      s" --jars $jars" +
+      s" --files .*$files,.*zip" +
+      s" --class $csharpRunnerClass" +
+      s" .*" +
+      s" .* .*$executableName" +
+      " " + args.mkString(" ")
+  }
+
+  test("handle the case that spark APP is submitted in standalone cluster mode") {
+    val remoteDriverPath = "hdfs://host:port/path/to/driver.zip"
+    val executableName = "Samples.exe"
+    val appName = "myApp"
+    val deployMode = "cluster"
+    val master = "spark://host:port"
+    val remoteSparkClrJarPath = "hdfs://path/to/sparkclr.jar"
+    val args = Array("arg1", "arg2")
+
+    val clArgs = Array(
+      "--name", appName,
+      "--deploy-mode", deployMode,
+      "--master", master,
+      "--exe", executableName,
+      remoteSparkClrJarPath,
+      remoteDriverPath
+    ) ++ args
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
+
+    options should fullyMatch regex
+        s" --name $appName" +
+        s" --deploy-mode $deployMode" +
+        s" --master $master" +
+        s" --jars $remoteSparkClrJarPath" +
+        s" --files $remoteDriverPath" +
+        s" --class $csharpRunnerClass $remoteSparkClrJarPath" +
+        s" $remoteDriverPath" +
+        s" $executableName" +
+        " " +
+        args.mkString(" ")
+  }
+
+  test("handle the case that spark APP is submitted in standalone cluster mode with " +
+    "--files and --jars option") {
+    val remoteDriverPath = "hdfs://host:port/path/to/driver.zip"
+    val executableName = "Samples.exe"
+    val appName = "myApp"
+    val deployMode = "cluster"
+    val master = "spark://host:port"
+    val files = "hdfs://path/to/file1,hdfs://path/to/file2"
+    val jars = "hdfs://path/to/1.jar,hdfs://path/to/2.jar"
+    val remoteSparkClrJarPath = "hdfs://path/to/sparkclr.jar"
+    val args = Array("arg1", "arg2")
+
+    val clArgs = Array(
+      "--name", appName,
+      "--deploy-mode", deployMode,
+      "--master", master,
+      "--files", files,
+      "--jars", jars,
+      "--exe", executableName,
+      remoteSparkClrJarPath,
+      remoteDriverPath
+    ) ++ args
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
+
+    options should fullyMatch regex
+      s" --name $appName" +
+      s" --deploy-mode $deployMode" +
+      s" --master $master" +
+      s" --jars $jars,$remoteSparkClrJarPath" +
+      s" --files $files,$remoteDriverPath" +
+      s" --class $csharpRunnerClass $remoteSparkClrJarPath" +
+      s" $remoteDriverPath" +
+      s" $executableName" +
+      " " +
+      args.mkString(" ")
+  }
 }
