@@ -185,7 +185,7 @@ namespace Microsoft.Spark.CSharp
                         //    process()
 
                         DateTime finish_time = DateTime.UtcNow;
-                        string format = "MM/dd/yyyy hh:mm:ss.fff tt";
+                        const string format = "MM/dd/yyyy hh:mm:ss.fff tt";
                         logger.LogInfo(string.Format("bootTime: {0}, initTime: {1}, finish_time: {2}",
                             bootTime.ToString(format), initTime.ToString(format), finish_time.ToString(format)));
                         SerDe.Write(s, (int)SpecialLengths.TIMING_DATA);
