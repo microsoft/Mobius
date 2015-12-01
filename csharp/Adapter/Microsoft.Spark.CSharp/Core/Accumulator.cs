@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Reflection;
@@ -17,6 +18,7 @@ using System.Reflection;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Services;
 
+[assembly: InternalsVisibleTo("CSharpWorker")]
 namespace Microsoft.Spark.CSharp.Core
 {
     /// <summary>
@@ -35,7 +37,7 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     public class Accumulator
     {
-        public static Dictionary<int, Accumulator> accumulatorRegistry = new Dictionary<int, Accumulator>();
+        internal static Dictionary<int, Accumulator> accumulatorRegistry = new Dictionary<int, Accumulator>();
 
         protected int accumulatorId;
         [NonSerialized]
@@ -45,11 +47,12 @@ namespace Microsoft.Spark.CSharp.Core
     public class Accumulator<T> : Accumulator
     {
         [NonSerialized]
-        private T value;
+        internal T value;
         private readonly AccumulatorParam<T> accumulatorParam = new AccumulatorParam<T>();
 
         internal Accumulator(int accumulatorId, T value)
         {
+            this.accumulatorId = accumulatorId;
             this.value = value;
             deserialized = false;
             accumulatorRegistry[accumulatorId] = this;
@@ -64,7 +67,7 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     throw new ArgumentException("Accumulator.value cannot be accessed inside tasks");
                 }
-                return value;
+                return (Accumulator.accumulatorRegistry[accumulatorId] as Accumulator<T>).value;
             }
             // Sets the accumulator's value; only usable in driver program
             set
@@ -146,7 +149,7 @@ namespace Microsoft.Spark.CSharp.Core
     /// </summary>
     internal class AccumulatorServer : System.Net.Sockets.TcpListener
     {
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(AccumulatorServer));
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(AccumulatorServer));
         private bool serverShutdown;
 
         internal AccumulatorServer()

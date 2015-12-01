@@ -782,9 +782,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="valueClass">fully qualified classname of value Writable class (e.g. "org.apache.hadoop.io.Text", None by default)</param>
         /// <param name="conf">(None by default)</param>
         /// <param name="compressionCodecClass">(None by default)</param>
-        public static void saveAsHadoopFile<K, V>(this RDD<KeyValuePair<K, V>> self, string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
+        public static void SaveAsHadoopFile<K, V>(this RDD<KeyValuePair<K, V>> self, string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
         {
-            self.RddProxy.saveAsHadoopFile(path, outputFormatClass, keyClass, valueClass, conf, compressionCodecClass);
+            self.RddProxy.SaveAsHadoopFile(path, outputFormatClass, keyClass, valueClass, conf, compressionCodecClass);
         }
 
         /// <summary>
@@ -864,7 +864,7 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     var ms = new MemoryStream();
                     formatter.Serialize(ms, kvp.Key);
-                    yield return md5.ComputeHash(ms).Take(8).ToArray();
+                    yield return md5.ComputeHash(ms.ToArray()).Take(8).ToArray();
                     ms = new MemoryStream();
                     formatter.Serialize(ms, kvp);
                     yield return ms.ToArray();

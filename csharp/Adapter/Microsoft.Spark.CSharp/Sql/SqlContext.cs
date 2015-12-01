@@ -18,8 +18,8 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class SqlContext
     {
-        private ISqlContextProxy sqlContextProxy;
-        private SparkContext sparkContext;
+        private readonly ISqlContextProxy sqlContextProxy;
+        private readonly SparkContext sparkContext;
         internal ISqlContextProxy SqlContextProxy { get { return sqlContextProxy; } }
         public SqlContext(SparkContext sparkContext)
         {

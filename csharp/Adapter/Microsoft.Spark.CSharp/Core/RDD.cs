@@ -314,7 +314,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public T[] TakeSample(bool withReplacement, int num, int seed)
         {
-            var numStDev = 10.0;
+            const double numStDev = 10.0;
 
             if (num < 0)
                 throw new ArgumentException("Sample size cannot be negative.");
@@ -390,7 +390,7 @@ namespace Microsoft.Spark.CSharp.Core
             }
             else
             {
-                var delta = 0.00005;
+                const double delta = 0.00005;
                 var gamma = - Math.Log(delta) / total;
                 return Math.Min(1, fraction + gamma + Math.Sqrt(gamma * gamma + 2 * gamma * fraction));
             }
@@ -1173,7 +1173,7 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     public class DynamicTypingWrapper<I, O>
     {
-        private Func<int, IEnumerable<I>, IEnumerable<O>> func;
+        private readonly Func<int, IEnumerable<I>, IEnumerable<O>> func;
         internal DynamicTypingWrapper(Func<int, IEnumerable<I>, IEnumerable<O>> f)
         {
             func = f;
@@ -1300,7 +1300,7 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class ForeachHelper<T>
     {
-        private Action<T> func;
+        private readonly Action<T> func;
         internal ForeachHelper(Action<T> f)
         {
             func = f;
@@ -1318,7 +1318,7 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class ForeachPartitionHelper<T>
     {
-        private Action<IEnumerable<T>> func;
+        private readonly Action<IEnumerable<T>> func;
         internal ForeachPartitionHelper(Action<IEnumerable<T>> f)
         {
             func = f;

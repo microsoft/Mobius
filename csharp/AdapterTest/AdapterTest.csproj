@@ -82,6 +82,9 @@
     <Compile Include="SparkContextTest.cs" />
     <Compile Include="SqlContextTest.cs" />
     <Compile Include="StreamingContextTest.cs" />
+    <Compile Include="PairRDDTest.cs" />
+    <Compile Include="ComparableRDDTest.cs" />
+    <Compile Include="DoubleRDDTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">

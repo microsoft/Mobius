@@ -41,6 +41,8 @@ namespace Microsoft.Spark.CSharp
                     System.Threading.Thread.Sleep(200);
                 }
 
+                System.Threading.Thread.Sleep(3000);
+
                 foreach (var file in Directory.GetFiles(testDir, "*"))
                     File.Delete(file);
             });
@@ -83,14 +85,8 @@ namespace Microsoft.Spark.CSharp
             ssc.Start();
 
             StartFileServer(directory, "words.txt", 100);
-            while (!stopFileServer)
-            {
-                System.Threading.Thread.Sleep(1000);
-            }
 
-            // wait ForeachRDD to complete to let ssc.Stop() gracefully
-            System.Threading.Thread.Sleep(2000);
-
+            ssc.AwaitTermination();
             ssc.Stop();
         }
     }

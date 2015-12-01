@@ -18,13 +18,19 @@ using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    /// <summary>
+    /// calling Spark jvm side API in JavaStreamingContext.scala, StreamingContext.scala or external KafkaUtils.scala
+    /// </summary>
     internal class StreamingContextIpcProxy : IStreamingContextProxy
     {
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
         internal readonly JvmObjectReference jvmStreamingContextReference;
         private readonly JvmObjectReference jvmJavaStreamingReference;
         private readonly ISparkContextProxy sparkContextProxy;
         private readonly SparkContext sparkContext;
+
+        // flag to denote whether the callback socket is shutdown explicitly
+        private volatile bool callbackSocketShutdown = false;
 
         public StreamingContextIpcProxy(SparkContext sparkContext, long durationMs)
         {
@@ -47,8 +53,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void Stop()
         {
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "closeCallback");
+            // stop streamingContext first, then close the callback socket
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "stop", new object[] { false });
+            callbackSocketShutdown = true;
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "closeCallback");
         }
 
         public void Remember(long durationMs)
@@ -65,14 +73,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDStreamProxy TextFileStream(string directory)
         {
-            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "textFileStream", new object[] { directory }).ToString());
+            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "textFileStream", new object[] { directory }).ToString());
             return new DStreamIpcProxy(jstream);
         }
 
         public IDStreamProxy SocketTextStream(string hostname, int port, StorageLevelType storageLevelType)
         {
             JvmObjectReference jlevel = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
-            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "socketTextStream", hostname, port, jlevel).ToString());
+            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "socketTextStream", hostname, port, jlevel).ToString());
             return new DStreamIpcProxy(jstream);
         }
 
@@ -85,6 +93,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jlevel }).ToString());
             return new DStreamIpcProxy(jstream);
         }
+        
         public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
         {
             JvmObjectReference jtopics = SparkContextIpcProxy.GetJavaSet<string>(topics);
@@ -101,8 +110,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             JvmObjectReference jfromOffsets = SparkContextIpcProxy.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
             JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsPythonHelper", new object[] { });
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createDirectStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jfromOffsets }).ToString());
-            var dstream = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jstream, "dstream"));
-            return new DStreamIpcProxy(dstream);
+            return new DStreamIpcProxy(jstream);
         }
         
         public IDStreamProxy Union(IDStreamProxy firstDStream, IDStreamProxy[] otherDStreams)
@@ -112,8 +120,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "union", 
                         new object[] 
                         { 
-                            (firstDStream as DStreamIpcProxy).jvmDStreamReference,
-                            otherDStreams.Select(x => (x as DStreamIpcProxy).jvmDStreamReference).ToArray()
+                            (firstDStream as DStreamIpcProxy).javaDStreamReference,
+                            otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference).ToArray()
                         }
                     )));
         }
@@ -147,6 +155,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                                 string cmd = SerDe.ReadString(s);
                                 if (cmd == "close")
                                 {
+                                    logger.LogInfo("receive close cmd from Scala side");
                                     break;
                                 }
                                 else if (cmd == "callback")
@@ -190,7 +199,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                             }
                             catch (Exception e)
                             {
-                                logger.LogInfo(e.ToString());
+                                //log exception only when callback socket is not shutdown explicitly
+                                if (!callbackSocketShutdown)
+                                {
+                                    logger.LogInfo(e.ToString());
+                                }
                             }
                         }
                     }

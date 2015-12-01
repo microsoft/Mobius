@@ -55,8 +55,8 @@ namespace Microsoft.Spark.CSharp.Streaming
         [Serializable]
         private class NewFuncWrapper
         {
-            private Func<double, RDD<dynamic>, RDD<dynamic>> func;
-            private Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> func;
+            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
             internal NewFuncWrapper(Func<double, RDD<dynamic>, RDD<dynamic>> func, Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc)
             {
                 this.func = func;
@@ -79,7 +79,6 @@ namespace Microsoft.Spark.CSharp.Streaming
                     var stream = new MemoryStream();
                     formatter.Serialize(stream, func);
                     dstreamProxy = SparkCLREnvironment.SparkCLRProxy.CreateCSharpDStream(prevDStreamProxy, stream.ToArray(), prevSerializedMode.ToString());
-                    dstreamProxy = dstreamProxy.AsJavaDStream();
                 }
                 return dstreamProxy;
             }

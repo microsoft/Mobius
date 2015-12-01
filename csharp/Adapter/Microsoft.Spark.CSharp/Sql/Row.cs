@@ -16,9 +16,11 @@ namespace Microsoft.Spark.CSharp.Sql
     /// <summary>
     ///  Represents one row of output from a relational operator.
     /// </summary>
+    [Serializable]
     public abstract class Row
     {
-        private ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(Row));
+        [NonSerialized]
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(Row));
 
         /// <summary>
         /// Number of elements in the Row.
@@ -81,12 +83,13 @@ namespace Microsoft.Spark.CSharp.Sql
     /// <summary>
     /// Schema of Row
     /// </summary>
+    [Serializable]
     public class RowSchema
     {
         public string type;
         public List<ColumnSchema> columns;
 
-        private Dictionary<string, int> columnName2Index = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> columnName2Index = new Dictionary<string, int>();
 
         public RowSchema(string type)
         {
@@ -174,6 +177,7 @@ namespace Microsoft.Spark.CSharp.Sql
     /// <summary>
     /// Schema for column
     /// </summary>
+    [Serializable]
     public class ColumnSchema
     {
         public string name;
@@ -207,12 +211,13 @@ namespace Microsoft.Spark.CSharp.Sql
         }
     }
 
+    [Serializable]
     internal class RowImpl : Row
     {
-        private RowSchema schema;
-        private object[] values;
+        private readonly RowSchema schema;
+        private readonly object[] values;
 
-        private int columnCount;
+        private readonly int columnCount;
 
         internal RowImpl(object data, RowSchema schema)
         {

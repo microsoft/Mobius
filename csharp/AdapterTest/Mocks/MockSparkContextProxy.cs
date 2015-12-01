@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -15,6 +17,7 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdapterTest.Mocks
 {
@@ -24,13 +27,24 @@ namespace AdapterTest.Mocks
 
         internal object mockSparkContextReference;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Validate()
+        {
+            StackTrace stackTrace = new StackTrace();
+            StackFrame[] stackFrames = stackTrace.GetFrames();
+
+            Assert.AreEqual(stackFrames[1].GetMethod().Name, stackFrames[2].GetMethod().Name, "Wrong proxy called");
+        }
+
         public MockSparkContextProxy(ISparkConfProxy conf)
         {
             mockSparkContextReference = new object[] { conf };
         }
 
         public void AddFile(string filePath)
-        { }
+        {
+            Validate();
+        }
 
         public IRDDProxy TextFile(string filePath, int minPartitions)
         {
@@ -39,6 +53,7 @@ namespace AdapterTest.Mocks
 
         public void Stop()
         {
+            Validate();
             mockSparkContextReference = null;
         }
 
@@ -84,7 +99,7 @@ namespace AdapterTest.Mocks
 
         public void SetLogLevel(string logLevel)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public string Version
@@ -107,74 +122,85 @@ namespace AdapterTest.Mocks
             get { return 1; }
         }
 
-        public IRDDProxy EmptyRDD<T>()
+        public IRDDProxy EmptyRDD()
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy WholeTextFiles(string filePath, int minPartitions)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy BinaryFiles(string filePath, int minPartitions)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy SequenceFile(string filePath, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, int minSplits, int batchSize)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IRDDProxy CheckpointFile(string filePath)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
-        public IRDDProxy Union<T>(IEnumerable<RDD<T>> rdds)
+        public IRDDProxy Union(IEnumerable<IRDDProxy> rdds)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public void SetCheckpointDir(string directory)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public void SetJobGroup(string groupId, string description, bool interruptOnCancel)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public void SetLocalProperty(string key, string value)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public string GetLocalProperty(string key)
         {
-            throw new NotImplementedException();
+            Validate();
+            return null;
         }
 
         public string SparkUser
@@ -184,30 +210,15 @@ namespace AdapterTest.Mocks
 
         public void CancelJobGroup(string groupId)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public void CancelAllJobs()
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public IUDFProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public object GetJavaMap<K, V>(IEnumerable<KeyValuePair<K, V>> enumerable)
-        {
-            throw new NotImplementedException();
-        }
-
-        public object GetJavaSet<T>(IEnumerable<T> enumerable)
-        {
-            throw new NotImplementedException();
-        }
-
-        public object GetJavaList<T>(IEnumerable<T> enumerable)
         {
             throw new NotImplementedException();
         }
@@ -294,7 +305,8 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices)
         {
-            throw new NotImplementedException();
+            Validate();
+            return new MockRddProxy(null);
         }
 
         public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)

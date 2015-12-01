@@ -23,7 +23,6 @@ namespace Microsoft.Spark.CSharp.Proxy
         IRDDProxy Sample(bool withReplacement, double fraction, long seed);
         IRDDProxy[] RandomSplit(double[] weights, long seed);
         IRDDProxy Union(IRDDProxy other);
-        IRDDProxy Intersection(IRDDProxy other);
         IRDDProxy Cartesian(IRDDProxy other);
         IRDDProxy Pipe(string command);
         IRDDProxy Repartition(int numPartitions);
@@ -33,13 +32,11 @@ namespace Microsoft.Spark.CSharp.Proxy
         IRDDProxy RandomSampleWithRange(double lb, double ub, long seed);
         IRDDProxy SampleByKey(bool withReplacement, Dictionary<string, double> fractions, long seed);
         IRDDProxy Zip(IRDDProxy other);
-        IRDDProxy ZipWithIndex();
-        IRDDProxy ZipWithUniqueId();
         string ToDebugString();
         void SaveAsNewAPIHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf);
         void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf);
         void SaveAsHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf);
-        void saveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass);
+        void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass);
         void SaveAsSequenceFile(string path, string compressionCodecClass);
         void SaveAsTextFile(string path, string compressionCodecClass);
         long Count();

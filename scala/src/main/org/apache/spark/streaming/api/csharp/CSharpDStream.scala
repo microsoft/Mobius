@@ -53,7 +53,6 @@ object CSharpDStream {
   def callCSharpTransform(rdds: List[Option[RDD[_]]], time: Time, rfunc: Array[Byte],
                      deserializers: List[String]): Option[RDD[Array[Byte]]] = synchronized {
     try {
-      val bos = new ByteArrayOutputStream()
       val dos = new DataOutputStream(CSharpBackend.callbackSocket.getOutputStream())
       val dis = new DataInputStream(CSharpBackend.callbackSocket.getInputStream())
 
@@ -68,8 +67,13 @@ object CSharpDStream {
       Option(readObject(dis).asInstanceOf[JavaRDD[Array[Byte]]]).map(_.rdd)
     } catch {
       case e: Exception =>
-        //        System.err.println("CSharp transform callback failed with " + e)
-        //        e.printStackTrace()
+        // log exception only when callback socket is not shutdown explicitly
+        if (!CSharpBackend.callbackSocketShutdown) {
+          // TODO: change println to log
+          System.err.println("CSharp transform callback failed with " + e)
+          e.printStackTrace()
+        }
+
         None
     }
   }

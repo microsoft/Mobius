@@ -3,14 +3,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdapterTest.Mocks
 {
@@ -20,6 +24,15 @@ namespace AdapterTest.Mocks
         internal bool pickle;
 
         internal object[] mockRddReference;
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Validate()
+        {
+            StackTrace stackTrace = new StackTrace();
+            StackFrame[] stackFrames = stackTrace.GetFrames();
+            
+            Assert.AreEqual(stackFrames[1].GetMethod().Name, stackFrames[2].GetMethod().Name, "Wrong proxy called");
+        }
 
         public MockRddProxy(object[] parameterCollection)
         {
@@ -32,44 +45,10 @@ namespace AdapterTest.Mocks
             this.pickle = pickle;
         }
 
-        public IRDDProxy Distinct<T>()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy Distinct<T>(int numPartitions)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy Repartition<T>(int numPartitions)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy Coalesce<T>(int numPartitions, bool shuffle)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy Sample<T>(bool withReplacement, double fraction, long seed)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy[] RandomSplit<T>(double[] weights, long seed)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy RandomSampleWithRange<T>(double lb, double ub, long seed)
-        {
-            throw new NotImplementedException();
-        }
-
         public long Count()
         {
-            return default(long);
+            Validate();
+            return result.Count();
         }
 
         public IRDDProxy Union(IRDDProxy javaRddReferenceOther)
@@ -90,19 +69,19 @@ namespace AdapterTest.Mocks
             return 1;
         }
 
-
-        public IRDDProxy Cache()
+        public void Cache()
         {
-            return this;
+            Validate();
         }
 
-        public IRDDProxy Unpersist()
+        public void Unpersist()
         {
-            return this;
+            Validate();
         }
 
         public void Checkpoint()
         {
+            Validate();
             isCheckpointed = true; ;
         }
 
@@ -114,160 +93,127 @@ namespace AdapterTest.Mocks
 
         public string GetCheckpointFile()
         {
-            throw new NotImplementedException();
+            Validate();
+            return null;
         }
 
         public int GetNumPartitions()
         {
+            Validate();
             return 1;
-        }
-
-        public IRDDProxy Distinct()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy Distinct(int numPartitions)
-        {
-            throw new NotImplementedException();
         }
 
         public IRDDProxy Sample(bool withReplacement, double fraction, long seed)
         {
-            throw new NotImplementedException();
+            Validate();
+            return this;
         }
 
         public IRDDProxy[] RandomSplit(double[] weights, long seed)
         {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy Intersection(IRDDProxy[] other)
-        {
-            throw new NotImplementedException();
+            Validate();
+            return new IRDDProxy[] { this };
         }
 
         public IRDDProxy Cartesian(IRDDProxy other)
         {
-            throw new NotImplementedException();
+            Validate();
+            return this;
         }
 
         public IRDDProxy Pipe(string command)
         {
-            throw new NotImplementedException();
+            Validate();
+            return this;
         }
 
         public IRDDProxy Repartition(int numPartitions)
         {
+            Validate();
             return this;
-        }
-
-        public IRDDProxy Coalesce(int numPartitions)
-        {
-            throw new NotImplementedException();
         }
 
         public IRDDProxy RandomSampleWithRange(double lb, double ub, long seed)
         {
-            throw new NotImplementedException();
+            Validate();
+            return this;
         }
 
         public string Name
         {
-            get { throw new NotImplementedException(); }
+            get { Validate(); return null; }
         }
 
         public void SetName(string name)
         {
-            throw new NotImplementedException();
-        }
-
-
-        void IRDDProxy.Cache()
-        {
-            throw new NotImplementedException();
-        }
-
-        void IRDDProxy.Unpersist()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy Intersection(IRDDProxy other)
-        {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public IRDDProxy Coalesce(int numPartitions, bool shuffle)
         {
-            throw new NotImplementedException();
+            Validate();
+            return this;
         }
 
         public IRDDProxy SampleByKey(bool withReplacement, Dictionary<string, double> fractions, long seed)
         {
-            throw new NotImplementedException();
+            Validate();
+            return this;
         }
 
         public IRDDProxy Zip(IRDDProxy other)
         {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy ZipWithIndex()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRDDProxy ZipWithUniqueId()
-        {
-            throw new NotImplementedException();
+            Validate();
+            return this;
         }
 
         public string ToDebugString()
         {
-            throw new NotImplementedException();
+            Validate();
+            return null;
         }
 
         public void SaveAsNewAPIHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public void SaveAsHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public void SaveAsSequenceFile(string path, string compressionCodecClass)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
         public void SaveAsTextFile(string path, string compressionCodecClass)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
 
-        public void saveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
+        public void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
 
-        public void Persist(Microsoft.Spark.CSharp.Core.StorageLevelType storageLevelType)
+        public void Persist(StorageLevelType storageLevelType)
         {
-            throw new NotImplementedException();
+            Validate();
         }
 
-        public Microsoft.Spark.CSharp.Core.StorageLevel GetStorageLevel()
+        public StorageLevel GetStorageLevel()
         {
-            throw new NotImplementedException();
+            Validate();
+            return null;
         }
     }
 }

@@ -4,17 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
-using System.Net.Sockets;
-
-using Razorvine.Pickle;
-
 using Microsoft.Spark.CSharp.Core;
-using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -23,13 +16,36 @@ namespace Microsoft.Spark.CSharp.Sql
     /// 
     /// See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.DataFrame
     /// </summary>
+    [Serializable]
     public class DataFrame
     {
+        [NonSerialized]
         private readonly IDataFrameProxy dataFrameProxy;
+        [NonSerialized]
         private readonly SparkContext sparkContext;
+        [NonSerialized]
         private StructType schema;
         private RowSchema rowSchema;
-        
+        [NonSerialized]
+        private RDD<Row> rdd;
+
+        public RDD<Row> Rdd
+        {
+            get
+            {
+                if (rdd == null)
+                {
+                    if (rowSchema == null)
+                    {
+                        rowSchema = RowSchema.ParseRowSchemaFromJson(Schema.ToJson());
+                    }
+                    IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
+                    rdd = new RDD<Object[]>(rddProxy, sparkContext, SerializedMode.Row).Map(item => (Row)new RowImpl(item, rowSchema));
+                }
+                return rdd;
+            }
+        }
+   
         internal SparkContext SparkContext
         {
             get
@@ -302,6 +318,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// Intersect with another DataFrame.
         /// This is equivalent to `INTERSECT` in SQL.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, intersect(self, other)
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to intersect with.</param>
         /// <returns>Intersected DataFrame.</returns>
@@ -314,6 +331,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// Union with another DataFrame WITHOUT removing duplicated rows.
         /// This is equivalent to `UNION ALL` in SQL.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, unionAll(self, other)
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to union all with.</param>
         /// <returns>Unioned DataFrame.</returns>
@@ -326,6 +344,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// Returns a new DataFrame containing rows in this frame but not in another frame.
         /// This is equivalent to `EXCEPT` in SQL.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, subtract(self, other)
         /// </summary>
         /// <param name="otherDataFrame">DataFrame to subtract from this frame.</param>
         /// <returns>A new DataFrame containing rows in this frame but not in another frame.</returns>
@@ -337,6 +356,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Returns a new DataFrame with a column dropped.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, drop(self, col)
         /// </summary>
         /// <param name="columnName"> a string name of the column to drop</param>
         /// <returns>A new new DataFrame that drops the specified column.</returns>
@@ -348,6 +368,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Returns a new DataFrame omitting rows with null values.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, dropna(self, how='any', thresh=None, subset=None)
         /// </summary>
         /// <param name="how">'any' or 'all'. 
         /// If 'any', drop a row if it contains any nulls.
@@ -359,23 +380,36 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns>A new DataFrame omitting rows with null values</returns>
         public DataFrame DropNa(string how = "any", int? thresh = null, string[] subset = null)
         {
+            if (how != "any" && how != "all")
+                throw new ArgumentException(string.Format(@"how ({0}) should be 'any' or 'all'.", how));
+
+            string[] columnNames = null;
+            if (subset == null || subset.Length == 0)
+                columnNames = dataFrameProxy.GetSchema().GetStructTypeFields().Select(f => f.GetStructFieldName().ToString()).ToArray();
+
+            if (thresh == null)
+                thresh = how == "any" ? (subset == null ? columnNames.Length : subset.Length) : 1;
+
             return
-                new DataFrame(dataFrameProxy.DropNa(how, thresh, subset), sparkContext);
+                new DataFrame(dataFrameProxy.DropNa(thresh, subset ?? columnNames), sparkContext);
         }
 
         /// <summary>
         /// Returns a new DataFrame with duplicate rows removed, considering only the subset of columns.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, dropDuplicates(self, subset=None)
         /// </summary>
         /// <param name="subset">drop duplicated rows on these columns.</param>
         /// <returns>A new DataFrame with duplicate rows removed.</returns>
         public DataFrame DropDuplicates(string[] subset = null)
         {
-            return 
+            return (subset == null || subset.Length == 0) ?
+                new DataFrame(dataFrameProxy.DropDuplicates(), sparkContext) :
                 new DataFrame(dataFrameProxy.DropDuplicates(subset), sparkContext);
         }
 
         /// <summary>
         /// Returns a new DataFrame replacing a value with another value.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, replace(self, to_replace, value, subset=None)
         /// </summary>
         /// <typeparam name="T">Data type of value to replace.</typeparam>
         /// <param name="toReplace">Value to be replaced. The value to be replaced must be an int, long, float, or string and must be the same type as <paramref name="value"/>.</param>
@@ -384,11 +418,13 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns>A new DataFrame replacing a value with another value</returns>
         public DataFrame Replace<T>(T toReplace, T value, string[] subset = null)
         {
-            return new DataFrame(dataFrameProxy.Replace(toReplace, value, subset), sparkContext);
+            var toReplaceAndValueDict = new Dictionary<T, T> { { toReplace, value } };
+            return ReplaceCore(toReplaceAndValueDict, subset);
         }
 
         /// <summary>
         /// Returns a new DataFrame replacing values with other values.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, replace(self, to_replace, value, subset=None)
         /// </summary>
         /// <typeparam name="T">Data type of values to replace.</typeparam>
         /// <param name="toReplace">List of values to be replaced. The value to be replaced must be an int, long, float, or string and must be the same type as <paramref name="value"/>. 
@@ -399,11 +435,19 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns>A new DataFrame replacing values with other values</returns>
         public DataFrame ReplaceAll<T>(IEnumerable<T> toReplace, IEnumerable<T> value, string[] subset = null)
         {
-            return new DataFrame(dataFrameProxy.ReplaceAll(toReplace, value, subset), sparkContext);
+            var toReplaceArray = toReplace.ToArray();
+            var valueArray = value.ToArray();
+            if (toReplaceArray.Length != valueArray.Length)
+                throw new ArgumentException("toReplace and value lists should be of the same length");
+
+            var toReplaceAndValueDict = toReplaceArray.Zip(valueArray, (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+
+            return ReplaceCore(toReplaceAndValueDict, subset);
         }
 
         /// <summary>
         /// Returns a new DataFrame replacing values with another value.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, replace(self, to_replace, value, subset=None)
         /// </summary>
         /// <typeparam name="T">Data type of values to replace.</typeparam>
         /// <param name="toReplace">List of values to be replaced. The value to be replaced must be an int, long, float, or string and must be the same type as <paramref name="value"/>.</param>
@@ -412,7 +456,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns>A new DataFrame replacing values with another value</returns>
         public DataFrame ReplaceAll<T>(IEnumerable<T> toReplace, T value, string[] subset = null)
         {
-            return new DataFrame(dataFrameProxy.ReplaceAll(toReplace, value, subset), sparkContext);
+            var toReplaceArray = toReplace.ToArray();
+            var toReplaceAndValueDict = toReplaceArray.Zip(Enumerable.Repeat(value, toReplaceArray.Length).ToList(), (k, v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
+
+            return ReplaceCore(toReplaceAndValueDict, subset);
         }
 
         /// <summary>
@@ -457,6 +504,24 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrame Distinct()
         {
             return new DataFrame(dataFrameProxy.Distinct(), sparkContext);
+        }
+
+        private DataFrame ReplaceCore<T>(Dictionary<T, T> toReplaceAndValue, string[] subset)
+        {
+            var validTypes = new[] { typeof(int), typeof(short), typeof(long), typeof(double), typeof(float), typeof(string) };
+            if (!validTypes.Any(t => t == typeof(T)))
+                throw new ArgumentException("toReplace and value should be a float, double, short, int, long or string");
+
+            object subsetObj;
+            if (subset == null || subset.Length == 0)
+            {
+                subsetObj = "*";
+            }
+            else
+            {
+                subsetObj = subset;
+            }
+            return new DataFrame(dataFrameProxy.Replace(subsetObj, toReplaceAndValue), sparkContext);
         }
     }
 
@@ -517,8 +582,8 @@ namespace Microsoft.Spark.CSharp.Sql
 
     public class GroupedData
     {
-        private IGroupedDataProxy groupedDataProxy;
-        private DataFrame dataFrame;
+        private readonly IGroupedDataProxy groupedDataProxy;
+        private readonly DataFrame dataFrame;
 
         internal GroupedData(IGroupedDataProxy groupedDataProxy, DataFrame dataFrame)
         {

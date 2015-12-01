@@ -231,7 +231,9 @@ namespace Microsoft.Spark.CSharp
                         Environment.Exit(-1);
                     }
                     s.Flush();
-                    System.Threading.Thread.Sleep(1000); //TODO - not sure if this is really needed
+                    // wait for server to complete, otherwise server gets 'connection reset' exception
+                    // TODO: need to detect java side has closed socket properly
+                    System.Threading.Thread.Sleep(1000);
                 }
                 catch (Exception e)
                 {

@@ -135,7 +135,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> EmptyRDD<T>()
         {
-            return new RDD<T>(SparkContextProxy.EmptyRDD<T>(), this, SerializedMode.None);
+            return new RDD<T>(SparkContextProxy.EmptyRDD(), this, SerializedMode.None);
         }
 
         /// <summary>
@@ -343,7 +343,11 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Union<T>(IEnumerable<RDD<T>> rdds)
         {
-            return new RDD<T>(SparkContextProxy.Union(rdds), this, rdds.FirstOrDefault().serializedMode);
+            if (rdds == null || rdds.Count() == 0)
+                return EmptyRDD<T>();
+            if (rdds.Count() == 1)
+                return rdds.First();
+            return new RDD<T>(SparkContextProxy.Union(rdds.Select(rdd => rdd.RddProxy)), this, rdds.First().serializedMode);
         }
 
         /// <summary>
