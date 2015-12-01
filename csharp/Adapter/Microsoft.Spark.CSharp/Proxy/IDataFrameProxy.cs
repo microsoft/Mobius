@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy
 {
@@ -34,6 +35,9 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy DropDuplicates();
         IDataFrameProxy DropDuplicates(string[] subset);
         IDataFrameProxy Replace<T>(object subset, Dictionary<T, T> toReplaceAndValueDict);
+        IEnumerable<IDataFrameProxy> RandomSplit(IEnumerable<double> weights, long? seed);
+        IDataFrameProxy Sort(IColumnProxy[] columns);
+        IDataFrameProxy Alias(string alias);
         IDataFrameProxy Limit(int num);
         IDataFrameProxy Distinct();
     }
