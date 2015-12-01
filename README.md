@@ -57,7 +57,7 @@ Refer to the [docs folder](docs).
 
 ## Building SparkCLR
 
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/Microsoft/SparkCLR?svg=true&branch=master)](https://ci.appveyor.com/project/skaarthik/SparkCLR/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master)
 
 ### Prerequisites
 
@@ -116,6 +116,25 @@ Runsamples.cmd
 ```
 
 [Runsamples.cmd](./Runsamples.cmd) downloads Apache Spark 1.4.1, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](./build.cmd), and invokes [sparkclr-submit.cmd](./scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
+
+A few more [Runsamples.cmd](./Runsamples.cmd) examples:
+- To display all options supported by [Runsamples.cmd](./Runsamples.cmd): 
+
+    ```  
+    Runsamples.cmd  --help
+    ```
+
+- To run PiSample only:
+
+    ```  
+    Runsamples.cmd  --torun pi*
+    ```
+
+- To run PiSample in verbose mode, with all logs displayed at console:
+
+    ```  
+    Runsamples.cmd  --torun pi* --verbose
+    ```
 
 ### Running in Standalone mode
 
