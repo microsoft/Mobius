@@ -40,3 +40,4 @@ run/
 tools/
 *.log
 lib/
+target/
