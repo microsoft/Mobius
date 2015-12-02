@@ -29,6 +29,11 @@ namespace Microsoft.Spark.CSharp.Sql
         [NonSerialized]
         private RDD<Row> rdd;
 
+        [NonSerialized]
+        private bool? isLocal;
+        [NonSerialized]
+        private Random random = new Random();
+
         public RDD<Row> Rdd
         {
             get
@@ -45,7 +50,19 @@ namespace Microsoft.Spark.CSharp.Sql
                 return rdd;
             }
         }
-   
+
+        public bool IsLocal
+        {
+            get
+            {
+                if (!isLocal.HasValue)
+                {
+                    isLocal = dataFrameProxy.IsLocal();
+                }
+                return isLocal.Value;
+            }
+        }
+
         internal SparkContext SparkContext
         {
             get
@@ -522,6 +539,98 @@ namespace Microsoft.Spark.CSharp.Sql
                 subsetObj = subset;
             }
             return new DataFrame(dataFrameProxy.Replace(subsetObj, toReplaceAndValue), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame that has exactly `numPartitions` partitions.
+        /// Similar to coalesce defined on an RDD, this operation results in a narrow dependency, 
+        /// e.g. if you go from 1000 partitions to 100 partitions, there will not be a shuffle, instead each of
+        /// the 100 new partitions will claim 10 of the current partitions.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py coalesce(self, numPartitions)
+        public DataFrame Coalesce(int numPartitions)
+        {
+            return new DataFrame(dataFrameProxy.Coalesce(numPartitions), sparkContext);
+        }
+
+        /// <summary>
+        /// Persist this DataFrame with the default storage level (`MEMORY_AND_DISK`)
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py persist(self, storageLevel)
+        public DataFrame Persist()
+        {
+            dataFrameProxy.Persist(StorageLevelType.MEMORY_AND_DISK);
+            return this;
+        }
+
+        /// <summary>
+        /// Mark the DataFrame as non-persistent, and remove all blocks for it from memory and disk.
+        /// </summary>
+        /// <param name="blocking">Whether to block until all blocks are deleted.</param>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py unpersist(self, blocking=True)
+        public DataFrame Unpersist(bool blocking = true)
+        {
+            dataFrameProxy.Unpersist(blocking);
+            return this;
+        }
+
+        /// <summary>
+        /// Persist this DataFrame with the default storage level (`MEMORY_AND_DISK`)
+        /// </summary>
+        // https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py cache(self)
+        public DataFrame Cache()
+        {
+            return Persist();
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame that has exactly `numPartitions` partitions.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py repartition(self, numPartitions)
+        public DataFrame Repartition(int numPartitions)
+        {
+            return new DataFrame(dataFrameProxy.Repartition(numPartitions), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame by sampling a fraction of rows.
+        /// </summary>
+        /// <param name="withReplacement"> Sample with replacement or not. </param>
+        /// <param name="fraction"> Fraction of rows to generate. </param>
+        /// <param name="seed"> Seed for sampling. If it is not present, a randome long value will be assigned. </param>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // sample(self, withReplacement, fraction, seed=None)
+        public DataFrame Sample(bool withReplacement, double fraction, long? seed)
+        {
+            long v;
+            if (seed.HasValue)
+            {
+                v = seed.Value;
+            }
+            else
+            {
+                v = ((long)random.Next()) << 32 + random.Next();
+            }
+            return new DataFrame(dataFrameProxy.Sample(withReplacement, fraction, v), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new RDD by first applying a function to all rows of this DataFrame, and then flattening the results.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py flatMap(self, f)
+        public RDD<U> FlatMap<U>(Func<Row, IEnumerable<U>> f, bool preservesPartitioning = false)
+        {
+            return Rdd.FlatMap(f, preservesPartitioning);
+        }
+
+        /// <summary>
+        /// Returns a new RDD by applying a function to each partition of this DataFrame.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // mapPartitions(self, f, preservesPartitioning=False):
+        public RDD<U> MapPartitions<U>(Func<IEnumerable<Row>, IEnumerable<U>> f, bool preservesPartitioning = false)
+        {
+            return Rdd.MapPartitions(f, preservesPartitioning);
         }
     }
 

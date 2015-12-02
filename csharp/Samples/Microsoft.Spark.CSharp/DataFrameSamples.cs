@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -776,6 +777,157 @@ namespace Microsoft.Spark.CSharp.Samples
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Sample to check IsLocal from DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFIsLocalSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            bool isLocal = peopleDataFrame.IsLocal;
+
+            Console.WriteLine("IsLocal: {0}", isLocal);
+        }
+
+        /// <summary>
+        /// Sample to check IsLocal from DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFCoalesceSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(4);
+            var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            Console.WriteLine("Before coalesce, numPartitions: {0}", numPartitions);
+
+            var expectedNumPartitions = numPartitions / 2;
+            var newDataFrame = peopleDataFrame.Coalesce((int)expectedNumPartitions);
+            Console.WriteLine("Force coalesce, dataframe count: {0}", newDataFrame.Count());
+
+            var newNumPartitions = newDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            Console.WriteLine("After coalesce, numPartitions: {0}", newNumPartitions);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(numPartitions == newNumPartitions * 2);
+            }
+        }
+
+        /// <summary>
+        /// Sample to persist DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFPersistSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.Persist().Show();
+        }
+
+        /// <summary>
+        /// Sample to unpersist DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFUnpersistSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.Persist().Unpersist().Show();
+        }
+
+        /// <summary>
+        /// Sample to cache DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFCacheSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.Cache().Show();
+        }
+
+        /// <summary>
+        /// Sample to repartition DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFRepartitionSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            Console.WriteLine("Before repartition, numPartitions: {0}", numPartitions);
+
+            var expectedNumPartitions = numPartitions + 1;
+            var newDataFrame = peopleDataFrame.Repartition((int)expectedNumPartitions);
+            Console.WriteLine("Force repartition, dataframe count: {0}", newDataFrame.Count());
+
+            var newNumPartitions = newDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            Console.WriteLine("After repartition, numPartitions: {0}", newNumPartitions);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue((numPartitions + 1) == newNumPartitions);
+            }
+        }
+
+        /// <summary>
+        /// Sample to sample a DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFSampleSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            Console.WriteLine("With a seed:");
+            peopleDataFrame.Sample(false, 0.25, new Random().Next()).Show();
+
+            Console.WriteLine("Without a seed:");
+            peopleDataFrame.Sample(false, 0.25, null).Show();
+        }
+
+        /// <summary>
+        /// FlatMap sample
+        /// </summary>
+        [Sample]
+        internal static void DFFlatMapSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var dfCount = peopleDataFrame.Count();
+
+            RDD<string> rdd = peopleDataFrame.FlatMap(row => new String[] { (string)row.Get("name"), (string)row.Get("id") });
+            var rddCount = rdd.Count();
+
+            Console.WriteLine("DataFrame count: {0}, RDD count: {1}", dfCount, rddCount);
+
+            string[] rows = rdd.Collect();
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsNotNull(rows);
+                Assert.AreEqual(rows.Count(), 2 * dfCount);
+            }
+
+            for (var i = 0; i < rows.Length; i++)
+            {
+                Console.WriteLine("[{0}] {1}", i, rows[i].ToString());
+            }
+        }
+
+        /// <summary>
+        /// MapPartitions sample
+        /// </summary>
+        [Sample]
+        internal static void DFMapPartitionsSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var dfCount = peopleDataFrame.Count();
+
+            RDD<int> rdd = peopleDataFrame.MapPartitions(iter => new int[] { iter.Count() });
+            var rddSum = rdd.Collect().Sum();
+
+            Console.WriteLine("DataFrame count: {0}, RDD sum: {1}", dfCount, rddSum);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(dfCount, rddSum);
+            }
         }
     }
 }

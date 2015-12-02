@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using Microsoft.Spark.CSharp.Core;
 
 namespace Microsoft.Spark.CSharp.Proxy
 {
@@ -13,6 +14,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         string GetQueryExecution();
         string GetExecutedPlan();
         string GetShowString(int numberOfRows, bool truncate);
+        bool IsLocal();
         IStructTypeProxy GetSchema();
         IRDDProxy ToJSON();
         IRDDProxy ToRDD();
@@ -36,6 +38,11 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Replace<T>(object subset, Dictionary<T, T> toReplaceAndValueDict);
         IDataFrameProxy Limit(int num);
         IDataFrameProxy Distinct();
+        IDataFrameProxy Coalesce(int numPartitions);
+        void Persist(StorageLevelType storageLevelType);
+        void Unpersist(bool blocking = true);
+        IDataFrameProxy Repartition(int numPartitions);
+        IDataFrameProxy Sample(bool withReplacement, double fraction, long seed);
     }
 
     internal interface IUDFProxy
