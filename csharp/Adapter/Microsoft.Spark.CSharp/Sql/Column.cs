@@ -166,5 +166,14 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             return new Column(columnProxy.BinOp("endsWith", other.columnProxy));
         }
+
+        public Column Asc()
+        {
+            return new Column(columnProxy.UnaryOp("asc"));            
+        }
+        public Column Desc()
+        {
+            return new Column(columnProxy.UnaryOp("desc"));
+        }
     }
 }
