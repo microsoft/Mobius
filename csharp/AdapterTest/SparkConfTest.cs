@@ -10,19 +10,19 @@ using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
     /// <summary>
     /// Validates interaction between SparkConf and its proxy
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class SparkConfTest
     {
         //TODO - complete impl
 
-        [TestMethod]
+        [Test]
         public void TestSparkConfMethods()
         {
             var sparkConf = new SparkConf();

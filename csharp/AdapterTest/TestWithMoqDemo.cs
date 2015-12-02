@@ -12,16 +12,16 @@ using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Streaming;
 using StreamingContext = Microsoft.Spark.CSharp.Streaming.StreamingContext;
 using Moq;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [TestFixture]
     public class TestWithMoqDemo
     {
         private static IEnumerable<dynamic> result;
@@ -32,7 +32,7 @@ namespace AdapterTest
         private static Mock<IRDDProxy> _mockRddProxy;
 
 
-        [TestInitialize]
+        [SetUp]
         public void TestInitialize()
         {
             result = null;
@@ -121,14 +121,14 @@ namespace AdapterTest
 
         }
 
-        [TestCleanup]
+        [TearDown]
         public void TestCleanUp()
         {
             // Revert to use Static mock class to prevent blocking other test methods which uses static mock class
             SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();            
         }
 
-        [TestMethod]
+        [Test]
         public void TestDStreamTransform_Moq()
         {
             // Arrange

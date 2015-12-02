@@ -10,7 +10,7 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Moq;
 
 namespace AdapterTest
@@ -18,26 +18,26 @@ namespace AdapterTest
     /// <summary>
     /// Validates interaction between DataFrame and its proxies
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class DataFrameTest
     {
         //TODO - complete impl
 
         private static Mock<IDataFrameProxy> mockDataFrameProxy;
 
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext testContext)
+        [OneTimeSetUp]
+        public static void ClassInitialize()
         {
             mockDataFrameProxy = new Mock<IDataFrameProxy>();
         }
 
-        [TestInitialize]
+        [Test]
         public void TestInitialize()
         {
             mockDataFrameProxy.Reset();
         }
 
-        [TestMethod]
+        [Test]
         public void TestDataFrameJoin()
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
@@ -50,7 +50,7 @@ namespace AdapterTest
             Assert.AreEqual("JoinCol", paramValuesToJoinMethod[1]);
         }
 
-        [TestMethod]
+        [Test]
         public void TestDataFrameCollect()
         {
             string jsonSchema = @"
@@ -139,7 +139,7 @@ namespace AdapterTest
             Assert.IsTrue(state.Equals("Ohio"));
         }
 
-        [TestMethod]
+        [Test]
         public void TestIntersect()
         {
             // Arrange
@@ -157,7 +157,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualDataFrame.DataFrameProxy );
         }
 
-        [TestMethod]
+        [Test]
         public void TestUnionAll()
         {
             // Arrange
@@ -175,7 +175,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestSubtract()
         {
             // Arrange
@@ -193,7 +193,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestDrop()
         {
             // Arrange
@@ -211,7 +211,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestDropNa()
         {
             // Arrange
@@ -235,7 +235,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestDropDuplicates()
         {
             #region subset is null
@@ -268,7 +268,7 @@ namespace AdapterTest
             #endregion
         }
 
-        [TestMethod]
+        [Test]
         public void TestReplace()
         {
             // Arrange
@@ -289,7 +289,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestReplaceAll_OneToOne()
         {
             // Arrange
@@ -310,7 +310,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestReplaceAll_ManyToOne()
         {
             // Arrange
@@ -333,7 +333,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRandomSplit()
         {
             // Arrange
@@ -352,7 +352,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.First().DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestColumns()
         {
             // Arrange
@@ -373,7 +373,7 @@ namespace AdapterTest
             CollectionAssert.AreEqual(new[] { columnName }, actualColumns.ToArray());
         }
 
-        [TestMethod]
+        [Test]
         public void TestDTypes()
         {
             // Arrange
@@ -401,7 +401,7 @@ namespace AdapterTest
             Assert.AreEqual(columnType, actualColumnNameAndDataType[0].Item2);
         }
 
-        [TestMethod]
+        [Test]
         public void TestSort_ColumnNames()
         {
             // Arrange
@@ -424,7 +424,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrameProxy.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestAlias()
         {
             // Arrange
@@ -442,7 +442,7 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRdd()
         {
             const string jsonSchema = @"
@@ -502,7 +502,7 @@ namespace AdapterTest
             mockStructTypeProxy.Verify(m => m.ToJson(), Times.Never);
         }
 
-        [TestMethod]
+        [Test]
         public void TestIsLocal()
         {
             const bool isLocal = true;
@@ -529,7 +529,7 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.IsLocal(), Times.Never());
         }
 
-        [TestMethod]
+        [Test]
         public void TestCoalesce()
         {
             // arrange
@@ -544,7 +544,7 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Coalesce(numPartitions), Times.Once());
         }
 
-        [TestMethod]
+        [Test]
         public void TestPersist()
         {
             // arrange
@@ -558,7 +558,7 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Persist(StorageLevelType.MEMORY_AND_DISK), Times.Once());
         }
 
-        [TestMethod]
+        [Test]
         public void TestUnpersist()
         {
             // arrange
@@ -574,7 +574,7 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Unpersist(false), Times.Once());
         }
 
-        [TestMethod]
+        [Test]
         public void TestCache()
         {
             // arrange
@@ -589,7 +589,7 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Persist(StorageLevelType.MEMORY_AND_DISK), Times.Once());
         }
 
-        [TestMethod]
+        [Test]
         public void TestRepartition()
         {
             mockDataFrameProxy.Setup(m => m.Repartition(It.IsAny<int>()));
@@ -604,7 +604,7 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Repartition(numPartitions), Times.Once());
         }
 
-        [TestMethod]
+        [Test]
         public void TestSample()
         {
             // arrange
@@ -628,7 +628,7 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Sample(withReplacement, fraction, seed), Times.Once());
         }
 
-        [TestMethod]
+        [Test]
         public void TestFlatMap()
         {
             // mock rddProxy
@@ -656,7 +656,7 @@ namespace AdapterTest
             Assert.AreEqual(count, rdd.Count());
         }
 
-        [TestMethod]
+        [Test]
         public void TestMapPartitions()
         {
             // mock rddProxy

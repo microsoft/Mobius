@@ -12,15 +12,15 @@ using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [SetUpFixture]
     public class SparkCLRTestEnvironment 
     {
-        [AssemblyInitialize()]
-        public static void Initialize(TestContext context)
+        [OneTimeSetUp]
+        public static void Initialize()
         {
             SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();
             SparkCLREnvironment.ConfigurationService = new MockConfigurationService();
