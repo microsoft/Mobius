@@ -20,7 +20,9 @@ Consider these options:
 Contributing Code Changes
 -------------------------
 
-Before opening a *pull request*, review the [Contributing Code Changes](docs/project-docs/CONTRIBUTING.md). 
+If you are looking for something to work on, the list of [up-for-grabs issues](https://github.com/Microsoft/SparkCLR/labels/up%20for%20grabs) is a good starting point.
+
+Before opening a *pull request*, review [Contributing Code Changes](docs/project-docs/CONTRIBUTING.md). 
 It lists steps that are required before creating a PR. In particular, consider:
 
 - Is the change important and ready enough to ask the community to spend time reviewing?
