@@ -554,7 +554,7 @@ namespace Microsoft.Spark.CSharp.Core
         internal IEnumerable<dynamic> Collect(int port)
         {
             IFormatter formatter = new BinaryFormatter();
-            Socket sock = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             sock.Connect("127.0.0.1", port);
 
             using (NetworkStream s = new NetworkStream(sock))
