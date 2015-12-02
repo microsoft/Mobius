@@ -1,14 +1,6 @@
 @echo OFF
 
-set precheck="bad"
-
-set version="unknown"
-
-if "%VisualStudioVersion%" == "" ( goto vstudiowarning)
-
-@REM VS 2013 == Version 12; VS 2015 == Version 14
-set version=%VisualStudioVersion:~0,2%
-if %version% LSS 12 ( goto vstudiowarning)
+set precheck="ok"
 
 if not exist "%JAVA_HOME%\bin\java.exe" (
     @echo. 
@@ -20,10 +12,17 @@ if not exist "%JAVA_HOME%\bin\java.exe" (
     @echo. 
     @echo ============================================================================================
     @echo. 
+    set precheck="bad"
     goto :eof
 )
 
-set precheck="ok"
+set version="unknown"
+if "%VisualStudioVersion%" == "" ( goto vstudiowarning)
+
+@REM VS 2013 == Version 12; VS 2015 == Version 14
+set version=%VisualStudioVersion:~0,2%
+if %version% LSS 12 ( goto vstudiowarning)
+
 goto :eof
 
 :vstudiowarning
@@ -36,5 +35,3 @@ goto :eof
 @echo. 
 @echo ============================================================================================
 @echo. 
-goto :eof
-
