@@ -619,6 +619,7 @@ namespace AdapterTest
             dataFrame.Sample(withReplacement, fraction, null);
             mockDataFrameProxy.Verify(m => m.Sample(withReplacement, fraction, It.IsAny<long>()), Times.Once());
 
+            mockDataFrameProxy.Reset();
             // specify a seed
             long seed = new Random().Next();
             dataFrame.Sample(withReplacement, fraction, seed);
