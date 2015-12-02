@@ -464,6 +464,108 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
+        /// Randomly splits this DataFrame with the provided weights.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, randomSplit(self, weights, seed=None)
+        /// </summary>
+        /// <param name="weights">list of weights with which to split the DataFrame. Weights will be normalized if they don't sum up to 1.0</param>
+        /// <param name="seed">The seed for sampling</param>
+        /// <returns></returns>
+        public IEnumerable<DataFrame> RandomSplit(IEnumerable<double> weights, int? seed = null)
+        {
+            foreach (var weight in weights)
+            {
+                if (weight < 0.0)
+                {
+                    throw new ArgumentException(string.Format("Weights must be positive. Found weight value: {0}", weight));
+                }
+            }
+
+            if (seed == null) 
+                seed = new Random().Next();
+
+            return dataFrameProxy.RandomSplit(weights, seed.Value).Select(dfProxy => new DataFrame(dfProxy, sparkContext));
+        }
+
+        /// <summary>
+        /// Returns all column names as a list.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, columns(self)
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> Columns()
+        {
+            return dataFrameProxy.GetSchema().GetStructTypeFields().Select(f => f.GetStructFieldName());
+        }
+
+        /// <summary>
+        /// Returns all column names and their data types.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, dtypes(self)
+        /// </summary>
+        /// <returns>Column names and their data types.</returns>
+        public IEnumerable<Tuple<string, string>> DTypes()
+        {
+            return dataFrameProxy.GetSchema().GetStructTypeFields().Select(f => new Tuple<string, string>(f.GetStructFieldName(), f.GetStructFieldDataType().GetDataTypeSimpleString()));
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame sorted by the specified column(s).
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, sort(self, *cols, **kwargs)
+        /// </summary>
+        /// <param name="columns">List of column names to sort by</param>
+        /// <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending</param>
+        /// <returns>A new DataFrame sorted by the specified column(s)</returns>
+        public DataFrame Sort(string[] columns, bool[] ascending)
+        {
+            if (columns == null || columns.Length == 0)
+            {
+                throw new ArgumentException("should sort by at least one column.");
+            }
+            if (columns.Length != ascending.Length)
+            {
+                throw new ArgumentException("ascending should have the same length with columns");
+            }
+            return Sort(columns.Select(c => this[c]).ToArray(), ascending);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame sorted by the specified column(s).
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, sort(self, *cols, **kwargs)
+        /// </summary>
+        /// <param name="columns">List of Columns to sort by</param>
+        /// <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending.
+        /// if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
+        /// <returns>A new DataFrame sorted by the specified column(s)</returns>
+        public DataFrame Sort(Column[] columns, bool[] ascending = null)
+        {
+            if (columns == null || columns.Length == 0)
+            {
+                throw new ArgumentException("should sort by at least one column.");
+            }
+            if (ascending != null)
+            {
+                if(columns.Length != ascending.Length)
+                    throw new ArgumentException("ascending should have the same length with columns");
+
+                var columnsWithOrder = new Column[columns.Length];
+                for (var i = 0; i < columns.Length; i++)
+                {
+                    columnsWithOrder[i] = ascending[i] ? columns[i].Asc() : columns[i].Desc();
+                }
+                return new DataFrame(dataFrameProxy.Sort(columnsWithOrder.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+            }
+            return new DataFrame(dataFrameProxy.Sort(columns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame with an alias set.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, alias(self, alias) </summary>
+        /// <param name="alias">The alias of the DataFrame</param>
+        /// <returns>A new DataFrame with an alias set</returns>
+        public DataFrame Alias(string alias)
+        {
+            return new DataFrame(dataFrameProxy.Alias(alias), sparkContext);
+        }
+
+        /// <summary>
         /// Returns a new DataFrame by taking the first `n` rows.
         /// The difference between this function and `head` is that `head` returns an array while `limit` returns a new DataFrame.
         /// </summary>
