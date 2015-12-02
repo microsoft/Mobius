@@ -69,6 +69,11 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+        bool IDataFrameProxy.IsLocal()
+        {
+            throw new NotImplementedException();
+        }
+
         public IStructTypeProxy GetSchema()
         {
             return mockSchema;
@@ -195,7 +200,7 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public IDataFrameProxy Sample(bool withReplacement, double fraction, long? seed)
+        public IDataFrameProxy Sample(bool withReplacement, double fraction, long seed)
         {
             throw new NotImplementedException();
         }

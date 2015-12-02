@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Sql;
 
@@ -74,6 +75,13 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                     jvmDataFrameReference, "showString",
                     new object[] { numberOfRows /*,  truncate*/ }).ToString(); //1.4.1 does not support second param
+        }
+
+        public bool IsLocal()
+        {
+            return
+                bool.Parse(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                    jvmDataFrameReference, "isLocal").ToString());
         }
 
         public IStructTypeProxy GetSchema()
@@ -394,6 +402,45 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         jvmDataFrameReference, "distinct").ToString()), sqlContextProxy);
         }
 
+        public IDataFrameProxy Coalesce(int numPartitions)
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "coalesce",
+                        new object[] { numPartitions }).ToString()), sqlContextProxy);
+        }
+
+        public void Persist(StorageLevelType storageLevelType)
+        {
+            var jstorageLevel = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                jvmDataFrameReference, "persist", new object[] { jstorageLevel });
+        }
+
+        public void Unpersist(bool blocking)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                jvmDataFrameReference, "unpersist", new object[] { blocking });
+        }
+
+        public IDataFrameProxy Repartition(int numPartitions)
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "repartition",
+                        new object[] { numPartitions }).ToString()), sqlContextProxy);
+        }
+
+        public IDataFrameProxy Sample(bool withReplacement, double fraction, long seed)
+        {
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "sample",
+                        new object[] { withReplacement, fraction, seed }).ToString()), sqlContextProxy);
+        }
     }
 
     internal class UDFIpcProxy : IUDFProxy
