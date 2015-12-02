@@ -343,7 +343,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Union<T>(IEnumerable<RDD<T>> rdds)
         {
-            if (rdds == null || rdds.Count() == 0)
+            if (rdds == null || !rdds.Any())
                 return EmptyRDD<T>();
             if (rdds.Count() == 1)
                 return rdds.First();

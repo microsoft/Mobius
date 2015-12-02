@@ -57,13 +57,13 @@ Refer to the [docs folder](docs).
 
 ## Building SparkCLR
 
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/Microsoft/SparkCLR?svg=true&branch=master)](https://ci.appveyor.com/project/skaarthik/SparkCLR/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master)
 
 ### Prerequisites
 
 * Windows Server 2012 or above; or, 64-bit Windows 7 or above.
-* Developer Command Prompt for [Visual Studio](https://www.visualstudio.com/) 2013 or above, which comes with .NET Framework 4.5 or above. Note: [Visual Studio 2015 Community. Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) is **FREE**.
-* 64-bit JDK 7u85 or above; or, 64-bit JDK 8u60 or above. OpenJDK for Windows can be downloaded from [http://www.azul.com/downloads/zulu/zulu-windows/](http://www.azul.com/downloads/zulu/zulu-windows/); Oracle JDK8 for Windows is available at Orcale website.
+* Developer Command Prompt for [Visual Studio](https://www.visualstudio.com/) 2013 or above, which comes with .NET Framework 4.5 or above. Note: [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) is **FREE**.
+* 64-bit JDK 7u85 or above; or, 64-bit JDK 8u60 or above. OpenJDK for Windows can be downloaded from [http://www.azul.com/downloads/zulu/zulu-windows/](http://www.azul.com/downloads/zulu/zulu-windows/); Oracle JDK8 for Windows is available at Oracle website.
 
 JDK should be downloaded manually, and the following environment variables should be set properly in the Developer Command Prompt for Visual Studio:
 
@@ -117,6 +117,25 @@ Runsamples.cmd
 
 [Runsamples.cmd](./Runsamples.cmd) downloads Apache Spark 1.4.1, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](./build.cmd), and invokes [sparkclr-submit.cmd](./scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
 
+A few more [Runsamples.cmd](./Runsamples.cmd) examples:
+- To display all options supported by [Runsamples.cmd](./Runsamples.cmd): 
+
+    ```  
+    Runsamples.cmd  --help
+    ```
+
+- To run PiSample only:
+
+    ```  
+    Runsamples.cmd  --torun pi*
+    ```
+
+- To run PiSample in verbose mode, with all logs displayed at console:
+
+    ```  
+    Runsamples.cmd  --torun pi* --verbose
+    ```
+
 ### Running in Standalone mode
 
 ```
@@ -153,5 +172,8 @@ For example, to debug SparkCLR samples:
 SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
 
 ## Contribution
+
+[![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/pr)](http://issuestats.com/github/Microsoft/SparkCLR)
+[![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/issue)](http://issuestats.com/github/Microsoft/SparkCLR)
 
 We welcome contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md). 

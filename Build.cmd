@@ -76,8 +76,12 @@ if %ERRORLEVEL% NEQ 0 (
 )
 @echo SparkCLR C# binaries
 copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\bin\"
+
 @echo SparkCLR C# Samples binaries
+rem need to include CSharpWorker.exe.config in samples folder
+copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
+
 @echo SparkCLR Samples data
 copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
 popd

@@ -17,6 +17,7 @@ import scala.collection.mutable.{ArrayBuffer, HashMap}
 
 object SparkCLRSubmitArguments {
 
+  val csharpRunnerClass: String = "org.apache.spark.deploy.csharp.CSharpRunner"
   var exitFn: Int => Unit = (exitCode: Int) => System.exit(exitCode)
   var printStream: PrintStream = System.err
 
@@ -34,6 +35,8 @@ object SparkCLRSubmitArguments {
  */
 class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitFn: Int => Unit, printStream: PrintStream) extends SparkSubmitArgumentsParser {
 
+  import SparkCLRSubmitArguments._
+
   val MAIN_EXECUTABLE: String = "--exe"
 
   var mainExecutable: String = null
@@ -44,7 +47,7 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
   var files: String = null
 
-  var jars: String = env.getOrElse("SPARKCSV_JARS", "").replace(";",",")
+  var jars: String = env.getOrElse("SPARKCSV_JARS", "").replace(";", ",")
 
   var primaryResource: String = null
 
@@ -56,11 +59,9 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
   val csharpRunnerJar = new File(CSharpRunner.getClass.getProtectionDomain.getCodeSource.getLocation.getPath).getPath
 
-  val runnerClass = "org.apache.spark.deploy.csharp.CSharpRunner"
-
   var cmd: String = ""
 
-  def this(args: Seq[String], env: Map[String, String]){
+  def this(args: Seq[String], env: Map[String, String]) {
     this(args, env, (exitCode: Int) => System.exit(exitCode), System.err)
   }
 
@@ -134,6 +135,7 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
       case FILES =>
         files = Utils.resolveURIs(value)
+        appendToCmd = false
 
       case JARS =>
         if (jars != "") {
@@ -141,6 +143,7 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
         } else {
           jars = value
         }
+        appendToCmd = false
 
       case HELP =>
         printUsageAndExit()
@@ -208,9 +211,9 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
    */
   private def concatLocalCmdOptions(): Unit = {
 
-    val pr = primaryResource
+    if (jars != null && !jars.trim.isEmpty) cmd += s" --jars $jars"
 
-    cmd += s" --class $runnerClass $csharpRunnerJar $pr"
+    cmd += s" --class $csharpRunnerClass $csharpRunnerJar $primaryResource"
 
     findMainExecutable()
 
@@ -233,19 +236,36 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
       case _ =>
     }
 
-    if (jars != null && !jars.trim.isEmpty) {
-      if (cmd == "") {
-        cmd += s"--jars $jars"
-      } else {
-        cmd += s" --jars $jars"
-      }
-    }
-
     master match {
 
       case m if m == null || m.startsWith("local") => concatLocalCmdOptions()
 
+      case m if m.toLowerCase.startsWith("spark://") && deployMode == "cluster" => {
+        // standalone cluster mode
+        jars = jars match {
+          case jars if jars == null || jars == "" => primaryResource
+          case _ => jars + ("," + primaryResource)
+        }
+
+        if (childArgs.length == 0) {
+          throw new SparkException("Remote driver is missing.")
+        }
+
+        val remoteDriverPath = childArgs(0)
+
+        files = files match {
+          case null => remoteDriverPath
+          case _ => files + ("," + remoteDriverPath)
+        }
+
+        cmd += (s" --jars $jars --files $files --class $csharpRunnerClass $primaryResource" +
+          s" $remoteDriverPath $mainExecutable")
+        if (childArgs.length > 1) cmd += (" " + childArgs.slice(1, childArgs.length).mkString(" "))
+      }
+
       case _ => {
+
+        if (jars != null && !jars.isEmpty)  cmd = cmd.trim + s" --jars $jars"
 
         findMainExecutable()
         val zippedPrimaryResource: File = zipPrimaryResource()
@@ -260,17 +280,17 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
         deployMode match {
 
           case "client" => {
-            cmd += (s" --class $runnerClass $csharpRunnerJar " + primaryResource)
+            cmd += (s" --class $csharpRunnerClass $csharpRunnerJar " + primaryResource)
           }
 
           case "cluster" => {
-            cmd += (s" --class $runnerClass $csharpRunnerJar " + zippedPrimaryResource.getName)
+            cmd += (s" --class $csharpRunnerClass $csharpRunnerJar " + zippedPrimaryResource.getName)
           }
 
           case _ =>
         }
 
-        if (mainExecutable != null) cmd += s" $mainExecutable "
+        if (mainExecutable != null) cmd += s" $mainExecutable"
 
         if (childArgs.nonEmpty) cmd += (" " + childArgs.mkString(" "))
 
@@ -351,12 +371,12 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
     concatCmdOptions()
 
-    cmd
+    " " + cmd.trim
   }
 
   /** Follow the convention in pom.xml that SparkCLR has the same version with Spark */
   private def printVersionAndExit(): Unit = {
-    printStream.println("""Welcome to version %s-SNAPSHOT""".format(SPARK_VERSION))
+    printStream.println( """Welcome to version %s-SNAPSHOT""".format(SPARK_VERSION))
     printStream.println("Type --help for more information.")
     exitFn(1)
   }

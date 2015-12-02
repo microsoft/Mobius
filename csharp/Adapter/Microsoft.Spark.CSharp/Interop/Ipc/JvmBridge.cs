@@ -18,7 +18,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     internal class JvmBridge : IJvmBridge
     {
         private int portNumber;
-        private ConcurrentQueue<Socket> sockets = new ConcurrentQueue<Socket>();
+        private readonly ConcurrentQueue<Socket> sockets = new ConcurrentQueue<Socket>();
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(JvmBridge));
 
         public void Initialize(int portNumber)

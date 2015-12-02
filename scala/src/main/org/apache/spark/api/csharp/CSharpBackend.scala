@@ -5,7 +5,7 @@ package org.apache.spark.api.csharp
 
 import java.io.{DataOutputStream, File, FileOutputStream, IOException}
 import java.net.{InetAddress, InetSocketAddress, ServerSocket, Socket}
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{LinkedBlockingQueue, BlockingQueue, TimeUnit}
 
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.nio.NioEventLoopGroup
@@ -30,8 +30,8 @@ class CSharpBackend {
   private[this] var bossGroup: EventLoopGroup = null
 
   def init(): Int = {
-
-    bossGroup = new NioEventLoopGroup(2)
+    // need at least 3 threads, use 10 here for safety
+    bossGroup = new NioEventLoopGroup(10)
     val workerGroup = bossGroup
     val handler = new CSharpBackendHandler(this) //TODO - work with SparkR devs to make this configurable and reuse RBackend
 
@@ -78,23 +78,29 @@ class CSharpBackend {
       bootstrap.childGroup().shutdownGracefully()
     }
     bootstrap = null
-	// Send close to CSharp callback server.
-    if (CSharpBackend.callbackSocket != null && 
-        !CSharpBackend.callbackSocket.isClosed()) {
-      try {
-        println("Requesting to close a call back server.")
-        val dos = new DataOutputStream(CSharpBackend.callbackSocket.getOutputStream())
+
+    // Send close to CSharp callback server.
+    println("Requesting to close all call back sockets.")
+    var socket: Socket = null
+    do {
+      socket = CSharpBackend.callbackSockets.poll()
+      if (socket != null) {
+        val dos = new DataOutputStream(socket.getOutputStream)
         SerDe.writeString(dos, "close")
-        CSharpBackend.callbackSocket.close()
-        CSharpBackend.callbackSocketShutdown = true
+        try {
+          socket.close()
+          socket = null
+        }
       }
-    }
+    } while (socket != null)
+    CSharpBackend.callbackSocketShutdown = true
   }
 }
 
 object CSharpBackend {
-  // Channel to callback server.
-  private[spark] var callbackSocket: Socket = null
+  // Channels to callback server.
+  private[spark] val callbackSockets: BlockingQueue[Socket] = new LinkedBlockingQueue[Socket]()
+  @volatile private[spark] var callbackPort: Int = 0
 
   // flag to denote whether the callback socket is shutdown explicitly
   @volatile private[spark] var callbackSocketShutdown: Boolean = false

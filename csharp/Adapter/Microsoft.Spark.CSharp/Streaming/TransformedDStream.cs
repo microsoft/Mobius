@@ -22,7 +22,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     /// Multiple continuous transformations of DStream can be combined into
     /// one transformation.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="U"></typeparam>
     [Serializable]
     internal class TransformedDStream<U> : DStream<U>
     {
@@ -55,8 +55,8 @@ namespace Microsoft.Spark.CSharp.Streaming
         [Serializable]
         private class NewFuncWrapper
         {
-            private Func<double, RDD<dynamic>, RDD<dynamic>> func;
-            private Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> func;
+            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
             internal NewFuncWrapper(Func<double, RDD<dynamic>, RDD<dynamic>> func, Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc)
             {
                 this.func = func;

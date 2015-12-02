@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
@@ -331,7 +332,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         }
 
         /// <summary>
-        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrameNaFunctions.scala, def replace[T](col: String, replacement: Map[T, T]): DataFrame
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrameNaFunctions.scala, replace[T](col: String, replacement: Map[T, T]): DataFrame
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="subset"></param>
@@ -344,6 +345,44 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         na.DataFrameNaReference, "replace",
                         new object[] { subset, toReplaceAndValueDict }).ToString()), sqlContextProxy);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, randomSplit(weights: Array[Double], seed: Long): Array[DataFrame]
+        /// </summary>
+        /// <param name="weights"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
+        public IEnumerable<IDataFrameProxy> RandomSplit(IEnumerable<double> weights, long? seed)
+        {
+            return ((List<JvmObjectReference>)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "randomSplit",
+                        new object[] { weights.ToArray(), seed })).Select(jRef => new DataFrameIpcProxy(jRef, sqlContextProxy));
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, sort(sortExprs: Column*): DataFrame
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        public IDataFrameProxy Sort(IColumnProxy[] columns)
+        {
+            var columnsSeq = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
+                        "toSeq", new object[] { columns.Select(c => (c as ColumnIpcProxy).ScalaColumnReference).ToArray() }));
+            
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "sort", columnsSeq).ToString()), sqlContextProxy);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, as(alias: String): DataFrame
+        /// </summary>
+        /// <param name="alias"></param>
+        /// <returns></returns>
+        public IDataFrameProxy Alias(string alias)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "as", alias).ToString()), sqlContextProxy);
         }
 
         public IDataFrameProxy Limit(int num)

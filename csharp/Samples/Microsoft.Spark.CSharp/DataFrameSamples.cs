@@ -426,6 +426,126 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Sample to perform randomSplit on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFRandomSplitSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var randomSplitted = peopleDataFrame.RandomSplit(new[] { 1.0, 2.0 }).ToArray();
+
+            randomSplitted[0].Show();
+            randomSplitted[1].Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(peopleDataFrame.Count(), randomSplitted[0].Count() + randomSplitted[1].Count());
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Columns on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFColumnsSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var columnNames = peopleDataFrame.Columns().ToArray();
+
+            Console.WriteLine("Columns:");
+            Console.WriteLine(string.Join(", ", columnNames));
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, columnNames.Length);
+                Assert.IsTrue(columnNames.Contains("id"));
+                Assert.IsTrue(columnNames.Contains("name"));
+                Assert.IsTrue(columnNames.Contains("age"));
+                Assert.IsTrue(columnNames.Contains("address"));
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform DTypes on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFDTypesSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var columnsNameAndType = peopleDataFrame.DTypes().ToArray();
+
+            Console.WriteLine("Columns name and type:");
+            Console.WriteLine(string.Join(", ", columnsNameAndType.Select(c => string.Format("{0}: {1}", c.Item1, c.Item2))));
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, columnsNameAndType.Length);
+                Assert.IsTrue(columnsNameAndType.Any(c => c.Item1 == "id" && c.Item2 == "string"));
+                Assert.IsTrue(columnsNameAndType.Any(c => c.Item1 == "name" && c.Item2 == "string"));
+                Assert.IsTrue(columnsNameAndType.Any(c => c.Item1 == "age" && c.Item2 == "bigint"));
+                Assert.IsTrue(columnsNameAndType.Any(c => c.Item1 == "address" && c.Item2 == "struct<city:string,state:string>"));
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Sort on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFSortSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var sorted = peopleDataFrame.Sort(new string[] { "name", "age" }, new bool[] { true, false });
+
+            sorted.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var sortedDF = sorted.Collect().ToArray();
+                Assert.AreEqual("789", sortedDF[0].GetAs<string>("id"));
+                Assert.AreEqual("123", sortedDF[1].GetAs<string>("id"));
+                Assert.AreEqual("531", sortedDF[2].GetAs<string>("id"));
+                Assert.AreEqual("456", sortedDF[3].GetAs<string>("id"));
+            }
+
+            var sorted2 = peopleDataFrame.Sort(new Column[] { peopleDataFrame["name"].Asc(), peopleDataFrame["age"].Desc() });
+
+            sorted2.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var sortedDF2 = sorted2.Collect().ToArray();
+                Assert.AreEqual("789", sortedDF2[0].GetAs<string>("id"));
+                Assert.AreEqual("123", sortedDF2[1].GetAs<string>("id"));
+                Assert.AreEqual("531", sortedDF2[2].GetAs<string>("id"));
+                Assert.AreEqual("456", sortedDF2[3].GetAs<string>("id"));
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Alias on DataFrame
+        /// </summary>
+        internal static void DFAliasSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var dfAs1 = peopleDataFrame.Alias("df_as1");
+            var dfAs2 = peopleDataFrame.Alias("df_as2");
+            var joined = dfAs1.Join(dfAs2, dfAs1["df_as1.name"] == dfAs2["df_as2.name"], JoinType.Inner);
+            var joined2 = joined.Select("df_as1.name", "df_as2.age");
+
+            joined2.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var sortedDF = joined2.Collect().ToArray();
+                Assert.AreEqual(6, sortedDF.Length);
+                Assert.IsTrue(sortedDF.Count(row => row.GetAs<string>("name") == "Bill" && row.GetAs<int>("age") == 34) == 2);
+                Assert.IsTrue(sortedDF.Count(row => row.GetAs<string>("name") == "Bill" && row.GetAs<int>("age") == 43) == 2);
+                Assert.IsTrue(sortedDF.Count(row => row.GetAs<string>("name") == "Steve" && row.GetAs<int>("age") == 14) == 1);
+                Assert.IsTrue(sortedDF.Count(row => row.GetAs<string>("name") == "Satya" && row.GetAs<int>("age") == 46) == 1);
+            }
+        }
+
+        /// <summary>
         /// Sample to perform aggregation on DataFrame using DSL
         /// </summary>
         [Sample]
@@ -466,7 +586,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFLimitSample()
         {
-            var num = 2;
+            const int num = 2;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var peopleDataFrame2 = peopleDataFrame.Limit(num);
 
@@ -479,7 +599,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFHeadSample()
         {
-            var num = 3;
+            const int num = 3;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var rows = peopleDataFrame.Head(num);
 
@@ -489,7 +609,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFTakeSample()
         {
-            var num = 2;
+            const int num = 2;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var rows = peopleDataFrame.Take(num);
 

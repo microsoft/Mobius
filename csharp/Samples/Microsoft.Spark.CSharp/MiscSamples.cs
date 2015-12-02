@@ -19,7 +19,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void PiSample()
         {
-            var slices = 2;
+            const int slices = 2;
             var n = (int) Math.Min(100000L*slices, int.MaxValue);
             var values = new List<int>(n);
             for (int i = 0; i <= n; i++)

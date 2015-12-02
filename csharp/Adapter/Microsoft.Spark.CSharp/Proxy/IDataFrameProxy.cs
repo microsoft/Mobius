@@ -36,6 +36,9 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy DropDuplicates();
         IDataFrameProxy DropDuplicates(string[] subset);
         IDataFrameProxy Replace<T>(object subset, Dictionary<T, T> toReplaceAndValueDict);
+        IEnumerable<IDataFrameProxy> RandomSplit(IEnumerable<double> weights, long? seed);
+        IDataFrameProxy Sort(IColumnProxy[] columns);
+        IDataFrameProxy Alias(string alias);
         IDataFrameProxy Limit(int num);
         IDataFrameProxy Distinct();
         IDataFrameProxy Coalesce(int numPartitions);

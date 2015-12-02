@@ -61,23 +61,29 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           assert(t == 'i')
           val port = readInt(dis)
           println("Connecting to a callback server at port " + port)
-          CSharpBackend.callbackSocket = new Socket("localhost", port)
+          CSharpBackend.callbackPort = port
           writeInt(dos, 0)
           writeType(dos, "void")
         case "closeCallback" =>
           // Send close to CSharp callback server.
-          if (CSharpBackend.callbackSocket != null &&
-              CSharpBackend.callbackSocket.isConnected()) {
-            try {
-              println("Requesting to close a call back server.")
-              val os = new DataOutputStream(CSharpBackend.callbackSocket.getOutputStream())
-              writeString(os, "close")
-              CSharpBackend.callbackSocket.close()
+          println("Requesting to close all call back sockets.")
+          var socket: Socket = null
+          do {
+            socket = CSharpBackend.callbackSockets.poll()
+            if (socket != null) {
+              val dataOutputStream = new DataOutputStream(socket.getOutputStream)
+              SerDe.writeString(dataOutputStream, "close")
+              try {
+                socket.close()
+                socket = null
+              }
             }
-            writeInt(dos, 0)
-            writeType(dos, "void")
-          }
+          } while (socket != null)
           CSharpBackend.callbackSocketShutdown = true
+
+          writeInt(dos, 0)
+          writeType(dos, "void")
+
         case _ => dos.writeInt(-1)
       }
     } else {

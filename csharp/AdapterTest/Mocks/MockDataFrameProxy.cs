@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-
+using Microsoft.Spark.CSharp.Sql;
 using Razorvine.Pickle;
 using Microsoft.Spark.CSharp.Proxy;
 
@@ -170,6 +170,16 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+        public IEnumerable<IDataFrameProxy> RandomSplit(IEnumerable<double> weights, long? seed)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Sort(IColumnProxy[] columns)
+        {
+            throw new NotImplementedException();
+        }
+
         public IDataFrameProxy Limit(int num)
         {
             throw new NotImplementedException();
@@ -191,11 +201,6 @@ namespace AdapterTest.Mocks
         }
 
         public IDataFrameProxy Sample(bool withReplacement, double fraction, long seed)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDataFrameProxy[] RandomSplit(double[] weights, long? seed)
         {
             throw new NotImplementedException();
         }

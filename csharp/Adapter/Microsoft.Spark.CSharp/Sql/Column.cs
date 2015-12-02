@@ -150,7 +150,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// String starts with another string literal.
         /// </summary>
-        /// <param name="literal"></param>
+        /// <param name="other"></param>
         /// <returns></returns>
         public Column StartsWith(Column other)
         {
@@ -160,11 +160,20 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// String ends with another string literal.
         /// </summary>
-        /// <param name="literal"></param>
+        /// <param name="other"></param>
         /// <returns></returns>
         public Column EndsWith(Column other)
         {
             return new Column(columnProxy.BinOp("endsWith", other.columnProxy));
+        }
+
+        public Column Asc()
+        {
+            return new Column(columnProxy.UnaryOp("asc"));            
+        }
+        public Column Desc()
+        {
+            return new Column(columnProxy.UnaryOp("desc"));
         }
     }
 }

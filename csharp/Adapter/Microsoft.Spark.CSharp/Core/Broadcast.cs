@@ -63,7 +63,7 @@ namespace Microsoft.Spark.CSharp.Core
     public class Broadcast<T> : Broadcast
     {
         [NonSerialized]
-        private IBroadcastProxy broadcastProxy;
+        private readonly IBroadcastProxy broadcastProxy;
         [NonSerialized]
         private T value;
 

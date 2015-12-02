@@ -60,7 +60,7 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class StructField
     {
-        private IStructFieldProxy structFieldProxy;
+        private readonly IStructFieldProxy structFieldProxy;
 
         internal IStructFieldProxy StructFieldProxy
         {
@@ -107,7 +107,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
     public class DataType
     {
-        private IStructDataTypeProxy structDataTypeProxy;
+        private readonly IStructDataTypeProxy structDataTypeProxy;
 
         internal IStructDataTypeProxy StructDataTypeProxy
         {
