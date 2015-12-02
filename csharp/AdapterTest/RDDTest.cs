@@ -19,7 +19,7 @@ namespace AdapterTest
     {
         private static RDD<string> words;
 
-        [OneTimeSetUp]
+        [TestFixtureSetUp]
         public static void Initialize()
         {
             var sparkContext = new SparkContext(null);

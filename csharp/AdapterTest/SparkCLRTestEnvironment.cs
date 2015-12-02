@@ -19,7 +19,7 @@ namespace AdapterTest
     [SetUpFixture]
     public class SparkCLRTestEnvironment 
     {
-        [OneTimeSetUp]
+        [SetUp]
         public static void Initialize()
         {
             SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();
