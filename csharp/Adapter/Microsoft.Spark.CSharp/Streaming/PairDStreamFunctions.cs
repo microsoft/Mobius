@@ -517,27 +517,23 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Reduce(double t, RDD<dynamic> a, RDD<dynamic> b)
         {
-            RDD<KeyValuePair<K, V>> rddb = new RDD<KeyValuePair<K, V>>(b.rddProxy, b.sparkContext, b.serializedMode) { previousRddProxy = b.previousRddProxy };
-            rddb = rddb.ReduceByKey<K, V>(reduceFunc);
-            var r = rddb;
+            var r = b.FromDynamic<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
             if (a != null)
             {
-                RDD<KeyValuePair<K, V>> rdda = new RDD<KeyValuePair<K, V>>(a.rddProxy, a.sparkContext, a.serializedMode) { previousRddProxy = a.previousRddProxy };
-                r = rdda.Union(rddb).ReduceByKey<K, V>(reduceFunc);
+                r = a.FromDynamic<KeyValuePair<K, V>>().Union(r).ReduceByKey<K, V>(reduceFunc);
             }
             if (filterFunc != null)
                 r.Filter(filterFunc);
-            return new RDD<dynamic>(r.RddProxy, r.sparkContext) { previousRddProxy = r.previousRddProxy };
+            return r.ToDynamic();
         }
 
         internal RDD<dynamic> InvReduce(double t, RDD<dynamic> a, RDD<dynamic> b)
         {
-            RDD<KeyValuePair<K, V>> rddb = new RDD<KeyValuePair<K, V>>(b.rddProxy, b.sparkContext, b.serializedMode) { previousRddProxy = b.previousRddProxy };
-            rddb = rddb.ReduceByKey<K, V>(reduceFunc);
-            RDD<KeyValuePair<K, V>> rdda = new RDD<KeyValuePair<K, V>>(a.rddProxy, a.sparkContext, a.serializedMode) { previousRddProxy = a.previousRddProxy };
-            RDD<KeyValuePair<K, Tuple<V, V>>> joined = rdda.Join<K, V, V>(rddb, numPartitions);
+            var rddb = b.FromDynamic<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
+            var rdda = a.FromDynamic<KeyValuePair<K, V>>();
+            var joined = rdda.Join<K, V, V>(rddb, numPartitions);
             var r = joined.MapValues<K, Tuple<V, V>, V>(kv => kv.Item2 != null ? invReduceFunc(kv.Item1, kv.Item2) : kv.Item1);
-            return new RDD<dynamic>(r.RddProxy, r.sparkContext) { previousRddProxy = r.previousRddProxy };
+            return r.ToDynamic();
         }
     }
 
@@ -557,7 +553,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             RDD<KeyValuePair<K, S>> state = null;
             RDD<KeyValuePair<K, Tuple<List<V>, S>>> g = null;
             
-            RDD<KeyValuePair<K, V>> values = new RDD<KeyValuePair<K, V>>(valuesRDD.rddProxy, valuesRDD.sparkContext, valuesRDD.serializedMode) { previousRddProxy = valuesRDD.previousRddProxy };
+            var values = valuesRDD.FromDynamic<KeyValuePair<K, V>>();
 
             if (stateRDD == null)
             {
@@ -565,13 +561,13 @@ namespace Microsoft.Spark.CSharp.Streaming
             }
             else
             {
-                state = new RDD<KeyValuePair<K, S>>(stateRDD.rddProxy, stateRDD.sparkContext, stateRDD.serializedMode) { previousRddProxy = stateRDD.previousRddProxy };
+                state = stateRDD.FromDynamic<KeyValuePair<K, S>>();
                 g = state.GroupWith(values.PartitionBy(numPartitions), numPartitions).MapValues(x => new Tuple<List<V>, S>(new List<V>(x.Item2), x.Item1.Count > 0 ? x.Item1[0] : default(S)));
             }
 
             state = g.MapValues(x => func(x.Item1, x.Item2)).Filter(x => x.Value != null);
 
-            return new RDD<dynamic>(state.RddProxy, state.sparkContext) { previousRddProxy = state.previousRddProxy };
+            return state.ToDynamic();
         }
     }
 }

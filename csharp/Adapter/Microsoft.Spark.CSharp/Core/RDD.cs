@@ -95,6 +95,39 @@ namespace Microsoft.Spark.CSharp.Core
             this.serializedMode = serializedMode;
         }
 
+        internal RDD<U> FromDynamic<U>()
+        {
+            RDD<U> r = (this is PipelinedRDD<dynamic>) ? new PipelinedRDD<U>() : new RDD<U>();
+
+            r.rddProxy = this.rddProxy;
+            r.sparkContext = this.sparkContext;
+            r.previousRddProxy = this.previousRddProxy;
+            r.prevSerializedMode = this.prevSerializedMode;
+            r.serializedMode = this.serializedMode;
+
+            if (this is PipelinedRDD<dynamic>)
+            {
+                (r as PipelinedRDD<U>).func = (this as PipelinedRDD<dynamic>).func;
+                (r as PipelinedRDD<U>).preservesPartitioning = (this as PipelinedRDD<dynamic>).preservesPartitioning;
+            }
+
+            return r;
+        }
+
+        internal RDD<dynamic> ToDynamic()
+        {
+            return new PipelinedRDD<dynamic>
+            {
+                rddProxy = this.rddProxy,
+                sparkContext = this.sparkContext,
+                previousRddProxy = this.previousRddProxy,
+                prevSerializedMode = this.prevSerializedMode,
+                serializedMode = this.serializedMode,
+                func = (this is PipelinedRDD<T>) ? (this as PipelinedRDD<T>).func : null,
+                preservesPartitioning = (this is PipelinedRDD<T>) ? (this as PipelinedRDD<T>).preservesPartitioning : false,
+            };
+        }
+
         /// <summary>
         /// Persist this RDD with the default storage level (C{MEMORY_ONLY_SER}).
         /// </summary>
