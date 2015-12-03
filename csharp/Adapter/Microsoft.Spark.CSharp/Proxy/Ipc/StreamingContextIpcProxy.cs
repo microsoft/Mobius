@@ -176,7 +176,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
                                 if (func is Func<double, RDD<dynamic>, RDD<dynamic>>)
                                 {
-                                    JvmObjectReference jrdd = (((Func<double, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd).RddProxy as RDDIpcProxy).JvmRddReference;
+                                    JvmObjectReference jrdd = ((((Func<double, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd) as PipelinedRDD<dynamic>).RddProxy as RDDIpcProxy).JvmRddReference;
                                     SerDe.Write(s, (byte)'j');
                                     SerDe.Write(s, jrdd.Id);
                                 }
@@ -184,7 +184,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                                 {
                                     string deserializer2 = SerDe.ReadString(s);
                                     RDD<dynamic> rdd2 = new RDD<dynamic>(new RDDIpcProxy(jrdds[1]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), deserializer2));
-                                    JvmObjectReference jrdd = (((Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd, rdd2).RddProxy as RDDIpcProxy).JvmRddReference;
+                                    JvmObjectReference jrdd = ((((Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd, rdd2) as PipelinedRDD<dynamic>).RddProxy as RDDIpcProxy).JvmRddReference;
                                     SerDe.Write(s, (byte)'j');
                                     SerDe.Write(s, jrdd.Id);
                                 }

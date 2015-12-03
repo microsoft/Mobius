@@ -59,6 +59,10 @@ namespace Microsoft.Spark.CSharp
             var lines = ssc.TextFileStream(Path.Combine(directory, "test"));
             var words = lines.FlatMap(l => l.Split(' '));
             var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+
+            // since operations like ReduceByKey, Join and UpdateStateByKey are
+            // separate dstream transformations defined in CSharpDStream.scala
+            // an extra CSharpRDD is introduced in between these operations
             var wordCounts = pairs.ReduceByKey((x, y) => x + y);
             var join = wordCounts.Join(wordCounts, 2);
             var state = join.UpdateStateByKey<string, Tuple<int, int>, int>((vs, s) => vs.Sum(x => x.Item1 + x.Item2) + s);
@@ -79,7 +83,7 @@ namespace Microsoft.Spark.CSharp
                 }
                 Console.WriteLine();
 
-                stopFileServer = count++ > 3;
+                stopFileServer = count++ > 100;
             });
 
             ssc.Start();
