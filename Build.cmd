@@ -40,8 +40,19 @@ pushd "%CMDHOME%\scala"
 @rem clean the target directory first
 call mvn.cmd clean
 
+@rem
+@rem Note: Shade-plugin helps creates an uber-package to simplify sparkCLR job submission;
+@rem however, it breaks debug mode in IntellJ. A temporary workaroud to add shade-plugin
+@rem only in build.cmd to create the uber-package.
+@rem
+copy /y pom.xml %temp%\pom.xml.original
+powershell -f ..\scripts\addotherplugin.ps1 pom.xml other-plugin.xml "<!--OTHER PLUGINS-->"
 @rem build the package
 call mvn.cmd package
+@rem
+@rem After uber package is created, restore Pom.xml
+@rem
+copy /y %temp%\pom.xml.original pom.xml
 
 if %ERRORLEVEL% NEQ 0 (
 	@echo Build SparkCLR Scala components failed, stop building.
