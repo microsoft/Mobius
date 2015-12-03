@@ -95,9 +95,9 @@ namespace Microsoft.Spark.CSharp.Core
             this.serializedMode = serializedMode;
         }
 
-        internal RDD<U> FromDynamic<U>()
+        internal RDD<U> ConvertTo<U>()
         {
-            RDD<U> r = (this is PipelinedRDD<dynamic>) ? new PipelinedRDD<U>() : new RDD<U>();
+            RDD<U> r = (this is PipelinedRDD<T>) ? new PipelinedRDD<U>() : new RDD<U>();
 
             r.rddProxy = this.rddProxy;
             r.sparkContext = this.sparkContext;
@@ -105,27 +105,13 @@ namespace Microsoft.Spark.CSharp.Core
             r.prevSerializedMode = this.prevSerializedMode;
             r.serializedMode = this.serializedMode;
 
-            if (this is PipelinedRDD<dynamic>)
+            if (this is PipelinedRDD<T>)
             {
-                (r as PipelinedRDD<U>).func = (this as PipelinedRDD<dynamic>).func;
-                (r as PipelinedRDD<U>).preservesPartitioning = (this as PipelinedRDD<dynamic>).preservesPartitioning;
+                (r as PipelinedRDD<U>).func = (this as PipelinedRDD<T>).func;
+                (r as PipelinedRDD<U>).preservesPartitioning = (this as PipelinedRDD<T>).preservesPartitioning;
             }
 
             return r;
-        }
-
-        internal RDD<dynamic> ToDynamic()
-        {
-            return new PipelinedRDD<dynamic>
-            {
-                rddProxy = this.rddProxy,
-                sparkContext = this.sparkContext,
-                previousRddProxy = this.previousRddProxy,
-                prevSerializedMode = this.prevSerializedMode,
-                serializedMode = this.serializedMode,
-                func = (this is PipelinedRDD<T>) ? (this as PipelinedRDD<T>).func : null,
-                preservesPartitioning = (this is PipelinedRDD<T>) ? (this as PipelinedRDD<T>).preservesPartitioning : false,
-            };
         }
 
         /// <summary>
