@@ -1,24 +1,26 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
-    //finds all methods that are marked with [Sample] attribute and 
-    //runs all of them if sparkclr.samples.torun commandline arg is not used
-    //or just runs the ones that are provided as comma separated list
+    /// <summary>
+    /// Runs samples
+    /// </summary>
     internal class SamplesRunner
     {
         private static Regex samplesToRunRegex;
         private static Regex samplesCategoryRegex;
         private static Stopwatch stopWatch;
         // track <SampleName, Category, SampleSucceeded, Duration> for reporting
-        private static readonly List<Tuple<string, string, bool, TimeSpan>> samplesRunResultList = new List<Tuple<string, string, bool, TimeSpan>>();
+        private static readonly List<Tuple<string, string, bool, TimeSpan>> samplesRunInfoList = new List<Tuple<string, string, bool, TimeSpan>>();
 
         internal static void RunSamples()
         {
@@ -33,10 +35,10 @@ namespace Microsoft.Spark.CSharp.Samples
 
             foreach (var sample in samples)
             {
-                var sampleRunResult = RunSample(sample);
-                if (sampleRunResult != null)
+                var sampleRunInfo = RunSample(sample);
+                if (sampleRunInfo != null)
                 {
-                    samplesRunResultList.Add(sampleRunResult);
+                    samplesRunInfoList.Add(sampleRunInfo);
                 }
             }
             stopWatch.Stop();
@@ -135,43 +137,38 @@ namespace Microsoft.Spark.CSharp.Samples
 
         private static void ReportOutcome()
         {
+            var succeededSamples = samplesRunInfoList.Where(x => x.Item3).ToList();
+            var failedSamples = samplesRunInfoList.Where(x => !x.Item3).ToList();
+
             var msg = new StringBuilder();
 
             msg.Append("----- ")
                 .Append("Finished running ")
-                .Append(string.Format("{0} samples(s)", samplesRunResultList.Count))
+                .Append(string.Format("{0} samples(s) [succeeded={1}, failed={2}]", samplesRunInfoList.Count, succeededSamples.Count, failedSamples.Count))
                 .Append(" in ").Append(stopWatch.Elapsed)
                 .AppendLine(" -----");
 
-            var completed = samplesRunResultList.Where(x => x.Item3).ToList();
-            var errors = samplesRunResultList.Where(x => !x.Item3).ToList();
-
-            msg.Append("----- ")
-                .Append(" Completion counts:")
-                .Append(" Success=").Append(completed.Count)
-                .Append(" Failed=").Append(errors.Count)
-                .AppendLine(" -----");
-
-            msg.AppendLine("Successful samples:");
-            foreach (var s in completed)
+            if (succeededSamples.Count > 0)
             {
-                msg.Append("    ").AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item3));
+                msg.AppendLine("Successfully completed samples:");
+                foreach (var s in succeededSamples)
+                {
+                    msg.Append("    ")
+                        .AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item4));
+                }
             }
 
-            msg.AppendLine("Failed samples:");
-            foreach (var s in errors)
+            if (failedSamples.Count > 0)
             {
-                msg.Append("    ").AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item3));
+                msg.AppendLine("Failed samples:");
+                foreach (var s in failedSamples)
+                {
+                    msg.Append("    ")
+                        .AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item4));
+                }
             }
 
-            if (errors.Count == 0)
-            {
-                Console.WriteLine(msg.ToString());
-            }
-            else
-            {
-                Console.WriteLine("[Warning]{0}", msg);
-            }
+            Console.WriteLine(msg.ToString());
         }
     }
 }

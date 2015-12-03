@@ -51,7 +51,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Math.Abs(approximatePiValue - 3.14) <= 0.01);
+                Assert.IsTrue(Math.Abs(approximatePiValue - 3.14) <= 0.019);
             }
         }
 

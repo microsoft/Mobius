@@ -2,13 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Services;
 
@@ -38,11 +34,14 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 SparkContext = CreateSparkContext();
                 SparkContext.SetCheckpointDir(Path.GetTempPath()); 
+
                 SamplesRunner.RunSamples();
 
                 PrintLogLocation();
-                ConsoleWriteLine("Main", "Completed RunSamples. Calling SparkContext.Stop() to tear down ...");
-                ConsoleWriteLine("Main", "If the program does not terminate in 10 seconds, please manually terminate java process !!!");
+                ConsoleWriteLine("Completed running samples. Calling SparkContext.Stop() to tear down ...");
+                //following comment is necessary due to known issue in Spark. See https://issues.apache.org/jira/browse/SPARK-8333
+                ConsoleWriteLine("If this program (SparkCLRSamples.exe) does not terminate in 10 seconds, please manually terminate java process launched by this program!!!");
+                //TODO - add instructions to terminate java process
                 SparkContext.Stop();
             }
         }
@@ -60,15 +59,17 @@ namespace Microsoft.Spark.CSharp.Samples
 
         private static void PrintLogLocation()
         {
-            ConsoleWriteLine("Main",
-                             string.Format(@"Logs by SparkCLR and Apache Spark are available at {0}\SparkCLRLogs",
+            ConsoleWriteLine(string.Format(@"Logs by SparkCLR and Apache Spark are available at {0}\SparkCLRLogs",
                                            Environment.GetEnvironmentVariable("TEMP")));
         }
 
-        private static void ConsoleWriteLine(string functionName, string message)
+        private static void ConsoleWriteLine(string message)
         {
-            var p = AppDomain.CurrentDomain.FriendlyName;
-            Console.WriteLine("[{0}.{1}] {2}", p, functionName, message);
+            const string exeName = "SparkCLRSamples.exe";
+            var callingMethod = new StackTrace().GetFrames()[1].GetMethod();
+            var callingMethodName = callingMethod.Name;
+            var typeName = callingMethod.ReflectedType;
+            Console.WriteLine("[{0}.{1}.{2}] {3}", exeName, typeName, callingMethodName, message);
         }
     }
 }
