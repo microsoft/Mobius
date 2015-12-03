@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandlineArgumentProcessor.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="DataFrameSamples.cs" />
     <Compile Include="DStreamSamples.cs" />
@@ -54,6 +55,8 @@
     <Compile Include="DoubleRDDSamples.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="PairRDDSamples.cs" />
+    <Compile Include="SampleAttribute.cs" />
+    <Compile Include="SamplesRunner.cs" />
     <Compile Include="SparkContextSamples.cs" />
     <Compile Include="RDDSamples.cs" />
   </ItemGroup>
