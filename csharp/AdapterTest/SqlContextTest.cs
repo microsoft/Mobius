@@ -7,26 +7,26 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Sql;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
     /// <summary>
     /// Validates interaction between SqlContext and its proxies
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class SqlContextTest
     {
         //TODO - complete impl
 
-        [TestMethod]
+        [Test]
         public void TestSqlContextConstructor()
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
             Assert.IsNotNull((sqlContext.SqlContextProxy as MockSqlContextProxy).mockSqlContextReference);
         }
 
-        [TestMethod]
+        [Test]
         public void TestSqlContextJsonFile()
         {
             var sqlContext = new SqlContext(new SparkContext("", "")); 
@@ -35,7 +35,7 @@ namespace AdapterTest
             Assert.AreEqual(@"c:\path\to\input.json", paramValuesToJsonFileMethod[0]);
         }
 
-        [TestMethod]
+        [Test]
         public void TestSqlContextTextFile()
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));

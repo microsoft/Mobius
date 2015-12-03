@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [TestFixture]
     public class PairRDDTest
     {
         private static RDD<KeyValuePair<string, int>> pairs;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [TestFixtureSetUp]
+        public static void Initialize()
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
@@ -22,7 +22,7 @@ namespace AdapterTest
             pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddCountByKey()
         {
             foreach (var record in pairs.CountByKey())
@@ -31,7 +31,7 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddGroupWith()
         {
             foreach (var record in pairs.GroupWith(pairs).Collect())
@@ -54,7 +54,7 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddSubtractByKey()
         {
             var reduce = pairs.ReduceByKey((x, y) => x + y);
@@ -64,7 +64,7 @@ namespace AdapterTest
             Assert.AreEqual(records[0].Value, 23);
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddReduceByKeyLocally()
         {
             foreach (var record in pairs.ReduceByKeyLocally((x, y) => x + y))
@@ -73,7 +73,7 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddFoldByKey()
         {
             foreach (var record in pairs.FoldByKey(() => 0, (x, y) => x + y).Collect())
@@ -82,7 +82,7 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddAggregateByKey()
         {
             foreach (var record in pairs.AggregateByKey(() => 0, (x, y) => x + y, (x, y) => x + y).Collect())
@@ -91,7 +91,7 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddGroupByKey()
         {
             foreach (var record in pairs.GroupByKey().Collect())
@@ -100,7 +100,7 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddLookup()
         {
             var records = pairs.ReduceByKey((x, y) => x + y).Lookup("The");
@@ -108,21 +108,21 @@ namespace AdapterTest
             Assert.AreEqual(records[0], 23);
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddKeys()
         {
             var records = pairs.ReduceByKey((x, y) => x + y).Keys().Collect();
             Assert.AreEqual(records.Length, 9);
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddValues()
         {
             var records = pairs.ReduceByKey((x, y) => x + y).Values().Collect();
             Assert.AreEqual(records.Length, 9);
         }
 
-        [TestMethod]
+        [Test]
         public void TestPairRddProxy()
         {
             pairs.SaveAsHadoopDataset(null);

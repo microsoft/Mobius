@@ -9,19 +9,19 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
     /// <summary>
     /// Validates interaction between SparkContext and its proxy
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class SparkContextTest
     {
         //TODO - complete impl
 
-        [TestMethod]
+        [Test]
         public void TestSparkContextProxy()
         {
             var sparkContext = new SparkContext("masterUrl", "appName");
@@ -47,7 +47,7 @@ namespace AdapterTest
             sparkContext.Union<string>(null);
         }
 
-        [TestMethod]
+        [Test]
         public void TestSparkContextConstructor()
         {
             var sparkContext = new SparkContext("masterUrl", "appName");
@@ -69,7 +69,7 @@ namespace AdapterTest
             Assert.IsNotNull(paramValuesToConstructor[0]); //because SparkContext constructor create default sparkConf
         }
 
-        [TestMethod]
+        [Test]
         public void TestSparkContextStop()
         {
             var sparkContext = new SparkContext(null);
@@ -78,7 +78,7 @@ namespace AdapterTest
             Assert.IsNull((sparkContext.SparkContextProxy as MockSparkContextProxy).mockSparkContextReference);
         }
 
-        [TestMethod]
+        [Test]
         public void TestSparkContextTextFile()
         {
             var sparkContext = new SparkContext(null);

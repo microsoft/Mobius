@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [TestFixture]
     public class DoubleRDDTest
     {
         private static RDD<double> doubles;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [TestFixtureSetUp]
+        public static void Initialize()
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
@@ -22,13 +22,13 @@ namespace AdapterTest
             doubles = words.Map(w => new KeyValuePair<string, int>(w, 1)).ReduceByKey((x, y) => x + y).Map(kv => (double)kv.Value);
         }
 
-        [TestMethod]
+        [Test]
         public void TestDoubleRddSum()
         {
             Assert.AreEqual(201, doubles.Sum());
         }
 
-        [TestMethod]
+        [Test]
         public void TestDoubleRddStats()
         {
             StatCounter stats = doubles.Stats();

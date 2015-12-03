@@ -7,27 +7,27 @@ using System.Linq;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
     /// <summary>
     /// Validates interaction between RDD and its proxy
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class RDDTest
     {
         private static RDD<string> words;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [TestFixtureSetUp]
+        public static void Initialize()
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
             words = lines.FlatMap(l => l.Split(' '));
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddProxy()
         {
             words.Cache();
@@ -50,7 +50,7 @@ namespace AdapterTest
             words.SaveAsTextFile(null);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddCountByValue()
         {
             foreach (var record in words.CountByValue())
@@ -59,73 +59,73 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddDistinct()
         {
             Assert.AreEqual(9, words.Distinct().Collect().Length);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddSubtract()
         {
             Assert.AreEqual(23, words.Subtract(words.Filter(w => w != "The")).Collect().Length);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddIntersection()
         {
             Assert.AreEqual(1, words.Intersection(words.Filter(w => w == "The")).Collect().Length);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddToLocalIterator()
         {
             Assert.AreEqual(201, words.ToLocalIterator().Count());
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddTreeReduce()
         {
             Assert.AreEqual(201, words.Map(w => 1).TreeReduce((x, y) => x + y));
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddTreeAggregate()
         {
             Assert.AreEqual(201, words.Map(w => 1).TreeAggregate(0, (x, y) => x + y, (x, y) => x + y));
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddAggregate()
         {
             Assert.AreEqual(201, words.Map(w => 1).Aggregate(0, (x, y) => x + y, (x, y) => x + y));
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddReduce()
         {
             Assert.AreEqual(201, words.Map(w => 1).Reduce((x, y) => x + y));
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddFirst()
         {
             Assert.AreEqual("The", words.First());
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddFold()
         {
             Assert.AreEqual(201, words.Map(w => 1).Fold(0, (x, y) => x + y));
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddGlom()
         {
             Assert.AreEqual(201, words.Map(w => 1).Glom().Collect()[0].Length);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddGroupBy()
         {
             words.GroupBy(w => w).Foreach(record =>
@@ -142,14 +142,14 @@ namespace AdapterTest
             });
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddIsEmpty()
         {
             Assert.IsFalse(words.IsEmpty());
             Assert.IsTrue(words.Filter(w => w == null).IsEmpty());
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddZipWithIndex()
         {
             int index = 0;
@@ -159,7 +159,7 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddZipWithUniqueId()
         {
             int index = 0;
@@ -169,13 +169,13 @@ namespace AdapterTest
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddTakeSample()
         {
             Assert.AreEqual(20, words.TakeSample(true, 20, 1).Length);
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddMap()
         {
             var sparkContext = new SparkContext(null);
@@ -195,7 +195,7 @@ namespace AdapterTest
             Assert.AreEqual("HTTP://" + ("ABC".ToLower() + ".com"), output2); //tolower and ".com" appended first before adding prefix due to the way func2 wraps func in implementation
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddTextFile()
         {
             var sparkContext = new SparkContext(null);
@@ -205,7 +205,7 @@ namespace AdapterTest
             Assert.AreEqual(0, int.Parse(paramValuesToTextFileMethod[1].ToString())); //checking default partitions
         }
 
-        [TestMethod]
+        [Test]
         public void TestRddUnion()
         {
             var sparkContext = new SparkContext(null);

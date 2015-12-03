@@ -4,17 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Streaming;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [TestFixture]
     public class StreamingContextTest
     {
-        [TestMethod]
+        [Test]
         public void TestStreamingContext()
         {
             var ssc = new StreamingContext(new SparkContext("", ""), 1000);

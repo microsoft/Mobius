@@ -1,38 +1,38 @@
 ﻿using System;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [TestFixture]
     public class ComparableRDDTest
     {
         private static RDD<string> words;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [TestFixtureSetUp]
+        public static void Initialize()
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
             words = lines.FlatMap(l => l.Split(' '));
         }
 
-        [TestMethod]
+        [Test]
         public void TestComparableRddMax()
         {
             Assert.AreEqual("The", words.Max());
         }
 
-        [TestMethod]
+        [Test]
         public void TestComparableRddMin()
         {
             Assert.AreEqual("brown", words.Min());
         }
 
-        [TestMethod]
+        [Test]
         public void TestComparableRddTakeOrdered()
         {
             var taken = words.Distinct().TakeOrdered(2);
@@ -41,7 +41,7 @@ namespace AdapterTest
             Assert.AreEqual("dog", taken[1]);
         }
 
-        [TestMethod]
+        [Test]
         public void TestComparableRddTop()
         {
             var taken = words.Distinct().Top(2);

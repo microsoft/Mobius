@@ -4,17 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Streaming;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [TestFixture]
     public class DStreamTest
     {
-        [TestMethod]
+        [Test]
         public void TestDStreamMapReduce()
         {
             var ssc = new StreamingContext(new SparkContext("", ""), 1000);
@@ -75,7 +75,7 @@ namespace AdapterTest
             });
         }
 
-        [TestMethod]
+        [Test]
         public void TestDStreamTransform()
         {
             var ssc = new StreamingContext(new SparkContext("", ""), 1000);
@@ -131,7 +131,7 @@ namespace AdapterTest
             });
         }
         
-        [TestMethod]
+        [Test]
         public void TestDStreamJoin()
         {
             var ssc = new StreamingContext(new SparkContext("", ""), 1000);
@@ -227,7 +227,7 @@ namespace AdapterTest
             });
         }
 
-        [TestMethod]
+        [Test]
         public void TestDStreamUpdateStateByKey()
         {
             var ssc = new StreamingContext(new SparkContext("", ""), 1000);
