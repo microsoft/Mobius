@@ -517,23 +517,23 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Reduce(double t, RDD<dynamic> a, RDD<dynamic> b)
         {
-            var r = b.FromDynamic<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
+            var r = b.ConvertTo<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
             if (a != null)
             {
-                r = a.FromDynamic<KeyValuePair<K, V>>().Union(r).ReduceByKey<K, V>(reduceFunc);
+                r = a.ConvertTo<KeyValuePair<K, V>>().Union(r).ReduceByKey<K, V>(reduceFunc);
             }
             if (filterFunc != null)
                 r.Filter(filterFunc);
-            return r.ToDynamic();
+            return r.ConvertTo<dynamic>();
         }
 
         internal RDD<dynamic> InvReduce(double t, RDD<dynamic> a, RDD<dynamic> b)
         {
-            var rddb = b.FromDynamic<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
-            var rdda = a.FromDynamic<KeyValuePair<K, V>>();
+            var rddb = b.ConvertTo<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
+            var rdda = a.ConvertTo<KeyValuePair<K, V>>();
             var joined = rdda.Join<K, V, V>(rddb, numPartitions);
             var r = joined.MapValues<K, Tuple<V, V>, V>(kv => kv.Item2 != null ? invReduceFunc(kv.Item1, kv.Item2) : kv.Item1);
-            return r.ToDynamic();
+            return r.ConvertTo<dynamic>();
         }
     }
 
@@ -552,8 +552,8 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             RDD<KeyValuePair<K, S>> state = null;
             RDD<KeyValuePair<K, Tuple<List<V>, S>>> g = null;
-            
-            var values = valuesRDD.FromDynamic<KeyValuePair<K, V>>();
+
+            var values = valuesRDD.ConvertTo<KeyValuePair<K, V>>();
 
             if (stateRDD == null)
             {
@@ -561,13 +561,13 @@ namespace Microsoft.Spark.CSharp.Streaming
             }
             else
             {
-                state = stateRDD.FromDynamic<KeyValuePair<K, S>>();
+                state = stateRDD.ConvertTo<KeyValuePair<K, S>>();
                 g = state.GroupWith(values.PartitionBy(numPartitions), numPartitions).MapValues(x => new Tuple<List<V>, S>(new List<V>(x.Item2), x.Item1.Count > 0 ? x.Item1[0] : default(S)));
             }
 
             state = g.MapValues(x => func(x.Item1, x.Item2)).Filter(x => x.Value != null);
 
-            return state.ToDynamic();
+            return state.ConvertTo<dynamic>();
         }
     }
 }

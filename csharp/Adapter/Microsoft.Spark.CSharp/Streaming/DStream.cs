@@ -513,7 +513,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd)
         {
-            return func(t, rdd.FromDynamic<I>()).ToDynamic();
+            return func(t, rdd.ConvertTo<I>()).ConvertTo<dynamic>();
         }
     }
 
@@ -543,7 +543,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd1, RDD<dynamic> rdd2)
         {
-            return func(t, rdd1.FromDynamic<T>(), rdd2.FromDynamic<U>()).ToDynamic();
+            return func(t, rdd1.ConvertTo<T>(), rdd2.ConvertTo<U>()).ConvertTo<dynamic>();
         }
     }
 
@@ -573,7 +573,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal void Execute(double t, RDD<dynamic> rdd)
         {
-            func(rdd.FromDynamic<I>());
+            func(rdd.ConvertTo<I>());
         }
     }
 
@@ -591,7 +591,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal void Execute(double t, RDD<dynamic> rdd)
         {
-            rdd.FromDynamic<string>().SaveAsTextFile(prefix + (long)t + suffix);
+            rdd.ConvertTo<string>().SaveAsTextFile(prefix + (long)t + suffix);
         }
     }
 }
