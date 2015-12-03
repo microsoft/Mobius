@@ -68,8 +68,17 @@ namespace Microsoft.Spark.CSharp.Samples
             const string exeName = "SparkCLRSamples.exe";
             var callingMethod = new StackTrace().GetFrames()[1].GetMethod();
             var callingMethodName = callingMethod.Name;
-            var typeName = callingMethod.ReflectedType;
-            Console.WriteLine("[{0}.{1}.{2}] {3}", exeName, typeName, callingMethodName, message);
+            WriteColorCodedConsoleMessage(ConsoleColor.DarkCyan, string.Format("[{0}.{1}] {2}", exeName, callingMethodName, message));
+        }
+
+        //the benefits of color coding can be seen only in debug mode because in other modes
+        //the console output is redirected to another process and color coding will be lost
+        internal static void WriteColorCodedConsoleMessage(ConsoleColor colorCoding, string message)
+        {
+            ConsoleColor currentForegroundColor = Console.ForegroundColor;
+            Console.ForegroundColor = colorCoding;
+            Console.WriteLine(message);
+            Console.ForegroundColor = currentForegroundColor;
         }
     }
 }
