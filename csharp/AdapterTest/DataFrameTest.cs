@@ -53,65 +53,9 @@ namespace AdapterTest
         [Test]
         public void TestDataFrameCollect()
         {
-            string jsonSchema = @"
-                {
-                  ""type"" : ""struct"",
-                  ""fields"" : [ {
-                    ""name"" : ""address"",
-                    ""type"" : {
-                      ""type"" : ""struct"",
-                      ""fields"" : [ {
-                        ""name"" : ""city"",
-                        ""type"" : ""string"",
-                        ""nullable"" : true,
-                        ""metadata"" : { }
-                      }, {
-                        ""name"" : ""state"",
-                        ""type"" : ""string"",
-                        ""nullable"" : true,
-                        ""metadata"" : { }
-                      } ]
-                    },
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""age"",
-                    ""type"" : ""long"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""id"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""name"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  } ]
-                }";
-
-            int localPort = 4000;
-            object row1 = new object[] {
-                new object[] {"Columbus", "Ohio"},
-                34,
-                "123",
-                "Bill"
-            };
-
-            object row2 = new object[] {
-                new object[] {"Seattle", "Washington"},
-                43,
-                "789",
-                "Bill"
-            };
-
-            IStructTypeProxy structTypeProxy = new MockStructTypeProxy(jsonSchema);
-            IDataFrameProxy dataFrameProxy =
-                new MockDataFrameProxy(localPort,
-                                       new List<object>() { row1, row2 },
-                                       structTypeProxy);
+            const int localPort = 4000;
+            const int size = 2;
+            IDataFrameProxy dataFrameProxy = MockDataFrameProxyForCollect(localPort, size);
             DataFrame dataFrame = new DataFrame(dataFrameProxy, null);
 
             List<Row> rows = new List<Row>();
@@ -121,22 +65,9 @@ namespace AdapterTest
                 Console.WriteLine("{0}", row);
             }
 
-            Assert.AreEqual(rows.Count, 2);
-            Row firstRow = rows[0];
-
-            string id = firstRow.GetAs<string>("id");
-            Assert.IsTrue(id.Equals("123"));
-            string name = firstRow.GetAs<string>("name");
-            Assert.IsTrue(name.Equals("Bill"));
-            int age = firstRow.GetAs<int>("age");
-            Assert.AreEqual(age, 34);
-
-            Row address = firstRow.GetAs<Row>("address");
-            Assert.AreNotEqual(address, null);
-            string city = address.GetAs<string>("city");
-            Assert.IsTrue(city.Equals("Columbus"));
-            string state = address.GetAs<string>("state");
-            Assert.IsTrue(state.Equals("Ohio"));
+            Assert.AreEqual(rows.Count, size);
+            const int index = 0;
+            AssertRow(rows[index], index);
         }
 
         [Test]
@@ -682,6 +613,179 @@ namespace AdapterTest
             // verify
             Assert.IsNotNull(rdd);
             Assert.AreEqual(count, rdd.Count());
+        }
+
+        [Test]
+        public void TestLimit()
+        {
+            // arrange
+            IDataFrameProxy limitedDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(limitedDataFrameProxy);
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+
+            // act
+            const int size = 2;
+            DataFrame limitedDataFrame =dataFrame.Limit(size);
+
+            // assert
+            Assert.IsNotNull(limitedDataFrame.DataFrameProxy);
+            Assert.AreEqual(limitedDataFrameProxy, limitedDataFrame.DataFrameProxy);
+            mockDataFrameProxy.Verify(m => m.Limit(size), Times.Once());
+        }
+
+        [Test]
+        public void TestHead()
+        {
+            // arrange
+            const int size = 23;
+            const int expectedSize = 5;
+            const int localPort = 4001;
+            IDataFrameProxy limitedDataFrameProxy = MockDataFrameProxyForCollect(localPort, expectedSize);
+            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(limitedDataFrameProxy);
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+
+            // act
+            IEnumerable<Row> rows = dataFrame.Head(size);
+
+            // assert
+            Assert.IsNotNull(rows);
+            Assert.AreEqual(expectedSize, rows.Count());
+            mockDataFrameProxy.Verify(m => m.Limit(size), Times.Once());
+        }
+
+        [Test]
+        public void TestFirst()
+        {
+            // arrange
+            const int localPort = 4001;
+            IDataFrameProxy limitedDataFrameProxy = MockDataFrameProxyForCollect(localPort, 1);
+            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(limitedDataFrameProxy);
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+
+            // act
+            Row firstRow = dataFrame.First();
+
+            // assert
+            AssertRow(firstRow, 0);
+            mockDataFrameProxy.Verify(m => m.Limit(1), Times.Once());
+        }
+
+        [Test]
+        public void TestTake()
+        {
+            // arrange
+            const int localPort = 4001;
+            const int expectedSize = 5;
+            IDataFrameProxy limitedDataFrameProxy = MockDataFrameProxyForCollect(localPort, expectedSize);
+            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(limitedDataFrameProxy);
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+
+            // act
+            IEnumerable<Row> iter = dataFrame.Take(expectedSize);
+
+            // assert
+            Assert.IsNotNull(iter);
+            Row[] rows = iter.ToArray();
+            Assert.AreEqual(expectedSize, rows.Length);
+            AssertRow(rows[0], 0);
+            AssertRow(rows[2], 2);
+            mockDataFrameProxy.Verify(m => m.Limit(expectedSize), Times.Once());
+        }
+
+        [Test]
+        public void TestDistinct()
+        {
+            // arrange
+            mockDataFrameProxy.Setup(m => m.Distinct()).Returns(new Mock<IDataFrameProxy>().Object);
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+
+            dataFrame.Distinct();
+
+            // assert
+            mockDataFrameProxy.Verify(m => m.Distinct(), Times.Once());
+        }
+
+        private static void AssertRow(Row row, int index)
+        {
+            Assert.IsNotNull(row);
+            Assert.AreEqual("name" + index, row.GetAs<string>("name"));
+            Assert.AreEqual("id" + index, row.GetAs<string>("id"));
+            Row address = row.GetAs<Row>("address");
+            Assert.AreNotEqual(address, null);
+            string city = address.GetAs<string>("city");
+            Assert.IsTrue(city.Equals("city" + index));
+            string state = address.GetAs<string>("state");
+            Assert.IsTrue(state.Equals("state" + index));
+        }
+
+        // Mock a IDataFrameProxy instance to test collect method
+        private static IDataFrameProxy MockDataFrameProxyForCollect(int localPort, int size)
+        {
+            const string jsonSchema = @"
+                {
+                  ""type"" : ""struct"",
+                  ""fields"" : [ {
+                    ""name"" : ""address"",
+                    ""type"" : {
+                      ""type"" : ""struct"",
+                      ""fields"" : [ {
+                        ""name"" : ""city"",
+                        ""type"" : ""string"",
+                        ""nullable"" : true,
+                        ""metadata"" : { }
+                      }, {
+                        ""name"" : ""state"",
+                        ""type"" : ""string"",
+                        ""nullable"" : true,
+                        ""metadata"" : { }
+                      } ]
+                    },
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  }, {
+                    ""name"" : ""age"",
+                    ""type"" : ""long"",
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  }, {
+                    ""name"" : ""id"",
+                    ""type"" : ""string"",
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  }, {
+                    ""name"" : ""name"",
+                    ""type"" : ""string"",
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  } ]
+                }";
+
+            var rows = new List<object>();
+
+            for (var i = 0; i < size; i++)
+            {
+                object row = new object[] 
+                {
+                    new object[] {"city" + i, "state" + i},
+                    i,
+                    "id" + i,
+                    "name" +i
+                };
+                rows.Add(row);
+            }
+
+            IStructTypeProxy structTypeProxy = new MockStructTypeProxy(jsonSchema);
+            return new MockDataFrameProxy(localPort, rows, structTypeProxy);
         }
 
         /// <summary>
