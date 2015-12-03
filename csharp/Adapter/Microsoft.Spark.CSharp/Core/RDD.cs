@@ -95,6 +95,25 @@ namespace Microsoft.Spark.CSharp.Core
             this.serializedMode = serializedMode;
         }
 
+        internal RDD<U> ConvertTo<U>()
+        {
+            RDD<U> r = (this is PipelinedRDD<T>) ? new PipelinedRDD<U>() : new RDD<U>();
+
+            r.rddProxy = this.rddProxy;
+            r.sparkContext = this.sparkContext;
+            r.previousRddProxy = this.previousRddProxy;
+            r.prevSerializedMode = this.prevSerializedMode;
+            r.serializedMode = this.serializedMode;
+
+            if (this is PipelinedRDD<T>)
+            {
+                (r as PipelinedRDD<U>).func = (this as PipelinedRDD<T>).func;
+                (r as PipelinedRDD<U>).preservesPartitioning = (this as PipelinedRDD<T>).preservesPartitioning;
+            }
+
+            return r;
+        }
+
         /// <summary>
         /// Persist this RDD with the default storage level (C{MEMORY_ONLY_SER}).
         /// </summary>

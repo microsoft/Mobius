@@ -513,8 +513,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd)
         {
-            RDD<O> rddo = func(t, new RDD<I>(rdd.rddProxy, rdd.sparkContext, rdd.serializedMode) { previousRddProxy = rdd.previousRddProxy });
-            return new RDD<dynamic>(rddo.RddProxy, rddo.sparkContext) { previousRddProxy = rddo.previousRddProxy };
+            return func(t, rdd.ConvertTo<I>()).ConvertTo<dynamic>();
         }
     }
 
@@ -544,10 +543,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd1, RDD<dynamic> rdd2)
         {
-            var rddt = new RDD<T>(rdd1.rddProxy, rdd1.sparkContext, rdd1.serializedMode) { previousRddProxy = rdd1.previousRddProxy };
-            var rddu = new RDD<U>(rdd2.rddProxy, rdd2.sparkContext, rdd2.serializedMode) { previousRddProxy = rdd2.previousRddProxy };
-            var rddv = func(t, rddt, rddu);
-            return new RDD<dynamic>(rddv.RddProxy, rddv.sparkContext) { previousRddProxy = rddv.previousRddProxy };
+            return func(t, rdd1.ConvertTo<T>(), rdd2.ConvertTo<U>()).ConvertTo<dynamic>();
         }
     }
 
@@ -577,7 +573,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal void Execute(double t, RDD<dynamic> rdd)
         {
-            func(new RDD<I>(rdd.rddProxy, rdd.sparkContext) { previousRddProxy = rdd.previousRddProxy });
+            func(rdd.ConvertTo<I>());
         }
     }
 
@@ -595,8 +591,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal void Execute(double t, RDD<dynamic> rdd)
         {
-            var sRdd = new RDD<string>(rdd.RddProxy, rdd.sparkContext, rdd.serializedMode);
-            sRdd.SaveAsTextFile(prefix + (long)t + suffix);
+            rdd.ConvertTo<string>().SaveAsTextFile(prefix + (long)t + suffix);
         }
     }
 }
