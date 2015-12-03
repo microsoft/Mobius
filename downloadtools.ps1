@@ -445,7 +445,7 @@ if (!($PSBoundParameters.ContainsKey('stage')))
     return
 }
 
-# Creat tools directory
+# Create tools directory
 $scriptDir = Get-ScriptDirectory
 $toolsDir = Join-Path -path $scriptDir -ChildPath tools
 New-Item -ItemType Directory -Force -Path $toolsDir | Out-Null
