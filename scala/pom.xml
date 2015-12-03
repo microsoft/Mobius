@@ -138,6 +138,30 @@
                   </execution>
               </executions>
           </plugin>
+          <plugin>
+              <groupId>org.scalastyle</groupId>
+              <artifactId>scalastyle-maven-plugin</artifactId>
+              <version>0.7.0</version>
+              <configuration>
+                  <verbose>false</verbose>
+                  <failOnViolation>false</failOnViolation>
+                  <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                  <failOnWarning>false</failOnWarning>
+                  <sourceDirectory>${basedir}/src/main</sourceDirectory>
+                  <testSourceDirectory>${basedir}/src/test/scala</testSourceDirectory>
+                  <configLocation>scalastyle-config.xml</configLocation>
+                  <outputFile>${basedir}/target/scalastyle-output.xml</outputFile>
+                  <inputEncoding>${encoding}</inputEncoding>
+                  <outputEncoding>${encoding}</outputEncoding>
+              </configuration>
+              <executions>
+              <execution>
+                  <goals>
+                      <goal>check</goal>
+                  </goals>
+              </execution>
+          </executions>
+          </plugin>
           <!--The comment below is used by build.cmd to add shade-plugin and others. Please don't modify-->
 	  <!--OTHER PLUGINS-->
       </plugins>
