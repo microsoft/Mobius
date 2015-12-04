@@ -75,10 +75,10 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 if (!SparkCLRSamples.Configuration.IsDryrun)
                 {
-                    Console.WriteLine("----- Running sample {0} -----", sampleName);
+                    SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Cyan, string.Format("----- Running sample {0} -----", sampleName));
                     sample.Invoke(null, new object[] { });
                     duration = stopWatch.Elapsed - clockStart;
-                    Console.WriteLine("----- Finished running sample {0}, duration={1} -----", sampleName, duration);
+                    SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Green, string.Format("----- Successfully finished running sample {0} (duration={1}) -----", sampleName, duration));
                 }
 
                 return new Tuple<string, string, bool, TimeSpan>(sampleName, categoryNames, true, duration);
@@ -86,8 +86,7 @@ namespace Microsoft.Spark.CSharp.Samples
             catch (Exception ex)
             {
                 duration = stopWatch.Elapsed - clockStart;
-                Console.WriteLine("----- Error running sample {0} -----{1}{2}, duration={3}",
-                    sampleName, Environment.NewLine, ex, duration);
+                SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Red, string.Format("----- Error running sample {0} (duration={3}) -----{1}{2}", sampleName, Environment.NewLine, ex, duration));
                 return new Tuple<string, string, bool, TimeSpan>(sampleName, categoryNames, false, duration);
             }
 
@@ -140,35 +139,35 @@ namespace Microsoft.Spark.CSharp.Samples
             var succeededSamples = samplesRunInfoList.Where(x => x.Item3).ToList();
             var failedSamples = samplesRunInfoList.Where(x => !x.Item3).ToList();
 
-            var msg = new StringBuilder();
-
-            msg.Append("----- ")
+            var summary = new StringBuilder().Append("----- ")
                 .Append("Finished running ")
                 .Append(string.Format("{0} samples(s) [succeeded={1}, failed={2}]", samplesRunInfoList.Count, succeededSamples.Count, failedSamples.Count))
                 .Append(" in ").Append(stopWatch.Elapsed)
-                .AppendLine(" -----");
+                .AppendLine(" -----").ToString();
+
+            SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Yellow, summary);
 
             if (succeededSamples.Count > 0)
             {
-                msg.AppendLine("Successfully completed samples:");
+                SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Green, "Successfully completed samples:");
                 foreach (var s in succeededSamples)
                 {
-                    msg.Append("    ")
-                        .AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item4));
+                    var sampleResult = new StringBuilder().Append("    ")
+                        .Append(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item4)).ToString();
+                    SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Green, sampleResult);
                 }
             }
 
             if (failedSamples.Count > 0)
             {
-                msg.AppendLine("Failed samples:");
+                SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Red, "Failed samples:");
                 foreach (var s in failedSamples)
                 {
-                    msg.Append("    ")
-                        .AppendLine(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item4));
+                    var sampleResult = new StringBuilder().Append("    ")
+                        .Append(string.Format("{0} (category: {1}), duration={2}", s.Item1, s.Item2, s.Item4)).ToString();
+                    SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Red, sampleResult);
                 }
             }
-
-            Console.WriteLine(msg.ToString());
         }
     }
 }
