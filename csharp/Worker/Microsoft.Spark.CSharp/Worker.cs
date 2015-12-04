@@ -141,6 +141,11 @@ namespace Microsoft.Spark.CSharp
                         int count = 0;
                         foreach (var message in func(splitIndex, GetIterator(s, deserializerMode)))
                         {
+                            if (object.ReferenceEquals(null, message)) 
+                            {
+                                    continue;
+                            }
+
                             byte[] buffer;
 
                             if (serializerMode == "None")
