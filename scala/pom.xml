@@ -65,11 +65,15 @@
           <groupId>org.apache.spark</groupId>
           <artifactId>spark-core_2.10</artifactId>
           <version>${spark.version}</version>
+          <!--the following is placeholder for building uber package. Please keep as-is-->
+          <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
           <artifactId>spark-streaming_2.10</artifactId>
           <version>${spark.version}</version>
+          <!--the following is placeholder for building uber package. Please keep as-is-->
+          <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
@@ -80,6 +84,8 @@
           <groupId>org.apache.spark</groupId>
           <artifactId>spark-sql_2.10</artifactId>
           <version>${spark.version}</version>
+          <!--the following is placeholder for building uber package. Please keep as-is-->
+          <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>com.databricks</groupId>
@@ -159,8 +165,8 @@
               </execution>
           </executions>
           </plugin>
-          <!--The comment below is used by build.cmd to add shade-plugin and others. Please don't modify-->
-	  <!--OTHER PLUGINS-->
+          <!--The comment below is the placeholder by build.cmd to add shade-plugin and others. Please keep as-is-->
+          <!--OTHER PLUGINS-->
       </plugins>
   </build>
 </project>

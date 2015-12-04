@@ -33,7 +33,7 @@ function Get-ScriptDirectory
 #
 function Replace-VariableInFile($variable, $value, $sourceFile, $targetFile)
 {
-    Write-Output "[addotherplugin.Replace-VariableInFile] variable=$variable, value=$value, sourceFile=$sourceFile, targetFile=$targetFile"
+    Write-Output "[addotherplugin.Replace-VariableInFile] variable=$variable, sourceFile=$sourceFile, targetFile=$targetFile"
     if (!(test-path $sourceFile))
     {
         Write-Output "[addotherplugin.Replace-VariableInFile] [WARNING] $sourceFile does not exist. Abort."
@@ -60,14 +60,14 @@ function Replace-VariableInFile($variable, $value, $sourceFile, $targetFile)
 #
 if (!(test-path $targetPom))
 {
-	Write-Output "[addotherplugin.ps1] [WARNING] $targetPom does not exist. Abort."
+    Write-Output "[addotherplugin.ps1] [WARNING] $targetPom does not exist. Abort."
     Print-Usage
     return
 }
 
 if (!(test-path $sourcePom))
 {
-	Write-Output "[addotherplugin.ps1] [WARNING] $sourcePom does not exist. Abort."
+    Write-Output "[addotherplugin.ps1] [WARNING] $sourcePom does not exist. Abort."
     Print-Usage
     return
 }
@@ -84,7 +84,14 @@ $otherPlugin = [Io.File]::ReadAllText($sourcePom)
 $tempPom = "$temp\$targetPom"
 
 Replace-VariableInFile $variable $otherPlugin $targetPom $tempPom
-Copy-Item $tempPom $targetPom -force
+
+#
+# enable "<scope>provided</scope>" to exclude run-time spark packages from uber package
+#
+$content = (Get-Content $tempPom)
+$content = $content -replace '<!--\s*<scope>provided</scope>\s*-->', '<scope>provided</scope>'
+
+$content | Out-File $targetPom -force
 
 Write-Output "[addotherplugin.ps1] updated $targetPom"
 
