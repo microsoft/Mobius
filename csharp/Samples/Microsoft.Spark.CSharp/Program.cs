@@ -44,6 +44,10 @@ namespace Microsoft.Spark.CSharp.Samples
                 //TODO - add instructions to terminate java process
                 SparkContext.Stop();
             }
+            if (Configuration.IsValidationEnabled)
+            {
+                Environment.Exit(1);
+            }
         }
 
         // Creates and returns a context
