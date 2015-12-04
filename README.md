@@ -169,6 +169,8 @@ For example, to debug SparkCLR samples:
 
 ## License
 
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/SparkCLR/blob/master/LICENSE)
+
 SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
 
 ## Contribution
