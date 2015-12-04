@@ -715,6 +715,68 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Distinct(), Times.Once());
         }
 
+        [Test]
+        public void TestForeachPartition()
+        {
+            // mock rddProxy
+            const int count = 4;
+            Mock<IRDDProxy> mockRddProxy = new Mock<IRDDProxy>();
+            mockRddProxy.Setup(rdd => rdd.Count()).Returns(count);
+
+            // mock sparkContextProxy
+            Mock<ISparkContextProxy> mockSparkContextProxy = new Mock<ISparkContextProxy>();
+            mockSparkContextProxy.Setup(ctx => ctx.CreateCSharpRdd(It.IsAny<IRDDProxy>(),
+                It.IsAny<byte[]>(),
+                null, null, It.IsAny<bool>(), null, null)).Returns(mockRddProxy.Object);
+
+            var sc = new SparkContext(null);
+            SetPrivatePropertyValue(sc, "SparkContextProxy", mockSparkContextProxy.Object);
+
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            SetPrivateFieldValue(dataFrame, "rdd", new RDD<Row>(mockRddProxy.Object, sc));
+
+            var f = new Action<IEnumerable<Row>>(iter => Console.WriteLine(iter.Count()));
+
+            dataFrame.ForeachPartition(f);
+
+            // assert
+            mockRddProxy.Verify(m => m.Count(), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateCSharpRdd(It.IsAny<IRDDProxy>(),
+                It.IsAny<byte[]>(),
+                null, null, It.IsAny<bool>(), null, null), Times.Once);
+        }
+
+        [Test]
+        public void TestForeach()
+        {
+            // mock rddProxy
+            const int count = 4;
+            Mock<IRDDProxy> mockRddProxy = new Mock<IRDDProxy>();
+            mockRddProxy.Setup(rdd => rdd.Count()).Returns(count);
+
+            // mock sparkContextProxy
+            Mock<ISparkContextProxy> mockSparkContextProxy = new Mock<ISparkContextProxy>();
+            mockSparkContextProxy.Setup(ctx => ctx.CreateCSharpRdd(It.IsAny<IRDDProxy>(),
+                It.IsAny<byte[]>(),
+                null, null, It.IsAny<bool>(), null, null)).Returns(mockRddProxy.Object);
+
+            var sc = new SparkContext(null);
+            SetPrivatePropertyValue(sc, "SparkContextProxy", mockSparkContextProxy.Object);
+
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            SetPrivateFieldValue(dataFrame, "rdd", new RDD<Row>(mockRddProxy.Object, sc));
+
+            var f = new Action<Row>(row => Console.WriteLine(row.ToString()));
+
+            dataFrame.Foreach(f);
+
+            // assert
+            mockRddProxy.Verify(m => m.Count(), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateCSharpRdd(It.IsAny<IRDDProxy>(),
+                It.IsAny<byte[]>(),
+                null, null, It.IsAny<bool>(), null, null), Times.Once);
+        }
+
         private static void AssertRow(Row row, int index)
         {
             Assert.IsNotNull(row);

@@ -730,10 +730,30 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Returns a new RDD by applying a function to each partition of this DataFrame.
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
-        // mapPartitions(self, f, preservesPartitioning=False):
+        // mapPartitions(self, f, preservesPartitioning=False)
         public RDD<U> MapPartitions<U>(Func<IEnumerable<Row>, IEnumerable<U>> f, bool preservesPartitioning = false)
         {
             return Rdd.MapPartitions(f, preservesPartitioning);
+        }
+
+        /// <summary>
+        /// Applies a function f to each partition of this DataFrame.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // foreachPartition(self, f)
+        public void ForeachPartition(Action<IEnumerable<Row>> f)
+        {
+            Rdd.ForeachPartition(f);
+        }
+
+        /// <summary>
+        /// Applies a function f to all rows.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // foreach(self, f)
+        public void Foreach(Action<Row> f)
+        {
+            Rdd.Foreach(f);
         }
     }
 

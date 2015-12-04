@@ -1049,5 +1049,25 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.AreEqual(dfCount, rddSum);
             }
         }
+
+        /// <summary>
+        /// ForeachPartition sample
+        /// </summary>
+        [Sample]
+        internal static void DFForeachPartitionSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.ForeachPartition(iter => { foreach (var row in iter) Console.WriteLine(row); });
+        }
+
+        /// <summary>
+        /// Foreach sample
+        /// </summary>
+        [Sample]
+        internal static void DFForeachSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.Foreach(row => { Console.WriteLine(row); });
+        }
     }
 }
