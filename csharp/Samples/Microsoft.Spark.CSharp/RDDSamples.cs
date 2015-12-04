@@ -313,7 +313,7 @@ namespace Microsoft.Spark.CSharp.Samples
                     dictionary[kvp.Key] = kvp.Value;
                 }
 
-                Assert.AreEqual(22, dictionary["the"]);
+                Assert.AreEqual(21, dictionary["the"]);
                 Assert.AreEqual(23, dictionary["The"]);
                 Assert.AreEqual(23, dictionary["dog"]);
 
