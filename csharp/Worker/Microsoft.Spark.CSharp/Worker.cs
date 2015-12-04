@@ -236,9 +236,11 @@ namespace Microsoft.Spark.CSharp
                         Environment.Exit(-1);
                     }
                     s.Flush();
+
                     // wait for server to complete, otherwise server gets 'connection reset' exception
-                    // TODO: need to detect java side has closed socket properly
-                    System.Threading.Thread.Sleep(1000);
+                    // User SerDe.ReadBytes() to detect java side has closed socket properly
+                    // ReadBytes() will block until the socket is closed
+                    SerDe.ReadBytes(s);
                 }
                 catch (Exception e)
                 {
