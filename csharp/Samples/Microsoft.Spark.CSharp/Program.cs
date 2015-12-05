@@ -26,16 +26,17 @@ namespace Microsoft.Spark.CSharp.Samples
             Configuration = CommandlineArgumentProcessor.ProcessArugments(args);
 
             PrintLogLocation();
+            bool status = true;
             if (Configuration.IsDryrun)
             {
-                SamplesRunner.RunSamples();
+                status = SamplesRunner.RunSamples();
             }
             else
             {
                 SparkContext = CreateSparkContext();
-                SparkContext.SetCheckpointDir(Path.GetTempPath()); 
+                SparkContext.SetCheckpointDir(Path.GetTempPath());
 
-                SamplesRunner.RunSamples();
+                status = SamplesRunner.RunSamples();
 
                 PrintLogLocation();
                 ConsoleWriteLine("Completed running samples. Calling SparkContext.Stop() to tear down ...");
@@ -43,6 +44,11 @@ namespace Microsoft.Spark.CSharp.Samples
                 ConsoleWriteLine("If this program (SparkCLRSamples.exe) does not terminate in 10 seconds, please manually terminate java process launched by this program!!!");
                 //TODO - add instructions to terminate java process
                 SparkContext.Stop();
+            }
+
+            if (Configuration.IsValidationEnabled && !status)
+            {
+                Environment.Exit(1);
             }
         }
 
