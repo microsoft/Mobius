@@ -22,7 +22,7 @@ namespace Microsoft.Spark.CSharp.Samples
         // track <SampleName, Category, SampleSucceeded, Duration> for reporting
         private static readonly List<Tuple<string, string, bool, TimeSpan>> samplesRunInfoList = new List<Tuple<string, string, bool, TimeSpan>>();
 
-        internal static void RunSamples()
+        internal static bool RunSamples()
         {
             var samples = Assembly.GetEntryAssembly().GetTypes()
                       .SelectMany(type => type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static))
@@ -42,7 +42,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 }
             }
             stopWatch.Stop();
-            ReportOutcome();
+            return ReportOutcome();
         }
 
         private static Tuple<string, string, bool, TimeSpan> RunSample(MethodInfo sample)
@@ -134,7 +134,7 @@ namespace Microsoft.Spark.CSharp.Samples
             return regex;
         }
 
-        private static void ReportOutcome()
+        private static bool ReportOutcome()
         {
             var succeededSamples = samplesRunInfoList.Where(x => x.Item3).ToList();
             var failedSamples = samplesRunInfoList.Where(x => !x.Item3).ToList();
@@ -168,6 +168,8 @@ namespace Microsoft.Spark.CSharp.Samples
                     SparkCLRSamples.WriteColorCodedConsoleMessage(ConsoleColor.Red, sampleResult);
                 }
             }
+
+            return failedSamples.Count == 0;
         }
     }
 }
