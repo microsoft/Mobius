@@ -115,6 +115,8 @@ In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set prope
 Runsamples.cmd  
 ```
 
+It is **required** to run [Build.cmd](./build.cmd) prior to running [Runsamples.cmd](./Runsamples.cmd).
+
 [Runsamples.cmd](./Runsamples.cmd) downloads Apache Spark 1.4.1, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](./build.cmd), and invokes [sparkclr-submit.cmd](./scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
 
 A few more [Runsamples.cmd](./Runsamples.cmd) examples:
@@ -168,6 +170,8 @@ For example, to debug SparkCLR samples:
 * Run `SparkCLRSamples.exe` in Visual Studio.
 
 ## License
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/SparkCLR/blob/master/LICENSE)
 
 SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
 
