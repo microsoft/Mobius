@@ -19,12 +19,12 @@ SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
 
-set SPARKCLR_HOME=%CMDHOME%\run
+set SPARKCLR_HOME="%CMDHOME%\run"
 @echo SPARKCLR_HOME=%SPARKCLR_HOME%
 
 if EXIST "%SPARKCLR_HOME%" (
     @echo Delete existing %SPARKCLR_HOME% ...
-    rd /s /q %SPARKCLR_HOME%
+    rd /s /q "%SPARKCLR_HOME%"
 )
 
 if NOT EXIST "%SPARKCLR_HOME%" mkdir "%SPARKCLR_HOME%"
@@ -105,5 +105,5 @@ popd
 @echo zip run directory
 pushd %~dp0
 if not exist ".\target" (mkdir .\target)
-powershell -f .\scripts\zipdir.ps1 -dir %SPARKCLR_HOME% -target ".\target\run.zip"
+powershell -f .\scripts\zipdir.ps1 -dir "%SPARKCLR_HOME%" -target ".\target\run.zip"
 popd

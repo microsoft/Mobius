@@ -5,10 +5,10 @@ if "%JAVA_HOME%" == "" goto :javahomeerror
 if "%SPARKCLR_HOME%" == "" goto :sparkclrhomeerror
 
 if "%SPARK_CONF_DIR%" == "" (
-	SET SPARK_CONF_DIR=%SPARK_HOME%\conf
+	SET SPARK_CONF_DIR="%SPARK_HOME%\conf"
 )
 
-call %SPARK_HOME%\bin\load-spark-env.cmd
+call "%SPARK_HOME%\bin\load-spark-env.cmd"
 
 rem Test that an argument was given
 if "x%1"=="x" (
@@ -17,7 +17,7 @@ if "x%1"=="x" (
 
 set ASSEMBLY_DIR=%SPARK_HOME%\lib
 
-for %%d in (%ASSEMBLY_DIR%\spark-assembly*hadoop*.jar) do (
+for %%d in ("%ASSEMBLY_DIR%"\spark-assembly*hadoop*.jar) do (
   set SPARK_ASSEMBLY_JAR=%%d
 )
 if "%SPARK_ASSEMBLY_JAR%"=="0" (
@@ -26,7 +26,7 @@ if "%SPARK_ASSEMBLY_JAR%"=="0" (
 )
 
 set SPARKCLR_JAR=spark-clr-1.4.1-SNAPSHOT.jar
-set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
+set SPARKCLR_CLASSPATH="%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%"
 if not "%SPARKCSV_JARS%" == "" (
     SET SPARKCLR_CLASSPATH=%SPARKCLR_CLASSPATH%;%SPARKCSV_JARS%
 )
@@ -38,7 +38,7 @@ if "%1"=="debug" (
 
 rem The launcher library prints the arguments to be submitted to spark-submit.cmd. So read all the output of the launcher into a variable.
 set LAUNCHER_OUTPUT=%temp%\spark-class-launcher-output-%RANDOM%.txt
-%JAVA_HOME%\bin\java -cp %LAUNCH_CLASSPATH% org.apache.spark.launcher.SparkCLRSubmitArguments %* > %LAUNCHER_OUTPUT%
+"%JAVA_HOME%\bin\java" -cp %LAUNCH_CLASSPATH% org.apache.spark.launcher.SparkCLRSubmitArguments %* > %LAUNCHER_OUTPUT%
 
 if %ERRORLEVEL% NEQ 0 (
    goto :eof
@@ -57,7 +57,7 @@ REM launches the Spark job with Spark-Submit.cmd
 goto :eof
 
 :debugmode
-%JAVA_HOME%\bin\java -cp %LAUNCH_CLASSPATH% org.apache.spark.deploy.csharp.CSharpRunner debug
+"%JAVA_HOME%\bin\java" -cp %LAUNCH_CLASSPATH% org.apache.spark.deploy.csharp.CSharpRunner debug
 goto :eof
 
 :sparkhomeerror
