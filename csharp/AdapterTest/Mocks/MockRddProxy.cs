@@ -25,15 +25,6 @@ namespace AdapterTest.Mocks
 
         internal object[] mockRddReference;
         
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Validate()
-        {
-            StackTrace stackTrace = new StackTrace();
-            StackFrame[] stackFrames = stackTrace.GetFrames();
-            
-            Assert.AreEqual(stackFrames[1].GetMethod().Name, stackFrames[2].GetMethod().Name, "Wrong proxy called");
-        }
-
         public MockRddProxy(object[] parameterCollection)
         {
             mockRddReference = parameterCollection;
@@ -47,7 +38,6 @@ namespace AdapterTest.Mocks
 
         public long Count()
         {
-            Validate();
             return result.Count();
         }
 
@@ -70,18 +60,13 @@ namespace AdapterTest.Mocks
         }
 
         public void Cache()
-        {
-            Validate();
-        }
+        { }
 
         public void Unpersist()
-        {
-            Validate();
-        }
+        { }
 
         public void Checkpoint()
         {
-            Validate();
             isCheckpointed = true; ;
         }
 
@@ -93,126 +78,97 @@ namespace AdapterTest.Mocks
 
         public string GetCheckpointFile()
         {
-            Validate();
             return null;
         }
 
         public int GetNumPartitions()
         {
-            Validate();
             return 1;
         }
 
         public IRDDProxy Sample(bool withReplacement, double fraction, long seed)
         {
-            Validate();
             return this;
         }
 
         public IRDDProxy[] RandomSplit(double[] weights, long seed)
         {
-            Validate();
             return new IRDDProxy[] { this };
         }
 
         public IRDDProxy Cartesian(IRDDProxy other)
         {
-            Validate();
             return this;
         }
 
         public IRDDProxy Pipe(string command)
         {
-            Validate();
             return this;
         }
 
         public IRDDProxy Repartition(int numPartitions)
         {
-            Validate();
             return this;
         }
 
         public IRDDProxy RandomSampleWithRange(double lb, double ub, long seed)
         {
-            Validate();
             return this;
         }
 
         public string Name
         {
-            get { Validate(); return null; }
+            get { return null; }
         }
 
         public void SetName(string name)
-        {
-            Validate();
-        }
+        {}
 
         public IRDDProxy Coalesce(int numPartitions, bool shuffle)
         {
-            Validate();
             return this;
         }
 
         public IRDDProxy SampleByKey(bool withReplacement, Dictionary<string, double> fractions, long seed)
         {
-            Validate();
             return this;
         }
 
         public IRDDProxy Zip(IRDDProxy other)
         {
-            Validate();
             return this;
         }
 
         public string ToDebugString()
         {
-            Validate();
             return null;
         }
 
         public void SaveAsNewAPIHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
-        {
-            Validate();
-        }
+        { }
 
         public void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf)
-        {
-            Validate();
-        }
+        { }
 
         public void SaveAsHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
-        {
-            Validate();
-        }
+        { }
 
         public void SaveAsSequenceFile(string path, string compressionCodecClass)
-        {
-            Validate();
-        }
+        { }
 
         public void SaveAsTextFile(string path, string compressionCodecClass)
-        {
-            Validate();
-        }
+        { }
 
 
         public void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
-        {
-            Validate();
-        }
+        { }
 
 
         public void Persist(StorageLevelType storageLevelType)
-        {
-            Validate();
-        }
+        { }
 
         public StorageLevel GetStorageLevel()
         {
-            Validate();
             return null;
         }
     }

@@ -28,29 +28,6 @@ namespace AdapterTest
         }
 
         [Test]
-        public void TestRddProxy()
-        {
-            words.Cache();
-            words.Persist(StorageLevelType.MEMORY_AND_DISK_SER_2);
-            words.Unpersist();
-            words.Checkpoint();
-            words.GetNumPartitions();
-            words.Sample(false, 0.0, 0L);
-            words.RandomSplit(null, 0L);
-            words.Union(words);
-            words.Cartesian(words);
-            words.Pipe(null);
-            words.Repartition(1);
-            words.Coalesce(1, false);
-            words.SetName(null);
-            words.RandomSampleWithRange(0.0, 0.0, 0L);
-            words.Zip(words);
-            words.ToDebugString();
-            words.Count();
-            words.SaveAsTextFile(null);
-        }
-
-        [Test]
         public void TestRddCountByValue()
         {
             foreach (var record in words.CountByValue())

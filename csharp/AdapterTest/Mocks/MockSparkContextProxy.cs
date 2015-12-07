@@ -27,24 +27,13 @@ namespace AdapterTest.Mocks
 
         internal object mockSparkContextReference;
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Validate()
-        {
-            StackTrace stackTrace = new StackTrace();
-            StackFrame[] stackFrames = stackTrace.GetFrames();
-
-            Assert.AreEqual(stackFrames[1].GetMethod().Name, stackFrames[2].GetMethod().Name, "Wrong proxy called");
-        }
-
         public MockSparkContextProxy(ISparkConfProxy conf)
         {
             mockSparkContextReference = new object[] { conf };
         }
 
         public void AddFile(string filePath)
-        {
-            Validate();
-        }
+        {}
 
         public IRDDProxy TextFile(string filePath, int minPartitions)
         {
@@ -53,7 +42,6 @@ namespace AdapterTest.Mocks
 
         public void Stop()
         {
-            Validate();
             mockSparkContextReference = null;
         }
 
@@ -98,9 +86,7 @@ namespace AdapterTest.Mocks
 
 
         public void SetLogLevel(string logLevel)
-        {
-            Validate();
-        }
+        {}
 
         public string Version
         {
@@ -124,82 +110,65 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy EmptyRDD()
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy WholeTextFiles(string filePath, int minPartitions)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy BinaryFiles(string filePath, int minPartitions)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy SequenceFile(string filePath, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, int minSplits, int batchSize)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy CheckpointFile(string filePath)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public IRDDProxy Union(IEnumerable<IRDDProxy> rdds)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
         public void SetCheckpointDir(string directory)
-        {
-            Validate();
-        }
+        { }
 
         public void SetJobGroup(string groupId, string description, bool interruptOnCancel)
-        {
-            Validate();
-        }
+        { }
 
         public void SetLocalProperty(string key, string value)
-        {
-            Validate();
-        }
+        { }
 
         public string GetLocalProperty(string key)
         {
-            Validate();
             return null;
         }
 
@@ -209,14 +178,10 @@ namespace AdapterTest.Mocks
         }
 
         public void CancelJobGroup(string groupId)
-        {
-            Validate();
-        }
+        { }
 
         public void CancelAllJobs()
-        {
-            Validate();
-        }
+        { }
 
         public IUDFProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType)
         {
@@ -305,7 +270,6 @@ namespace AdapterTest.Mocks
 
         public IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices)
         {
-            Validate();
             return new MockRddProxy(null);
         }
 
