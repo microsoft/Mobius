@@ -13,7 +13,7 @@ namespace AdapterTest
     {
         private static RDD<KeyValuePair<string, int>> pairs;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public static void Initialize()
         {
             var sparkContext = new SparkContext(null);
