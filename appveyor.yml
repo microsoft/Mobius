@@ -7,10 +7,6 @@ build_script:
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: Build.cmd
 
-test:
-  assemblies:
-    - csharp\AdapterTest\bin\Debug\AdapterTest.dll
-
 # scripts to run after tests
 after_test:
   - cmd: Runsamples.cmd --validate
