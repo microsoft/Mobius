@@ -187,6 +187,31 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
+        /// Selects a set of columns specified by column name or Column.
+        /// 
+        /// df.Select("colA", df["colB"])
+        /// df.Select("*", df["colB"] + 10)
+        /// 
+        /// </summary>
+        /// <param name="firstColumn">first column - required, must be of type string or Column</param>
+        /// <param name="otherColumns">other column - optional, must be of type string or Column</param>
+        /// <returns></returns>
+        public DataFrame Select(object firstColumn, params object[] otherColumns)
+        {
+            var originalColumns = new List<object> { firstColumn };
+            originalColumns.AddRange(otherColumns);
+            var invalidColumn = originalColumns.FirstOrDefault(c => !(c is string || c is Column));
+            if (invalidColumn != null)
+            {
+                throw new ArgumentException(string.Format("one or more parameter is not string or Column: {0}", invalidColumn));
+            }
+
+            var columns = originalColumns.Select(oc => oc is string ? Functions.Col((string)oc) : (Column)oc);
+
+            return new DataFrame(dataFrameProxy.Select(columns.Select(c => c.ColumnProxy)), sparkContext);
+        }
+
+        /// <summary>
         /// Selects a set of columns. This is a variant of `select` that can only select
         /// existing columns using column names (i.e. cannot construct expressions).
         /// 
@@ -574,12 +599,101 @@ namespace Microsoft.Spark.CSharp.Sql
 
         /// <summary>
         /// Returns a new DataFrame with an alias set.
-        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, alias(self, alias) </summary>
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, alias(self, alias) 
+        /// </summary>
         /// <param name="alias">The alias of the DataFrame</param>
         /// <returns>A new DataFrame with an alias set</returns>
         public DataFrame Alias(string alias)
         {
             return new DataFrame(dataFrameProxy.Alias(alias), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame by adding a column.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, withColumn(self, colName, col)
+        /// </summary>
+        /// <param name="newColName">name of the new column</param>
+        /// <param name="column">a Column expression for the new column</param>
+        /// <returns>A new DataFrame with the added column</returns>
+        public DataFrame WithColumn(string newColName, Column column)
+        {
+            return Select("*", column.Alias(newColName));
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame by renaming an existing column.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, withColumnRenamed(self, existing, new)
+        /// </summary>
+        /// <param name="existingName">name of an existing column</param>
+        /// <param name="newName">new name</param>
+        /// <returns>A new DataFrame with renamed column</returns>
+        public DataFrame WithColumnRenamed(string existingName, string newName)
+        {
+            var columns = new List<Column>();
+            foreach (var col in Columns())
+            {
+                columns.Add(col == existingName ? this[existingName].Alias(newName) : this[col]);
+            }
+            // select columns including the column renamed
+            return Select(columns[0], columns.Skip(1).ToArray());
+        }
+
+        /// <summary>
+        /// Calculates the correlation of two columns of a DataFrame as a double value.
+        /// Currently only supports the Pearson Correlation Coefficient.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, corr(self, col1, col2, method=None)
+        /// </summary>
+        /// <param name="column1">The name of the first column</param>
+        /// <param name="column2">The name of the second column</param>
+        /// <param name="method">The correlation method. Currently only supports "pearson"</param>
+        /// <returns>The correlation of two columns</returns>
+        public double Corr(string column1, string column2, string method = "pearson")
+        {
+            if (!method.Equals("pearson", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Currently only the calculation of the Pearson Correlation coefficient is supported.");
+
+            return dataFrameProxy.Corr(column1, column2, method);
+        }
+
+        /// <summary>
+        /// Calculate the sample covariance of two columns as a double value.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, cov(self, col1, col2)
+        /// </summary>
+        /// <param name="column1">The name of the first column</param>
+        /// <param name="column2">The name of the second column</param>
+        /// <returns>The sample covariance of two columns</returns>
+        public double Cov(string column1, string column2)
+        {
+            return dataFrameProxy.Cov(column1, column2);
+        }
+
+        /// <summary>
+        /// Finding frequent items for columns, possibly with false positives. Using the frequent element count algorithm described in 
+        /// "http://dx.doi.org/10.1145/762471.762473, proposed by Karp, Schenker, and Papadimitriou".
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, freqItems(self, cols, support=None)
+        /// 
+        /// <alert class="note">Note: This function is meant for exploratory data analysis, as we make no guarantee about the backward compatibility 
+        /// of the schema of the resulting DataFrame. </alert>
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <param name="support"></param>
+        /// <returns></returns>
+        public DataFrame FreqItems(IEnumerable<string> columns, double support = 0.01)
+        {
+            return new DataFrame(dataFrameProxy.FreqItems(columns, support), sparkContext);
+        }
+
+        /// <summary>
+        /// Computes a pair-wise frequency table of the given columns. Also known as a contingency table.
+        /// The number of distinct values for each column should be less than 1e4. At most 1e6 non-zero pair frequencies will be returned.
+        /// Reference to https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, crosstab(self, col1, col2)
+        /// </summary>
+        /// <param name="column1">The name of the first column. Distinct items will make the first item of each row</param>
+        /// <param name="column2">The name of the second column. Distinct items will make the column names of the DataFrame</param>
+        /// <returns>A pair-wise frequency table of the given columns</returns>
+        public DataFrame Crosstab(string column1, string column2)
+        {
+            return new DataFrame(dataFrameProxy.Crosstab(column1, column2), sparkContext);
         }
 
         /// <summary>
@@ -643,7 +757,7 @@ namespace Microsoft.Spark.CSharp.Sql
             }
             return new DataFrame(dataFrameProxy.Replace(subsetObj, toReplaceAndValue), sparkContext);
         }
-
+		
         /// <summary>
         /// Returns a new DataFrame that has exactly `numPartitions` partitions.
         /// Similar to coalesce defined on an RDD, this operation results in a narrow dependency, 
