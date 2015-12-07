@@ -238,7 +238,7 @@ namespace Microsoft.Spark.CSharp
                     s.Flush();
 
                     // wait for server to complete, otherwise server gets 'connection reset' exception
-                    // User SerDe.ReadBytes() to detect java side has closed socket properly
+                    // Use SerDe.ReadBytes() to detect java side has closed socket properly
                     // ReadBytes() will block until the socket is closed
                     SerDe.ReadBytes(s);
                 }

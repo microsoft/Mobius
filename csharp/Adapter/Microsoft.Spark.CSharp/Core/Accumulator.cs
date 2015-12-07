@@ -187,7 +187,6 @@ namespace Microsoft.Spark.CSharp.Core
                             }
                             ns.WriteByte((byte)1);  // acknowledge byte other than -1
                             ns.Flush();
-                            Thread.Sleep(1000);
                         }
                     }
                 }
