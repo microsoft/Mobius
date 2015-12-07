@@ -90,7 +90,8 @@ object CSharpRunner {
 
     if (initialized.tryAcquire(backendTimeout, TimeUnit.SECONDS)) {
       if (!runInDebugMode) {
-        val returnCode = try {
+        var returnCode = -1
+        try {
           val builder = new ProcessBuilder(processParameters)
           val env = builder.environment()
           env.put("CSHARPBACKEND_PORT", csharpBackendPortNumber.toString)
@@ -104,7 +105,7 @@ object CSharpRunner {
 
           new RedirectThread(process.getInputStream, System.out, "redirect CSharp output").start()
 
-          process.waitFor()
+          returnCode = process.waitFor()
         } catch {
           case e: Exception => println("[CSharpRunner.main]" + e.getMessage + "\n" + e.getStackTrace)
         }
@@ -112,7 +113,7 @@ object CSharpRunner {
           closeBackend(csharpBackend)
         }
         println("[CSharpRunner.main] Return CSharpBackend code " + returnCode)
-        System.exit(returnCode.toString.toInt)
+        System.exit(returnCode)
       } else {
         println("***********************************************************************")
         println("* [CSharpRunner.main] Backend running debug mode. Press enter to exit *")
