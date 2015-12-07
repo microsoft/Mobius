@@ -38,6 +38,13 @@ namespace AdapterTest
             mockDataFrameProxy.Reset();
         }
 
+        [TearDown]
+        public void TestCleanUp()
+        {
+            // Revert to use Static mock class to prevent blocking other test methods which uses static mock class
+            SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();
+        }
+
         [Test]
         public void TestDataFrameJoin()
         {
