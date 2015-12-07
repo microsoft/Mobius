@@ -99,6 +99,11 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+        public IDataFrameProxy Select(IEnumerable<IColumnProxy> columns)
+        {
+            throw new NotImplementedException();
+        }
+
         public IDataFrameProxy SelectExpr(string[] columnExpressions)
         {
             throw new NotImplementedException();
@@ -176,6 +181,26 @@ namespace AdapterTest.Mocks
         }
 
         public IDataFrameProxy Sort(IColumnProxy[] columns)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double Corr(string column1, string column2, string method)
+        {
+            throw new NotImplementedException();
+        }
+
+        public double Cov(string column1, string column2)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy FreqItems(IEnumerable<string> columns, double support)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Crosstab(string column1, string column2)
         {
             throw new NotImplementedException();
         }

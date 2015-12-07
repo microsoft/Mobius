@@ -20,6 +20,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IRDDProxy ToRDD();
         IColumnProxy GetColumn(string columnName);
         IDataFrameProxy Select(string columnName, string[] columnNames);
+        IDataFrameProxy Select(IEnumerable<IColumnProxy> columns);
         IDataFrameProxy SelectExpr(string[] columnExpressions);
         IDataFrameProxy Filter(string condition);
         IGroupedDataProxy GroupBy(string firstColumnName, string[] otherColumnNames);
@@ -39,6 +40,10 @@ namespace Microsoft.Spark.CSharp.Proxy
         IEnumerable<IDataFrameProxy> RandomSplit(IEnumerable<double> weights, long? seed);
         IDataFrameProxy Sort(IColumnProxy[] columns);
         IDataFrameProxy Alias(string alias);
+        double Corr(string column1, string column2, string method);
+        double Cov(string column1, string column2);
+        IDataFrameProxy FreqItems(IEnumerable<string> columns, double support);
+        IDataFrameProxy Crosstab(string column1, string column2);
         IDataFrameProxy Limit(int num);
         IDataFrameProxy Distinct();
         IDataFrameProxy Coalesce(int numPartitions);
@@ -59,6 +64,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IColumnProxy UnaryOp(string name);
         IColumnProxy FuncOp(string name);
         IColumnProxy BinOp(string name, object other);
+        IColumnProxy InvokeMethod(string methodName, params object[] parameters);
     }
 
     internal interface IGroupedDataProxy

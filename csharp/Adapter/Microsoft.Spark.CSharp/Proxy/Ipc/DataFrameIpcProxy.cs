@@ -16,12 +16,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         private readonly ISqlContextProxy sqlContextProxy;
 
         private readonly DataFrameNaFunctions na;
+        private readonly DataFrameStatFunctions stat;
 
         internal DataFrameIpcProxy(JvmObjectReference jvmDataFrameReference, ISqlContextProxy sqlProxy)
         {
             this.jvmDataFrameReference = jvmDataFrameReference;
             sqlContextProxy = sqlProxy;
             na = new DataFrameNaFunctions(jvmDataFrameReference);
+            stat = new DataFrameStatFunctions(jvmDataFrameReference);
         }
 
         public void RegisterTempTable(string tableName)
@@ -131,6 +133,16 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 "select",
                 parameters)),
                 sqlContextProxy);
+        }
+
+        public IDataFrameProxy Select(IEnumerable<IColumnProxy> columns)
+        {
+            var columnsSeq = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
+                        "toSeq", new object[] { columns.Select(c => (c as ColumnIpcProxy).ScalaColumnReference).ToArray() }));
+
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "select", columnsSeq).ToString()), sqlContextProxy);
+        
         }
 
         public IDataFrameProxy SelectExpr(string[] columnExpressions)
@@ -304,7 +316,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return
                 new DataFrameIpcProxy(new JvmObjectReference(
                     SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        na.DataFrameNaReference, "drop",
+                        na.JvmReference, "drop",
                         new object[] { thresh, subset }).ToString()), sqlContextProxy);
         }
 
@@ -343,7 +355,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return
                 new DataFrameIpcProxy(new JvmObjectReference(
                     SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        na.DataFrameNaReference, "replace",
+                        na.JvmReference, "replace",
                         new object[] { subset, toReplaceAndValueDict }).ToString()), sqlContextProxy);
         }
 
@@ -383,6 +395,53 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         jvmDataFrameReference, "as", alias).ToString()), sqlContextProxy);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrameStatFunctions.scala, corr(col1: String, col2: String, method: String): Double
+        /// </summary>
+        /// <param name="column1"></param>
+        /// <param name="column2"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        public double Corr(string column1, string column2, string method)
+        {
+            return (double)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(stat.JvmReference, "corr", column1, column2, method);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrameStatFunctions.scala, cov(col1: String, col2: String): Double
+        /// </summary>
+        /// <param name="column1"></param>
+        /// <param name="column2"></param>
+        /// <returns></returns>
+        public double Cov(string column1, string column2)
+        {
+            return (double)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(stat.JvmReference, "cov", column1, column2);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrameStatFunctions.scala, freqItems(cols: Array[String], support: Double)
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <param name="support"></param>
+        /// <returns></returns>
+        public IDataFrameProxy FreqItems(IEnumerable<string> columns, double support)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                stat.JvmReference, "freqItems", new object[] {columns.ToArray(), support}).ToString()), sqlContextProxy);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrameStatFunctions.scala, crosstab(col1: String, col2: String): DataFrame
+        /// </summary>
+        /// <param name="column1"></param>
+        /// <param name="column2"></param>
+        /// <returns></returns>
+        public IDataFrameProxy Crosstab(string column1, string column2)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                stat.JvmReference, "crosstab", column1, column2).ToString()), sqlContextProxy);
         }
 
         public IDataFrameProxy Limit(int num)
@@ -496,6 +555,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 other = (other as ColumnIpcProxy).scalaColumnReference;
             return new ColumnIpcProxy(new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaColumnReference, name, other)));
         }
+
+        public IColumnProxy InvokeMethod(string methodName, params object[] parameters)
+        {
+            return new ColumnIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaColumnReference, methodName, parameters.ToArray())));
+        }
     }
 
     internal class GroupedDataIpcProxy : IGroupedDataProxy
@@ -516,12 +580,29 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             this.dataFrameProxy = dataFrameProxy;
         }
-        public JvmObjectReference DataFrameNaReference
+        public JvmObjectReference JvmReference
         {
             get
             {
                 return new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                     this.dataFrameProxy, "na"));
+            }
+        }
+    }
+
+    internal class DataFrameStatFunctions
+    {
+        private readonly JvmObjectReference dataFrameProxy;
+        public DataFrameStatFunctions(JvmObjectReference dataFrameProxy)
+        {
+            this.dataFrameProxy = dataFrameProxy;
+        }
+        public JvmObjectReference JvmReference
+        {
+            get
+            {
+                return new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                    this.dataFrameProxy, "stat"));
             }
         }
     }
