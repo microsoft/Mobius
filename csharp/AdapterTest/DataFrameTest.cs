@@ -25,7 +25,7 @@ namespace AdapterTest
 
         private static Mock<IDataFrameProxy> mockDataFrameProxy;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public static void ClassInitialize()
         {
             mockDataFrameProxy = new Mock<IDataFrameProxy>();
