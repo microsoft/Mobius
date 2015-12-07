@@ -175,5 +175,15 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             return new Column(columnProxy.UnaryOp("desc"));
         }
+
+        public Column Alias(string alias)
+        {
+            return new Column(columnProxy.InvokeMethod("as", alias));
+        }
+
+        public Column Alias(string[] aliases)
+        {
+            return new Column(columnProxy.InvokeMethod("as", new object[] { aliases }));
+        }
     }
 }

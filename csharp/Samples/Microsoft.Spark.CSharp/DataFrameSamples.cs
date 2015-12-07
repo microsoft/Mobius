@@ -524,6 +524,7 @@ namespace Microsoft.Spark.CSharp.Samples
         /// <summary>
         /// Sample to perform Alias on DataFrame
         /// </summary>
+        [Sample]
         internal static void DFAliasSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
@@ -542,6 +543,138 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.IsTrue(sortedDF.Count(row => row.GetAs<string>("name") == "Bill" && row.GetAs<int>("age") == 43) == 2);
                 Assert.IsTrue(sortedDF.Count(row => row.GetAs<string>("name") == "Steve" && row.GetAs<int>("age") == 14) == 1);
                 Assert.IsTrue(sortedDF.Count(row => row.GetAs<string>("name") == "Satya" && row.GetAs<int>("age") == 46) == 1);
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Select on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFSelectSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var projected = peopleDataFrame.Select(peopleDataFrame["name"], "age");
+
+            projected.Show();
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var columns = projected.Columns().ToArray();
+                Assert.AreEqual(2, columns.Length);
+                Assert.IsTrue(columns.Contains("name"));
+                Assert.IsTrue(columns.Contains("age"));
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform WithColumn on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFWithColumnSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var dfWithNewColumn = peopleDataFrame.WithColumn("age2", peopleDataFrame["age"] + 10);
+
+            dfWithNewColumn.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                foreach (var row in dfWithNewColumn.Collect())
+                {
+                    Assert.AreEqual(row.GetAs<int>("age") + 10, row.GetAs<int>("age2"));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform WithColumnRenamed on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFWithColumnRenamedSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var dfWithNewColumnName = peopleDataFrame.WithColumnRenamed("age", "age2");
+
+            dfWithNewColumnName.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var columns = dfWithNewColumnName.Columns().ToArray();
+                Assert.IsTrue(columns.Contains("age2"));
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Corr on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFCorrSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            double corr = peopleDataFrame.Corr("age", "age");
+            Console.WriteLine("Corr of column age and age is " + corr);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(1.0, corr);
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Cov on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFCovSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            double cov = peopleDataFrame.Cov("age", "age");
+            Console.WriteLine("Cov of column age and age is " + cov);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(208.25, cov);
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Cov on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFFreqItemsSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            var collected = peopleDataFrame.Collect().ToArray();
+            var address = collected[0].Get("address");
+
+            DataFrame freqItems = peopleDataFrame.FreqItems(new []{"name"}, 0.4);
+            freqItems.Show();
+
+            // TODO(guwang): add assertion
+            //if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            //{
+            //    var collected = freqItems.Collect();
+            //    var row = collected.ToArray()[0];
+            //}
+        }
+
+        /// <summary>
+        /// Sample to perform Crosstab on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFCrosstabSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            DataFrame crosstab = peopleDataFrame.Crosstab("name", "age");
+            crosstab.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collectedCrosstab = crosstab.Collect();
+                CollectionAssert.AreEquivalent(new[] { "name_age", "14", "46", "34", "43" }, crosstab.Columns().ToArray());
+                CollectionAssert.AreEquivalent(new[] { "Bill", "Satya", "Steve"}, collectedCrosstab.Select(row => row.GetAs<string>("name_age")).ToArray());
             }
         }
 
