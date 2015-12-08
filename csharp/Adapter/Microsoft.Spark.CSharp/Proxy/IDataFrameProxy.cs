@@ -25,6 +25,9 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Filter(string condition);
         IGroupedDataProxy GroupBy(string firstColumnName, string[] otherColumnNames);
         IGroupedDataProxy GroupBy();
+        IGroupedDataProxy Rollup(string firstColumnName, string[] otherColumnNames);
+        IGroupedDataProxy Cube(string firstColumnName, string[] otherColumnNames);
+
         IDataFrameProxy Agg(IGroupedDataProxy scalaGroupedDataReference, Dictionary<string, string> columnNameAggFunctionDictionary);
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string joinColumnName);
         IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string[] joinColumnNames);
@@ -44,6 +47,8 @@ namespace Microsoft.Spark.CSharp.Proxy
         double Cov(string column1, string column2);
         IDataFrameProxy FreqItems(IEnumerable<string> columns, double support);
         IDataFrameProxy Crosstab(string column1, string column2);
+        IDataFrameProxy Describe(string[] columns);
+
         IDataFrameProxy Limit(int num);
         IDataFrameProxy Distinct();
         IDataFrameProxy Coalesce(int numPartitions);
@@ -69,5 +74,11 @@ namespace Microsoft.Spark.CSharp.Proxy
 
     internal interface IGroupedDataProxy
     {
+        IDataFrameProxy Count();
+        IDataFrameProxy Mean(params string[] columns);
+        IDataFrameProxy Max(params string[] columns);
+        IDataFrameProxy Min(params string[] columns);
+        IDataFrameProxy Avg(params string[] columns);
+        IDataFrameProxy Sum(params string[] columns);
     }
 }

@@ -1064,6 +1064,190 @@ namespace AdapterTest
                 cols => cols.Count() == 1 && cols.Any(c => c == column1)), 0.01)); // assert FreqItems was invoked with correct parameters
             Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
         }
+
+        [Test]
+        public void TestDescribe()
+        {
+            // Arrange
+            const string column1 = "age";
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Describe(It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.Describe(column1);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Describe(It.Is<string[]>(
+                cols => cols.Count() == 1 && cols.Any(c => c == column1)))); // assert Describe was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestRollup()
+        {
+            // Arrange
+            const string column1 = "age";
+            var expectedResultGroupedDataProxy = new Mock<IGroupedDataProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Rollup(It.IsAny<string>(), It.IsAny<string[]>())).Returns(expectedResultGroupedDataProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.Rollup(column1);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Rollup(column1, new string[0])); // assert Rollup was invoked with correct parameters
+            Assert.AreEqual(expectedResultGroupedDataProxy, actualResult.GroupedDataProxy);
+        }
+
+        [Test]
+        public void TestCube()
+        {
+            // Arrange
+            const string column1 = "age";
+            var expectedResultGroupedDataProxy = new Mock<IGroupedDataProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Cube(It.IsAny<string>(), It.IsAny<string[]>())).Returns(expectedResultGroupedDataProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.Cube(column1);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Cube(column1, new string[0])); // assert Cube was invoked with correct parameters
+            Assert.AreEqual(expectedResultGroupedDataProxy, actualResult.GroupedDataProxy);
+        }
+
+        #region GroupedDataTest
+
+        [Test]
+        public void TestCount()
+        {
+            // Arrange
+            const string column1 = "age";
+            var mockGroupedDataProxy = new Mock<IGroupedDataProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockGroupedDataProxy.Setup(m => m.Count()).Returns(expectedResultDataFrameProxy);
+            mockDataFrameProxy.Setup(m => m.GroupBy(It.IsAny<string>(), It.IsAny<string[]>())).Returns(mockGroupedDataProxy.Object);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.GroupBy(column1).Count();
+
+            // Assert
+            mockGroupedDataProxy.Verify(m => m.Count()); // assert Count was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestMean()
+        {
+            // Arrange
+            const string column1 = "name";
+            const string columnMean = "age";
+            var mockGroupedDataProxy = new Mock<IGroupedDataProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockGroupedDataProxy.Setup(m => m.Mean(columnMean)).Returns(expectedResultDataFrameProxy);
+            mockDataFrameProxy.Setup(m => m.GroupBy(It.IsAny<string>(), It.IsAny<string[]>())).Returns(mockGroupedDataProxy.Object);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.GroupBy(column1).Mean(columnMean);
+
+            // Assert
+            mockGroupedDataProxy.Verify(m => m.Mean(columnMean)); // assert Count was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestMax()
+        {
+            // Arrange
+            const string column1 = "name";
+            const string columnMean = "age";
+            var mockGroupedDataProxy = new Mock<IGroupedDataProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockGroupedDataProxy.Setup(m => m.Max(columnMean)).Returns(expectedResultDataFrameProxy);
+            mockDataFrameProxy.Setup(m => m.GroupBy(It.IsAny<string>(), It.IsAny<string[]>())).Returns(mockGroupedDataProxy.Object);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.GroupBy(column1).Max(columnMean);
+
+            // Assert
+            mockGroupedDataProxy.Verify(m => m.Max(columnMean)); // assert Count was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestMin()
+        {
+            // Arrange
+            const string column1 = "name";
+            const string columnMean = "age";
+            var mockGroupedDataProxy = new Mock<IGroupedDataProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockGroupedDataProxy.Setup(m => m.Min(columnMean)).Returns(expectedResultDataFrameProxy);
+            mockDataFrameProxy.Setup(m => m.GroupBy(It.IsAny<string>(), It.IsAny<string[]>())).Returns(mockGroupedDataProxy.Object);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.GroupBy(column1).Min(columnMean);
+
+            // Assert
+            mockGroupedDataProxy.Verify(m => m.Min(columnMean)); // assert Count was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestAvg()
+        {
+            // Arrange
+            const string column1 = "name";
+            const string columnMean = "age";
+            var mockGroupedDataProxy = new Mock<IGroupedDataProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockGroupedDataProxy.Setup(m => m.Avg(columnMean)).Returns(expectedResultDataFrameProxy);
+            mockDataFrameProxy.Setup(m => m.GroupBy(It.IsAny<string>(), It.IsAny<string[]>())).Returns(mockGroupedDataProxy.Object);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.GroupBy(column1).Avg(columnMean);
+
+            // Assert
+            mockGroupedDataProxy.Verify(m => m.Avg(columnMean)); // assert Count was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestSum()
+        {
+            // Arrange
+            const string column1 = "name";
+            const string columnMean = "age";
+            var mockGroupedDataProxy = new Mock<IGroupedDataProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockGroupedDataProxy.Setup(m => m.Sum(columnMean)).Returns(expectedResultDataFrameProxy);
+            mockDataFrameProxy.Setup(m => m.GroupBy(It.IsAny<string>(), It.IsAny<string[]>())).Returns(mockGroupedDataProxy.Object);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.GroupBy(column1).Sum(columnMean);
+
+            // Assert
+            mockGroupedDataProxy.Verify(m => m.Sum(columnMean)); // assert Count was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
+
+        #endregion
     }
 
 }
