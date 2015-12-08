@@ -176,7 +176,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         { 
                             firstColumnName, 
                             new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", new object[] { otherColumnNames })) 
-                        })));
+                        })), sqlContextProxy);
         }
 
         public IGroupedDataProxy GroupBy()
@@ -189,7 +189,33 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         { 
                             new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils","toSeq", 
                                 new object[] {new JvmObjectReference[0]}))
-                        })));
+                        })), sqlContextProxy);
+        }
+
+        public IGroupedDataProxy Rollup(string firstColumnName, string[] otherColumnNames)
+        {
+            return
+                new GroupedDataIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference,
+                        "rollup",
+                        new object[] 
+                        { 
+                            firstColumnName, 
+                            new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", new object[] { otherColumnNames })) 
+                        })), sqlContextProxy);
+        }
+
+        public IGroupedDataProxy Cube(string firstColumnName, string[] otherColumnNames)
+        {
+            return
+                new GroupedDataIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference,
+                        "cube",
+                        new object[] 
+                        { 
+                            firstColumnName, 
+                            new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", new object[] { otherColumnNames })) 
+                        })), sqlContextProxy);
         }
 
         public IDataFrameProxy Agg(IGroupedDataProxy scalaGroupedDataReference, Dictionary<string, string> columnNameAggFunctionDictionary)
@@ -444,6 +470,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 stat.JvmReference, "crosstab", column1, column2).ToString()), sqlContextProxy);
         }
 
+        public IDataFrameProxy Describe(string[] columns)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                jvmDataFrameReference, "describe", new object[] { columns }).ToString()), sqlContextProxy);
+        }
+
         public IDataFrameProxy Limit(int num)
         {
             return
@@ -566,10 +598,46 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     {
         private readonly JvmObjectReference scalaGroupedDataReference;
         internal JvmObjectReference ScalaGroupedDataReference { get { return scalaGroupedDataReference; } }
-
-        internal GroupedDataIpcProxy(JvmObjectReference gdRef)
+        private readonly ISqlContextProxy scalaSqlContextReference;
+        internal GroupedDataIpcProxy(JvmObjectReference gdRef, ISqlContextProxy sccProxy)
         {
             scalaGroupedDataReference = gdRef;
+            scalaSqlContextReference = sccProxy;
+        }
+        public IDataFrameProxy Count()
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaGroupedDataReference, "count").ToString()), scalaSqlContextReference);
+        }
+
+        public IDataFrameProxy Mean(params string[] columns)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaGroupedDataReference, "mean", new object[] { columns }).ToString()), scalaSqlContextReference);
+        }
+
+        public IDataFrameProxy Max(params string[] columns)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaGroupedDataReference, "max", new object[] { columns }).ToString()), scalaSqlContextReference);
+        }
+
+        public IDataFrameProxy Min(params string[] columns)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaGroupedDataReference, "min", new object[] { columns }).ToString()), scalaSqlContextReference);
+        }
+
+        public IDataFrameProxy Avg(params string[] columns)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaGroupedDataReference, "avg", new object[] { columns }).ToString()), scalaSqlContextReference);
+        }
+
+        public IDataFrameProxy Sum(params string[] columns)
+        {
+            return new DataFrameIpcProxy(new JvmObjectReference(
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaGroupedDataReference, "sum", new object[] { columns }).ToString()), scalaSqlContextReference);
         }
     }
 

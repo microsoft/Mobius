@@ -638,7 +638,7 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to perform Cov on DataFrame
+        /// Sample to perform FreqItems on DataFrame
         /// </summary>
         [Sample]
         internal static void DFFreqItemsSample()
@@ -660,6 +660,99 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Sample to perform Describe on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFDescribeSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            DataFrame descDF = peopleDataFrame.Describe();
+            descDF.Show();
+
+            DataFrame descDF2 = peopleDataFrame.Describe("age", "name");
+            descDF2.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collectedDesc = descDF.Collect().ToArray();
+                Assert.AreEqual("4", collectedDesc.First(row => row.GetAs<string>("summary") == "count").GetAs<string>("age"));
+                Assert.AreEqual("34.25", collectedDesc.First(row => row.GetAs<string>("summary") == "mean").GetAs<string>("age"));
+
+                var collectedDesc2 = descDF2.Collect().ToArray();
+                Assert.AreEqual("4", collectedDesc2.First(row => row.GetAs<string>("summary") == "count").GetAs<string>("age"));
+                Assert.AreEqual("Bill", collectedDesc2.First(row => row.GetAs<string>("summary") == "min").GetAs<string>("name"));
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Rollup on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFRollupSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            DataFrame rollupDF = peopleDataFrame.Rollup("name", "age").Count();
+            rollupDF.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collectedRollup = rollupDF.Collect().ToArray();
+                Assert.AreEqual(8, collectedRollup.Length);
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Cube on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFCubeSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            DataFrame cubeDF = peopleDataFrame.Cube("name", "age").Count();
+            cubeDF.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collectedCube = cubeDF.Collect().ToArray();
+                Assert.AreEqual(12, collectedCube.Length);
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform Cube on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFGroupDataOperationSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            GroupedData gd = peopleDataFrame.GroupBy("name");
+            var countDF = gd.Count();
+            countDF.Show();
+            var maxDF = gd.Max();
+            maxDF.Show();
+            var minDF = gd.Min();
+            minDF.Show();
+            var meanDF = gd.Mean();
+            meanDF.Show();
+            var avgDF = gd.Avg();
+            avgDF.Show();
+
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(2, (int)(countDF.Collect().First(col => ((string)col.Get(0) == "Bill")).Get(1)));
+                Assert.AreEqual(43, (int)(maxDF.Collect().First(col => ((string)col.Get(0) == "Bill")).Get(1)));
+                Assert.AreEqual(34, (int)(minDF.Collect().First(col => ((string)col.Get(0) == "Bill")).Get(1)));
+                Assert.AreEqual(38.5, (double)(meanDF.Collect().First(col => ((string)col.Get(0) == "Bill")).Get(1)));
+                Assert.AreEqual(38.5, (double)(avgDF.Collect().First(col => ((string)col.Get(0) == "Bill")).Get(1)));
+            }
+        }
+
+        /// <summary>
         /// Sample to perform Crosstab on DataFrame
         /// </summary>
         [Sample]
@@ -674,7 +767,7 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 var collectedCrosstab = crosstab.Collect();
                 CollectionAssert.AreEquivalent(new[] { "name_age", "14", "46", "34", "43" }, crosstab.Columns().ToArray());
-                CollectionAssert.AreEquivalent(new[] { "Bill", "Satya", "Steve"}, collectedCrosstab.Select(row => row.GetAs<string>("name_age")).ToArray());
+                CollectionAssert.AreEquivalent(new[] { "Bill", "Satya", "Steve" }, collectedCrosstab.Select(row => row.GetAs<string>("name_age")).ToArray());
             }
         }
 
