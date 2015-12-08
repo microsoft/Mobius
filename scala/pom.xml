@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.spark</groupId>
   <artifactId>spark-clr</artifactId>
-  <version>${spark.version}-SNAPSHOT</version>
+  <version>1.4.1-SNAPSHOT</version>
   <name>${project.artifactId}</name>
   <description>C# language binding and extensions to Apache Spark</description>
   <inceptionYear>2015</inceptionYear>
