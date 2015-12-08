@@ -288,6 +288,28 @@ namespace Microsoft.Spark.CSharp.Sql
             return new GroupedData(scalaGroupedDataReference, this);
         }
 
+        /// <summary>
+        /// Create a multi-dimensional rollup for the current DataFrame using the specified columns, so we can run aggregation on them.
+        /// </summary>
+        /// <param name="firstColumnName">first column name - required</param>
+        /// <param name="otherColumnNames">other column names - optional</param>
+        /// <returns></returns>
+        public GroupedData Rollup(string firstColumnName, params string[] otherColumnNames)
+        {
+            return new GroupedData(dataFrameProxy.Rollup(firstColumnName, otherColumnNames), this);
+        }
+
+        /// <summary>
+        /// Create a multi-dimensional cube for the current DataFrame using the specified columns, so we can run aggregation on them.
+        /// </summary>
+        /// <param name="firstColumnName">first column name - required</param>
+        /// <param name="otherColumnNames">other column names - optional</param>
+        /// <returns></returns>
+        public GroupedData Cube(string firstColumnName, params string[] otherColumnNames)
+        {
+            return new GroupedData(dataFrameProxy.Cube(firstColumnName, otherColumnNames), this);
+        }
+
         private GroupedData GroupBy()
         {
             var scalaGroupedDataReference = dataFrameProxy.GroupBy();
@@ -697,6 +719,17 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
+        /// Computes statistics for numeric columns.
+        /// This include count, mean, stddev, min, and max. If no columns are given, this function computes statistics for all numerical columns.
+        /// </summary>
+        /// <param name="columns">Column names to compute statistics.</param>
+        /// <returns></returns>
+        public DataFrame Describe(params string[] columns)
+        {
+            return new DataFrame(dataFrameProxy.Describe(columns), sparkContext);
+        }
+
+        /// <summary>
         /// Returns a new DataFrame by taking the first `n` rows.
         /// The difference between this function and `head` is that `head` returns an array while `limit` returns a new DataFrame.
         /// </summary>
@@ -745,7 +778,7 @@ namespace Microsoft.Spark.CSharp.Sql
             var validTypes = new[] { typeof(int), typeof(short), typeof(long), typeof(double), typeof(float), typeof(string) };
             if (!validTypes.Any(t => t == typeof(T)))
                 throw new ArgumentException("toReplace and value should be a float, double, short, int, long or string");
-
+            
             object subsetObj;
             if (subset == null || subset.Length == 0)
             {
@@ -928,6 +961,11 @@ namespace Microsoft.Spark.CSharp.Sql
 
     public class GroupedData
     {
+        internal IGroupedDataProxy GroupedDataProxy
+        {
+            get { return groupedDataProxy; }
+        }
+
         private readonly IGroupedDataProxy groupedDataProxy;
         private readonly DataFrame dataFrame;
 
@@ -940,6 +978,36 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrame Agg(Dictionary<string, string> columnNameAggFunctionDictionary)
         {
             return new DataFrame(dataFrame.DataFrameProxy.Agg(groupedDataProxy, columnNameAggFunctionDictionary), dataFrame.SparkContext);
+        }
+
+        public DataFrame Count()
+        {
+            return new DataFrame(groupedDataProxy.Count(), dataFrame.SparkContext);
+        }
+
+        public DataFrame Mean(params string[] columns)
+        {
+            return new DataFrame(groupedDataProxy.Mean(columns), dataFrame.SparkContext);
+        }
+
+        public DataFrame Max(params string[] columns)
+        {
+            return new DataFrame(groupedDataProxy.Max(columns), dataFrame.SparkContext);
+        }
+
+        public DataFrame Min(params string[] columns)
+        {
+            return new DataFrame(groupedDataProxy.Min(columns), dataFrame.SparkContext);
+        }
+
+        public DataFrame Avg(params string[] columns)
+        {
+            return new DataFrame(groupedDataProxy.Avg(columns), dataFrame.SparkContext);
+        }
+
+        public DataFrame Sum(params string[] columns)
+        {
+            return new DataFrame(groupedDataProxy.Sum(columns), dataFrame.SparkContext);
         }
     }
 }
