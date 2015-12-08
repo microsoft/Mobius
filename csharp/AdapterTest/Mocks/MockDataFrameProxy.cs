@@ -124,6 +124,16 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+        public IGroupedDataProxy Rollup(string firstColumnName, string[] otherColumnNames)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IGroupedDataProxy Cube(string firstColumnName, string[] otherColumnNames)
+        {
+            throw new NotImplementedException();
+        }
+
         public IDataFrameProxy Agg(IGroupedDataProxy scalaGroupedDataReference, System.Collections.Generic.Dictionary<string, string> columnNameAggFunctionDictionary)
         {
             throw new NotImplementedException();
