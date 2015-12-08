@@ -41,6 +41,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
   var mainExecutable: String = null
 
+  var appName: String = null;
+
   var master: String = null
 
   var deployMode: String = "client"
@@ -123,6 +125,9 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
       case MASTER =>
         master = value
+
+      case NAME =>
+        appName = value
 
       case PROPERTIES_FILE =>
         propertiesFile = value
@@ -224,6 +229,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
   }
 
   private def concatCmdOptions(): Unit = {
+
+    if (appName == null) cmd = cmd.trim + s" --name " + mainExecutable.stripSuffix(".exe")
 
     //figure out deploy mode
     deployMode = Option(deployMode).orElse(env.get("DEPLOY_MODE")).orNull

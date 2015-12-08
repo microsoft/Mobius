@@ -308,4 +308,40 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
       " " +
       args.mkString(" ")
   }
+
+  test("handle the case that app name is not specified") {
+    val remoteDriverPath = "hdfs://host:port/path/to/driver.zip"
+    val executableName = "Samples.exe"
+    val deployMode = "cluster"
+    val master = "spark://host:port"
+    val files = "hdfs://path/to/file1,hdfs://path/to/file2"
+    val jars = "hdfs://path/to/1.jar,hdfs://path/to/2.jar"
+    val remoteSparkClrJarPath = "hdfs://path/to/sparkclr.jar"
+    val args = Array("arg1", "arg2")
+
+    val clArgs = Array(
+      "--deploy-mode", deployMode,
+      "--master", master,
+      "--files", files,
+      "--jars", jars,
+      "--exe", executableName,
+      remoteSparkClrJarPath,
+      remoteDriverPath
+    ) ++ args
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
+
+    val expectedAppName = executableName.stripSuffix(".exe")
+    options should fullyMatch regex
+        s" --deploy-mode $deployMode" +
+        s" --master $master" +
+        s" --name $expectedAppName" +
+        s" --jars $jars,$remoteSparkClrJarPath" +
+        s" --files $files,$remoteDriverPath" +
+        s" --class $csharpRunnerClass $remoteSparkClrJarPath" +
+        s" $remoteDriverPath" +
+        s" $executableName" +
+        " " +
+        args.mkString(" ")
+  }
 }
