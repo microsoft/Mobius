@@ -55,6 +55,7 @@
     <Compile Include="DoubleRDDSamples.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="PairRDDSamples.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SampleAttribute.cs" />
     <Compile Include="SamplesRunner.cs" />
     <Compile Include="SparkContextSamples.cs" />
