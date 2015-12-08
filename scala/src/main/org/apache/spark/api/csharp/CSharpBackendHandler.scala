@@ -114,6 +114,8 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
                         dis: DataInputStream,
                         dos: DataOutputStream): Unit = {
     var obj: Object = null
+    var args: Array[java.lang.Object] = null
+    var methods: Array[java.lang.reflect.Method] = null
     try {
       val cls = if (isStatic) {
         Utils.classForName(objId)
@@ -126,12 +128,11 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
         }
       }
 
-      val args = readArgs(numArgs, dis)
-
-      val methods = cls.getMethods
+      args = readArgs(numArgs, dis)
+      methods = cls.getMethods
       val selectedMethods = methods.filter(m => m.getName == methodName)
       if (selectedMethods.length > 0) {
-        val methods = selectedMethods.filter { x =>
+        methods = selectedMethods.filter { x =>
           matchMethod(numArgs, args, x.getParameterTypes)
         }
         if (methods.isEmpty) {
@@ -142,6 +143,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           }
           throw new Exception(s"No matched method found for $cls.$methodName")
         }
+
         val ret = methods.head.invoke(obj, args : _*)
 
         // Write status bit
@@ -172,6 +174,20 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
         println(s"$methodName on object of type $jvmObjName failed")
         println(e.getMessage)
         println(e.printStackTrace())
+        if (methods != null) {
+          println("methods:")
+          methods.foreach(println(_))
+        }
+        if (args != null) {
+          println("args:")
+          args.foreach(arg => {
+            if (arg != null) {
+              println("argType: " + arg.getClass.getCanonicalName + ", argValue: " + arg)
+            } else {
+              println("arg: NULL")
+            }
+          })
+        }
         writeInt(dos, -1)
         writeString(dos, Utils.exceptionString(e.getCause))
     }

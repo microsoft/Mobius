@@ -85,9 +85,9 @@ class CSharpBackend {
     do {
       socket = CSharpBackend.callbackSockets.poll()
       if (socket != null) {
-        val dos = new DataOutputStream(socket.getOutputStream)
-        SerDe.writeString(dos, "close")
         try {
+          val dos = new DataOutputStream(socket.getOutputStream)
+          SerDe.writeString(dos, "close")
           socket.close()
           socket = null
         }
