@@ -163,7 +163,7 @@ object SQLUtils {
     sqlContext.read.format(source).schema(schema).load()
   }
 
-  def loadTextFile(sqlContext: SQLContext, path: String, hasHeader: Boolean, inferSchema: Boolean) : DataFrame = {
+  def loadTextFile(sqlContext: SQLContext, path: String, hasHeader: java.lang.Boolean, inferSchema: java.lang.Boolean) : DataFrame = {
     var dfReader = sqlContext.read.format("com.databricks.spark.csv")
     if (hasHeader)
     {

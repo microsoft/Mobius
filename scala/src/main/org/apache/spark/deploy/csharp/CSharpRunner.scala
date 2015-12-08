@@ -106,12 +106,11 @@ object CSharpRunner {
           new RedirectThread(process.getInputStream, System.out, "redirect CSharp output").start()
 
           returnCode = process.waitFor()
-        } catch {
-          case e: Exception => println("[CSharpRunner.main]" + e.getMessage + "\n" + e.getStackTrace)
-        }
-        finally {
           closeBackend(csharpBackend)
+        } catch {
+          case t: Throwable => println("[CSharpRunner.main]" + t.getMessage + "\n" + t.getStackTrace)
         }
+
         println("[CSharpRunner.main] Return CSharpBackend code " + returnCode)
         System.exit(returnCode)
       } else {
