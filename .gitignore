@@ -34,7 +34,10 @@ csharp/Samples/Microsoft.Spark.CSharp/bin/**
 csharp/Samples/Microsoft.Spark.CSharp/obj/**
 csharp/Worker/Microsoft.Spark.CSharp/bin/**
 csharp/Worker/Microsoft.Spark.CSharp/obj/**
+csharp/Perf/Microsoft.Spark.CSharp/bin/**
+csharp/Perf/Microsoft.Spark.CSharp/obj/**
 scala/.idea/**
+scala/perf/.idea/**
 scala/dependency-reduced-pom.xml
 run/
 tools/
