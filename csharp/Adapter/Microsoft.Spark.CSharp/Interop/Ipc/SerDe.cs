@@ -24,6 +24,9 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// </summary>
     public class SerDe //TODO - add ToBytes() for other types
     {
+        public static long totalReadNum = 0;
+        public static long totalWriteNum = 0;
+
         public static byte[] ToBytes(bool value)
         {
             return new[] { System.Convert.ToByte(value) };
@@ -144,6 +147,8 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 }
                 while (totalBytesRead < length && bytesRead > 0);
 
+                totalReadNum += totalBytesRead;
+
                 // stream is closed, return null to notify function caller
                 if (totalBytesRead == 0)
                     return null;
@@ -187,11 +192,13 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         public static void Write(Stream s, byte value)
         {
             s.WriteByte(value);
+            totalWriteNum += 1;
         }
 
         public static void Write(Stream s, byte[] value)
         {
             s.Write(value, 0, value.Length);
+            totalWriteNum += value.Length;
         }
 
         public static void Write(Stream s, int value)
