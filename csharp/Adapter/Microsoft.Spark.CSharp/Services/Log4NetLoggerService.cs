@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using log4net;
 using log4net.Config;
@@ -22,6 +23,7 @@ namespace Microsoft.Spark.CSharp.Services
         public Log4NetLoggerService(Type type)
         {
             logger = LogManager.GetLogger(type);
+            log4net.GlobalContext.Properties["pid"] = Process.GetCurrentProcess().Id;
         }
 
         public void LogDebug(string message)
