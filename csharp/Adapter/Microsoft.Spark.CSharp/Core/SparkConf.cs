@@ -24,6 +24,15 @@ namespace Microsoft.Spark.CSharp.Core
         internal ISparkConfProxy SparkConfProxy { get { return sparkConfProxy; } }
 
         /// <summary>
+        /// when created from checkpoint
+        /// </summary>
+        /// <param name="sparkConfProxy"></param>
+        internal SparkConf(ISparkConfProxy sparkConfProxy)
+        {
+            this.sparkConfProxy = sparkConfProxy;
+        }
+
+        /// <summary>
         /// Create SparkConf
         /// </summary>
         /// <param name="loadDefaults">indicates whether to also load values from Java system properties</param>

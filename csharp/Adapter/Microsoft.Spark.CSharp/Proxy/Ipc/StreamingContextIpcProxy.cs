@@ -33,6 +33,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         // flag to denote whether the callback socket is shutdown explicitly
         private volatile bool callbackSocketShutdown = false;
 
+        public SparkContext SparkContext 
+        { 
+            get
+            {
+                return sparkContext;
+            }
+        }
+
         public StreamingContextIpcProxy(SparkContext sparkContext, long durationMs)
         {
             this.sparkContext = sparkContext;
@@ -42,13 +50,24 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             JvmObjectReference jvmSparkContextReference = (sparkContextProxy as SparkContextIpcProxy).JvmSparkContextReference;
             jvmStreamingContextReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.StreamingContext", new object[] { jvmSparkContextReference, jduration });
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { jvmStreamingContextReference });
-
-            int port = StartCallback();
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hardcoded in CSharpBackendHandler
+        }
+        
+        public StreamingContextIpcProxy(string checkpointPath)
+        {
+            jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { checkpointPath });
+            jvmStreamingContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "ssc"));
+            JvmObjectReference jvmSparkContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "sc"));
+            JvmObjectReference jvmSparkConfReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "conf"));
+            JvmObjectReference jvmJavaContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "sparkContext"));
+            sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
+            var sparkConfProxy = new SparkConfIpcProxy(jvmSparkConfReference);
+            sparkContext = new SparkContext(sparkContextProxy, new SparkConf(sparkConfProxy));
         }
 
         public void Start()
         {
+            int port = StartCallback();
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hardcoded in CSharpBackendHandler
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "start");
         }
 

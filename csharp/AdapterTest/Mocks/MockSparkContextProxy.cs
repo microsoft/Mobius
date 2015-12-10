@@ -272,10 +272,5 @@ namespace AdapterTest.Mocks
         {
             return new MockRddProxy(null);
         }
-
-        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
-        {
-            return new MockStreamingContextProxy();
-        }
     }
 }
