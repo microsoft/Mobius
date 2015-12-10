@@ -365,7 +365,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             long fromUnixTime = (long)(fromTimeUtc - startUtc).TotalMilliseconds;
             long toUnixTime = (long)(toTimeUtc - startUtc).TotalMilliseconds;
 
-            return DStreamProxy.Slice(fromUnixTime, toUnixTime).Select(r => new RDD<T>(r, streamingContext.sparkContext, serializedMode)).ToArray();
+            return DStreamProxy.Slice(fromUnixTime, toUnixTime).Select(r => new RDD<T>(r, streamingContext.SparkContext, serializedMode)).ToArray();
         }
 
         internal void ValidatWindowParam(int windowSeconds, int slideSeconds)

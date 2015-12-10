@@ -131,7 +131,7 @@ class CSharpDStream(
 class CSharpTransformed2DStream(
                             parent: DStream[_],
                             parent2: DStream[_],
-                            @transient rfunc: Array[Byte],
+                            rfunc: Array[Byte],
                             deserializer: String,
                             deserializer2: String)
   extends DStream[Array[Byte]] (parent.ssc) {
@@ -156,8 +156,8 @@ class CSharpTransformed2DStream(
  */
 class CSharpReducedWindowedDStream(
                                parent: DStream[Array[Byte]],
-                               @transient rreduceFunc: Array[Byte],
-                               @transient rinvReduceFunc: Array[Byte],
+                               rreduceFunc: Array[Byte],
+                               rinvReduceFunc: Array[Byte],
                                _windowDuration: Duration,
                                _slideDuration: Duration,
                                deserializer: String)
@@ -233,7 +233,7 @@ class CSharpReducedWindowedDStream(
  */
 class CSharpStateDStream(
                      parent: DStream[Array[Byte]],
-                     @transient reduceFunc: Array[Byte],
+                     reduceFunc: Array[Byte],
                      deserializer: String)
   extends DStream[Array[Byte]](parent.ssc) {
 

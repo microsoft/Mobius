@@ -53,7 +53,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             return self.Transform<KeyValuePair<K, C>>(new CombineByKeyHelper<K, V, C>(createCombiner, mergeValue, mergeCombiners, numPartitions).Execute);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public static DStream<KeyValuePair<K, V>> PartitionBy<K, V>(this DStream<KeyValuePair<K, V>> self, int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             return self.Transform<KeyValuePair<K, V>>(new PartitionByHelper<K, V>(numPartitions).Execute);
         }
@@ -131,7 +131,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public static DStream<KeyValuePair<K, Tuple<List<V>, List<W>>>> GroupWith<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<List<V>, List<W>>>>(new GroupWithHelper<K, V, W>(numPartitions).Execute, other);
         }
@@ -150,7 +150,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public static DStream<KeyValuePair<K, Tuple<V, W>>> Join<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, W>>>(new JoinHelper<K, V, W>(numPartitions).Execute, other);
         }
@@ -169,7 +169,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public static DStream<KeyValuePair<K, Tuple<V, W>>> LeftOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, W>>>(new LeftOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
         }
@@ -188,7 +188,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public static DStream<KeyValuePair<K, Tuple<V, W>>> RightOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, W>>>(new RightOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
         }
@@ -207,7 +207,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public static DStream<KeyValuePair<K, Tuple<V, W>>> FullOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, W>>>(new FullOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
         }
@@ -320,7 +320,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             int numPartitions = 0)
         {
             if (numPartitions <= 0)
-                numPartitions = self.streamingContext.sparkContext.DefaultParallelism;
+                numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new UpdateStateByKeyHelper<K, V, S>(updateFunc, numPartitions).Execute;
 

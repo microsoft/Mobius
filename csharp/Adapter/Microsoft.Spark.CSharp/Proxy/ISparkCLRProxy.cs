@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy
@@ -22,5 +23,8 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDStreamProxy CreateCSharpTransformed2DStream(IDStreamProxy jdstream, IDStreamProxy jother, byte[] func, string deserializer, string deserializerOther);
         IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string deserializer);
         IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer);
+        bool CheckpointExists(string checkpointPath);
+        IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs);
+        IStreamingContextProxy CreateStreamingContext(string checkpointPath);
     }
 }

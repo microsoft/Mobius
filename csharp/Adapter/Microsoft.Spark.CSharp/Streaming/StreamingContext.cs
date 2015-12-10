@@ -30,12 +30,32 @@ namespace Microsoft.Spark.CSharp.Streaming
     public class StreamingContext
     {
         internal readonly IStreamingContextProxy streamingContextProxy;
-        internal readonly SparkContext sparkContext;
+        private SparkContext sparkContext;
+        internal SparkContext SparkContext
+        {
+            get
+            {
+                if (sparkContext == null)
+                {
+                    sparkContext = streamingContextProxy.SparkContext;
+                }
+                return sparkContext;
+            }
+        }
+
+        /// <summary>
+        /// when created from checkpoint
+        /// </summary>
+        /// <param name="streamingContextProxy"></param>
+        private StreamingContext(IStreamingContextProxy streamingContextProxy)
+        {
+            this.streamingContextProxy = streamingContextProxy;
+        }
 
         public StreamingContext(SparkContext sparkContext, long durationMs)
         {
             this.sparkContext = sparkContext;
-            this.streamingContextProxy = sparkContext.SparkContextProxy.CreateStreamingContext(sparkContext, durationMs);
+            this.streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationMs);
         }
 
         /// <summary>
@@ -47,9 +67,16 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="checkpointPath">Checkpoint directory used in an earlier JavaStreamingContext program</param>
         /// <param name="creatingFunc">Function to create a new JavaStreamingContext and setup DStreams</param>
         /// <returns></returns>
-        public StreamingContext GetOrCreate(string checkpointPath, Func<StreamingContext> creatingFunc)
+        public static StreamingContext GetOrCreate(string checkpointPath, Func<StreamingContext> creatingFunc)
         {
-            throw new NotImplementedException();
+            if (!SparkCLREnvironment.SparkCLRProxy.CheckpointExists(checkpointPath))
+            {
+                var ssc = creatingFunc();
+                ssc.Checkpoint(checkpointPath);
+                return ssc;
+            }
+            
+            return new StreamingContext(SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(checkpointPath));
         }
 
         public void Start()

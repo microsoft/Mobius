@@ -51,40 +51,48 @@ namespace Microsoft.Spark.CSharp
         [Sample("experimental")]
         internal static void DStreamTextFileSamples()
         {
-            SparkContext sc = SparkCLRSamples.SparkContext;
             string directory = SparkCLRSamples.Configuration.SampleDataLocation;
-            sc.SetCheckpointDir(directory);
-            StreamingContext ssc = new StreamingContext(sc, 2000);
+            string checkpointPath = Path.Combine(directory, "checkpoint");
 
-            var lines = ssc.TextFileStream(Path.Combine(directory, "test"));
-            var words = lines.FlatMap(l => l.Split(' '));
-            var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
-
-            // since operations like ReduceByKey, Join and UpdateStateByKey are
-            // separate dstream transformations defined in CSharpDStream.scala
-            // an extra CSharpRDD is introduced in between these operations
-            var wordCounts = pairs.ReduceByKey((x, y) => x + y);
-            var join = wordCounts.Join(wordCounts, 2);
-            var state = join.UpdateStateByKey<string, Tuple<int, int>, int>((vs, s) => vs.Sum(x => x.Item1 + x.Item2) + s);
-
-            state.ForeachRDD((time, rdd) =>
-            {
-                // there's chance rdd.Take conflicts with ssc.Stop
-                if (stopFileServer)
-                    return;
-
-                object[] taken = rdd.Take(10);
-                Console.WriteLine("-------------------------------------------");
-                Console.WriteLine("Time: {0}", time);
-                Console.WriteLine("-------------------------------------------");
-                foreach (object record in taken)
+            StreamingContext ssc = StreamingContext.GetOrCreate(checkpointPath,
+                () =>
                 {
-                    Console.WriteLine(record);
-                }
-                Console.WriteLine();
+                    SparkContext sc = SparkCLRSamples.SparkContext;
+                    StreamingContext context = new StreamingContext(sc, 2000);
+                    context.Checkpoint(checkpointPath);
 
-                stopFileServer = count++ > 100;
-            });
+                    var lines = context.TextFileStream(Path.Combine(directory, "test"));
+                    var words = lines.FlatMap(l => l.Split(' '));
+                    var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+
+                    // since operations like ReduceByKey, Join and UpdateStateByKey are
+                    // separate dstream transformations defined in CSharpDStream.scala
+                    // an extra CSharpRDD is introduced in between these operations
+                    var wordCounts = pairs.ReduceByKey((x, y) => x + y);
+                    var join = wordCounts.Join(wordCounts, 2);
+                    var state = join.UpdateStateByKey<string, Tuple<int, int>, int>((vs, s) => vs.Sum(x => x.Item1 + x.Item2) + s);
+
+                    state.ForeachRDD((time, rdd) =>
+                    {
+                        // there's chance rdd.Take conflicts with ssc.Stop
+                        if (stopFileServer)
+                            return;
+
+                        object[] taken = rdd.Take(10);
+                        Console.WriteLine("-------------------------------------------");
+                        Console.WriteLine("Time: {0}", time);
+                        Console.WriteLine("-------------------------------------------");
+                        foreach (object record in taken)
+                        {
+                            Console.WriteLine(record);
+                        }
+                        Console.WriteLine();
+
+                        stopFileServer = count++ > 100;
+                    });
+
+                    return context;
+                });
 
             ssc.Start();
 

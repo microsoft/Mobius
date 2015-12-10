@@ -82,6 +82,17 @@ namespace Microsoft.Spark.CSharp.Core
         {
         }
 
+        /// <summary>
+        /// when created from checkpoint
+        /// </summary>
+        /// <param name="sparkContextProxy"></param>
+        /// <param name="conf"></param>
+        internal SparkContext(ISparkContextProxy sparkContextProxy, SparkConf conf)
+        {
+            SparkContextProxy = sparkContextProxy;
+            SparkConf = conf;
+        }
+
         private SparkContext(string master, string appName, string sparkHome, SparkConf conf)
         {
             SparkConf = conf ?? new SparkConf();

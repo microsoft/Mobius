@@ -30,11 +30,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             this.jvmSparkContextReference = jvmSparkContextReference;
             this.jvmJavaContextReference = jvmJavaContextReference;
         }
-
-        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
-        {
-            return new StreamingContextIpcProxy(sparkContext, durationMs);
-        }
         
         public ISqlContextProxy CreateSqlContext()
         {

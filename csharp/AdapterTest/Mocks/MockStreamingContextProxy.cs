@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 
 namespace AdapterTest.Mocks
@@ -59,6 +60,11 @@ namespace AdapterTest.Mocks
 
         public void AwaitTermination(int timeout)
         {
+        }
+
+        public SparkContext SparkContext
+        {
+            get { throw new NotImplementedException(); }
         }
     }
 }
