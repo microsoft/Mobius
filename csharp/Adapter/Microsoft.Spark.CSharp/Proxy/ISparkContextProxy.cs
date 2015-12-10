@@ -14,7 +14,6 @@ namespace Microsoft.Spark.CSharp.Proxy
 {
     internal interface ISparkContextProxy
     {
-        IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs);
         ISqlContextProxy CreateSqlContext();
         IColumnProxy CreateColumnFromName(string name);
         IColumnProxy CreateFunction(string name, object self);

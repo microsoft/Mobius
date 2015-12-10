@@ -95,5 +95,20 @@ namespace AdapterTest.Mocks
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
             return new MockDStreamProxy(rdd.RddProxy);
         }
+
+        public bool CheckpointExists(string checkpointPath)
+        {
+            return false;
+        }
+
+        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
+        {
+            return new MockStreamingContextProxy();
+        }
+
+        public IStreamingContextProxy CreateStreamingContext(string checkpointPath)
+        {
+            return new MockStreamingContextProxy();
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Services;
 using Microsoft.Spark.CSharp.Sql;
@@ -125,6 +126,29 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
             var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
+        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
+        {
+            return new StreamingContextIpcProxy(sparkContext, durationMs);
+        }
+
+        public IStreamingContextProxy CreateStreamingContext(string checkpointPath)
+        {
+            return new StreamingContextIpcProxy(checkpointPath);
+        }
+
+        public bool CheckpointExists(string checkpointPath)
+        {
+            if (checkpointPath == null)
+                return false;
+
+            var path = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", checkpointPath);
+            var conf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.conf.Configuration");
+            var fs = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(path, "getFileSystem", conf));
+
+            return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(fs, "exists", path) && 
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(fs, "listStatus", path) != null;
         }
     }
 }
