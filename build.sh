@@ -25,7 +25,7 @@ pushd "$FWDIR/scala"
 mvn clean -q
 [ $? -ne 0 ] && exit 1
 
-# Note: Shade-plugin helps creates an uber-package to simplify sparkCLR job submission;
+# Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
 # however, it breaks debug mode in IntellJ. A temporary workaroud to add shade-plugin
 # only in build.cmd to create the uber-package.
 cp pom.xml /tmp/pom.xml.original

@@ -55,7 +55,7 @@ then
   echo "===== Build NuGet package for $PROJ ====="
   export STEP=NuGet-Pack
 
-  nuget pack "$PROJ_NAME.linux.nuspec"
+  nuget pack "$PROJ_NAME.nuspec"
   export RC=$? && [ $RC -ne 0 ] && error_exit
   echo "NuGet package ok for $PROJ"
 fi

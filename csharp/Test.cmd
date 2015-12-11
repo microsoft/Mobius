@@ -18,7 +18,7 @@ set TESTS=AdapterTest\bin\%CONFIGURATION%\AdapterTest.dll
 
 @Echo Test assemblies = %TESTS%
 
-set TEST_ARGS="/framework:net-4.5"
+set TEST_ARGS=/framework:net-4.5
 
 "%NUNITCONSOLE%" %TEST_ARGS% %TESTS%
 
@@ -32,6 +32,6 @@ echo "==== Test succeeded ==="
 GOTO :EOF
 
 :NUNITCONSOLEERROR
-echo "[test.sh] Error - NUNITCONSOLE environment variable is not export"
-echo "[test.sh] Please set NUNITCONSOLE to path\to\nunit\console"
+echo "[Test.cmd] Error - NUNITCONSOLE environment variable is not set"
+echo "[Test.cmd] Please set NUNITCONSOLE to path\to\nunit\console"
 exit /B 1

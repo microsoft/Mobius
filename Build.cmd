@@ -19,7 +19,7 @@ SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
 
-set SPARKCLR_HOME="%CMDHOME%\run"
+set SPARKCLR_HOME=%CMDHOME%\run
 @echo SPARKCLR_HOME=%SPARKCLR_HOME%
 
 if EXIST "%SPARKCLR_HOME%" (
@@ -41,7 +41,7 @@ pushd "%CMDHOME%\scala"
 call mvn.cmd clean
 
 @rem
-@rem Note: Shade-plugin helps creates an uber-package to simplify sparkCLR job submission;
+@rem Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
 @rem however, it breaks debug mode in IntellJ. A temporary workaroud to add shade-plugin
 @rem only in build.cmd to create the uber-package.
 @rem

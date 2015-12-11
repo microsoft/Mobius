@@ -63,17 +63,7 @@ then
 else
 
   # The launcher library prints the arguments to be submitted to spark-submit.sh. So read all the output of the launcher into a variable.
-  export LAUNCHER_OUTPUT=/tmp/spark-class-launcher-output-$RANDOM.txt
-  "$JAVA_HOME/bin/java" -cp "$LAUNCH_CLASSPATH" org.apache.spark.launcher.SparkCLRSubmitArguments "$@" > "$LAUNCHER_OUTPUT"
-
-  [ $? -ne 0 ] && exit 1
-
-  while read line; 
-  do
-    export SPARK_ARGS="$line"
-  done < "$LAUNCHER_OUTPUT"
-  
-  rm -f "$LAUNCHER_OUTPUT"
+  export SPARK_ARGS=`"$JAVA_HOME/bin/java" -cp "$LAUNCH_CLASSPATH" org.apache.spark.launcher.SparkCLRSubmitArguments "$@"`
   
   # launches the Spark job with spark-submit.sh
   echo "[sparkclr-submit.sh] Command to run $SPARK_ARGS"

@@ -18,7 +18,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Adapter\Microsoft.Spark.CSharp\bin\Release\Microsoft.Spark.CSharp.Adapter.dll" target="lib\net45" />
-    <file src="Worker\Microsoft.Spark.CSharp\bin\Release\CSharpWorker.exe" target="lib\net45" />
+    <file src="Adapter/Microsoft.Spark.CSharp/bin/Release/Microsoft.Spark.CSharp.Adapter.dll" target="lib/net45" />
+    <file src="Worker/Microsoft.Spark.CSharp/bin/Release/CSharpWorker.exe" target="lib/net45" />
   </files>
 </package>
