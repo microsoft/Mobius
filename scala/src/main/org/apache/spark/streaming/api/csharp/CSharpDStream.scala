@@ -234,7 +234,8 @@ class CSharpReducedWindowedDStream(
 class CSharpStateDStream(
                      parent: DStream[Array[Byte]],
                      reduceFunc: Array[Byte],
-                     deserializer: String)
+					 deserializer: String,
+                     deserializer2: String)
   extends DStream[Array[Byte]](parent.ssc) {
 
   super.persist(StorageLevel.MEMORY_ONLY)
@@ -250,7 +251,7 @@ class CSharpStateDStream(
     val rdd = parent.getOrCompute(validTime)
     if (rdd.isDefined) {
       CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
-        List(deserializer, deserializer))
+        List(deserializer, deserializer2))
     } else {
       lastState
     }

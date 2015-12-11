@@ -275,7 +275,9 @@ namespace Microsoft.Spark.CSharp.Streaming
             // dstream to be transformed by substracting old RDDs and adding new RDDs based on the window
             var reduced = self.ReduceByKey(reduceFunc, numPartitions);
 
-            var helper = new ReduceByKeyAndWindowHelper<K, V>(reduceFunc, invReduceFunc, numPartitions, filterFunc);
+            Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc = reduced.Piplinable ? (reduced as TransformedDStream<KeyValuePair<K, V>>).func : null;
+
+            var helper = new ReduceByKeyAndWindowHelper<K, V>(reduceFunc, invReduceFunc, numPartitions, filterFunc, prevFunc);
             // function to reduce the new values that entered the window (e.g., adding new counts)
             Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> reduceF = helper.Reduce;
 
@@ -295,11 +297,12 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             return new DStream<KeyValuePair<K, V>>(
                 SparkCLREnvironment.SparkCLRProxy.CreateCSharpReducedWindowedDStream(
-                    reduced.DStreamProxy, stream.ToArray(),
+                    reduced.Piplinable ? reduced.prevDStreamProxy : reduced.DStreamProxy, 
+                    stream.ToArray(),
                     invStream == null ? null : invStream.ToArray(),
                     windowSeconds,
                     slideSeconds,
-                    null), 
+                    (reduced.Piplinable ? reduced.prevSerializedMode : reduced.serializedMode).ToString()), 
                 self.streamingContext
             );
         }
@@ -322,16 +325,19 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new UpdateStateByKeyHelper<K, V, S>(updateFunc, numPartitions).Execute;
+            Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc = self.Piplinable ? (self as TransformedDStream<KeyValuePair<K, V>>).func : null;
+
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new UpdateStateByKeyHelper<K, V, S>(updateFunc, prevFunc, numPartitions).Execute;
 
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
             formatter.Serialize(stream, func);
 
             return new DStream<KeyValuePair<K, S>>(SparkCLREnvironment.SparkCLRProxy.CreateCSharpStateDStream(
-                    self.DStreamProxy,
+                    self.Piplinable ? self.prevDStreamProxy : self.DStreamProxy,
                     stream.ToArray(),
-                    self.serializedMode.ToString()),
+                    self.serializedMode.ToString(),
+                    (self.Piplinable ? self.prevSerializedMode : self.serializedMode).ToString()),
                 self.streamingContext);
         }
     }
@@ -506,20 +512,32 @@ namespace Microsoft.Spark.CSharp.Streaming
         private readonly Func<V, V, V> invReduceFunc;
         private readonly int numPartitions;
         private readonly Func<KeyValuePair<K, V>, bool> filterFunc;
+        private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
 
-        internal ReduceByKeyAndWindowHelper(Func<V, V, V> reduceF, Func<V, V, V> invReduceF, int numPartitions, Func<KeyValuePair<K, V>, bool> filterF)
+        internal ReduceByKeyAndWindowHelper(Func<V, V, V> reduceF, 
+            Func<V, V, V> invReduceF, 
+            int numPartitions, 
+            Func<KeyValuePair<K, V>, bool> filterF, 
+            Func<double, RDD<dynamic>, RDD<dynamic>> prevF)
         {
             reduceFunc = reduceF;
             invReduceFunc = invReduceF;
             this.numPartitions = numPartitions;
             filterFunc = filterF;
+            prevFunc = prevF;
         }
 
         internal RDD<dynamic> Reduce(double t, RDD<dynamic> a, RDD<dynamic> b)
         {
+            if (prevFunc != null)
+                b = prevFunc(t, b);
+
             var r = b.ConvertTo<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
             if (a != null)
             {
+                if (prevFunc != null)
+                    a = prevFunc(t, a);
+                
                 r = a.ConvertTo<KeyValuePair<K, V>>().Union(r).ReduceByKey<K, V>(reduceFunc);
             }
             if (filterFunc != null)
@@ -529,6 +547,12 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> InvReduce(double t, RDD<dynamic> a, RDD<dynamic> b)
         {
+            if (prevFunc != null)
+            {
+                a = prevFunc(t, a);
+                b = prevFunc(t, b);
+            }
+
             var rddb = b.ConvertTo<KeyValuePair<K, V>>().ReduceByKey<K, V>(reduceFunc);
             var rdda = a.ConvertTo<KeyValuePair<K, V>>();
             var joined = rdda.Join<K, V, V>(rddb, numPartitions);
@@ -541,10 +565,12 @@ namespace Microsoft.Spark.CSharp.Streaming
     internal class UpdateStateByKeyHelper<K, V, S>
     {
         private readonly Func<IEnumerable<V>, S, S> func;
+        private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
         private readonly int numPartitions;
-        internal UpdateStateByKeyHelper(Func<IEnumerable<V>, S, S> f, int numPartitions)
+        internal UpdateStateByKeyHelper(Func<IEnumerable<V>, S, S> f, Func<double, RDD<dynamic>, RDD<dynamic>> prevF, int numPartitions)
         {
             func = f;
+            prevFunc = prevF;
             this.numPartitions = numPartitions;
         }
 
@@ -552,6 +578,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             RDD<KeyValuePair<K, S>> state = null;
             RDD<KeyValuePair<K, Tuple<List<V>, S>>> g = null;
+
+            if (prevFunc != null)
+                valuesRDD = prevFunc(t, valuesRDD);
 
             var values = valuesRDD.ConvertTo<KeyValuePair<K, V>>();
 

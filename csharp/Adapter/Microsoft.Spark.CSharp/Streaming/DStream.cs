@@ -51,6 +51,14 @@ namespace Microsoft.Spark.CSharp.Streaming
         internal bool isCheckpointed;
 
         internal virtual IDStreamProxy DStreamProxy { get { return dstreamProxy; } }
+        
+        internal bool Piplinable
+        {
+            get
+            {
+                return this is TransformedDStream<T> && !isCached && !isCheckpointed;
+            }
+        }
 
         /// <summary>
         /// Return the slideDuration in seconds of this DStream
@@ -311,18 +319,21 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<V> TransformWith<U, V>(Func<double, RDD<T>, RDD<U>, RDD<V>> f, DStream<U> other, bool keepSerializer = false)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new TransformWithDynamicHelper<T, U, V>(f).Execute;
+            Func<double, RDD<dynamic>, RDD<dynamic>> prevF = this.Piplinable ? (this as TransformedDStream<T>).func : null;
+            Func<double, RDD<dynamic>, RDD<dynamic>> otherF = other.Piplinable ? (other as TransformedDStream<U>).func : null;
+
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new TransformWithDynamicHelper<T, U, V>(f, prevF, otherF).Execute;
             
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
             formatter.Serialize(stream, func);
 
             return new DStream<V>(SparkCLREnvironment.SparkCLRProxy.CreateCSharpTransformed2DStream(
-                    DStreamProxy, 
-                    other.DStreamProxy, 
-                    stream.ToArray(), 
-                    serializedMode.ToString(), 
-                    other.serializedMode.ToString()), 
+                    this.Piplinable ? prevDStreamProxy : DStreamProxy, 
+                    other.Piplinable ? other.prevDStreamProxy : other.DStreamProxy, 
+                    stream.ToArray(),
+                    (this.Piplinable ? prevSerializedMode : serializedMode).ToString(), 
+                    (other.Piplinable ? other.prevSerializedMode : other.serializedMode).ToString()), 
                 streamingContext,
                 keepSerializer ? serializedMode : SerializedMode.Byte);
         }
@@ -536,13 +547,24 @@ namespace Microsoft.Spark.CSharp.Streaming
     internal class TransformWithDynamicHelper<T, U, V>
     {
         private readonly Func<double, RDD<T>, RDD<U>, RDD<V>> func;
-        internal TransformWithDynamicHelper(Func<double, RDD<T>, RDD<U>, RDD<V>> f)
+        private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+        private readonly Func<double, RDD<dynamic>, RDD<dynamic>> otherFunc;
+
+        internal TransformWithDynamicHelper(Func<double, RDD<T>, RDD<U>, RDD<V>> f, Func<double, RDD<dynamic>, RDD<dynamic>> prevF, Func<double, RDD<dynamic>, RDD<dynamic>> otherF)
         {
             func = f;
+            prevFunc = prevF;
+            otherFunc = otherF;
         }
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd1, RDD<dynamic> rdd2)
         {
+            if (prevFunc != null)
+                rdd1 = prevFunc(t, rdd1);
+
+            if (otherFunc != null)
+                rdd2 = otherFunc(t, rdd2);
+            
             return func(t, rdd1.ConvertTo<T>(), rdd2.ConvertTo<U>()).ConvertTo<dynamic>();
         }
     }
