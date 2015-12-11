@@ -107,7 +107,9 @@ namespace Microsoft.Spark.CSharp.Core
 
             if (this is PipelinedRDD<T>)
             {
-                (r as PipelinedRDD<U>).func = (this as PipelinedRDD<T>).func;
+                CSharpWorkerFunc oldWorkerFunc = (this as PipelinedRDD<T>).workerFunc;
+                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc(oldWorkerFunc.Func, oldWorkerFunc.StackTrace);
+                (r as PipelinedRDD<U>).workerFunc = newWorkerFunc;
                 (r as PipelinedRDD<U>).preservesPartitioning = (this as PipelinedRDD<T>).preservesPartitioning;
             }
 
@@ -239,9 +241,10 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public virtual RDD<U> MapPartitionsWithIndex<U>(Func<int, IEnumerable<T>, IEnumerable<U>> f, bool preservesPartitioningParam = false)
         {
+            CSharpWorkerFunc csharpWorkerFunc = new CSharpWorkerFunc(new DynamicTypingWrapper<T, U>(f).Execute);
             var pipelinedRDD = new PipelinedRDD<U>
             {
-                func = new DynamicTypingWrapper<T, U>(f).Execute,
+                workerFunc = csharpWorkerFunc,
                 preservesPartitioning = preservesPartitioningParam,
                 previousRddProxy = rddProxy,
                 prevSerializedMode = serializedMode,

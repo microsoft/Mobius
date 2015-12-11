@@ -66,7 +66,8 @@ namespace AdapterTest.Mocks
             {
                 string deserializerMode = SerDe.ReadString(s);
                 string serializerMode = SerDe.ReadString(s);
-                var func = (Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
+                CSharpWorkerFunc workerFunc = (CSharpWorkerFunc)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
+                var func = workerFunc.Func;
                 IEnumerable<dynamic> output = func(default(int), input);
 
                 // number 8 indicates shuffling scenario's leading 8-byte hash code of each data row which should be filtered

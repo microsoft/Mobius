@@ -160,13 +160,13 @@ namespace AdapterTest
             var rdd2 = rdd.Map(s => s.ToLower() + ".com");
             Assert.IsTrue(rdd2.GetType() == typeof(PipelinedRDD<string>));
             var pipelinedRdd = rdd2 as PipelinedRDD<string>;
-            var func = pipelinedRdd.func;
+            var func = pipelinedRdd.workerFunc.Func;
             var result = func(1, new String[] { "ABC" });
             var output = result.First();
             Assert.AreEqual("ABC".ToLower() + ".com", output);
 
             var pipelinedRdd2 = rdd2.Map(s => "HTTP://" + s) as PipelinedRDD<string>;
-            var func2 = pipelinedRdd2.func;
+            var func2 = pipelinedRdd2.workerFunc.Func;
             var result2 = func2(1, new String[] { "ABC" });
             var output2 = result2.First();
             Assert.AreEqual("HTTP://" + ("ABC".ToLower() + ".com"), output2); //tolower and ".com" appended first before adding prefix due to the way func2 wraps func in implementation

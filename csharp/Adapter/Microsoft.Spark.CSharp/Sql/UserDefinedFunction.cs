@@ -18,7 +18,7 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             udfProxy = SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateUserDefinedCSharpFunction(
                 func.GetType().Name,
-                SparkContext.BuildCommand(func, SerializedMode.Row, SerializedMode.Row),
+                SparkContext.BuildCommand(new CSharpWorkerFunc(func), SerializedMode.Row, SerializedMode.Row),
                 Functions.GetReturnType(typeof(RT)));
         }
 
