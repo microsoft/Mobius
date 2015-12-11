@@ -140,10 +140,10 @@ namespace Microsoft.Spark.CSharp
                         logger.LogInfo("command bytes read: " + command.Length);
                         var stream = new MemoryStream(command);
 
-                        var func = (Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>)formatter.Deserialize(stream);
-
+                        var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
+                        var func = workerFunc.Func;
+                        logger.LogInfo(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
                         DateTime initTime = DateTime.UtcNow;
-
                         int count = 0;
 
                         // here we use low level API because we need to get perf metrics

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -23,7 +24,7 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     public class PipelinedRDD<U> : RDD<U>
     {
-        internal Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func; //using dynamic types to keep deserialization simple in worker side
+        internal CSharpWorkerFunc workerFunc;
         internal bool preservesPartitioning;
 
         //TODO - give generic types a better id
@@ -31,9 +32,12 @@ namespace Microsoft.Spark.CSharp.Core
         {
             if (IsPipelinable())
             {
+                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc(
+                    new MapPartitionsWithIndexHelper<U, U1>(newFunc, workerFunc.Func).Execute, workerFunc.StackTrace);
+
                 var pipelinedRDD = new PipelinedRDD<U1>
                 {
-                    func = new MapPartitionsWithIndexHelper<U, U1>(newFunc, func).Execute,
+                    workerFunc = newWorkerFunc,
                     preservesPartitioning = preservesPartitioning && preservesPartitioningParam,
                     previousRddProxy = this.previousRddProxy,
                     prevSerializedMode = this.prevSerializedMode,
@@ -83,10 +87,49 @@ namespace Microsoft.Spark.CSharp.Core
                 if (rddProxy == null)
                 {
                     rddProxy = sparkContext.SparkContextProxy.CreateCSharpRdd(previousRddProxy,
-                        SparkContext.BuildCommand(func, prevSerializedMode, bypassSerializer ? SerializedMode.None : serializedMode),
+                        SparkContext.BuildCommand(workerFunc, prevSerializedMode, bypassSerializer ? SerializedMode.None : serializedMode),
                         null, null, preservesPartitioning, null, null);
                 }
                 return rddProxy;
+            }
+        }
+    }
+
+    // Function that will be executed in CSharpWorker
+    [Serializable]
+    internal class CSharpWorkerFunc
+    {
+        // using dynamic types to keep deserialization simple in worker side
+        private Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func;
+
+        // stackTrace of this func, for debug purpose
+        private string stackTrace;
+
+        public CSharpWorkerFunc(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func)
+        {
+            this.func = func;
+            this.stackTrace = new StackTrace(true).ToString();
+        }
+
+        public CSharpWorkerFunc(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func, string innerStackTrace)
+        {
+            this.func = func;
+            this.stackTrace = new StackTrace(true).ToString() + "\nInner stack trace ...\n" + innerStackTrace;
+        }
+
+        public Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> Func
+        {
+            get
+            {
+                return this.func;
+            }
+        }
+
+        public string StackTrace
+        {
+            get
+            {
+                return this.stackTrace;
             }
         }
     }

@@ -34,6 +34,7 @@ class CSharpRDD(
 
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     unzip(new File(cSharpWorkerExecutable).getAbsoluteFile.getParentFile)
+    logInfo(s"compute CSharpRDD, split_index: ${split.index}, stageId: ${context.stageId()}, partitionId: ${context.partitionId()}")
     super.compute(split, context)
   }
 

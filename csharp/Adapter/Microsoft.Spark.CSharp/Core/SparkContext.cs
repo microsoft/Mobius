@@ -511,11 +511,11 @@ namespace Microsoft.Spark.CSharp.Core
             SparkContextProxy.CancelAllJobs();
         }
 
-        internal static byte[] BuildCommand(object func, SerializedMode deserializerMode = SerializedMode.Byte, SerializedMode serializerMode = SerializedMode.Byte)
+        internal static byte[] BuildCommand(CSharpWorkerFunc workerFunc, SerializedMode deserializerMode = SerializedMode.Byte, SerializedMode serializerMode = SerializedMode.Byte)
         {
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, func);
+            formatter.Serialize(stream, workerFunc);
             List<byte[]> commandPayloadBytesList = new List<byte[]>();
             // add deserializer mode
             var modeBytes = Encoding.UTF8.GetBytes(deserializerMode.ToString());
