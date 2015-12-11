@@ -26,7 +26,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class TransformedDStream<U> : DStream<U>
     {
-        protected Func<double, RDD<dynamic>, RDD<dynamic>> func;
+        internal Func<double, RDD<dynamic>, RDD<dynamic>> func;
         private Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
 
         internal void Init<T>(DStream<T> prev, Func<double, RDD<dynamic>, RDD<dynamic>> f)
