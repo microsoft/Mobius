@@ -1,0 +1,4 @@
+38c38
+<   val useDaemon = !System.getProperty("os.name").startsWith("Windows")
+---
+>   val useDaemon = false // !System.getProperty("os.name").startsWith("Windows")
