@@ -253,6 +253,9 @@ namespace AdapterTest
                 }
             });
 
+            // disable pipeline to UpdateStateByKey which replys on checkpoint mock proxy doesn't support
+            pairs.Cache();
+
             var state = pairs.UpdateStateByKey<string, int, int>((v, s) => s + (v as List<int>).Count);
             state.ForeachRDD((time, rdd) =>
             {

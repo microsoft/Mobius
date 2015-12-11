@@ -87,7 +87,7 @@ namespace AdapterTest.Mocks
         }
 
 
-        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer)
+        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer, string deserializer2)
         {
             Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
             RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,

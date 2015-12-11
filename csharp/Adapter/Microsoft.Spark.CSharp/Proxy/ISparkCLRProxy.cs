@@ -22,7 +22,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string deserializer);
         IDStreamProxy CreateCSharpTransformed2DStream(IDStreamProxy jdstream, IDStreamProxy jother, byte[] func, string deserializer, string deserializerOther);
         IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string deserializer);
-        IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer);
+        IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer, string deserializer2);
         bool CheckpointExists(string checkpointPath);
         IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs);
         IStreamingContextProxy CreateStreamingContext(string checkpointPath);

@@ -119,10 +119,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
         }
 
-        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer)
+        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string deserializer, string deserializer2)
         {
             var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpStateDStream",
-                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, deserializer });
+                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, deserializer, deserializer2 });
 
             var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
