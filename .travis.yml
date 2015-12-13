@@ -1,0 +1,13 @@
+language: csharp
+solution: csharp/SparkCLR.sln
+sudo: required
+dist: trusty
+install:
+  - nuget install NUnit.Runners -Version 3.0.0 -OutputDirectory testrunner
+script:
+  - export MAVEN_OPTS="-XX:MaxPermSize=2g -Xmx4g"
+  - export JAVA_OPTS="-XX:MaxPermSize=2g -Xmx4g"
+  - export NUNITCONSOLE="`pwd`/testrunner/NUnit.Console.3.0.0/tools/nunit3-console.exe"
+  - ./build.sh
+  - ./csharp/test.sh
+  - ./run-samples.sh --validate

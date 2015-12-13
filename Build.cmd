@@ -24,7 +24,7 @@ set SPARKCLR_HOME=%CMDHOME%\run
 
 if EXIST "%SPARKCLR_HOME%" (
     @echo Delete existing %SPARKCLR_HOME% ...
-    rd /s /q %SPARKCLR_HOME%
+    rd /s /q "%SPARKCLR_HOME%"
 )
 
 if NOT EXIST "%SPARKCLR_HOME%" mkdir "%SPARKCLR_HOME%"
@@ -41,7 +41,7 @@ pushd "%CMDHOME%\scala"
 call mvn.cmd clean
 
 @rem
-@rem Note: Shade-plugin helps creates an uber-package to simplify sparkCLR job submission;
+@rem Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
 @rem however, it breaks debug mode in IntellJ. A temporary workaroud to add shade-plugin
 @rem only in build.cmd to create the uber-package.
 @rem
@@ -105,5 +105,5 @@ popd
 @echo zip run directory
 pushd %~dp0
 if not exist ".\target" (mkdir .\target)
-powershell -f .\scripts\zipdir.ps1 -dir %SPARKCLR_HOME% -target ".\target\run.zip"
+powershell -f .\scripts\zipdir.ps1 -dir "%SPARKCLR_HOME%" -target ".\target\run.zip"
 popd
