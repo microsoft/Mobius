@@ -591,7 +591,9 @@ namespace Microsoft.Spark.CSharp.Streaming
             else
             {
                 state = stateRDD.ConvertTo<KeyValuePair<K, S>>();
-                g = state.GroupWith(values.PartitionBy(numPartitions), numPartitions).MapValues(x => new Tuple<List<V>, S>(new List<V>(x.Item2), x.Item1.Count > 0 ? x.Item1[0] : default(S)));
+                values = values.PartitionBy(numPartitions);
+                state.partitioner = values.partitioner;
+                g = state.GroupWith(values, numPartitions).MapValues(x => new Tuple<List<V>, S>(new List<V>(x.Item2), x.Item1.Count > 0 ? x.Item1[0] : default(S)));
             }
 
             state = g.MapValues(x => func(x.Item1, x.Item2)).Filter(x => x.Value != null);

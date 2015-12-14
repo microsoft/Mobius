@@ -36,6 +36,7 @@ namespace Microsoft.Spark.CSharp.Core
         protected bool isCached;
         protected bool isCheckpointed;
         internal bool bypassSerializer;
+        internal int? partitioner;
 
         internal virtual IRDDProxy RddProxy
         {
@@ -104,6 +105,7 @@ namespace Microsoft.Spark.CSharp.Core
             r.previousRddProxy = this.previousRddProxy;
             r.prevSerializedMode = this.prevSerializedMode;
             r.serializedMode = this.serializedMode;
+            r.partitioner = this.partitioner;
 
             if (this is PipelinedRDD<T>)
             {
@@ -251,7 +253,8 @@ namespace Microsoft.Spark.CSharp.Core
 
                 sparkContext = this.sparkContext,
                 rddProxy = null,
-                serializedMode = SerializedMode.Byte
+                serializedMode = SerializedMode.Byte,
+                partitioner = preservesPartitioningParam ? this.partitioner : null
             };
             return pipelinedRDD;
         }
@@ -430,7 +433,10 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Union(RDD<T> other)
         {
-            return new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
+            var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
+            if (partitioner == other.partitioner && this.RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
+                rdd.partitioner = partitioner;
+            return rdd;
         }
 
         /// <summary>
@@ -1203,6 +1209,13 @@ namespace Microsoft.Spark.CSharp.Core
 
         internal IEnumerable<dynamic> Execute(int val, IEnumerable<dynamic> inputValues)
         {
+            // explicitly convert KeyValuePair<K, V> to KeyValuePair<K, dynamic> since Cast<I> won't work
+            // this only happens after Union operation where different value types are returned in inputValues
+            if (typeof(I).IsGenericType && typeof(I).GetGenericTypeDefinition() == typeof(KeyValuePair<,>) && typeof(I).GenericTypeArguments[1] == typeof(object))
+            {
+                ConstructorInfo ci = typeof(I).GetConstructors()[0];
+                inputValues = inputValues.Select(x => ci.Invoke(new object[] { x.GetType().GetProperty("Key").GetValue(x), x.GetType().GetProperty("Value").GetValue(x) }));
+            }
             return func(val, inputValues.Cast<I>()).Cast<dynamic>();
         }
     }
