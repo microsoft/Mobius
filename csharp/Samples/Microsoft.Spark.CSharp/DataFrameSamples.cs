@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
@@ -1294,6 +1295,133 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             peopleDataFrame.Foreach(row => { Console.WriteLine(row); });
+        }
+
+        [Serializable]
+        internal class ActionHelper
+        {
+            private Accumulator<int> accumulator;
+            internal ActionHelper(Accumulator<int> accumulator)
+            {
+                this.accumulator = accumulator;
+            }
+
+            internal void Execute(IEnumerable<Row> iter)
+            {
+                foreach (var row in iter)
+                {
+                    accumulator = accumulator + 1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// ForeachPartition sample with accumulator
+        /// </summary>
+        [Sample]
+        internal static void DFForeachPartitionSampleWithAccumulator()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var accumulator = SparkCLRSamples.SparkContext.Accumulator(0);
+            peopleDataFrame.ForeachPartition(new ActionHelper(accumulator).Execute);
+
+            Console.WriteLine("Total count of rows: {0}", accumulator.Value);
+        }
+
+        /// <summary>
+        /// Write to parquet sample
+        /// </summary>
+        [Sample]
+        internal static void DFWriteToParquetSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            peopleDataFrame.Write().Parquet(parquetPath);
+
+            Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
+            Console.WriteLine("Files:");
+
+            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            {
+                Console.WriteLine(f);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(Directory.Exists(parquetPath));
+            }
+
+            Directory.Delete(parquetPath, true);
+            Console.WriteLine("Remove parquet directory: {0}", parquetPath);
+        }
+
+        /// <summary>
+        /// Write to parquet sample with 'append' mode
+        /// </summary>
+        [Sample]
+        internal static void DFWriteToParquetSampleWithAppendMode()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            peopleDataFrame.Write().Mode(SaveMode.ErrorIfExists).Parquet(parquetPath);
+
+            Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
+            Console.WriteLine("Files:");
+
+            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            {
+                Console.WriteLine(f);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(Directory.Exists(parquetPath));
+            }
+
+            peopleDataFrame.Write().Mode(SaveMode.Append).Parquet(parquetPath);
+
+            Console.WriteLine("Append dataframe to parquet: {0}", parquetPath);
+            Console.WriteLine("Files:");
+
+            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            {
+                Console.WriteLine(f);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(Directory.Exists(parquetPath));
+            }
+
+            Directory.Delete(parquetPath, true);
+            Console.WriteLine("Remove parquet directory: {0}", parquetPath);
+        }
+
+        /// <summary>
+        /// Write to json sample
+        /// </summary>
+        [Sample]
+        internal static void DFWriteToJsonSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var jsonPath = Path.GetTempPath() + "DF_Json_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            peopleDataFrame.Write().Mode(SaveMode.Overwrite).Json(jsonPath);
+
+            Console.WriteLine("Save dataframe to: {0}", jsonPath);
+            Console.WriteLine("Files:");
+
+            foreach (var f in Directory.EnumerateFiles(jsonPath))
+            {
+                Console.WriteLine(f);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(Directory.Exists(jsonPath));
+            }
+
+            Directory.Delete(jsonPath, true);
+            Console.WriteLine("Remove parquet directory: {0}", jsonPath);
         }
     }
 }

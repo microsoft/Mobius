@@ -77,7 +77,7 @@ namespace Microsoft.Spark.CSharp.Samples
             Console.WriteLine("   ");
             Console.WriteLine("   [--data | sparkclr.sampledata.loc] <SAMPLE_DATA_DIR>  SAMPLE_DATA_DIR is the directory where data files used by samples reside. ");
             Console.WriteLine("   ");
-            Console.WriteLine("   [--torun | sparkclr.samples.torun] <SAMPLE_LIST>      SAMPLE_LIST specifies a list of samples to run. ");
+            Console.WriteLine("   [--torun | sparkclr.samples.torun] <SAMPLE_LIST>      SAMPLE_LIST specifies a list of samples to run, samples in list are delimited by comma. ");
             Console.WriteLine("                                                         Case-insensitive command line wild card matching by default. Or, use \"/\" (forward slash) to enclose regular expression. ");
             Console.WriteLine("   "); 
             Console.WriteLine("   [--cat | sparkclr.samples.category] <SAMPLE_CATEGORY> SAMPLE_CATEGORY can be \"all\", \"default\", \"experimental\" or any new categories. ");

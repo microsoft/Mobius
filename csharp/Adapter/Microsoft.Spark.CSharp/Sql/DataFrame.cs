@@ -902,6 +902,14 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             Rdd.Foreach(f);
         }
+
+        /// <summary>
+        /// Interface for saving the content of the DataFrame out into external storage.
+        /// </summary>
+        public DataFrameWriter Write()
+        {
+            return new DataFrameWriter(dataFrameProxy.Write());
+        }
     }
 
     public class JoinType

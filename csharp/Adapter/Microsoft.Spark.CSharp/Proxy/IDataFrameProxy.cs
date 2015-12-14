@@ -56,6 +56,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         void Unpersist(bool blocking = true);
         IDataFrameProxy Repartition(int numPartitions);
         IDataFrameProxy Sample(bool withReplacement, double fraction, long seed);
+        IDataFrameWriterProxy Write();
     }
 
     internal interface IUDFProxy

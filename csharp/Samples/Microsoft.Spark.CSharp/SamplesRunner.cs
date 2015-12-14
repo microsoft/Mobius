@@ -61,9 +61,9 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (samplesToRunRegex != null)
             {
-                if ((SparkCLRSamples.Configuration.SamplesToRun.IndexOf(sampleName, StringComparison.InvariantCultureIgnoreCase) < 0)
-                    //assumes method/sample names are unique
-                    && !samplesToRunRegex.IsMatch(sampleName))
+                //assumes method/sample names are unique, and different samples are delimited by ','
+                var containedInSamplesToRun = SparkCLRSamples.Configuration.SamplesToRun.ToLowerInvariant().Trim().Split(',').Contains(sampleName.ToLowerInvariant());
+                if (!containedInSamplesToRun && !samplesToRunRegex.IsMatch(sampleName))
                 {
                     return null;
                 }
