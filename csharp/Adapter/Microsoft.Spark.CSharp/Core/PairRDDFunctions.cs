@@ -308,19 +308,23 @@ namespace Microsoft.Spark.CSharp.Core
             if (numPartitions == 0)
             {
                 numPartitions = self.sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
-                if (numPartitions == 0)
+                if (numPartitions == 0 && self.previousRddProxy != null)
                     numPartitions = self.previousRddProxy.PartitionLength();
             }
+
+            int? partitioner = numPartitions;
+            if (self.partitioner == partitioner)
+                return self;
 
             var keyed = self.MapPartitionsWithIndex(new AddShuffleKeyHelper<K, V>().Execute, true);
             keyed.bypassSerializer = true;
             // convert shuffling version of RDD[(Long, Array[Byte])] back to normal RDD[Array[Byte]]
             // invoking property keyed.RddProxy marks the end of current pipeline RDD after shuffling
             // and potentially starts next pipeline RDD with defult SerializedMode.Byte
-            var rdd = self.sparkContext.SparkContextProxy.CreatePairwiseRDD(keyed.RddProxy, numPartitions);
-            //rdd.partitioner = partitioner
+            var rdd = new RDD<KeyValuePair<K, V>>(self.sparkContext.SparkContextProxy.CreatePairwiseRDD(keyed.RddProxy, numPartitions), self.sparkContext);
+            rdd.partitioner = partitioner;
 
-            return new RDD<KeyValuePair<K, V>>(rdd, self.sparkContext);
+            return rdd;
         }
 
         /// <summary>
@@ -368,13 +372,6 @@ namespace Microsoft.Spark.CSharp.Core
             Func<C, C, C> mergeCombiners,
             int numPartitions = 0)
         {
-            if (numPartitions == 0)
-            {
-                numPartitions = self.sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
-                if (numPartitions == 0 && self.previousRddProxy != null)
-                    numPartitions = self.previousRddProxy.PartitionLength();
-            }
-
             var locallyCombined = self.MapPartitions(new GroupByCombineHelper<K, V, C>(createCombiner, mergeValue).Execute, true);
 
             var shuffled = locallyCombined.PartitionBy(numPartitions);
@@ -563,6 +560,18 @@ namespace Microsoft.Spark.CSharp.Core
             RDD<KeyValuePair<K, W>> other,
             int numPartitions = 0)
         {
+            // MapValues, which introduces extra CSharpRDD, is not necessary when union different RDD types
+            if (typeof(V) != typeof(W))
+            {
+                return self.ConvertTo<KeyValuePair<K, dynamic>>()
+                    .Union(other.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .CombineByKey(
+                    () => new Tuple<List<V>, List<W>>(new List<V>(), new List<W>()),
+                    (c, v) => { if (v is V) c.Item1.Add((V)v); else c.Item2.Add((W)v); return c; },
+                    (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); return c1; },
+                    numPartitions);
+            }
+
             return self.MapValues(v => new Tuple<int, dynamic>(0, v))
                 .Union(other.MapValues(w => new Tuple<int, dynamic>(1, w)))
                 .CombineByKey(
@@ -593,6 +602,19 @@ namespace Microsoft.Spark.CSharp.Core
             RDD<KeyValuePair<K, W2>> other2,
             int numPartitions = 0)
         {
+            // MapValues, which introduces extra CSharpRDD, is not necessary when union different RDD types
+            if (!(typeof(V) == typeof(W1) && typeof(V) == typeof(W2)))
+            {
+                return self.ConvertTo<KeyValuePair<K, dynamic>>()
+                    .Union(other1.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .Union(other2.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .CombineByKey(
+                    () => new Tuple<List<V>, List<W1>, List<W2>>(new List<V>(), new List<W1>(), new List<W2>()),
+                    (c, v) => { if (v is V) c.Item1.Add((V)v); else if (v is W1) c.Item2.Add((W1)v); else c.Item3.Add((W2)v); return c; },
+                    (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); c1.Item3.AddRange(c2.Item3); return c1; },
+                    numPartitions);
+            }
+
             return self.MapValues(v => new Tuple<int, dynamic>(0, v))
                 .Union(other1.MapValues(w1 => new Tuple<int, dynamic>(1, w1)))
                 .Union(other2.MapValues(w2 => new Tuple<int, dynamic>(2, w2)))
@@ -628,6 +650,20 @@ namespace Microsoft.Spark.CSharp.Core
             RDD<KeyValuePair<K, W3>> other3,
             int numPartitions = 0)
         {
+            // MapValues, which introduces extra CSharpRDD, is not necessary when union different RDD types
+            if (!(typeof(V) == typeof(W1) && typeof(V) == typeof(W2)))
+            {
+                return self.ConvertTo<KeyValuePair<K, dynamic>>()
+                    .Union(other1.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .Union(other2.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .Union(other3.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .CombineByKey(
+                    () => new Tuple<List<V>, List<W1>, List<W2>, List<W3>>(new List<V>(), new List<W1>(), new List<W2>(), new List<W3>()),
+                    (c, v) => { if (v is V) c.Item1.Add((V)v); else if (v is W1) c.Item2.Add((W1)v); else if (v is W2) c.Item3.Add((W2)v); else c.Item4.Add((W3)v); return c; },
+                    (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); c1.Item3.AddRange(c2.Item3); c1.Item4.AddRange(c2.Item4); return c1; },
+                    numPartitions);
+            }
+
             return self.MapValues(v => new Tuple<int, dynamic>(0, v))
                 .Union(other1.MapValues(w1 => new Tuple<int, dynamic>(1, w1)))
                 .Union(other2.MapValues(w2 => new Tuple<int, dynamic>(2, w2)))
