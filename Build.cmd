@@ -7,7 +7,7 @@ call precheck.cmd
 if %precheck% == "bad" (goto :eof)
 
 @rem Windows 7/8/10 may not allow powershell scripts by default
-powershell -Command Set-ExecutionPolicy Unrestricted
+powershell -Command Set-ExecutionPolicy -Scope CurrentUser Unrestricted
 
 @rem download build tools
 pushd %~dp0

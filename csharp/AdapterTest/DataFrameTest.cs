@@ -1120,6 +1120,23 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultGroupedDataProxy, actualResult.GroupedDataProxy);
         }
 
+        [Test]
+        public void TestWrite()
+        {
+            // Arrange
+            var expectedDataFrameWriterProxy = new Mock<IDataFrameWriterProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Write()).Returns(expectedDataFrameWriterProxy);
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var dataFrameWriter = originalDataFrame.Write();
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Write(), Times.Once); 
+            Assert.AreEqual(expectedDataFrameWriterProxy, dataFrameWriter.DataFrameWriterProxy);
+        }
+
         #region GroupedDataTest
 
         [Test]

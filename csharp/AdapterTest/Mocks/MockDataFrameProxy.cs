@@ -240,6 +240,11 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+        public IDataFrameWriterProxy Write()
+        {
+            throw new NotImplementedException();
+        }
+
         public IDataFrameProxy Alias(string alias)
         {
             throw new NotImplementedException();

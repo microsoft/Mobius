@@ -532,6 +532,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         jvmDataFrameReference, "sample",
                         new object[] { withReplacement, fraction, seed }).ToString()), sqlContextProxy);
         }
+
+        public IDataFrameWriterProxy Write()
+        {
+            return new DataFrameWriterIpcProxy(new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDataFrameReference, "write").ToString()));
+        }
     }
 
     internal class UDFIpcProxy : IUDFProxy
