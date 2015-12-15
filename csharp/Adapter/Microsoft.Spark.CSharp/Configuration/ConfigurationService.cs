@@ -23,6 +23,7 @@ namespace Microsoft.Spark.CSharp.Configuration
         public const string ProcFileName = "CSharpWorker.exe";
         public const string CSharpWorkerPathSettingKey = "CSharpWorkerPath";
         public const string CSharpBackendPortNumberSettingKey = "CSharpBackendPortNumber";
+        public const string SPARKCLR_HOME = "SPARKCLR_HOME";
 
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(ConfigurationService));
         private readonly SparkCLRConfiguration configuration;
@@ -81,7 +82,7 @@ namespace Microsoft.Spark.CSharp.Configuration
         private class SparkCLRConfiguration
         {
             protected readonly AppSettingsSection appSettings;
-            protected readonly string sparkCLRHome = Environment.GetEnvironmentVariable("SPARKCLR_HOME"); //set by sparkclr-submit.cmd
+            protected readonly string sparkCLRHome = Environment.GetEnvironmentVariable(SPARKCLR_HOME); //set by sparkclr-submit.cmd
             protected readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRConfiguration));
 
             internal SparkCLRConfiguration(System.Configuration.Configuration configuration)
