@@ -100,7 +100,7 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     testPrematureExit(clArgs, "No primary resource found")
   }
 
-  test("handle a normal case") {
+  test("handle case that option --remote-sparkclr-jar is not specified in client mode") {
     val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
     val executableName = "Test.exe"
     val executableFile = new File(driverDir, executableName)
@@ -110,15 +110,53 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     val clArgs = Array(
       "--name", "myApp",
       "--exe", executableName,
-      driverDir,
-      "arg1", "arg2"
+      driverDir
     ) ++ args
 
     val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
 
     options should include(driverDir + File.separator + "Test.exe")
     options should include("--name myApp")
-    options should endWith("arg1 arg2")
+    options should endWith(args.mkString(" "))
+
+    FileUtils.deleteQuietly(executableFile)
+  }
+
+  test("handle case that option --remote-sparkclr-jar is not specified in standalone cluster mode") {
+    val driverDir = "hdfs://path/to/driver.zip"
+    val executableName = "Test.exe"
+    val args = Array("arg1", "arg2")
+
+    val clArgs = Array(
+      "--name", "myApp",
+      "--deploy-mode", "cluster",
+      "--master", "spark://host:port",
+      "--exe", executableName,
+      driverDir
+    ) ++ args
+
+    testPrematureExit(clArgs, "No remote sparkclr jar found; please specify one with option --remote-sparkclr-jar")
+  }
+
+  test("handle a normal case in local mode") {
+    val driverDir = new File(this.getClass.getResource(this.getClass.getSimpleName + ".class").getPath).getParentFile.getPath
+
+    val executableName = "Test.exe"
+    val executableFile = new File(driverDir, executableName)
+    FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
+
+    val args = Array("arg1", "arg2")
+    val clArgs = Array(
+      "--name", "myApp",
+      "--exe", executableName,
+      driverDir
+    ) ++ args
+
+    val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
+
+    options should include(driverDir + File.separator + "Test.exe")
+    options should include("--name myApp")
+    options should endWith(args.mkString(" "))
 
     FileUtils.deleteQuietly(executableFile)
   }
@@ -130,6 +168,7 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     val executableFile = new File(driverDir, executableName)
 
     FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
+    val sparkClrJarPath = File.createTempFile("sparkclr", ".jar")
 
     val clArgs = Array(
       "--name", appName,
@@ -146,6 +185,7 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     options should endWith("arg1 arg2")
 
     FileUtils.deleteQuietly(executableFile)
+    FileUtils.deleteQuietly(sparkClrJarPath)
   }
 
   test("handle the case that env variable `SPARKCSV_JARS` and `--jars` option are both set") {
@@ -154,6 +194,7 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     val executableFile = new File(driverDir, executableName)
 
     FileUtils.copyFile(new File(driverDir, "Test.txt"), executableFile)
+    val sparkClrJarPath = File.createTempFile("sparkclr", ".jar")
 
     val clArgs = Array(
       "--name", "myApp",
@@ -171,6 +212,7 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     options should endWith("arg1 arg2")
 
     FileUtils.deleteQuietly(executableFile)
+    FileUtils.deleteQuietly(sparkClrJarPath)
   }
 
   test("handle the case that spark APP is submitted in standalone client mode") {
@@ -191,8 +233,6 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
 
     val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
 
-    print(options)
-
     options should fullyMatch regex
       s" --name $appName" +
         s" --master $master" +
@@ -201,6 +241,8 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
         s" .*" +
         s" .* .*$executableName" +
         " " + args.mkString(" ")
+
+    FileUtils.deleteQuietly(executableFile)
   }
 
   test("handle the case that spark APP is submitted in standalone client mode with --jars and --files options") {
@@ -225,17 +267,17 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
 
     val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
 
-    print(options)
-
     options should fullyMatch regex
       s" --name $appName" +
-      s" --master $master" +
-      s" --jars $jars" +
-      s" --files .*$files,.*zip" +
-      s" --class $csharpRunnerClass" +
-      s" .*" +
-      s" .* .*$executableName" +
-      " " + args.mkString(" ")
+        s" --master $master" +
+        s" --jars $jars" +
+        s" --files .*$files,.*zip" +
+        s" --class $csharpRunnerClass" +
+        s" .*" +
+        s" .* .*$executableName" +
+        " " + args.mkString(" ")
+
+    FileUtils.deleteQuietly(executableFile)
   }
 
   test("handle the case that spark APP is submitted in standalone cluster mode") {
@@ -250,25 +292,44 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
     val clArgs = Array(
       "--name", appName,
       "--deploy-mode", deployMode,
+      "--remote-sparkclr-jar", remoteSparkClrJarPath,
       "--master", master,
       "--exe", executableName,
-      remoteSparkClrJarPath,
       remoteDriverPath
     ) ++ args
 
     val options = new SparkCLRSubmitArguments(clArgs, Map()).buildCmdOptions()
 
     options should fullyMatch regex
-        s" --name $appName" +
+      s" --name $appName" +
         s" --deploy-mode $deployMode" +
         s" --master $master" +
-        s" --jars $remoteSparkClrJarPath" +
         s" --files $remoteDriverPath" +
-        s" --class $csharpRunnerClass $remoteSparkClrJarPath" +
+        s" --class $csharpRunnerClass" +
+        s" $remoteSparkClrJarPath" +
         s" $remoteDriverPath" +
         s" $executableName" +
         " " +
         args.mkString(" ")
+  }
+
+  test("handle the case that spark APP is submitted in standalone cluster mode without `--remote-sparkclr-jar` option") {
+    val remoteDriverPath = "hdfs://host:port/path/to/driver.zip"
+    val executableName = "Samples.exe"
+    val appName = "myApp"
+    val deployMode = "cluster"
+    val master = "spark://host:port"
+    val args = Array("arg1", "arg2")
+
+    val clArgs = Array(
+      "--name", appName,
+      "--deploy-mode", deployMode,
+      "--master", master,
+      "--exe", executableName,
+      remoteDriverPath
+    ) ++ args
+
+    testPrematureExit(clArgs, s"No remote sparkclr jar found; please specify one with option --remote-sparkclr-jar")
   }
 
   test("handle the case that spark APP is submitted in standalone cluster mode with " +
@@ -288,9 +349,9 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
       "--deploy-mode", deployMode,
       "--master", master,
       "--files", files,
+      "--remote-sparkclr-jar", remoteSparkClrJarPath,
       "--jars", jars,
       "--exe", executableName,
-      remoteSparkClrJarPath,
       remoteDriverPath
     ) ++ args
 
@@ -298,15 +359,15 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
 
     options should fullyMatch regex
       s" --name $appName" +
-      s" --deploy-mode $deployMode" +
-      s" --master $master" +
-      s" --jars $jars,$remoteSparkClrJarPath" +
-      s" --files $files,$remoteDriverPath" +
-      s" --class $csharpRunnerClass $remoteSparkClrJarPath" +
-      s" $remoteDriverPath" +
-      s" $executableName" +
-      " " +
-      args.mkString(" ")
+        s" --deploy-mode $deployMode" +
+        s" --master $master" +
+        s" --jars $jars" +
+        s" --files $files,$remoteDriverPath" +
+        s" --class $csharpRunnerClass $remoteSparkClrJarPath" +
+        s" $remoteDriverPath" +
+        s" $executableName" +
+        " " +
+        args.mkString(" ")
   }
 
   test("handle the case that app name is not specified") {
@@ -324,8 +385,8 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
       "--master", master,
       "--files", files,
       "--jars", jars,
+      "--remote-sparkclr-jar", remoteSparkClrJarPath,
       "--exe", executableName,
-      remoteSparkClrJarPath,
       remoteDriverPath
     ) ++ args
 
@@ -333,10 +394,10 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
 
     val expectedAppName = executableName.stripSuffix(".exe")
     options should fullyMatch regex
-        s" --deploy-mode $deployMode" +
+      s" --deploy-mode $deployMode" +
         s" --master $master" +
         s" --name $expectedAppName" +
-        s" --jars $jars,$remoteSparkClrJarPath" +
+        s" --jars $jars" +
         s" --files $files,$remoteDriverPath" +
         s" --class $csharpRunnerClass $remoteSparkClrJarPath" +
         s" $remoteDriverPath" +

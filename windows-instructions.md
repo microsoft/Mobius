@@ -84,6 +84,7 @@ A few more [RunSamples.cmd](./RunSamples.cmd) examples:
 ```
 sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/sparkclr/sampledata
 ```
+- When option `--deploy-mode` is specified with `cluster`, option `--remote-sparkclr-jar` is required and needs to be specified with a valid file path of spark-clr*.jar on HDFS.
 
 ## Running in YARN mode
 

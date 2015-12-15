@@ -12,6 +12,7 @@ import org.apache.spark.deploy.csharp.CSharpRunner
 import org.apache.spark.util.Utils
 import org.apache.spark.util.csharp.{Utils => CSharpUtils}
 
+import scala.util.control.Breaks._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, HashMap}
 
@@ -39,9 +40,13 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
   val MAIN_EXECUTABLE: String = "--exe"
 
+  // remote file path of spark-clr*.jar on HDFS, this option is only required when deploy mode
+  // is standalone cluster.
+  val REMOTE_SPARKCLR_JAR_PATH: String = "--remote-sparkclr-jar"
+
   var mainExecutable: String = null
 
-  var appName: String = null;
+  var appName: String = null
 
   var master: String = null
 
@@ -59,30 +64,108 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
   var childArgs: ArrayBuffer[String] = new ArrayBuffer[String]()
 
-  val csharpRunnerJar = new File(CSharpRunner.getClass.getProtectionDomain.getCodeSource.getLocation.getPath).getPath
+  var sparkCLRJarPath: String = new File(CSharpRunner.getClass.getProtectionDomain.getCodeSource.getLocation.getPath).getPath
+
+  var remoteSparkCLRJarPath: String = null
 
   var cmd: String = ""
+
+  var options: Array[Array[String]] = null
 
   def this(args: Seq[String], env: Map[String, String]) {
     this(args, env, (exitCode: Int) => System.exit(exitCode), System.err)
   }
 
-  private def printErrorAndExit(str: String): Unit = {
+  private def printError(str: String): Unit = {
     printStream.println("Error: " + str)
     printStream.println("Run with --help for usage help or --verbose for debug output")
+  }
+
+  private def printErrorAndExit(str: String): Unit = {
+    printError(str)
     exitFn(1)
   }
 
   /**
-   * As "opts" is a final array, we can't append a new element to it, and can't assign a new array to it either.
-   * As a workaround, we replace --class with --main-executable. --class option is not used in SparkCLR submission cmd.
+   * Parse a list of spark-submit command line options.
+   * See SparkSubmitArguments.scala for a more formal description of available options.
+   *
+   * @throws IllegalArgumentException If an error is found during parsing.
+   */
+  protected def parse(args: List[String]): Unit = {
+    val eqSeparatedOpt = "(--[^=]+)=(.+)".r
+
+    def findCliOption(name: String, available: Array[Array[String]]): Option[Array[String]] = {
+      available.find(candidates => !candidates.find(_ == name).isEmpty)
+    }
+
+    var curIdx = -1
+    breakable {
+      args.zipWithIndex.foreach {
+
+        case (e, idx) if (idx <= curIdx) => // skip
+
+        case (e, idx) => {
+          curIdx = idx
+          var (arg, value) = e match {
+            case eqSeparatedOpt(arg, value) => (arg, value)
+            case _ => (e, null)
+          }
+
+          arg match {
+
+            case arg if !findCliOption(arg, options).isEmpty => {
+              val cliOption = findCliOption(arg, options).get.head
+              if (value == null) {
+                if (idx == args.length) {
+                  throw new IllegalArgumentException("Missing argument for option '%s'." + arg)
+                }
+                curIdx = idx + 1
+                value = args(curIdx)
+              }
+
+              if (!handle(cliOption, value)) {
+                break
+              }
+            }
+
+            case arg if !findCliOption(arg, switches).isEmpty => {
+              val cliOption = findCliOption(arg, switches).get.head
+              if (!handle(cliOption, null)) {
+                break
+              }
+            }
+            case arg => {
+              if (!handleUnknown(arg)) {
+                break
+              }
+            }
+          }
+        }
+      }
+    }
+
+    handleExtraArgs(args.slice(curIdx + 1, args.length))
+  }
+
+  /**
+   * As "opts" is a final variable, we can't append a new element to it, or assign a new array to it.
+   * As a workaround, we build a new option array `options` for parsing.
    */
   private def updateOpts(): Unit = {
-    for (i <- 0 to (opts.length - 1)) {
-      if (opts(i)(0) == CLASS) {
-        opts(i) = Array(MAIN_EXECUTABLE)
-        return
-      }
+    // Compared to the original options, we remove `--class` option, add two new options `--exe`
+    // and `--sparkclr-jar`, so the total length of options is `opts.length + 1`
+    options = new Array[Array[String]](opts.length + 1)
+    options(0) = Array(MAIN_EXECUTABLE)
+    options(1) = Array(REMOTE_SPARKCLR_JAR_PATH)
+
+    var idx = 2
+    opts.foreach {
+      case opt =>
+        if (opt(0) != CLASS) {
+          options(idx) = opt
+          idx = idx + 1
+        }
     }
   }
 
@@ -121,6 +204,10 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     opt match {
       case MAIN_EXECUTABLE =>
         mainExecutable = value
+        appendToCmd = false
+
+      case REMOTE_SPARKCLR_JAR_PATH =>
+        remoteSparkCLRJarPath = value
         appendToCmd = false
 
       case MASTER =>
@@ -196,6 +283,17 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     childArgs ++= extra
   }
 
+  private def inferSubmitArguments(): Unit = {
+    //figure out deploy mode
+    deployMode = Option(deployMode).orElse(env.get("DEPLOY_MODE")).orNull
+    master = Option(master).orElse(sparkProperties.get("spark.master")).orElse(env.get("MASTER")).orNull
+    master match {
+      case "yarn-cluster" => deployMode = "cluster"
+      case "yarn-client" => deployMode = "client"
+      case _ =>
+    }
+  }
+
   /**
    * Only check SparkCLR specific arguments, let's spark-submit.cmd to do all the other validations.
    */
@@ -203,11 +301,27 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     if (args.length == 0) {
       printUsageAndExit(-1)
     }
+
     if (primaryResource == null) {
       printErrorAndExit("No primary resource found; Please specify one with a zip file or a directory)")
     }
+
     if (mainExecutable == null || !mainExecutable.toLowerCase().endsWith(".exe")) {
       printErrorAndExit("No main executable found; please specify one with --exe")
+    }
+
+    if (deployMode == "cluster" && master.startsWith("spark://")) {
+      if (remoteSparkCLRJarPath == null) {
+        printErrorAndExit(s"No remote sparkclr jar found; please specify one with option $REMOTE_SPARKCLR_JAR_PATH")
+      }
+
+      if (!remoteSparkCLRJarPath.toLowerCase.startsWith("hdfs://")) {
+        printErrorAndExit("Remote sparkclr jar shouldn't be a local file.")
+      }
+    } else {
+      if (remoteSparkCLRJarPath != null) {
+        printError(s"No need to specify $REMOTE_SPARKCLR_JAR_PATH option in current deploy mode.")
+      }
     }
   }
 
@@ -218,7 +332,7 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
     if (jars != null && !jars.trim.isEmpty) cmd += s" --jars $jars"
 
-    cmd += s" --class $csharpRunnerClass $csharpRunnerJar $primaryResource"
+    cmd += s" --class $csharpRunnerClass $sparkCLRJarPath $primaryResource"
 
     findMainExecutable()
 
@@ -232,47 +346,27 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
     if (appName == null) cmd = cmd.trim + s" --name " + mainExecutable.stripSuffix(".exe")
 
-    //figure out deploy mode
-    deployMode = Option(deployMode).orElse(env.get("DEPLOY_MODE")).orNull
-
-    master = Option(master).orElse(sparkProperties.get("spark.master")).orElse(env.get("MASTER")).orNull
-
-    master match {
-      case "yarn-cluster" => deployMode = "cluster"
-      case "yarn-client" => deployMode = "client"
-      case _ =>
-    }
-
     master match {
 
       case m if m == null || m.startsWith("local") => concatLocalCmdOptions()
 
       case m if m.toLowerCase.startsWith("spark://") && deployMode == "cluster" => {
-        // standalone cluster mode
-        jars = jars match {
-          case jars if jars == null || jars == "" => primaryResource
-          case _ => jars + ("," + primaryResource)
-        }
-
-        if (childArgs.length == 0) {
-          throw new SparkException("Remote driver is missing.")
-        }
-
-        val remoteDriverPath = childArgs(0)
-
+        val remoteDriverPath = primaryResource
         files = files match {
           case null => remoteDriverPath
           case _ => files + ("," + remoteDriverPath)
         }
 
-        cmd += (s" --jars $jars --files $files --class $csharpRunnerClass $primaryResource" +
+        if(jars != null && !jars.isEmpty) cmd += (s" --jars $jars")
+
+        cmd += (s" --files $files --class $csharpRunnerClass $remoteSparkCLRJarPath" +
           s" $remoteDriverPath $mainExecutable")
-        if (childArgs.length > 1) cmd += (" " + childArgs.slice(1, childArgs.length).mkString(" "))
+        if (childArgs.length > 1) cmd += (" " + childArgs.mkString(" "))
       }
 
       case _ => {
 
-        if (jars != null && !jars.isEmpty)  cmd = cmd.trim + s" --jars $jars"
+        if (jars != null && !jars.isEmpty) cmd = cmd.trim + s" --jars $jars"
 
         findMainExecutable()
         val zippedPrimaryResource: File = zipPrimaryResource()
@@ -287,11 +381,11 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
         deployMode match {
 
           case "client" => {
-            cmd += (s" --class $csharpRunnerClass $csharpRunnerJar " + primaryResource)
+            cmd += (s" --class $csharpRunnerClass $sparkCLRJarPath " + primaryResource)
           }
 
           case "cluster" => {
-            cmd += (s" --class $csharpRunnerClass $csharpRunnerJar " + zippedPrimaryResource.getName)
+            cmd += (s" --class $csharpRunnerClass $sparkCLRJarPath " + zippedPrimaryResource.getName)
           }
 
           case _ =>
@@ -373,9 +467,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     }
 
     mergeDefaultSparkProperties()
-
+    inferSubmitArguments()
     validateSubmitArguments()
-
     concatCmdOptions()
 
     " " + cmd.trim
@@ -399,6 +492,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
         |
         |SparkCLR only:
         |  --exe                       [Mandatory] name of driver .exe file
+        |  --remote-sparkclr-jar       remote HDFS file path of SparkCLR jar, this option is
+        |                              required when deploy mode is standalone cluster.
         |
         |Spark common:
         |  --master MASTER_URL         spark://host:port, mesos://host:port, yarn, or local.

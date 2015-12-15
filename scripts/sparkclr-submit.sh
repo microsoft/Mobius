@@ -26,6 +26,8 @@ function usage() {
 	echo "sparkclr-submit.sh [--verbose] [--master local] [--deploy-mode client] [--name testapp] --exe csdriver.exe sparkclrapp/driver arg1 arg2 arg3"
 	echo "Example 2:"
 	echo "sparkclr-submit.sh [--verbose] [--master local] [--deploy-mode client] [--name testapp] --exe csdriver.exe sparkclrapp/driver.zip arg1 arg2 arg3"
+	echo "Example 3:"
+	echo "sparkclr-submit.sh [--verbose] --master spark://host:port --deploy-mode cluster [--name testapp] --exe csdriver.exe --remote-sparkclr-jar --remote-sparkclr-jar hdfs://path/to/spark-clr-1.4.1-SNAPSHOT.jar hdfs://path/to/driver.zip arg1 arg2 arg3"
 }
 
 [ "$SPARK_HOME" = "" ] && spark_home_error
