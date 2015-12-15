@@ -44,7 +44,8 @@ namespace Microsoft.Spark.CSharp.Core
 
                     sparkContext = this.sparkContext,
                     rddProxy = null,
-                    serializedMode = SerializedMode.Byte
+                    serializedMode = SerializedMode.Byte,
+                    partitioner = preservesPartitioning ? this.partitioner : null
                 };
                 return pipelinedRDD;
             }
