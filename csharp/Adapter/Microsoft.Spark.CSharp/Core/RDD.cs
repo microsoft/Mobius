@@ -269,7 +269,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Filter(Func<T, bool> f)
         {
-            return MapPartitions(new FilterHelper<T>(f).Execute, true);
+            return MapPartitionsWithIndex(new FilterHelper<T>(f).Execute, true);
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T[]> Glom()
         {
-            return MapPartitions<T[]>(new GlomHelper<T>().Execute);
+            return MapPartitionsWithIndex<T[]>(new GlomHelper<T>().Execute);
         }
 
         /// <summary>
@@ -554,7 +554,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="f"></param>
         public void Foreach(Action<T> f)
         {
-            MapPartitions<T>(new ForeachHelper<T>(f).Execute).Count(); // Force evaluation
+            MapPartitionsWithIndex<T>(new ForeachHelper<T>(f).Execute).Count(); // Force evaluation
         }
 
         /// <summary>
@@ -566,7 +566,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="f"></param>
         public void ForeachPartition(Action<IEnumerable<T>> f)
         {
-            MapPartitions<T>(new ForeachPartitionHelper<T>(f).Execute).Count(); // Force evaluation
+            MapPartitionsWithIndex<T>(new ForeachPartitionHelper<T>(f).Execute).Count(); // Force evaluation
         }
 
         /// <summary>
@@ -631,8 +631,8 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public T Reduce(Func<T, T, T> f)
         {
-            Func<IEnumerable<T>, IEnumerable<T>> func = new ReduceHelper<T>(f).Execute;
-            var vals = MapPartitions(func, true).Collect();
+            Func<int, IEnumerable<T>, IEnumerable<T>> func = new ReduceHelper<T>(f).Execute;
+            var vals = MapPartitionsWithIndex(func, true).Collect();
 
             if (vals == null)
             {
@@ -704,7 +704,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public T Fold(T zeroValue, Func<T, T, T> op)
         {
-            T[] vals = MapPartitions<T>(new AggregateHelper<T, T>(zeroValue, op).Execute).Collect();
+            T[] vals = MapPartitionsWithIndex<T>(new AggregateHelper<T, T>(zeroValue, op).Execute).Collect();
             return vals.Aggregate(zeroValue, op);
         }
 
@@ -732,7 +732,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public U Aggregate<U>(U zeroValue, Func<U, T, U> seqOp, Func<U, U, U> combOp)
         {
-            return MapPartitions<U>(new AggregateHelper<U, T>(zeroValue, seqOp).Execute).Fold(zeroValue, combOp);
+            return MapPartitionsWithIndex<U>(new AggregateHelper<U, T>(zeroValue, seqOp).Execute).Fold(zeroValue, combOp);
         }
 
         /// <summary>
@@ -755,7 +755,7 @@ namespace Microsoft.Spark.CSharp.Core
             if (GetNumPartitions() == 0)
                 return zeroValue;
 
-            var partiallyAggregated = MapPartitions(new AggregateHelper<U, T>(zeroValue, seqOp).Execute);
+            var partiallyAggregated = MapPartitionsWithIndex(new AggregateHelper<U, T>(zeroValue, seqOp).Execute);
             int numPartitions = partiallyAggregated.GetNumPartitions();
             int scale = Math.Max((int)(Math.Ceiling(Math.Pow(numPartitions, 1.0 / depth))), 2);
             // If creating an extra level doesn't help reduce the wall-clock time, we stop the tree aggregation.
@@ -844,7 +844,7 @@ namespace Microsoft.Spark.CSharp.Core
 
                 int left = num - items.Count;
                 IEnumerable<int> partitions = Enumerable.Range(partsScanned, Math.Min(numPartsToTry, totalParts - partsScanned));
-                var mappedRDD = MapPartitions<T>(new TakeHelper<T>(left).Execute);
+                var mappedRDD = MapPartitionsWithIndex<T>(new TakeHelper<T>(left).Execute);
                 int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, partitions, true);
                 IEnumerable<T> res = Collect(port).Cast<T>();
 
@@ -1002,7 +1002,7 @@ namespace Microsoft.Spark.CSharp.Core
             int[] starts = new int[num];
             if (num > 1)
             {
-                var nums = MapPartitions<int>(iter => new [] {iter.Count()}).Collect();
+                var nums = MapPartitionsWithIndex<int>((pid, iter) => new[] { iter.Count() }).Collect();
                 for (int i = 0; i < nums.Length - 1; i++)
                     starts[i + 1] = starts[i] + nums[i];
             }
@@ -1078,7 +1078,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             foreach(int partition in Enumerable.Range(0, GetNumPartitions()))
             {
-                var mappedRDD = MapPartitions<T>(iter => iter);
+                var mappedRDD = MapPartitionsWithIndex<T>((pid, iter) => iter);
                 int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, Enumerable.Range(partition, 1), true);
                 foreach (T row in Collect(port))
                     yield return row;
@@ -1134,7 +1134,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T Max<T>(this RDD<T> self) where T : IComparable<T>
         {
-            return self.MapPartitions<T>(iter => { return new List<T> { iter.Max() }; }).Collect().Max();
+            return self.MapPartitionsWithIndex<T>((pid, iter) => { return new List<T> { iter.Max() }; }).Collect().Max();
         }
 
         /// <summary>
@@ -1150,7 +1150,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T Min<T>(this RDD<T> self) where T : IComparable<T>
         {
-            return self.MapPartitions<T>(iter => { return new List<T> { iter.Min() }; }).Collect().Min();
+            return self.MapPartitionsWithIndex<T>((pid, iter) => { return new List<T> { iter.Min() }; }).Collect().Min();
         }
 
         /// <summary>
@@ -1167,7 +1167,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T[] TakeOrdered<T>(this RDD<T> self, int num) where T : IComparable<T>
         {
-            return self.MapPartitions<T>(new TakeOrderedHelper<T>(num).Execute).Collect().OrderBy(x => x).Take(num).ToArray();
+            return self.MapPartitionsWithIndex<T>(new TakeOrderedHelper<T>(num).Execute).Collect().OrderBy(x => x).Take(num).ToArray();
         }
 
         /// <summary>
@@ -1185,7 +1185,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T[] Top<T>(this RDD<T> self, int num) where T : IComparable<T>
         {
-            return self.MapPartitions<T>(new TopHelper<T>(num).Execute).Collect().OrderByDescending(x => x).Take(num).ToArray();
+            return self.MapPartitionsWithIndex<T>(new TopHelper<T>(num).Execute).Collect().OrderByDescending(x => x).Take(num).ToArray();
         }
     }
 
@@ -1209,14 +1209,52 @@ namespace Microsoft.Spark.CSharp.Core
 
         internal IEnumerable<dynamic> Execute(int val, IEnumerable<dynamic> inputValues)
         {
-            // explicitly convert KeyValuePair<K, V> to KeyValuePair<K, dynamic> since Cast<I> won't work
-            // this only happens after Union operation where different value types are returned in inputValues
-            if (typeof(I).IsGenericType && typeof(I).GetGenericTypeDefinition() == typeof(KeyValuePair<,>) && typeof(I).GenericTypeArguments[1] == typeof(object))
-            {
-                ConstructorInfo ci = typeof(I).GetConstructors()[0];
-                inputValues = inputValues.Select(x => ci.Invoke(new object[] { x.GetType().GetProperty("Key").GetValue(x), x.GetType().GetProperty("Value").GetValue(x) }));
-            }
             return func(val, inputValues.Cast<I>()).Cast<dynamic>();
+        }
+    }
+
+    /// <summary>
+    /// This class is used to wrap Func of specific parameter types into Func of dynamic parameter types.  The wrapping is done to use dynamic types 
+    /// in PipelinedRDD which helps keeping the deserialization of Func simple at the worker side.
+    /// 
+    /// This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
+    /// private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
+    /// for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
+    /// on the serializability of compiler generated types 
+    /// </summary>
+    [Serializable]
+    public class DynamicTypingWrapper<K, V, W1, W2, W3>
+    {
+        internal IEnumerable<dynamic> Execute(int val, IEnumerable<dynamic> inputValues)
+        {
+            // constructor and property reflection is much slower than 'new' operator
+            return inputValues.Select(x => 
+                {
+                    K key;
+                    dynamic value;
+                    if (x is KeyValuePair<K, V>)
+                    {
+                        key = ((KeyValuePair<K, V>)x).Key;
+                        value = ((KeyValuePair<K, V>)x).Value;
+                    }
+                    else if (x is KeyValuePair<K, W1>)
+                    {
+                        key = ((KeyValuePair<K, W1>)x).Key;
+                        value = ((KeyValuePair<K, W1>)x).Value;
+                    }
+                    else if (x is KeyValuePair<K, W2>)
+                    {
+                        key = ((KeyValuePair<K, W2>)x).Key;
+                        value = ((KeyValuePair<K, W2>)x).Value;
+                    }
+                    else
+                    {
+                        key = ((KeyValuePair<K, W3>)x).Key;
+                        value = ((KeyValuePair<K, W3>)x).Value;
+                    }
+                    return new KeyValuePair<K, dynamic>(key, value);
+                })
+                .Cast<dynamic>();
         }
     }
 
@@ -1235,7 +1273,7 @@ namespace Microsoft.Spark.CSharp.Core
             func = f;
         }
 
-        internal IEnumerable<I> Execute(IEnumerable<I> input)
+        internal IEnumerable<I> Execute(int pid, IEnumerable<I> input)
         {
             return input.Where(func);
         }
@@ -1319,7 +1357,7 @@ namespace Microsoft.Spark.CSharp.Core
             func = f;
         }
 
-        internal IEnumerable<T1> Execute(IEnumerable<T1> input)
+        internal IEnumerable<T1> Execute(int pid, IEnumerable<T1> input)
         {
             yield return input.DefaultIfEmpty().Aggregate(func);
         }
@@ -1327,7 +1365,7 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class GlomHelper<T>
     {
-        internal IEnumerable<T[]> Execute(IEnumerable<T> input)
+        internal IEnumerable<T[]> Execute(int pid, IEnumerable<T> input)
         {
             yield return input.ToArray();
         }
@@ -1341,7 +1379,7 @@ namespace Microsoft.Spark.CSharp.Core
             func = f;
         }
 
-        internal IEnumerable<T> Execute(IEnumerable<T> input)
+        internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
             foreach (var item in input)
             {
@@ -1359,7 +1397,7 @@ namespace Microsoft.Spark.CSharp.Core
             func = f;
         }
 
-        internal IEnumerable<T> Execute(IEnumerable<T> input)
+        internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
             func(input);
             yield return default(T);
@@ -1390,7 +1428,7 @@ namespace Microsoft.Spark.CSharp.Core
             this.op = op;
         }
 
-        internal IEnumerable<U> Execute(IEnumerable<T> input)
+        internal IEnumerable<U> Execute(int pid, IEnumerable<T> input)
         {
             yield return input.Aggregate(zeroValue, op);
         }
@@ -1434,7 +1472,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.num = num;
         }
-        internal IEnumerable<T> Execute(IEnumerable<T> input)
+        internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
             return input.Take(num);
         }
@@ -1447,7 +1485,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.num = num;
         }
-        internal IEnumerable<T> Execute(IEnumerable<T> input)
+        internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
             return input.OrderBy(x => x).Take(num);
         }
@@ -1460,7 +1498,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.num = num;
         }
-        internal IEnumerable<T> Execute(IEnumerable<T> input)
+        internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
             return input.OrderByDescending(x => x).Take(num);
         }

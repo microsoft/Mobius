@@ -372,11 +372,11 @@ namespace Microsoft.Spark.CSharp.Core
             Func<C, C, C> mergeCombiners,
             int numPartitions = 0)
         {
-            var locallyCombined = self.MapPartitions(new GroupByCombineHelper<K, V, C>(createCombiner, mergeValue).Execute, true);
+            var locallyCombined = self.MapPartitionsWithIndex(new GroupByCombineHelper<K, V, C>(createCombiner, mergeValue).Execute, true);
 
             var shuffled = locallyCombined.PartitionBy(numPartitions);
 
-            return shuffled.MapPartitions(new GroupByMergeHelper<K, C>(mergeCombiners).Execute, true);
+            return shuffled.MapPartitionsWithIndex(new GroupByMergeHelper<K, C>(mergeCombiners).Execute, true);
         }
 
         /// <summary>
@@ -538,6 +538,35 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
+        /// explicitly convert KeyValuePair<K, V> to KeyValuePair<K, dynamic>
+        /// since they are incompatibles types unlike V to dynamic
+        /// </summary>
+        /// <typeparam name="K"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <typeparam name="W1"></typeparam>
+        /// <typeparam name="W2"></typeparam>
+        /// <typeparam name="W3"></typeparam>
+        /// <param name="self"></param>
+        /// <returns></returns>
+        private static RDD<KeyValuePair<K, dynamic>> MapPartitionsWithIndex<K, V, W1, W2, W3>(this RDD<KeyValuePair<K, dynamic>> self)
+        {
+            CSharpWorkerFunc csharpWorkerFunc = new CSharpWorkerFunc(new DynamicTypingWrapper<K, V, W1, W2, W3>().Execute);
+            var pipelinedRDD = new PipelinedRDD<KeyValuePair<K, dynamic>>
+            {
+                workerFunc = csharpWorkerFunc,
+                preservesPartitioning = true,
+                previousRddProxy = self.rddProxy,
+                prevSerializedMode = self.serializedMode,
+
+                sparkContext = self.sparkContext,
+                rddProxy = null,
+                serializedMode = SerializedMode.Byte,
+                partitioner = self.partitioner
+            };
+            return pipelinedRDD;
+        }
+
+        /// <summary>
         /// For each key k in C{self} or C{other}, return a resulting RDD that
         /// contains a tuple with the list of values for that key in C{self} as well as C{other}.
         /// 
@@ -565,6 +594,7 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 return self.ConvertTo<KeyValuePair<K, dynamic>>()
                     .Union(other.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .MapPartitionsWithIndex<K, V, W, W, W>()
                     .CombineByKey(
                     () => new Tuple<List<V>, List<W>>(new List<V>(), new List<W>()),
                     (c, v) => { if (v is V) c.Item1.Add((V)v); else c.Item2.Add((W)v); return c; },
@@ -608,6 +638,7 @@ namespace Microsoft.Spark.CSharp.Core
                 return self.ConvertTo<KeyValuePair<K, dynamic>>()
                     .Union(other1.ConvertTo<KeyValuePair<K, dynamic>>())
                     .Union(other2.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .MapPartitionsWithIndex<K, V, W1, W2, W2>()
                     .CombineByKey(
                     () => new Tuple<List<V>, List<W1>, List<W2>>(new List<V>(), new List<W1>(), new List<W2>()),
                     (c, v) => { if (v is V) c.Item1.Add((V)v); else if (v is W1) c.Item2.Add((W1)v); else c.Item3.Add((W2)v); return c; },
@@ -657,6 +688,7 @@ namespace Microsoft.Spark.CSharp.Core
                     .Union(other1.ConvertTo<KeyValuePair<K, dynamic>>())
                     .Union(other2.ConvertTo<KeyValuePair<K, dynamic>>())
                     .Union(other3.ConvertTo<KeyValuePair<K, dynamic>>())
+                    .MapPartitionsWithIndex<K, V, W1, W2, W3>()
                     .CombineByKey(
                     () => new Tuple<List<V>, List<W1>, List<W2>, List<W3>>(new List<V>(), new List<W1>(), new List<W2>(), new List<W3>()),
                     (c, v) => { if (v is V) c.Item1.Add((V)v); else if (v is W1) c.Item2.Add((W1)v); else if (v is W2) c.Item3.Add((W2)v); else c.Item4.Add((W3)v); return c; },
@@ -857,7 +889,7 @@ namespace Microsoft.Spark.CSharp.Core
                 mergeCombiners = mc;
             }
 
-            public IEnumerable<KeyValuePair<K, C>> Execute(IEnumerable<KeyValuePair<K, C>> input)
+            public IEnumerable<KeyValuePair<K, C>> Execute(int pid, IEnumerable<KeyValuePair<K, C>> input)
             {
                 return input.GroupBy(
                     kvp => kvp.Key,
@@ -878,7 +910,7 @@ namespace Microsoft.Spark.CSharp.Core
                 this.mergeValue = mergeValue;
             }
 
-            public IEnumerable<KeyValuePair<K, C>> Execute(IEnumerable<KeyValuePair<K, V>> input)
+            public IEnumerable<KeyValuePair<K, C>> Execute(int pid, IEnumerable<KeyValuePair<K, V>> input)
             {
                 return input.GroupBy(
                     kvp => kvp.Key,
