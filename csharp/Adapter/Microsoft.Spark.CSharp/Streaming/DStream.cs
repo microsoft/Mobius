@@ -89,7 +89,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<long> Count()
         {
-            return MapPartitions(x => new long[] { x.LongCount() }).Reduce((x, y) => x + y);
+            return MapPartitionsWithIndex((p, x) => new long[] { x.LongCount() }).Reduce((x, y) => x + y);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<T> Filter(Func<T, bool> f)
         {
-            return MapPartitions((new FilterHelper<T>(f)).Execute, true);
+            return MapPartitionsWithIndex((new FilterHelper<T>(f)).Execute, true);
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<T[]> Glom()
         {
-            return MapPartitions(iter => new List<T[]> { iter.ToArray() });
+            return MapPartitionsWithIndex((pid, iter) => new List<T[]> { iter.ToArray() });
         }
 
         /// <summary>
