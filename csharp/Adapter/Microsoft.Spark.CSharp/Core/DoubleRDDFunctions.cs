@@ -33,7 +33,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static StatCounter Stats(this RDD<double> self)
         {
-            return self.MapPartitions(iter => new List<StatCounter> { new StatCounter(iter) }).Reduce((l, r) => l.Merge(r));
+            return self.MapPartitionsWithIndex((pid, iter) => new List<StatCounter> { new StatCounter(iter) }).Reduce((l, r) => l.Merge(r));
         }
 
         /// <summary>

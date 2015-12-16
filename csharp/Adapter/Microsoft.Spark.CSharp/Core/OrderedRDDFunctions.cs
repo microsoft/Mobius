@@ -70,7 +70,7 @@ namespace Microsoft.Spark.CSharp.Core
             Func<K, int> partitionFunc = null, 
             bool ascending = true)
         {
-            return self.MapPartitions<KeyValuePair<K, V>>(iter => ascending ? iter.OrderBy(kv => kv.Key) : iter.OrderByDescending(kv => kv.Key));
+            return self.MapPartitionsWithIndex<KeyValuePair<K, V>>((pid, iter) => ascending ? iter.OrderBy(kv => kv.Key) : iter.OrderByDescending(kv => kv.Key));
         }
     }
 }
