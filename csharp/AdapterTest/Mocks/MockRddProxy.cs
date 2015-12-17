@@ -24,6 +24,16 @@ namespace AdapterTest.Mocks
         internal bool pickle;
 
         internal object[] mockRddReference;
+
+        public IRDDCollector RDDCollector
+        {
+            get { return new RDDCollector(); }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
         
         public MockRddProxy(object[] parameterCollection)
         {

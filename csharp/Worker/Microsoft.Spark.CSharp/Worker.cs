@@ -12,12 +12,13 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-
+using System.Text;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Services;
-
+using Microsoft.Spark.CSharp.Sql;
 using Razorvine.Pickle;
+using Razorvine.Pickle.Objects;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -331,7 +332,6 @@ namespace Microsoft.Spark.CSharp
         private object[] items = null;
         private int pos = 0;
 
-        private Unpickler unpickler = new Unpickler();
         IFormatter formatter = new BinaryFormatter();
         private Stopwatch watch = new Stopwatch();
 
@@ -425,7 +425,9 @@ namespace Microsoft.Spark.CSharp
                     {
                         Debug.Assert(messageLength > 0);
                         byte[] buffer = SerDe.ReadBytes(inputStream, messageLength);
-                        result = unpickler.loads(buffer) as object[];
+                        var unpickledObjects = PythonSerDe.GetUnpickledObjects(buffer);
+                        var rows = unpickledObjects.Select(item => (item as RowConstructor).GetRow()).ToList();
+                        result = rows.Cast<object>().ToArray();
                         break;
                     }
 

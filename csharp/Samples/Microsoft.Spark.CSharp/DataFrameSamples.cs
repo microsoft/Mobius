@@ -1045,6 +1045,14 @@ namespace Microsoft.Spark.CSharp.Samples
                 Console.WriteLine(people);
             }
 
+            var orderDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(OrderJson));
+            var orderRdd = orderDataFrame.Rdd;
+
+            foreach (var order in orderRdd.Collect())
+            {
+                Console.WriteLine(order);
+            }
+
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
                 Assert.IsTrue(dfCount > 0);
@@ -1146,6 +1154,7 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFCoalesceSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(4);
+
             var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
             Console.WriteLine("Before coalesce, numPartitions: {0}", numPartitions);
 

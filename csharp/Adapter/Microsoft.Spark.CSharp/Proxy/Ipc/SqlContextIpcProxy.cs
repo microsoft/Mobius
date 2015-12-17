@@ -74,14 +74,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var hashTableReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
             var arrayListReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
 
-            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython",
-                new object[]
+            var dt =  new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.types.DataType", "fromJson", new object[] { "\"" + returnType + "\"" }));
+
+            var udf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.UserDefinedPythonFunction", new object[]
                 {
                     name, command, hashTableReference, arrayListReference, 
                     SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
-                    arrayListReference, null, "\"" + returnType + "\""
+                    arrayListReference, null, dt
                 });
+
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython", new object[] {name, udf});
         }
     }
 }

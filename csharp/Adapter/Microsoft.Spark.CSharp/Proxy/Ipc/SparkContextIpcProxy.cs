@@ -302,10 +302,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         }
         
-        public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions, bool allowLocal)
+        public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
         {
             var jpartitions = GetJavaList<int>(partitions);
-            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "runJob", new object[] { jvmSparkContextReference, (rdd as RDDIpcProxy).JvmRddReference, jpartitions, allowLocal }).ToString());
+            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "runJob", new object[] { jvmSparkContextReference, (rdd as RDDIpcProxy).JvmRddReference, jpartitions }).ToString());
         }
 
         public IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId)

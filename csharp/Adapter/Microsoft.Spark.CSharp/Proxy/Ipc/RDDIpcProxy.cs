@@ -23,6 +23,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             get { return jvmRddReference; }
         }
 
+        private IRDDCollector rddCollector;
+        public IRDDCollector RDDCollector
+        {
+            get { return rddCollector ?? (rddCollector = new RDDCollector()); }
+
+            set
+            {
+                rddCollector = value;
+            }
+        }
+
         public string Name
         {
             get
