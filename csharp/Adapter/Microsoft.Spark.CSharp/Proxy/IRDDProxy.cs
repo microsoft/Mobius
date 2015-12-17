@@ -12,6 +12,7 @@ namespace Microsoft.Spark.CSharp.Proxy
 {
     internal interface IRDDProxy
     {
+        IRDDCollector RDDCollector { get; set; }
         StorageLevel GetStorageLevel();
         void Cache();
         void Persist(StorageLevelType storageLevelType);

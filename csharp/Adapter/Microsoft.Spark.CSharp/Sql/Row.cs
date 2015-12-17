@@ -4,9 +4,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-
+using System.Text;
 using Microsoft.Spark.CSharp.Services;
+using Newtonsoft.Json.Linq;
+using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -81,9 +84,18 @@ namespace Microsoft.Spark.CSharp.Sql
     internal class RowImpl : Row
     {
         private readonly StructType schema;
+        public dynamic[] Values { get { return values; } }
         private readonly dynamic[] values;
 
         private readonly int columnCount;
+
+        public object this[int index]
+        {
+            get
+            {
+                return Get(index);
+            }
+        }
 
         internal RowImpl(dynamic data, StructType schema)
         {
@@ -220,4 +232,5 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
     }
+
 }

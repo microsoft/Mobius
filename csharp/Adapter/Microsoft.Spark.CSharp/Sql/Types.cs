@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -44,43 +47,33 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
-        protected static DataType ParseDataTypeFromJson(string json)
+        public static DataType ParseDataTypeFromJson(string json)
         {
             return ParseDataTypeFromJson(JToken.Parse(json));
         }
 
         protected static DataType ParseDataTypeFromJson(JToken json)
         {
-            if (json is JObject)
+            if (json.Type == JTokenType.Object) // {name: address, type: {type: struct,...},...}
             {
                 JToken type;
-                if (((JObject)json).TryGetValue("type", out type))
+                var typeJObject = (JObject)json;
+                if (typeJObject.TryGetValue("type", out type))
                 {
-                    if (type.Type == JTokenType.Object) // {name: address, type: {type: struct,...},...}
+                    Type complexType;
+                    if ((complexType = ComplexTypes.FirstOrDefault(ct => NormalizeTypeName(ct.Name) == type.ToString())) != default(Type))
                     {
-                        var typeJObject = (JObject)type;
-                        if (typeJObject.TryGetValue("type", out type))
-                        {
-                            Type complexType;
-                            if ((complexType = ComplexTypes.FirstOrDefault(ct => NormalizeTypeName(ct.Name) == type.ToString())) != default(Type))
-                            {
-                                return ((ComplexType)Activator.CreateInstance(complexType, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
-                                    , null, new object[] { typeJObject }, null)); // create new instance of ComplexType
-                            }
-                            if (type.ToString() == "udt")
-                            {
-                                // TODO
-                            }
-                        }
-                        throw new ArgumentException(string.Format("Could not parse data type: {0}", type));
+                        return ((ComplexType)Activator.CreateInstance(complexType, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
+                            , null, new object[] { typeJObject }, null)); // create new instance of ComplexType
                     }
-                    else // {name: age, type: bigint,...} // TODO: validate more JTokenType other than Object
+                    if (type.ToString() == "udt")
                     {
-                        return ParseAtomicType(type);
+                        // TODO
                     }
                 }
+                throw new ArgumentException(string.Format("Could not parse data type: {0}", type));
             }
-            else
+            else // {name: age, type: bigint,...} // TODO: validate more JTokenType other than Object
             {
                 return ParseAtomicType(json);
             }
@@ -289,7 +282,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public override sealed DataType FromJson(JObject json)
         {
             name = json["name"].ToString();
-            dataType = ParseDataTypeFromJson(json);
+            dataType = ParseDataTypeFromJson(json["type"]);
             nullable = (bool)json["nullable"];
             metadata = (JObject)json["metadata"];
             return this;

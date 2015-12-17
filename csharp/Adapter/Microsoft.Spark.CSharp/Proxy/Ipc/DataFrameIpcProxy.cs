@@ -76,7 +76,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                     jvmDataFrameReference, "showString",
-                    new object[] { numberOfRows /*,  truncate*/ }).ToString(); //1.4.1 does not support second param
+                    new object[] { numberOfRows, truncate }).ToString(); 
         }
 
         public bool IsLocal()

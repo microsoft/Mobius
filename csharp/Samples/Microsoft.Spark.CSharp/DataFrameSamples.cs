@@ -32,13 +32,6 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFCreateDataFrameSample()
         {
-            var rddPeople = SparkCLRSamples.SparkContext.Parallelize(new List<object[]>
-                                                               {
-                                                                   new object[] { "123", "Bill", 43, new object[]{"Columbus", "Ohio"}, new string[]{"Tel1", "Tel2"} },
-                                                                   new object[] { "456", "Steve", 34,  new object[]{"Seattle", "Washington"}, new string[]{"Tel3", "Tel4"} }
-                                                               });
-
-
             var schemaPeople = new StructType(new List<StructField>
                                         {
                                             new StructField("id", new StringType()), 
@@ -51,6 +44,14 @@ namespace Microsoft.Spark.CSharp.Samples
                                                                                       })),
                                             new StructField("phone numbers", new ArrayType(new StringType()))
                                         });
+
+            var rddPeople = SparkCLRSamples.SparkContext.Parallelize(
+                                    new List<object[]>
+                                    {
+                                        new object[] { "123", "Bill", 43, new object[]{ "Columbus", "Ohio" }, new string[]{ "Tel1", "Tel2" } },
+                                        new object[] { "456", "Steve", 34,  new object[]{ "Seattle", "Washington" }, new string[]{ "Tel3", "Tel4" } }
+                                    });
+
             var dataFramePeople = GetSqlContext().CreateDataFrame(rddPeople, schemaPeople);
             Console.WriteLine("------ Schema of People Data Frame:\r\n");
             dataFramePeople.ShowSchema();

@@ -28,26 +28,37 @@ namespace Microsoft.Spark.CSharp.Sql
         private StructType schema;
         [NonSerialized]
         private RDD<Row> rdd;
+        [NonSerialized]
+        private IRDDProxy rddProxy;
 
         [NonSerialized]
         private bool? isLocal;
         [NonSerialized]
-        private Random random = new Random();
+        private readonly Random random = new Random();
 
         public RDD<Row> Rdd
         {
             get
             {
-                if (schema == null)
-                {
-                    schema = new StructType(dataFrameProxy.GetSchema());
-                }
                 if (rdd == null)
                 {
-                    IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
-                    rdd = new RDD<Object[]>(rddProxy, sparkContext, SerializedMode.Row).Map(item => (Row)new RowImpl(item, schema));
+                    rddProxy = dataFrameProxy.JavaToCSharp();
+                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row); 
                 }
                 return rdd;
+            }
+        }
+
+        private IRDDProxy RddProxy
+        {
+            get
+            {
+                if (rddProxy == null)
+                {
+                    rddProxy = dataFrameProxy.JavaToCSharp();
+                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
+                }
+                return rddProxy;
             }
         }
 
@@ -138,14 +149,8 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public IEnumerable<Row> Collect()
         {
-            IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
-            RDD<Row> rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
-            
-            int port = rddProxy.CollectAndServe();
-            foreach (var item in rdd.Collect(port))
-            {
-                yield return new RowImpl(item, Schema);
-            }
+            int port = RddProxy.CollectAndServe();
+            return Rdd.Collect(port).Cast<Row>();
         }
 
         /// <summary>
@@ -164,7 +169,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public RDD<string> ToJSON()
         {
             var stringRddReference = dataFrameProxy.ToJSON();
-            return new RDD<string>(stringRddReference, sparkContext);
+            return new RDD<string>(stringRddReference, sparkContext, SerializedMode.String);
         }
 
         /// <summary>

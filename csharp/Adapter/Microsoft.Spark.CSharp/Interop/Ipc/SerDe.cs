@@ -29,6 +29,9 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// </summary>
     public class SerDe //TODO - add ToBytes() for other types
     {
+        public static long totalReadNum = 0;
+        public static long totalWriteNum = 0;
+
         public static byte[] ToBytes(bool value)
         {
             return new[] { System.Convert.ToByte(value) };
