@@ -381,65 +381,65 @@ namespace AdapterTest
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
-        [Test]
-        public void TestRdd()
-        {
-            const string jsonSchema = @"
-                {
-                  ""type"" : ""struct"",
-                  ""fields"" : [{
-                    ""name"" : ""age"",
-                    ""type"" : ""long"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""id"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""name"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  } ]
-                }";
+//        [Test]
+//        public void TestRdd()
+//        {
+//            const string jsonSchema = @"
+//                {
+//                  ""type"" : ""struct"",
+//                  ""fields"" : [{
+//                    ""name"" : ""age"",
+//                    ""type"" : ""long"",
+//                    ""nullable"" : true,
+//                    ""metadata"" : { }
+//                  }, {
+//                    ""name"" : ""id"",
+//                    ""type"" : ""string"",
+//                    ""nullable"" : true,
+//                    ""metadata"" : { }
+//                  }, {
+//                    ""name"" : ""name"",
+//                    ""type"" : ""string"",
+//                    ""nullable"" : true,
+//                    ""metadata"" : { }
+//                  } ]
+//                }";
 
-            Mock<IStructTypeProxy> mockStructTypeProxy = new Mock<IStructTypeProxy>();
-            mockStructTypeProxy.Setup(m => m.ToJson()).Returns(jsonSchema);
-            mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockStructTypeProxy.Object);
+//            Mock<IStructTypeProxy> mockStructTypeProxy = new Mock<IStructTypeProxy>();
+//            mockStructTypeProxy.Setup(m => m.ToJson()).Returns(jsonSchema);
+//            mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockStructTypeProxy.Object);
 
-            var rows = new object[]
-            {
-                new RowImpl(new object[]
-                {
-                    34,
-                    "123",
-                    "Bill"
-                }, 
-                RowSchema.ParseRowSchemaFromJson(jsonSchema))
-            };
+//            var rows = new object[]
+//            {
+//                new RowImpl(new object[]
+//                {
+//                    34,
+//                    "123",
+//                    "Bill"
+//                }, 
+//                RowSchema.ParseRowSchemaFromJson(jsonSchema))
+//            };
 
-            mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(new MockRddProxy(rows));
+//            mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(new MockRddProxy(rows));
 
-            var sc = new SparkContext(null);
-            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+//            var sc = new SparkContext(null);
+//            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
 
-            // act
-            var rdd = dataFrame.Rdd;
+//            // act
+//            var rdd = dataFrame.Rdd;
 
-            Assert.IsNotNull(rdd);
-            mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Once);
-            mockStructTypeProxy.Verify(m => m.ToJson(), Times.Once);
+//            Assert.IsNotNull(rdd);
+//            mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Once);
+//            mockStructTypeProxy.Verify(m => m.ToJson(), Times.Once);
 
-            mockDataFrameProxy.Reset();
-            mockStructTypeProxy.Reset();
+//            mockDataFrameProxy.Reset();
+//            mockStructTypeProxy.Reset();
 
-            rdd = dataFrame.Rdd;
-            Assert.IsNotNull(rdd);
-            mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Never);
-            mockStructTypeProxy.Verify(m => m.ToJson(), Times.Never);
-        }
+//            rdd = dataFrame.Rdd;
+//            Assert.IsNotNull(rdd);
+//            mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Never);
+//            mockStructTypeProxy.Verify(m => m.ToJson(), Times.Never);
+//        }
 
         [Test]
         public void TestIsLocal()

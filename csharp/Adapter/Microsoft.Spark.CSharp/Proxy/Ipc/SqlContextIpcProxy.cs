@@ -21,6 +21,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             this.jvmSqlContextReference = jvmSqlContextReference;
         }
 
+        public IDataFrameProxy CreateDataFrame(IRDDProxy rddProxy, IStructTypeProxy structTypeProxy)
+        {
+            var rdd = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "byteArrayRDDToAnyArrayRDD",
+                    new object[] { (rddProxy as RDDIpcProxy).JvmRddReference }).ToString());
+
+            return new DataFrameIpcProxy(
+                new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "applySchemaToPythonRDD",
+                    new object[] { rdd, (structTypeProxy as StructTypeIpcProxy).JvmStructTypeReference }).ToString()), this);
+        }
+
         public IDataFrameProxy ReadDataFrame(string path, StructType schema, Dictionary<string, string> options)
         {
             //TODO parameter Dictionary<string, string> options is not used right now - it is meant to be passed on to data sources
@@ -44,7 +55,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     new JvmObjectReference(
                         SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
                             "org.apache.spark.sql.api.csharp.SQLUtils", "loadTextFile",
-                            new object[] {jvmSqlContextReference, path, delimiter, (schema.StructTypeProxy as StructTypeIpcProxy).JvmStructTypeReference}).ToString()
+                            new object[] { jvmSqlContextReference, path, delimiter, schema.Json}).ToString()
                         ), this
                     );
         }

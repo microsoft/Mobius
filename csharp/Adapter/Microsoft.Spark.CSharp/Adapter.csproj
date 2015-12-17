@@ -109,7 +109,7 @@
     <Compile Include="Sql\Row.cs" />
     <Compile Include="Sql\Functions.cs" />
     <Compile Include="Sql\SqlContext.cs" />
-    <Compile Include="Sql\Struct.cs" />
+    <Compile Include="Sql\Types.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />

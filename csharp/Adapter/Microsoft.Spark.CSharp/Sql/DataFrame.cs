@@ -24,9 +24,8 @@ namespace Microsoft.Spark.CSharp.Sql
         private readonly IDataFrameProxy dataFrameProxy;
         [NonSerialized]
         private readonly SparkContext sparkContext;
-        [NonSerialized]
+
         private StructType schema;
-        private RowSchema rowSchema;
         [NonSerialized]
         private RDD<Row> rdd;
 
@@ -39,14 +38,14 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             get
             {
+                if (schema == null)
+                {
+                    schema = new StructType(dataFrameProxy.GetSchema());
+                }
                 if (rdd == null)
                 {
-                    if (rowSchema == null)
-                    {
-                        rowSchema = RowSchema.ParseRowSchemaFromJson(Schema.ToJson());
-                    }
                     IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
-                    rdd = new RDD<Object[]>(rddProxy, sparkContext, SerializedMode.Row).Map(item => (Row)new RowImpl(item, rowSchema));
+                    rdd = new RDD<Object[]>(rddProxy, sparkContext, SerializedMode.Row).Map(item => (Row)new RowImpl(item, schema));
                 }
                 return rdd;
             }
@@ -130,7 +129,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public void ShowSchema()
         {
-            List<string> nameTypeList = Schema.Fields.Select(structField => string.Format("{0}:{1}", structField.Name, structField.DataType.SimpleString())).ToList();
+            var nameTypeList = Schema.Fields.Select(structField => structField.SimpleString);
             Console.WriteLine(string.Join(", ", nameTypeList));
         }
 
@@ -139,18 +138,13 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public IEnumerable<Row> Collect()
         {
-            if (rowSchema == null)
-            {
-                rowSchema = RowSchema.ParseRowSchemaFromJson(Schema.ToJson());
-            }
-
             IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
             RDD<Row> rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
             
             int port = rddProxy.CollectAndServe();
             foreach (var item in rdd.Collect(port))
             {
-                yield return new RowImpl(item, rowSchema);
+                yield return new RowImpl(item, Schema);
             }
         }
 
