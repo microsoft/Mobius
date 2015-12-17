@@ -9,6 +9,7 @@ using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 
 [assembly: InternalsVisibleTo("AdapterTest")]
+[assembly: InternalsVisibleTo("WorkerTest")]
 // DynamicProxyGenAssembly2 is a temporary assembly built by mocking systems that use CastleProxy like Moq
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Microsoft.Spark.CSharp.Interop
