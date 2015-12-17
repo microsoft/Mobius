@@ -1046,7 +1046,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             foreach(int partition in Enumerable.Range(0, GetNumPartitions()))
             {
-                var mappedRDD = MapPartitions<T>(iter => iter);
+                var mappedRDD = MapPartitionsWithIndex<T>((pid, iter) => iter);
                 int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, Enumerable.Range(partition, 1));
                 foreach (T row in Collect(port))
                     yield return row;
