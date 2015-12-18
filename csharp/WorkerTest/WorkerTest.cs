@@ -28,11 +28,11 @@ namespace WorkerTest
         private string sparkFilesDir = "";
         private int numberOfIncludesItems = 0;
         private int numBroadcastVariables = 0;
-        private byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
+        private readonly byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
 
         private TcpListener CreateServer(StringBuilder output, out Process worker)
         {
-            TcpListener tcpListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
+            TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
             int port = (tcpListener.LocalEndpoint as IPEndPoint).Port;
 

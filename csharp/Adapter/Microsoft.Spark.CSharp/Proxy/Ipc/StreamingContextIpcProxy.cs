@@ -235,7 +235,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public int StartCallback()
         {
-            TcpListener callbackServer = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
+            TcpListener callbackServer = new TcpListener(IPAddress.Loopback, 0);
             callbackServer.Start();
 
             Task.Run(() =>

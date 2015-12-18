@@ -50,7 +50,7 @@ namespace Microsoft.Spark.CSharp
                 int javaPort = int.Parse(Console.ReadLine());
                 logger.LogInfo("java_port: " + javaPort);
                 sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                sock.Connect(IPAddress.Parse("127.0.0.1"), javaPort);
+                sock.Connect(IPAddress.Loopback, javaPort);
             }
             catch (Exception e)
             {

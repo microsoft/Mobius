@@ -33,7 +33,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             if (!sockets.TryDequeue(out socket))
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect(IPAddress.Parse("127.0.0.1"), portNumber);
+                socket.Connect(IPAddress.Loopback, portNumber);
             }
             return socket;
         }
