@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
-using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.Spark.CSharp.Proxy.Ipc;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -26,14 +24,14 @@ namespace Microsoft.Spark.CSharp.Sql
         private readonly SparkContext sparkContext;
         [NonSerialized]
         private StructType schema;
-        private RowSchema rowSchema;
         [NonSerialized]
         private RDD<Row> rdd;
-
+        [NonSerialized]
+        private IRDDProxy rddProxy;
         [NonSerialized]
         private bool? isLocal;
         [NonSerialized]
-        private Random random = new Random();
+        private readonly Random random = new Random();
 
         public RDD<Row> Rdd
         {
@@ -41,14 +39,23 @@ namespace Microsoft.Spark.CSharp.Sql
             {
                 if (rdd == null)
                 {
-                    if (rowSchema == null)
-                    {
-                        rowSchema = RowSchema.ParseRowSchemaFromJson(Schema.ToJson());
-                    }
-                    IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
-                    rdd = new RDD<Object[]>(rddProxy, sparkContext, SerializedMode.Row).Map(item => (Row)new RowImpl(item, rowSchema));
+                    rddProxy = dataFrameProxy.JavaToCSharp();
+                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row); 
                 }
                 return rdd;
+            }
+        }
+
+        private IRDDProxy RddProxy
+        {
+            get
+            {
+                if (rddProxy == null)
+                {
+                    rddProxy = dataFrameProxy.JavaToCSharp();
+                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
+                }
+                return rddProxy;
             }
         }
 
@@ -138,20 +145,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Returns all of Rows in this DataFrame
         /// </summary>
         public IEnumerable<Row> Collect()
-        {
-            if (rowSchema == null)
-            {
-                rowSchema = RowSchema.ParseRowSchemaFromJson(Schema.ToJson());
-            }
-
-            IRDDProxy rddProxy = dataFrameProxy.JavaToCSharp();
-            RDD<Row> rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
-            
-            int port = rddProxy.CollectAndServe();
-            foreach (var item in rdd.Collect(port))
-            {
-                yield return new RowImpl(item, rowSchema);
-            }
+        {           
+            int port = RddProxy.CollectAndServe();
+            return Rdd.Collect(port).Cast<Row>();
         }
 
         /// <summary>
@@ -170,7 +166,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public RDD<string> ToJSON()
         {
             var stringRddReference = dataFrameProxy.ToJSON();
-            return new RDD<string>(stringRddReference, sparkContext);
+            return new RDD<string>(stringRddReference, sparkContext, SerializedMode.String);
         }
 
         /// <summary>

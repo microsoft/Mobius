@@ -30,6 +30,8 @@ csharp/Adapter/Microsoft.Spark.CSharp/bin/**
 csharp/Adapter/Microsoft.Spark.CSharp/obj/**
 csharp/AdapterTest/bin/**
 csharp/AdapterTest/obj/**
+csharp/WorkerTest/obj/**
+csharp/WorkerTest/bin/**
 csharp/Samples/Microsoft.Spark.CSharp/bin/**
 csharp/Samples/Microsoft.Spark.CSharp/obj/**
 csharp/Worker/Microsoft.Spark.CSharp/bin/**

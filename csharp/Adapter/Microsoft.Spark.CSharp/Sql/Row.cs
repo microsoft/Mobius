@@ -103,17 +103,20 @@ namespace Microsoft.Spark.CSharp.Sql
             foreach (var col in cols)
             {
                 string columnName = col.name;
+                //TODO - investigate the issue and uncomment the following checks
+                /*
+                 * UDFs produce empty column name. Commenting out the following code at the time of upgrading to 1.5.2
+                 */
+                //if (string.IsNullOrEmpty(columnName))
+                //{
+                //    throw new Exception(string.Format("Null column name at pos: {0}", index));
+                //}
 
-                if (string.IsNullOrEmpty(columnName))
-                {
-                    throw new Exception(string.Format("Null column name at pos: {0}", index));
-                }
-
-                if (columnName2Index.ContainsKey(columnName))
-                {
-                    throw new Exception(string.Format("duplicate column name ({0}) in pos ({1}) and ({2})",
-                        columnName, columnName2Index[columnName], index));
-                }
+                //if (columnName2Index.ContainsKey(columnName))
+                //{
+                //    throw new Exception(string.Format("duplicate column name ({0}) in pos ({1}) and ({2})",
+                //        columnName, columnName2Index[columnName], index));
+                //}
                 columnName2Index[columnName] = index;
                 index++;
             }
@@ -219,6 +222,15 @@ namespace Microsoft.Spark.CSharp.Sql
 
         private readonly int columnCount;
 
+        public object this[int index]
+        {
+            get
+            {
+                return Get(index);
+            }
+        }
+
+
         internal RowImpl(object data, RowSchema schema)
         {
             if (data is object[])
@@ -235,7 +247,7 @@ namespace Microsoft.Spark.CSharp.Sql
             }
 
             this.schema = schema;
-
+            
             columnCount = values.Count();
             int schemaColumnCount = this.schema.columns.Count();
             if (columnCount != schemaColumnCount)

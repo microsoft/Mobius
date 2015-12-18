@@ -1,4 +1,4 @@
-version: 1.4.1-SNAPSHOT.{build}
+version: 1.5.2-SNAPSHOT.{build}
 
 #build C# solution and scala project
 build_script:

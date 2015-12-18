@@ -63,7 +63,9 @@
     <Compile Include="Configuration\IConfigurationService.cs" />
     <Compile Include="Core\Accumulator.cs" />
     <Compile Include="Core\Broadcast.cs" />
+    <Compile Include="Core\RDDCollector.cs" />
     <Compile Include="Core\DoubleRDDFunctions.cs" />
+    <Compile Include="Core\IRDDCollector.cs" />
     <Compile Include="Core\OrderedRDDFunctions.cs" />
     <Compile Include="Core\PairRDDFunctions.cs" />
     <Compile Include="Core\PipelinedRDD.cs" />
@@ -110,6 +112,8 @@
     <Compile Include="Sql\Column.cs" />
     <Compile Include="Sql\DataFrame.cs" />
     <Compile Include="Sql\DataFrameWriter.cs" />
+    <Compile Include="Sql\PythonSerDe.cs" />
+    <Compile Include="Sql\RowConstructor.cs" />
     <Compile Include="Sql\Row.cs" />
     <Compile Include="Sql\Functions.cs" />
     <Compile Include="Sql\SaveMode.cs" />
@@ -121,9 +125,7 @@
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

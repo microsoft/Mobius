@@ -11,7 +11,7 @@ do
 done
 
 # setup Hadoop and Spark versions
-export SPARK_VERSION=1.4.1
+export SPARK_VERSION=1.5.2
 export HADOOP_VERSION=2.6
 echo "[run-samples.sh] SPARK_VERSION=$SPARK_VERSION, HADOOP_VERSION=$HADOOP_VERSION"
 
@@ -36,6 +36,7 @@ then
   pushd "$SPARK_SRC"
   sed -i "s/val useDaemon = /val useDaemon = false \/\//g" "core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala"
   build/mvn -Pyarn -Phadoop-$HADOOP_VERSION -DskipTests package 2>&1 | grep warn
+  [ $? -ne 0 ] && exit 1
   cp assembly/target/scala-2.10/spark-assembly*hadoop*.jar "$SPARK_HOME/lib/"
   popd
 fi

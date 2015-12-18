@@ -80,6 +80,7 @@ namespace AdapterTest
                 });
                 return (listener.LocalEndpoint as IPEndPoint).Port;
             });
+            _mockRddProxy.Setup(m => m.RDDCollector).Returns(new RDDCollector());
 
             _mockSparkContextProxy.Setup(m => m.CreateCSharpRdd(It.IsAny<IRDDProxy>(), It.IsAny<byte[]>(), It.IsAny<Dictionary<string, string>>(),
                 It.IsAny<List<string>>(), It.IsAny<bool>(), It.IsAny<List<Broadcast>>(), It.IsAny<List<byte[]>>()))

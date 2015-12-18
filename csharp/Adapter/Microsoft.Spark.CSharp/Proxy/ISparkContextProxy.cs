@@ -47,7 +47,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         void CancelJobGroup(string groupId);
         void CancelAllJobs();
         IStatusTrackerProxy StatusTracker { get; }
-        int RunJob(IRDDProxy rdd, IEnumerable<int> partitions, bool allowLocal);
+        int RunJob(IRDDProxy rdd, IEnumerable<int> partitions);
         IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId);
         IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> pythonIncludes, bool preservePartitioning, List<Broadcast> broadcastVariables, List<byte[]> accumulator);
         IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions);

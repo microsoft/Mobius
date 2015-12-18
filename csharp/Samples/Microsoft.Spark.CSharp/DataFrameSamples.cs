@@ -1032,7 +1032,8 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFRddSample()
         {
-            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            // repartitioning below so that batching in pickling does not impact count on Rdd created from the dataframe
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(4);
             peopleDataFrame.Show();
 
             var dfCount = peopleDataFrame.Count();
@@ -1045,10 +1046,36 @@ namespace Microsoft.Spark.CSharp.Samples
                 Console.WriteLine(people);
             }
 
+            var stringRdd = peopleRdd.Map(x => string.Format("{0}, {1}", x.Size(), x.ToString()));
+            var stringRddCount = stringRdd.Count();
+            Console.WriteLine("count of stringrdd is " + stringRddCount);
+            var stringrddvalues = stringRdd.Collect();
+            int i = 1;
+            foreach (var stringrddvalue in stringrddvalues)
+            {
+                Console.WriteLine("{0}: {1}", i++, stringrddvalue);
+            }
+
+            var intRdd = peopleRdd.Map(x => 1);
+            var intRddCount = intRdd.Count();
+            Console.WriteLine("count of rdd is " + intRddCount);
+            var sum = intRdd.Fold(0, (x, y) => x + y);
+            Console.WriteLine("Count of rows is " + sum);
+
+            var orderDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(OrderJson));
+            var orderRdd = orderDataFrame.Rdd;
+
+            foreach (var order in orderRdd.Collect())
+            {
+                Console.WriteLine(order);
+            }
+
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(dfCount > 0);
-                Assert.IsTrue(dfCount == peopleRddCount);
+                Assert.IsTrue(dfCount == peopleRddCount); 
+                Assert.AreEqual(4, dfCount);
+                Assert.AreEqual(4, intRddCount);
+                Assert.AreEqual(4, sum);
             }
 
             var nameRdd = peopleDataFrame.Rdd.Map(item => (string) item.Get("name")).Filter(name => name.Equals("steve", StringComparison.OrdinalIgnoreCase));
@@ -1146,6 +1173,7 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFCoalesceSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(4);
+
             var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
             Console.WriteLine("Before coalesce, numPartitions: {0}", numPartitions);
 

@@ -218,7 +218,7 @@ namespace AdapterTest.Mocks
             return (listener.LocalEndpoint as IPEndPoint).Port;
         }
 
-        public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions, bool allowLocal)
+        public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
         {
             return RunJob(rdd);
         }
