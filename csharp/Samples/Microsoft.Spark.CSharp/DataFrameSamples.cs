@@ -1032,7 +1032,8 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFRddSample()
         {
-            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            // repartitioning below so that batching in pickling does not impact count on Rdd created from the dataframe
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(4);
             peopleDataFrame.Show();
 
             var dfCount = peopleDataFrame.Count();
@@ -1071,12 +1072,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                /**************************************************
-                 * peopleRddCount is 3 (and not 4 as expected).
-                 * This is probably due to the way pickled objects are batched in RDD.
-                 * This theory needs validation. Commenting out the following check for now
-                 *************************************************/
-                //Assert.IsTrue(dfCount == peopleRddCount); //TODO investigate why this assert fails after 1.5.2 upgrade
+                Assert.IsTrue(dfCount == peopleRddCount); 
                 Assert.AreEqual(4, dfCount);
                 Assert.AreEqual(4, intRddCount);
                 Assert.AreEqual(4, sum);
