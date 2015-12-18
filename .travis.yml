@@ -5,6 +5,7 @@ dist: trusty
 before_install:
   - nuget install NUnit.Runners -Version 3.0.0 -OutputDirectory testrunner
   # install maven 3.3.3
+  - sudo apt-get purge maven
   - wget http://archive.apache.org/dist/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
   - tar zxf apache-maven-3.3.3-bin.tar.gz && rm apache-maven-3.3.3-bin.tar.gz
   - sudo mv apache-maven-3.3.3 /usr/local
