@@ -2,8 +2,13 @@ language: csharp
 solution: csharp/SparkCLR.sln
 sudo: required
 dist: trusty
-install:
+before_install:
   - nuget install NUnit.Runners -Version 3.0.0 -OutputDirectory testrunner
+  # install maven 3.3.3
+  - wget http://archive.apache.org/dist/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
+  - tar zxf apache-maven-3.3.3-bin.tar.gz && rm apache-maven-3.3.3-bin.tar.gz
+  - sudo mv apache-maven-3.3.3 /usr/local
+  - sudo ln -s /usr/local/apache-maven-3.3.3/bin/mvn /usr/bin/mvn
 script:
   - export MAVEN_OPTS="-XX:MaxPermSize=2g -Xmx4g"
   - export JAVA_OPTS="-XX:MaxPermSize=2g -Xmx4g"

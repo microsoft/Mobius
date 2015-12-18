@@ -35,7 +35,7 @@ then
   tar xfz "$SPARK_SRC.tgz" -C "$TOOLS_DIR"
   pushd "$SPARK_SRC"
   sed -i "s/val useDaemon = /val useDaemon = false \/\//g" "core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala"
-  build/sbt -Pyarn -Phadoop-$HADOOP_VERSION -Phive -Phive-thriftserver assembly 2>&1 | grep warn
+  build/mvn -Pyarn -Phadoop-$HADOOP_VERSION -DskipTests package 2>&1 | grep warn
   cp assembly/target/scala-2.10/spark-assembly*hadoop*.jar "$SPARK_HOME/lib/"
   popd
 fi
