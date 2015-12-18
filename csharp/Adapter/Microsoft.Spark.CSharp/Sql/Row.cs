@@ -202,6 +202,7 @@ namespace Microsoft.Spark.CSharp.Sql
                 else if (field.DataType is MapType)
                 {
                     //TODO
+                    throw new NotImplementedException();
                 }
                 else if (field.DataType is StructType)
                 {
@@ -215,10 +216,12 @@ namespace Microsoft.Spark.CSharp.Sql
                 else if (field.DataType is DecimalType)
                 {
                     //TODO
+                    throw new NotImplementedException();
                 }
                 else if (field.DataType is DateType)
                 {
                     //TODO
+                    throw new NotImplementedException();
                 }
                 else if (field.DataType is StringType)
                 {

@@ -69,6 +69,7 @@ namespace Microsoft.Spark.CSharp.Sql
                     if (type.ToString() == "udt")
                     {
                         // TODO
+                        throw new NotImplementedException();
                     }
                 }
                 throw new ArgumentException(string.Format("Could not parse data type: {0}", type));
@@ -249,14 +250,14 @@ namespace Microsoft.Spark.CSharp.Sql
     {
         public string Name { get { return name; } }
         public DataType DataType { get { return dataType; } }
-        public bool Nullable { get { return nullable; } }
+        public bool IsNullable { get { return isNullable; } }
         public JObject Metadata { get { return metadata; } }
 
-        public StructField(string name, DataType dataType, bool nullable = true, JObject metadata = null)
+        public StructField(string name, DataType dataType, bool isNullable = true, JObject metadata = null)
         {
             this.name = name;
             this.dataType = dataType;
-            this.nullable = nullable;
+            this.isNullable = isNullable;
             this.metadata = metadata ?? new JObject();
         }
 
@@ -274,7 +275,7 @@ namespace Microsoft.Spark.CSharp.Sql
                 return new JObject(
                             new JProperty("name", name),
                             new JProperty("type", dataType.JsonValue),
-                            new JProperty("nullable", nullable),
+                            new JProperty("nullable", isNullable),
                             new JProperty("metadata", metadata));
             }
         }
@@ -283,14 +284,14 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             name = json["name"].ToString();
             dataType = ParseDataTypeFromJson(json["type"]);
-            nullable = (bool)json["nullable"];
+            isNullable = (bool)json["nullable"];
             metadata = (JObject)json["metadata"];
             return this;
         }
 
         private string name;
         private DataType dataType;
-        private bool nullable;
+        private bool isNullable;
         [NonSerialized]
         private JObject metadata;
     }

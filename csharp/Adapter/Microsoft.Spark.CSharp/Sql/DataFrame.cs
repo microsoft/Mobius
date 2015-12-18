@@ -43,7 +43,8 @@ namespace Microsoft.Spark.CSharp.Sql
                 if (rdd == null)
                 {
                     rddProxy = dataFrameProxy.JavaToCSharp();
-                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row); 
+                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
+                    rdd = rdd.Map(r => r);
                 }
                 return rdd;
             }
@@ -57,6 +58,7 @@ namespace Microsoft.Spark.CSharp.Sql
                 {
                     rddProxy = dataFrameProxy.JavaToCSharp();
                     rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
+                    rdd = rdd.Map(r => r);
                 }
                 return rddProxy;
             }
@@ -154,12 +156,12 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
-        /// Converts the DataFrame to RDD of byte[]
+        /// Converts the DataFrame to RDD of Row
         /// </summary>
         /// <returns>resulting RDD</returns>
-        public RDD<byte[]> ToRDD() //RDD created using byte representation of GenericRow objects
+        public RDD<Row> ToRDD() //RDD created using byte representation of Row objects
         {
-            return new RDD<byte[]>(dataFrameProxy.ToRDD(), sparkContext);
+            return Rdd;
         }
 
         /// <summary>

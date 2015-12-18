@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
 using NUnit.Framework;
@@ -27,7 +29,7 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Sample to create DataFrame
+        /// Sample to create DataFrame. The RDD is generated from SparkContext Parallelize; the schema is created via object creating.
         /// </summary>
         [Sample]
         internal static void DFCreateDataFrameSample()
@@ -56,7 +58,8 @@ namespace Microsoft.Spark.CSharp.Samples
             Console.WriteLine("------ Schema of People Data Frame:\r\n");
             dataFramePeople.ShowSchema();
             Console.WriteLine();
-            foreach (var people in dataFramePeople.Collect())
+            var collected = dataFramePeople.Collect().ToArray();
+            foreach (var people in collected)
             {
                 string id = people.Get("id");
                 string name = people.Get("name");
@@ -68,26 +71,70 @@ namespace Microsoft.Spark.CSharp.Samples
                 Console.WriteLine("id:{0}, name:{1}, age:{2}, address:(city:{3},state:{4}), phoneNumbers:[{5},{6}]\r\n", id, name, age, city, state, phoneNumbers[0], phoneNumbers[1]);
             }
 
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(2, dataFramePeople.Rdd.Count());
+                Assert.AreEqual(schemaPeople.Json, dataFramePeople.Schema.Json);
+            }
+        }
+
+        /// <summary>
+        /// Sample to create DataFrame. The RDD is generated from SparkContext TextFile; the schema is created from Json.
+        /// </summary>
+        [Sample]
+        internal static void DFCreateDataFrameSample2()
+        {
             var rddRequestsLog = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath(RequestsLog), 1).Map(r => r.Split(',').Select(s => (object)s).ToArray());
 
-            var schemaRequestsLog = new StructType(new List<StructField>
-                                        {
-                                            new StructField("guid", new StringType(), false), 
-                                            new StructField("datacenter", new StringType(), false), 
-                                            new StructField("abtestid", new StringType(), false), 
-                                            new StructField("traffictype", new StringType(), false), 
-                                        });
-            var dataFrameRequestsLog = GetSqlContext().CreateDataFrame(rddRequestsLog, schemaRequestsLog);
+            const string schemaRequestsLogJson = @"{
+	                                            ""fields"": [{
+		                                            ""metadata"": {},
+		                                            ""name"": ""guid"",
+		                                            ""nullable"": false,
+		                                            ""type"": ""string""
+	                                            },
+	                                            {
+		                                            ""metadata"": {},
+		                                            ""name"": ""datacenter"",
+		                                            ""nullable"": false,
+		                                            ""type"": ""string""
+	                                            },
+	                                            {
+		                                            ""metadata"": {},
+		                                            ""name"": ""abtestid"",
+		                                            ""nullable"": false,
+		                                            ""type"": ""string""
+	                                            },
+	                                            {
+		                                            ""metadata"": {},
+		                                            ""name"": ""traffictype"",
+		                                            ""nullable"": false,
+		                                            ""type"": ""string""
+	                                            }],
+	                                            ""type"": ""struct""
+                                              }";
+
+            // create schema from parsing Json
+            StructType requestsLogSchema = DataType.ParseDataTypeFromJson(schemaRequestsLogJson) as StructType;
+            var dataFrameRequestsLog = GetSqlContext().CreateDataFrame(rddRequestsLog, requestsLogSchema);
+
             Console.WriteLine("------ Schema of RequestsLog Data Frame:");
             dataFrameRequestsLog.ShowSchema();
             Console.WriteLine();
-            foreach (var request in dataFrameRequestsLog.Collect())
+            var collected = dataFrameRequestsLog.Collect().ToArray();
+            foreach (var request in collected)
             {
                 string guid = request.Get("guid");
                 string datacenter = request.Get("datacenter");
                 string abtestid = request.Get("abtestid");
                 string traffictype = request.Get("traffictype");
                 Console.WriteLine("guid:{0}, datacenter:{1}, abtestid:{2}, traffictype:{3}\r\n", guid, datacenter, abtestid, traffictype);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(10, collected.Length);
+                Assert.AreEqual(Regex.Replace(schemaRequestsLogJson, @"\s", string.Empty), Regex.Replace(dataFrameRequestsLog.Schema.Json, @"\s", string.Empty));
             }
         }
 
@@ -299,7 +346,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 var dataType = peopleDataFrameSchemaField.DataType;
                 var stringVal = dataType.TypeName;
                 var simpleStringVal = dataType.SimpleString;
-                var isNullable = peopleDataFrameSchemaField.Nullable;
+                var isNullable = peopleDataFrameSchemaField.IsNullable;
                 Console.WriteLine("Name={0}, DT.string={1}, DT.simplestring={2}, DT.isNullable={3}", name, stringVal, simpleStringVal, isNullable);
             }
         }
@@ -1011,28 +1058,28 @@ namespace Microsoft.Spark.CSharp.Samples
             var nameColSchema = schema.Fields.Find(c => c.Name.Equals("name"));
             Assert.IsNotNull(nameColSchema);
             Assert.AreEqual("name", nameColSchema.Name);
-            Assert.IsTrue(nameColSchema.Nullable);
+            Assert.IsTrue(nameColSchema.IsNullable);
             Assert.AreEqual("string", nameColSchema.DataType.TypeName);
 
             // id
             var idColSchema = schema.Fields.Find(c => c.Name.Equals("id"));
             Assert.IsNotNull(idColSchema);
             Assert.AreEqual("id", idColSchema.Name);
-            Assert.IsTrue(idColSchema.Nullable);
+            Assert.IsTrue(idColSchema.IsNullable);
             Assert.AreEqual("string", nameColSchema.DataType.TypeName);
 
             // age
             var ageColSchema = schema.Fields.Find(c => c.Name.Equals("age"));
             Assert.IsNotNull(ageColSchema);
             Assert.AreEqual("age", ageColSchema.Name);
-            Assert.IsTrue(ageColSchema.Nullable);
+            Assert.IsTrue(ageColSchema.IsNullable);
             Assert.AreEqual("long", ageColSchema.DataType.TypeName);
 
             // address
             var addressColSchema = schema.Fields.Find(c => c.Name.Equals("address"));
             Assert.IsNotNull(addressColSchema);
             Assert.AreEqual("address", addressColSchema.Name);
-            Assert.IsTrue(addressColSchema.Nullable);
+            Assert.IsTrue(addressColSchema.IsNullable);
             Assert.IsNotNull(addressColSchema.DataType);
             Assert.AreEqual("struct", addressColSchema.DataType.TypeName);
             Assert.IsNotNull(((StructType)addressColSchema.DataType).Fields.Find(c => c.Name.Equals("state")));
@@ -1094,7 +1141,7 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFRddSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            //peopleDataFrame.Show();
+            peopleDataFrame.Show();
 
             var dfCount = peopleDataFrame.Count();
             var peopleRdd = peopleDataFrame.Rdd;
