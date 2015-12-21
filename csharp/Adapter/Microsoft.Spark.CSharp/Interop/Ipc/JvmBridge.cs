@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// throught a concourrent socket connection queue (lightweight synchronisation mechanism)
     /// supporting async JVM calls like StreamingContext.AwaitTermination()
     /// </summary>
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class JvmBridge : IJvmBridge
     {
         private int portNumber;
