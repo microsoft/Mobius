@@ -283,7 +283,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Distinct(int numPartitions = 0)
         {
-            return Map(x => new KeyValuePair<T, int>(x, 0)).ReduceByKey((x,y) => x, numPartitions).Map<T>(x => x.Key);
+            return Map(x => new KeyValuePair<T, int>(x, 0)).ReduceByKey((x, y) => x, numPartitions).Map<T>(x => x.Key);
         }
 
         /// <summary>
@@ -417,7 +417,7 @@ namespace Microsoft.Spark.CSharp.Core
             else
             {
                 const double delta = 0.00005;
-                var gamma = - Math.Log(delta) / total;
+                var gamma = -Math.Log(delta) / total;
                 return Math.Min(1, fraction + gamma + Math.Sqrt(gamma * gamma + 2 * gamma * fraction));
             }
         }
@@ -811,6 +811,7 @@ namespace Microsoft.Spark.CSharp.Core
                 int left = num - items.Count;
                 IEnumerable<int> partitions = Enumerable.Range(partsScanned, Math.Min(numPartsToTry, totalParts - partsScanned));
 
+
                 var mappedRDD = MapPartitionsWithIndex<T>(new TakeHelper<T>(left).Execute);
                 int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, partitions);
 
@@ -867,7 +868,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             return Map<KeyValuePair<T, T>>(v => new KeyValuePair<T, T>(v, default(T))).SubtractByKey
                 (
-                    other.Map<KeyValuePair<T, T>>(v => new KeyValuePair<T, T>(v, default(T))), 
+                    other.Map<KeyValuePair<T, T>>(v => new KeyValuePair<T, T>(v, default(T))),
                     numPartitions
                 )
                 .Keys();
@@ -1044,7 +1045,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public IEnumerable<T> ToLocalIterator()
         {
-            foreach(int partition in Enumerable.Range(0, GetNumPartitions()))
+            foreach (int partition in Enumerable.Range(0, GetNumPartitions()))
             {
                 var mappedRDD = MapPartitionsWithIndex<T>((pid, iter) => iter);
                 int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, Enumerable.Range(partition, 1));
@@ -1382,7 +1383,7 @@ namespace Microsoft.Spark.CSharp.Core
 
         internal KeyValuePair<K, T> Execute(T input)
         {
-            return new KeyValuePair<K,T>(func(input), input);
+            return new KeyValuePair<K, T>(func(input), input);
         }
     }
     [Serializable]
@@ -1429,7 +1430,7 @@ namespace Microsoft.Spark.CSharp.Core
             else if (y.Value)
                 return x;
             else
-                return new KeyValuePair<T,bool>(func(x.Key, y.Key), false);
+                return new KeyValuePair<T, bool>(func(x.Key, y.Key), false);
         }
     }
     [Serializable]

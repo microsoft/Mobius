@@ -422,7 +422,7 @@ namespace AdapterTest
                     "123",
                     "Bill"
                 }, 
-                RowSchema.ParseRowSchemaFromJson(jsonSchema))
+                DataType.ParseDataTypeFromJson(jsonSchema) as StructType)
             };
 
             mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(new MockRddProxy(rows));
@@ -435,14 +435,6 @@ namespace AdapterTest
 
             Assert.IsNotNull(rdd);
             mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Once);
-
-            mockDataFrameProxy.Reset();
-            mockStructTypeProxy.Reset();
-
-            rdd = dataFrame.Rdd;
-            Assert.IsNotNull(rdd);
-            mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Never);
-            mockStructTypeProxy.Verify(m => m.ToJson(), Times.Never);
         }
 
         [Test]

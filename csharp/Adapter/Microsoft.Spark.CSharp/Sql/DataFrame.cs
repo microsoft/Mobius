@@ -22,7 +22,7 @@ namespace Microsoft.Spark.CSharp.Sql
         private readonly IDataFrameProxy dataFrameProxy;
         [NonSerialized]
         private readonly SparkContext sparkContext;
-        [NonSerialized]
+
         private StructType schema;
         [NonSerialized]
         private RDD<Row> rdd;
@@ -40,7 +40,7 @@ namespace Microsoft.Spark.CSharp.Sql
                 if (rdd == null)
                 {
                     rddProxy = dataFrameProxy.JavaToCSharp();
-                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row); 
+                    rdd = new RDD<Row>(rddProxy, sparkContext, SerializedMode.Row);
                 }
                 return rdd;
             }
@@ -137,7 +137,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public void ShowSchema()
         {
-            List<string> nameTypeList = Schema.Fields.Select(structField => string.Format("{0}:{1}", structField.Name, structField.DataType.SimpleString())).ToList();
+            var nameTypeList = Schema.Fields.Select(structField => structField.SimpleString);
             Console.WriteLine(string.Join(", ", nameTypeList));
         }
 
@@ -145,18 +145,18 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Returns all of Rows in this DataFrame
         /// </summary>
         public IEnumerable<Row> Collect()
-        {           
+        {
             int port = RddProxy.CollectAndServe();
             return Rdd.Collect(port).Cast<Row>();
         }
 
         /// <summary>
-        /// Converts the DataFrame to RDD of byte[]
+        /// Converts the DataFrame to RDD of Row
         /// </summary>
         /// <returns>resulting RDD</returns>
-        public RDD<byte[]> ToRDD() //RDD created using byte representation of GenericRow objects
+        public RDD<Row> ToRDD() //RDD created using byte representation of Row objects
         {
-            return new RDD<byte[]>(dataFrameProxy.ToRDD(), sparkContext);
+            return Rdd;
         }
 
         /// <summary>

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
-using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
@@ -77,7 +76,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                     jvmDataFrameReference, "showString",
-                    new object[] { numberOfRows ,  truncate }).ToString(); 
+                    new object[] { numberOfRows, truncate }).ToString(); 
         }
 
         public bool IsLocal()

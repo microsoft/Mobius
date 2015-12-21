@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 
 namespace Microsoft.Spark.CSharp.Sql
@@ -39,9 +40,13 @@ namespace Microsoft.Spark.CSharp.Sql
             return new DataFrame(sqlContextProxy.ReadDataFrame(path, schema, options), sparkContext);
         }
 
-        public DataFrame CreateDataFrame(RDD<byte[]> rdd, StructType schema)
+        public DataFrame CreateDataFrame(RDD<object[]> rdd, StructType schema)
         {
-            throw new NotImplementedException();    
+            // pickle RDD, convert to RDD<byte[]>
+            var rddRow = rdd.Map(r => r);
+            rddRow.serializedMode = SerializedMode.Row;
+
+            return new DataFrame(sqlContextProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext); 
         }
 
         /// <summary>

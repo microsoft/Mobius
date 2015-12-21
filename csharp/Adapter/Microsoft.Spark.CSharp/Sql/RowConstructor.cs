@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp.Sql
@@ -65,7 +60,8 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public Row GetRow()
         {
-            var row = new RowImpl(GetValues(Values), RowSchema.ParseRowSchemaFromJson(Schema));
+            var schema = DataType.ParseDataTypeFromJson(Schema) as StructType;
+            var row = new RowImpl(GetValues(Values), schema);
 
             //Resetting schema here so that rows from multiple DataFrames can be processed in the same AppDomain
             //next row will have schema - so resetting is fine
