@@ -7,6 +7,11 @@ build_script:
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: Build.cmd
 
+# need test section below - otherwise auto discovery will run samples will fail build (since it has no text fixtures)
+test:
+  assemblies:
+    - csharp\AdapterTest\bin\Debug\AdapterTest.dll
+
 # scripts to run after tests
 after_test:
     - .\csharp\packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -target:.\csharp\packages\NUnit.Console.3.0.1\tools\nunit3-console.exe -register:user "-targetargs:"".\csharp\AdapterTest\bin\Debug\AdapterTest.dll"" " -filter:"+[AdapterTest]*" -excludebyattribute:*.ExcludeFromCodeCoverage* -hideskipped:All -output:.\AdapterTestCoverage.xml
