@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class DataFrameIpcProxy : IDataFrameProxy
     {
         private readonly JvmObjectReference jvmDataFrameReference;

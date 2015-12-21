@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using log4net.Config;
 
 namespace Microsoft.Spark.CSharp.Services
 {
+    [ExcludeFromCodeCoverage] //unit test coverage not reqiured for logger service
     public class Log4NetLoggerService : ILoggerService
     {
         private readonly ILog logger;

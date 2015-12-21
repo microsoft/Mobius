@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     /// <summary>
     /// calling SparkCLR jvm side API
     /// </summary>
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class SparkCLRIpcProxy : ISparkCLRProxy
     {
         private SparkContextIpcProxy sparkContextProxy;
