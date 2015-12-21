@@ -44,17 +44,6 @@ namespace AdapterTest.Mocks
             return new MockSparkContextProxy(conf);
         }
 
-
-        public IStructFieldProxy CreateStructField(string name, string dataType, bool isNullable)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IStructTypeProxy CreateStructType(List<StructField> fields)
-        {
-            throw new NotImplementedException();
-        }
-
         public ISparkContextProxy SparkContextProxy
         {
             get { throw new NotImplementedException(); }

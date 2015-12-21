@@ -116,7 +116,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(jvmRddReference);
         }
 
-        //TODO - this implementation is slow. Replace with call to createRDDFromArray() in CSharpRDD
         public IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices)
         {
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.csharp.CSharpRDD", "createRDDFromArray", new object[] { jvmSparkContextReference, values, numSlices }));

@@ -62,33 +62,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return sparkContextProxy;
         }
 
-        public IStructFieldProxy CreateStructField(string name, string dataType, bool isNullable)
-        {
-            return new StructFieldIpcProxy(
-                    new JvmObjectReference(
-                        JvmBridge.CallStaticJavaMethod(
-                            "org.apache.spark.sql.api.csharp.SQLUtils", "createStructField",
-                            new object[] { name, dataType, isNullable }).ToString()
-                        )
-                    );
-        }
-
-        public IStructTypeProxy CreateStructType(List<StructField> fields)
-        {
-            var fieldsReference = fields.Select(s => (s.StructFieldProxy as StructFieldIpcProxy).JvmStructFieldReference).ToList().Cast<JvmObjectReference>();
-            
-            var seq =
-                new JvmObjectReference(
-                    JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
-                        "toSeq", new object[] { fieldsReference }).ToString());
-
-            return new StructTypeIpcProxy(
-                    new JvmObjectReference(
-                        JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createStructType", new object[] { seq }).ToString()
-                        )
-                    );
-        }
-
         public IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string deserializer)
         {
             var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpDStream",

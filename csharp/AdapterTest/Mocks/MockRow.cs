@@ -14,7 +14,7 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public override RowSchema GetSchema()
+        public override StructType GetSchema()
         {
             throw new NotImplementedException();
         }
