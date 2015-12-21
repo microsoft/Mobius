@@ -77,7 +77,9 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="data\csvtestlog.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
