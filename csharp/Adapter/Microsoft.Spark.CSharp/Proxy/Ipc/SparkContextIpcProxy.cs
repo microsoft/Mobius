@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
@@ -100,7 +101,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             jvmAccumulatorReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "accumulator", 
                 SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList"),
-                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorParam", "127.0.0.1", port)
+                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorParam", IPAddress.Loopback.ToString(), port)
             ));
         }
 

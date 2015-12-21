@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -23,7 +24,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             IFormatter formatter = new BinaryFormatter();
             Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            sock.Connect("127.0.0.1", port);
+            sock.Connect(IPAddress.Loopback, port);
 
             using (NetworkStream s = new NetworkStream(sock))
             {

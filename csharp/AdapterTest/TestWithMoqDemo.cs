@@ -60,7 +60,7 @@ namespace AdapterTest
             _mockSparkCLRProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<long>())).Returns(_mockStreamingContextProxy.Object);
             _mockRddProxy.Setup(m => m.CollectAndServe()).Returns(() =>
             {
-                TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
+                TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
                 listener.Start();
 
                 Task.Run(() =>

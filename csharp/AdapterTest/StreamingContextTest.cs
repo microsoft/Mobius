@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Streaming;
@@ -27,10 +28,10 @@ namespace AdapterTest
             var textFile = ssc.TextFileStream(Path.GetTempPath());
             Assert.IsNotNull(textFile.DStreamProxy);
 
-            var socketStream = ssc.SocketTextStream("127.0.0.1", 12345);
+            var socketStream = ssc.SocketTextStream(IPAddress.Loopback.ToString(), 12345);
             Assert.IsNotNull(socketStream.DStreamProxy);
 
-            var kafkaStream = ssc.KafkaStream("127.0.0.1:2181", "testGroupId", new Dictionary<string, int> { { "testTopic1", 1 } }, new Dictionary<string, string>());
+            var kafkaStream = ssc.KafkaStream(IPAddress.Loopback + ":2181", "testGroupId", new Dictionary<string, int> { { "testTopic1", 1 } }, new Dictionary<string, string>());
             Assert.IsNotNull(kafkaStream.DStreamProxy);
 
             var directKafkaStream = ssc.DirectKafkaStream(new List<string> { "testTopic2" }, new Dictionary<string, string>(), new Dictionary<string, long>());
