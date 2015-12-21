@@ -36,3 +36,4 @@ lib/
 # Generated Files #
 ############
 AdapterTestCoverage.xml
+TestResult.xml
