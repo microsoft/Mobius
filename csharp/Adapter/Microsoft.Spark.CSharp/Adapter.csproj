@@ -76,6 +76,7 @@
     <Compile Include="Core\StatCounter.cs" />
     <Compile Include="Core\StatusTracker.cs" />
     <Compile Include="Core\StorageLevel.cs" />
+    <Compile Include="Interop\Ipc\JsonSerDe.cs" />
     <Compile Include="Interop\SparkCLREnvironment.cs" />
     <Compile Include="Interop\Ipc\IJvmBridge.cs" />
     <Compile Include="Interop\Ipc\JvmBridge.cs" />
