@@ -32,3 +32,8 @@ run/
 tools/
 *.log
 lib/
+
+# Generated Files #
+############
+AdapterTestCoverage.xml
+TestResult.xml

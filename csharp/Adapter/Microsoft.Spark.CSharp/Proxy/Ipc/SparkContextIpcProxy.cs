@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -14,6 +15,7 @@ using Microsoft.Spark.CSharp.Proxy.Ipc;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class SparkContextIpcProxy : ISparkContextProxy
     {
         private JvmObjectReference jvmSparkContextReference;
