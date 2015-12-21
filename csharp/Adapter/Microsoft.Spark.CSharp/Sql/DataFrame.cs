@@ -444,15 +444,54 @@ namespace Microsoft.Spark.CSharp.Sql
             if (how != "any" && how != "all")
                 throw new ArgumentException(string.Format(@"how ({0}) should be 'any' or 'all'.", how));
 
-            string[] columnNames = null;
             if (subset == null || subset.Length == 0)
-                columnNames = dataFrameProxy.GetSchema().GetStructTypeFields().Select(f => f.GetStructFieldName().ToString(CultureInfo.InvariantCulture)).ToArray();
+                subset = dataFrameProxy.GetSchema().GetStructTypeFields().Select(f => f.GetStructFieldName().ToString(CultureInfo.InvariantCulture)).ToArray();
 
-            if (thresh == null)
-                thresh = how == "any" ? (subset == null ? columnNames.Length : subset.Length) : 1;
+            if (!thresh.HasValue)
+                thresh = how == "any" ? subset.Length : 1;
 
-            return
-                new DataFrame(dataFrameProxy.DropNa(thresh, subset ?? columnNames), sparkContext);
+            return Na().Drop(thresh.Value, subset);
+        }
+
+        /// <summary>
+        /// Returns a DataFrameNaFunctions for working with missing data.
+        /// </summary>
+        /// Reference: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, na(self)
+        public DataFrameNaFunctions Na()
+        {
+            return new DataFrameNaFunctions(dataFrameProxy.Na(), this, sparkContext);
+        }
+
+        /// <summary>
+        /// Replace null values, alias for ``na.fill()`
+        /// </summary>
+        /// <param name="value">
+        /// Value to replace null values with.
+        /// Value type should be float, double, short, int, long, string or Dictionary.
+        /// If the value is a dict, then `subset` is ignored and `value` must be a mapping
+        /// from column name (string) to replacement value. The replacement value must be
+        /// an int, long, float, or string.
+        /// </param>
+        /// <param name="subset">
+        /// optional list of column names to consider.
+        /// Columns specified in subset that do not have matching data type are ignored.
+        /// For example, if `value` is a string, and subset contains a non-string column,
+        /// then the non-string column is simply ignored.
+        /// </param>
+        // Reference: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py, fillna(self, value, subset=None)
+        public DataFrame FillNa(dynamic value, string[] subset = null)
+        {
+            var validTypes = new[] { typeof(int), typeof(short), typeof(long), typeof(double), typeof(float), typeof(string), typeof(Dictionary<string,dynamic>) };
+            if (validTypes.All(t => t != value.GetType()))
+                throw new ArgumentException("value type should be float, double, short, int, long, string or Dictionary.");
+
+            var dict = value as Dictionary<string, dynamic>;
+            if (dict != null)
+            {
+                return Na().Fill(dict);
+            }
+
+            return subset == null ? Na().Fill(value) : Na().Fill(value, subset);
         }
 
         /// <summary>
@@ -870,6 +909,15 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
+        /// Returns a new RDD by applying a function to all rows of this DataFrame.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py map(self, f)
+        public RDD<U> Map<U>(Func<Row, U> f)
+        {
+            return Rdd.Map(f);
+        }
+
+        /// <summary>
         /// Returns a new RDD by applying a function to each partition of this DataFrame.
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
@@ -902,10 +950,109 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// Interface for saving the content of the DataFrame out into external storage.
         /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // write(self)
         public DataFrameWriter Write()
         {
             return new DataFrameWriter(dataFrameProxy.Write());
         }
+
+        /// <summary>
+        /// Saves the contents of this DataFrame as a parquet file, preserving the schema.
+        /// Files that are written out using this method can be read back in as a DataFrame
+        /// using the `parquetFile` function in SQLContext.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // saveAsParquetFile(self, path)
+        public void SaveAsParquetFile(String path)
+        {
+            Write().Parquet(path);
+        }
+
+        /// <summary>
+        /// Adds the rows from this RDD to the specified table, optionally overwriting the existing data.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // insertInto(self, tableName, overwrite=False)
+        public void InsertInto(string tableName, bool overwrite = false)
+        {
+            var mode = overwrite ? SaveMode.Overwrite : SaveMode.Append;
+            Write().Mode(mode).InsertInto(tableName);
+        }
+
+        /// <summary>
+        /// Creates a table from the the contents of this DataFrame based on a given data source, 
+        /// SaveMode specified by mode, and a set of options.
+        /// 
+        /// Note that this currently only works with DataFrames that are created from a HiveContext as
+        /// there is no notion of a persisted catalog in a standard SQL context.  Instead you can write
+        /// an RDD out to a parquet file, and then register that file as a table.  This "table" can then
+        /// be the target of an `insertInto`.
+        /// 
+        /// Also note that while this function can persist the table metadata into Hive's metastore,
+        /// the table will NOT be accessible from Hive, until SPARK-7550 is resolved.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // saveAsTable(self, tableName, source=None, mode="error", **options)
+        public void SaveAsTable(string tableName, string source = null, SaveMode mode = SaveMode.ErrorIfExists, params string[] options)
+        {
+            var dataFrameWriter = Write().Mode(mode);
+            if (source != null)
+            {
+                dataFrameWriter = dataFrameWriter.Format(source);
+            }
+            if (options.Length > 0)
+            {
+                dataFrameWriter = dataFrameWriter.Options(ParamsToDict(options));
+            }
+            dataFrameWriter.SaveAsTable(tableName);
+        }
+
+        /// <summary>
+        /// Saves the contents of this DataFrame based on the given data source, 
+        /// SaveMode specified by mode, and a set of options.
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
+        // save(self, path=None, source=None, mode="error", **options)
+        public void Save(string path = null, string source = null, SaveMode mode = SaveMode.ErrorIfExists, params string[] options)
+        {
+            var dataFrameWriter = Write().Mode(mode);
+            if (source != null)
+            {
+                dataFrameWriter = dataFrameWriter.Format(source);
+            }
+            if (options.Length > 0)
+            {
+                dataFrameWriter = dataFrameWriter.Options(ParamsToDict(options));
+            }
+            if (path != null)
+            {
+                dataFrameWriter.Save(path);
+            }
+            else
+            {
+                dataFrameWriter.Save();
+            }
+        }
+
+        // Helper method to convert variable number of arguments to a dictionary.
+        private Dictionary<string, string> ParamsToDict(params string[] options)
+        {
+            var optionDict = new Dictionary<string, string>();
+            if (options.Length <= 0)
+            {
+                return optionDict;
+            }
+            if (options.Length % 2 != 0)
+            {
+                throw new ArgumentException("options length must be even.");
+            }
+            for (var i = 0; i < options.Length; i++)
+            {
+                optionDict[options[i]] = options[++i];
+            }
+            return optionDict;
+        } 
     }
 
     public class JoinType

@@ -21,6 +21,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             this.jvmSqlContextReference = jvmSqlContextReference;
         }
 
+        public IDataFrameReaderProxy Read()
+        {
+            var javaDataFrameReaderReference = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "read");
+            return new DataFrameReaderIpcProxy(new JvmObjectReference(javaDataFrameReaderReference.ToString()), this);
+        }
+
         public IDataFrameProxy ReadDataFrame(string path, StructType schema, Dictionary<string, string> options)
         {
             //TODO parameter Dictionary<string, string> options is not used right now - it is meant to be passed on to data sources

@@ -28,6 +28,14 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
+        /// Returns a DataFrameReader that can be used to read data in as a DataFrame.
+        /// </summary>
+        public DataFrameReader Read()
+        {
+            return new DataFrameReader(sqlContextProxy.Read(), sparkContext);
+        }
+
+        /// <summary>
         /// Loads a dataframe the source path using the given schema and options
         /// </summary>
         /// <param name="path"></param>
@@ -73,7 +81,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public DataFrame JsonFile(string path, StructType schema)
         {
-            throw new NotImplementedException();
+            return Read().Schema(schema).Json(path);
         }
 
         /// <summary>

@@ -333,18 +333,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         }
 
         /// <summary>
-        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrameNaFunctions.scala, drop(how: String, cols: Seq[String])
+        /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, na(): DataFrame
         /// </summary>
-        /// <param name="thresh"></param>
-        /// <param name="subset"></param>
-        /// <returns></returns>
-        public IDataFrameProxy DropNa(int? thresh, string[] subset)
+        public IDataFrameNaFunctionsProxy Na()
         {
-            return
-                new DataFrameIpcProxy(new JvmObjectReference(
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                        na.JvmReference, "drop",
-                        new object[] { thresh, subset }).ToString()), sqlContextProxy);
+            return new DataFrameNaFunctionsIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                    this.jvmDataFrameReference, "na")), sqlContextProxy);
         }
 
         /// <summary>

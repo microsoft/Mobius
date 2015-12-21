@@ -60,6 +60,7 @@
     <Compile Include="SamplesRunner.cs" />
     <Compile Include="SparkContextSamples.cs" />
     <Compile Include="RDDSamples.cs" />
+    <Compile Include="SqlContextSamples.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -76,9 +77,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="data\csvtestlog.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

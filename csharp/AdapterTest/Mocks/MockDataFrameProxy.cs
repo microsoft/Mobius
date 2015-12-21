@@ -290,6 +290,11 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
+        public IDataFrameNaFunctionsProxy Na()
+        {
+            throw new NotImplementedException();
+        }
+
         public IDataFrameProxy DropDuplicates()
         {
             throw new NotImplementedException();

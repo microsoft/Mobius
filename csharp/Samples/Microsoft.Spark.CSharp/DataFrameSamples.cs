@@ -367,6 +367,129 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Sample to fill value to Na fields of a dataframe.
+        /// </summary>
+        [Sample]
+        internal static void DFFillNaSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var count = peopleDataFrame.Count();
+            Console.WriteLine("Records in people dataframe: {0}", count);
+
+            peopleDataFrame = peopleDataFrame.WithColumn("mail", Functions.Lit(null).Cast("string"))
+                .WithColumn("height", Functions.Lit(null).Cast("int"));
+
+            const string unknownMail = "unknown mail";
+
+            var filledMailDataFrame = peopleDataFrame.FillNa(unknownMail, new[] { "mail" });
+            Console.WriteLine("Filled null [mail] field with '{0}'", unknownMail);
+            filledMailDataFrame.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var expected = filledMailDataFrame.Collect().Where(row => (string)row.Get("mail") == unknownMail).Select(row => row.Get("mail")).Count();
+                Assert.AreEqual(count, expected);
+            }
+
+            const int unknownHeight = -1;
+            var filledHeightDataFrame = peopleDataFrame.FillNa(unknownHeight, new[] { "height" });
+            Console.WriteLine("Filled null [mail] and [height] fields with '{0}'", unknownHeight);
+            filledHeightDataFrame.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var expected = filledHeightDataFrame.Collect().Where(row => (int)row.Get("height") == unknownHeight)
+                    .Select(row => row.Get("height")).Count();
+                Assert.AreEqual(count, expected);
+            }
+        }
+
+        /// <summary>
+        /// Sample to fill value to Na fields of a dataframe using dict
+        /// </summary>
+        [Sample]
+        internal static void DFFillNaSampleWithDict()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var count = peopleDataFrame.Count();
+            Console.WriteLine("Records in people dataframe: {0}", count);
+
+            peopleDataFrame = peopleDataFrame.WithColumn("mail", Functions.Lit(null).Cast("string"))
+                .WithColumn("height", Functions.Lit(null).Cast("int"));
+
+            const string unknownMail = "unknown mail";
+            const int unknownHeight = -1;
+
+            var filledDataFrame = peopleDataFrame.FillNa(new Dictionary<string, object>() { { "mail", unknownMail }, { "height", unknownHeight } });
+            Console.WriteLine("Filled null [mail] and [height] fields with '{0}' and '{1}'", unknownMail, unknownHeight);
+            filledDataFrame.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var expected = filledDataFrame.Collect().Count(row => (int)row.Get("height") == unknownHeight && (string)row.Get("mail") == unknownMail);
+                Assert.AreEqual(count, expected);
+            }
+        }
+
+        /// <summary>
+        /// Sample to drop rows containing any null values.
+        /// </summary>
+        [Sample]
+        internal static void DFNaDropSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var dfCount = peopleDataFrame.Count();
+            Console.WriteLine("Before drop operation, # of rows: {0}", dfCount);
+            peopleDataFrame.Show();
+
+            var peopleDataFrameWithoutNull = peopleDataFrame.Na().Drop();
+            var dfCount2 = peopleDataFrameWithoutNull.Count();
+            Console.WriteLine("After drop operation, # of rows: {0}", dfCount2);
+            peopleDataFrameWithoutNull.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(dfCount > dfCount2);
+            }
+        }
+
+        /// <summary>
+        /// Sample to fill rows containing null values.
+        /// </summary>
+        [Sample]
+        internal static void DFNaFillSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson))
+                .WithColumn("mail", Functions.Lit(null).Cast("string"));
+            Console.WriteLine("Before fill operation:");
+            peopleDataFrame.Show();
+
+            var filledDataFrame = peopleDataFrame.Na().Fill("unknown mail");
+            Console.WriteLine("After fill operation:");
+            filledDataFrame.Show();
+        }
+
+        /// <summary>
+        /// Sample to replace rows containing null values.
+        /// </summary>
+        [Sample]
+        internal static void DFNaReplaceSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            Console.WriteLine("Before replace operation:");
+            peopleDataFrame.Show();
+
+            var replacement = new Dictionary<string, string>()
+            {
+                {"Bill", "BILL"},
+                {"123", "I II III"}
+            };
+            var filledDataFrame = peopleDataFrame.Na().Replace(new[] { "name", "id" }, replacement);
+            Console.WriteLine("After replace operation:");
+            filledDataFrame.Show();
+        }
+
+        /// <summary>
         /// Sample to drop a duplicated rows in a DataFrame.
         /// </summary>
         [Sample]
@@ -815,7 +938,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             const int num = 2;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var peopleDataFrame2 = peopleDataFrame.Limit(num);
+            var peopleDataFrame2 = peopleDataFrame.Sort(new string[] { "id" }, new bool[] { true }).Limit(num);
 
             PrintAndVerifyPeopleDataFrameRows(peopleDataFrame2.Head(num), num);
         }
@@ -828,7 +951,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             const int num = 3;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var rows = peopleDataFrame.Head(num);
+            var rows = peopleDataFrame.Sort(new string[] { "id" }, new bool[] { true }).Head(num);
 
             PrintAndVerifyPeopleDataFrameRows(rows, num);
         }
@@ -838,7 +961,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             const int num = 2;
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var rows = peopleDataFrame.Take(num);
+            var rows = peopleDataFrame.Sort(new string[] { "id" }, new bool[] { true }).Take(num);
 
             PrintAndVerifyPeopleDataFrameRows(rows, num);
         }
@@ -897,7 +1020,7 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFFirstSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var row = peopleDataFrame.First();
+            var row = peopleDataFrame.Sort(new string[] { "id" }, new bool[] { true }).First();
             var schema = row.GetSchema();
 
             Console.WriteLine("peopleDataFrame:");
@@ -1286,6 +1409,32 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
+        /// Map sample
+        /// </summary>
+        [Sample]
+        internal static void DFMapSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var dfCount = peopleDataFrame.Count();
+
+            RDD<string> rdd = peopleDataFrame.Map(row => (string)row.Get("name"));
+            var rddCount = rdd.Count();
+
+            Console.WriteLine("DataFrame count: {0}, RDD count: {1}", dfCount, rddCount);
+
+            string[] rows = rdd.Collect();
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsNotNull(rows);
+                Assert.AreEqual(rows.Count(), dfCount);
+            }
+
+            for (var i = 0; i < rows.Length; i++)
+            {
+                Console.WriteLine("[{0}] {1}", i, rows[i]);
+            }
+        }
+        /// <summary>
         /// MapPartitions sample
         /// </summary>
         [Sample]
@@ -1357,14 +1506,14 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         /// <summary>
-        /// Write to parquet sample
+        /// Write to parquet sample using DataFrameWriter
         /// </summary>
         [Sample]
         internal static void DFWriteToParquetSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
-            peopleDataFrame.Write().Parquet(parquetPath);
+            peopleDataFrame.Coalesce(1).Write().Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
@@ -1391,7 +1540,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
-            peopleDataFrame.Write().Mode(SaveMode.ErrorIfExists).Parquet(parquetPath);
+            peopleDataFrame.Coalesce(1).Write().Mode(SaveMode.ErrorIfExists).Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
@@ -1450,6 +1599,60 @@ namespace Microsoft.Spark.CSharp.Samples
 
             Directory.Delete(jsonPath, true);
             Console.WriteLine("Remove parquet directory: {0}", jsonPath);
+        }
+
+        /// <summary>
+        /// Write to parquet sample
+        /// </summary>
+        [Sample]
+        internal static void DFSaveAsParquetFileSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            peopleDataFrame.Coalesce(1).SaveAsParquetFile(parquetPath);
+
+            Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
+            Console.WriteLine("Files:");
+
+            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            {
+                Console.WriteLine(f);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(Directory.Exists(parquetPath));
+            }
+
+            Directory.Delete(parquetPath, true);
+            Console.WriteLine("Remove parquet directory: {0}", parquetPath);
+        }
+
+        /// <summary>
+        /// DataFrame `Save` sample
+        /// </summary>
+        [Sample]
+        internal static void DFSaveSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var path = Path.GetTempPath() + "DF_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            peopleDataFrame.Save(path, "json", SaveMode.ErrorIfExists, "option1", "option_value1");
+
+            Console.WriteLine("Save dataframe to: {0}", path);
+            Console.WriteLine("Files:");
+
+            foreach (var f in Directory.EnumerateFiles(path))
+            {
+                Console.WriteLine(f);
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.IsTrue(Directory.Exists(path));
+            }
+
+            Directory.Delete(path, true);
+            Console.WriteLine("Remove directory: {0}", path);
         }
     }
 }

@@ -185,5 +185,19 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             return new Column(columnProxy.InvokeMethod("as", new object[] { aliases }));
         }
+
+        /// <summary>
+        /// Casts the column to a different data type, using the canonical string representation
+        /// of the type. The supported types are: `string`, `boolean`, `byte`, `short`, `int`, `long`,
+        /// `float`, `double`, `decimal`, `date`, `timestamp`.
+        /// 
+        /// E.g.
+        ///     // Casts colA to integer.
+        ///     df.select(df("colA").cast("int"))
+        /// </summary>
+        public Column Cast(string to)
+        {
+            return new Column(columnProxy.InvokeMethod("cast", new object[] { to }));
+        }
     }
 }
