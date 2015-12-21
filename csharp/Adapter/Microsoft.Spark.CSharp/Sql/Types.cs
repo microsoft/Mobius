@@ -1,16 +1,16 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp.Sql
 {

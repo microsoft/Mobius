@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Spark.CSharp.Interop.Ipc
@@ -8,10 +11,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// </summary>
     public static class JsonSerDe
     {
-        /*
-         * Note: Scala side uses JSortedObject when parse Json, so the properties in JObject need to be sorted.
-         */
-
+        // Note: Scala side uses JSortedObject when parse Json, so the properties in JObject need to be sorted
         /// <summary>
         /// Extend method to sort items in a JSON object by keys.
         /// </summary>
