@@ -8,7 +8,6 @@ using System.Reflection;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
-using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Proxy;
 using NUnit.Framework;
@@ -58,25 +57,32 @@ namespace AdapterTest
             Assert.AreEqual("JoinCol", paramValuesToJoinMethod[1]);
         }
 
+        
         [Test]
         public void TestDataFrameCollect()
         {
-            const int localPort = 4000;
-            const int size = 2;
-            IDataFrameProxy dataFrameProxy = MockDataFrameProxyForCollect(localPort, size);
-            DataFrame dataFrame = new DataFrame(dataFrameProxy, null);
+            var expectedRows = new Row[] {new MockRow(), new MockRow()};
+            var mockRddProxy = new Mock<IRDDProxy>();
+            var mockRddCollector = new Mock<IRDDCollector>();
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+                .Returns(expectedRows);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
+            mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
 
-            List<Row> rows = new List<Row>();
+            var rows = new List<Row>();
             foreach (var row in dataFrame.Collect())
             {
                 rows.Add(row);
                 Console.WriteLine("{0}", row);
             }
 
-            Assert.AreEqual(rows.Count, size);
-            const int index = 0;
-            AssertRow(rows[index], index);
+            Assert.AreEqual(rows.Count, expectedRows.Length);
+            Assert.AreEqual(expectedRows[0], rows[0]);
+            Assert.AreEqual(expectedRows[1], rows[1]);
         }
+        
 
         [Test]
         public void TestIntersect()
@@ -406,7 +412,6 @@ namespace AdapterTest
                 }";
 
             Mock<IStructTypeProxy> mockStructTypeProxy = new Mock<IStructTypeProxy>();
-            mockStructTypeProxy.Setup(m => m.ToJson()).Returns(jsonSchema);
             mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockStructTypeProxy.Object);
 
             var rows = new object[]
@@ -417,7 +422,7 @@ namespace AdapterTest
                     "123",
                     "Bill"
                 }, 
-                RowSchema.ParseRowSchemaFromJson(jsonSchema))
+                DataType.ParseDataTypeFromJson(jsonSchema) as StructType)
             };
 
             mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(new MockRddProxy(rows));
@@ -430,15 +435,6 @@ namespace AdapterTest
 
             Assert.IsNotNull(rdd);
             mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Once);
-            mockStructTypeProxy.Verify(m => m.ToJson(), Times.Once);
-
-            mockDataFrameProxy.Reset();
-            mockStructTypeProxy.Reset();
-
-            rdd = dataFrame.Rdd;
-            Assert.IsNotNull(rdd);
-            mockDataFrameProxy.Verify(m => m.JavaToCSharp(), Times.Never);
-            mockStructTypeProxy.Verify(m => m.ToJson(), Times.Never);
         }
 
         [Test]
@@ -643,70 +639,88 @@ namespace AdapterTest
             mockDataFrameProxy.Verify(m => m.Limit(size), Times.Once());
         }
 
+
         [Test]
         public void TestHead()
         {
-            // arrange
-            const int size = 23;
-            const int expectedSize = 5;
-            const int localPort = 4001;
-            IDataFrameProxy limitedDataFrameProxy = MockDataFrameProxyForCollect(localPort, expectedSize);
-            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(limitedDataFrameProxy);
+            var expectedRows = new Row[] {new MockRow(), new MockRow(), new MockRow(), new MockRow(), new MockRow()};
+            var mockRddProxy = new Mock<IRDDProxy>();
+            var mockRddCollector = new Mock<IRDDCollector>();
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+                .Returns(expectedRows);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
+            mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
+            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(mockDataFrameProxy.Object);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
 
-            var sc = new SparkContext(null);
-            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            const int unUsedSizeValue = 100;
 
             // act
-            IEnumerable<Row> rows = dataFrame.Head(size);
-
+            IEnumerable<Row> rows = dataFrame.Head(unUsedSizeValue); //uses limit & collect
+            
             // assert
+            var rowsArray = rows.ToArray();
             Assert.IsNotNull(rows);
-            Assert.AreEqual(expectedSize, rows.Count());
-            mockDataFrameProxy.Verify(m => m.Limit(size), Times.Once());
+            Assert.AreEqual(expectedRows.Length, rowsArray.Length);
+            for (int i = 0; i < rowsArray.Length; i++)
+                Assert.AreEqual(expectedRows[i], rowsArray[i]);
+            mockDataFrameProxy.Verify(m => m.Limit(unUsedSizeValue), Times.Once());
         }
 
+        
         [Test]
         public void TestFirst()
         {
             // arrange
-            const int localPort = 4001;
-            IDataFrameProxy limitedDataFrameProxy = MockDataFrameProxyForCollect(localPort, 1);
-            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(limitedDataFrameProxy);
-
-            var sc = new SparkContext(null);
-            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var expectedRows = new Row[] { new MockRow(), new MockRow(), new MockRow(), new MockRow(), new MockRow() };
+            var mockRddProxy = new Mock<IRDDProxy>();
+            var mockRddCollector = new Mock<IRDDCollector>();
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+                .Returns(expectedRows);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
+            mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
+            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(mockDataFrameProxy.Object);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
 
             // act
-            Row firstRow = dataFrame.First();
+            Row firstRow = dataFrame.First(); //uses limit & collect
 
             // assert
-            AssertRow(firstRow, 0);
+            Assert.AreEqual(expectedRows[0], firstRow);
             mockDataFrameProxy.Verify(m => m.Limit(1), Times.Once());
         }
 
+        
         [Test]
         public void TestTake()
         {
             // arrange
-            const int localPort = 4001;
-            const int expectedSize = 5;
-            IDataFrameProxy limitedDataFrameProxy = MockDataFrameProxyForCollect(localPort, expectedSize);
-            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(limitedDataFrameProxy);
+            var expectedRows = new Row[] { new MockRow(), new MockRow(), new MockRow(), new MockRow(), new MockRow() };
+            var mockRddProxy = new Mock<IRDDProxy>();
+            var mockRddCollector = new Mock<IRDDCollector>();
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+                .Returns(expectedRows);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
+            mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
+            mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(mockDataFrameProxy.Object);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
 
-            var sc = new SparkContext(null);
-            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
-
+            const int unUsedSizeValue = 100;
             // act
-            IEnumerable<Row> iter = dataFrame.Take(expectedSize);
+            IEnumerable<Row> iter = dataFrame.Take(unUsedSizeValue);
 
             // assert
             Assert.IsNotNull(iter);
             Row[] rows = iter.ToArray();
-            Assert.AreEqual(expectedSize, rows.Length);
-            AssertRow(rows[0], 0);
-            AssertRow(rows[2], 2);
-            mockDataFrameProxy.Verify(m => m.Limit(expectedSize), Times.Once());
+            Assert.AreEqual(expectedRows.Length, rows.Length);
+            for (int i = 0; i < rows.Length; i++)
+                Assert.AreEqual(expectedRows[i], rows[i]);
+            mockDataFrameProxy.Verify(m => m.Limit(unUsedSizeValue), Times.Once());
         }
+        
 
         [Test]
         public void TestDistinct()

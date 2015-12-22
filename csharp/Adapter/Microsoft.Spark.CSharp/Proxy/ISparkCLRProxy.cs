@@ -17,8 +17,6 @@ namespace Microsoft.Spark.CSharp.Proxy
         ISparkContextProxy SparkContextProxy { get; }
         ISparkConfProxy CreateSparkConf(bool loadDefaults = true);
         ISparkContextProxy CreateSparkContext(ISparkConfProxy conf);
-        IStructFieldProxy CreateStructField(string name, string dataType, bool isNullable);
-        IStructTypeProxy CreateStructType(List<StructField> fields);
         IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string deserializer);
         IDStreamProxy CreateCSharpTransformed2DStream(IDStreamProxy jdstream, IDStreamProxy jother, byte[] func, string deserializer, string deserializerOther);
         IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string deserializer);

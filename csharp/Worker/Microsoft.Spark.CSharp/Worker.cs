@@ -12,12 +12,13 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-
+using System.Text;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Services;
-
+using Microsoft.Spark.CSharp.Sql;
 using Razorvine.Pickle;
+using Razorvine.Pickle.Objects;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -49,7 +50,7 @@ namespace Microsoft.Spark.CSharp
                 int javaPort = int.Parse(Console.ReadLine());
                 logger.LogInfo("java_port: " + javaPort);
                 sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                sock.Connect(IPAddress.Parse("127.0.0.1"), javaPort);
+                sock.Connect(IPAddress.Loopback, javaPort);
             }
             catch (Exception e)
             {
@@ -128,6 +129,11 @@ namespace Microsoft.Spark.CSharp
                         Stopwatch commandProcessWatch = new Stopwatch();
                         Stopwatch funcProcessWatch = new Stopwatch();
                         commandProcessWatch.Start();
+
+                        int rddId = SerDe.ReadInt(s);
+                        int stageId = SerDe.ReadInt(s);
+                        int partitionId = SerDe.ReadInt(s);
+                        logger.LogInfo(string.Format("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId));
 
                         string deserializerMode = SerDe.ReadString(s);
                         logger.LogInfo("Deserializer mode: " + deserializerMode);
@@ -331,7 +337,6 @@ namespace Microsoft.Spark.CSharp
         private object[] items = null;
         private int pos = 0;
 
-        private Unpickler unpickler = new Unpickler();
         IFormatter formatter = new BinaryFormatter();
         private Stopwatch watch = new Stopwatch();
 
@@ -425,7 +430,9 @@ namespace Microsoft.Spark.CSharp
                     {
                         Debug.Assert(messageLength > 0);
                         byte[] buffer = SerDe.ReadBytes(inputStream, messageLength);
-                        result = unpickler.loads(buffer) as object[];
+                        var unpickledObjects = PythonSerDe.GetUnpickledObjects(buffer);
+                        var rows = unpickledObjects.Select(item => (item as RowConstructor).GetRow()).ToList();
+                        result = rows.Cast<object>().ToArray();
                         break;
                     }
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,6 +15,7 @@ using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class RDDIpcProxy : IRDDProxy
     {
         private readonly JvmObjectReference jvmRddReference;
@@ -21,6 +23,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         internal JvmObjectReference JvmRddReference
         {
             get { return jvmRddReference; }
+        }
+
+        private IRDDCollector rddCollector;
+        public IRDDCollector RDDCollector
+        {
+            get { return rddCollector ?? (rddCollector = new RDDCollector()); }
+
+            set
+            {
+                rddCollector = value;
+            }
         }
 
         public string Name

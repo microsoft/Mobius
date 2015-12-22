@@ -25,7 +25,7 @@ if %precheck% == "bad" (goto :eof)
 @rem 
 @rem setup Hadoop and Spark versions
 @rem
-set SPARK_VERSION=1.4.1
+set SPARK_VERSION=1.5.2
 set HADOOP_VERSION=2.6
 @echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
 

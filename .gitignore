@@ -22,25 +22,18 @@
 
 # Folders #
 ############
-*/target/**
-*/bin/**
-*/obj/**
-csharp/packages
-csharp/Adapter/Microsoft.Spark.CSharp/bin/**
-csharp/Adapter/Microsoft.Spark.CSharp/obj/**
-csharp/AdapterTest/bin/**
-csharp/AdapterTest/obj/**
-csharp/Samples/Microsoft.Spark.CSharp/bin/**
-csharp/Samples/Microsoft.Spark.CSharp/obj/**
-csharp/Worker/Microsoft.Spark.CSharp/bin/**
-csharp/Worker/Microsoft.Spark.CSharp/obj/**
-csharp/Perf/Microsoft.Spark.CSharp/bin/**
-csharp/Perf/Microsoft.Spark.CSharp/obj/**
-scala/.idea/**
-scala/perf/.idea/**
+**/bin/
+**/obj/
+**/packages/
+**/target/
+**/.idea/
 scala/dependency-reduced-pom.xml
 run/
 tools/
 *.log
 lib/
-target/
+
+# Generated Files #
+############
+AdapterTestCoverage.xml
+TestResult.xml

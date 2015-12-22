@@ -3,13 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
-using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class DataFrameIpcProxy : IDataFrameProxy
     {
         private readonly JvmObjectReference jvmDataFrameReference;
@@ -44,6 +45,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             var javaRDDReference = new JvmObjectReference(
                 (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDataFrameReference, "javaToPython"));
+
             return new RDDIpcProxy(javaRDDReference);
         }
 
@@ -76,7 +78,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                     jvmDataFrameReference, "showString",
-                    new object[] { numberOfRows /*,  truncate*/ }).ToString(); //1.4.1 does not support second param
+                    new object[] { numberOfRows, truncate }).ToString(); 
         }
 
         public bool IsLocal()

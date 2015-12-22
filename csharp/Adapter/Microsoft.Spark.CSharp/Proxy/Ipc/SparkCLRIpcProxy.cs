@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     /// <summary>
     /// calling SparkCLR jvm side API
     /// </summary>
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class SparkCLRIpcProxy : ISparkCLRProxy
     {
         private SparkContextIpcProxy sparkContextProxy;
@@ -60,33 +62,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             JvmObjectReference jvmJavaContextReference = JvmBridge.CallConstructor("org.apache.spark.api.java.JavaSparkContext", new object[] { jvmSparkContextReference });
             sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
             return sparkContextProxy;
-        }
-
-        public IStructFieldProxy CreateStructField(string name, string dataType, bool isNullable)
-        {
-            return new StructFieldIpcProxy(
-                    new JvmObjectReference(
-                        JvmBridge.CallStaticJavaMethod(
-                            "org.apache.spark.sql.api.csharp.SQLUtils", "createStructField",
-                            new object[] { name, dataType, isNullable }).ToString()
-                        )
-                    );
-        }
-
-        public IStructTypeProxy CreateStructType(List<StructField> fields)
-        {
-            var fieldsReference = fields.Select(s => (s.StructFieldProxy as StructFieldIpcProxy).JvmStructFieldReference).ToList().Cast<JvmObjectReference>();
-            
-            var seq =
-                new JvmObjectReference(
-                    JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
-                        "toSeq", new object[] { fieldsReference }).ToString());
-
-            return new StructTypeIpcProxy(
-                    new JvmObjectReference(
-                        JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createStructType", new object[] { seq }).ToString()
-                        )
-                    );
         }
 
         public IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string deserializer)

@@ -153,7 +153,7 @@ namespace Microsoft.Spark.CSharp.Core
         private bool serverShutdown;
 
         internal AccumulatorServer()
-            : base(IPAddress.Parse("127.0.0.1"), 0)
+            : base(IPAddress.Loopback, 0)
         {
 
         }

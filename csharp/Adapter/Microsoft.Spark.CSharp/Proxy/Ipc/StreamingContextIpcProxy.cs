@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -22,6 +23,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     /// <summary>
     /// calling Spark jvm side API in JavaStreamingContext.scala, StreamingContext.scala or external KafkaUtils.scala
     /// </summary>
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class StreamingContextIpcProxy : IStreamingContextProxy
     {
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
@@ -235,7 +237,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public int StartCallback()
         {
-            TcpListener callbackServer = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
+            TcpListener callbackServer = new TcpListener(IPAddress.Loopback, 0);
             callbackServer.Start();
 
             Task.Run(() =>

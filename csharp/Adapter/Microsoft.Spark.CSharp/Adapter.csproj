@@ -63,7 +63,9 @@
     <Compile Include="Configuration\IConfigurationService.cs" />
     <Compile Include="Core\Accumulator.cs" />
     <Compile Include="Core\Broadcast.cs" />
+    <Compile Include="Core\RDDCollector.cs" />
     <Compile Include="Core\DoubleRDDFunctions.cs" />
+    <Compile Include="Core\IRDDCollector.cs" />
     <Compile Include="Core\OrderedRDDFunctions.cs" />
     <Compile Include="Core\PairRDDFunctions.cs" />
     <Compile Include="Core\PipelinedRDD.cs" />
@@ -74,6 +76,7 @@
     <Compile Include="Core\StatCounter.cs" />
     <Compile Include="Core\StatusTracker.cs" />
     <Compile Include="Core\StorageLevel.cs" />
+    <Compile Include="Interop\Ipc\JsonSerDe.cs" />
     <Compile Include="Interop\SparkCLREnvironment.cs" />
     <Compile Include="Interop\Ipc\IJvmBridge.cs" />
     <Compile Include="Interop\Ipc\JvmBridge.cs" />
@@ -110,20 +113,20 @@
     <Compile Include="Sql\Column.cs" />
     <Compile Include="Sql\DataFrame.cs" />
     <Compile Include="Sql\DataFrameWriter.cs" />
+    <Compile Include="Sql\PythonSerDe.cs" />
+    <Compile Include="Sql\RowConstructor.cs" />
     <Compile Include="Sql\Row.cs" />
     <Compile Include="Sql\Functions.cs" />
     <Compile Include="Sql\SaveMode.cs" />
     <Compile Include="Sql\SqlContext.cs" />
-    <Compile Include="Sql\Struct.cs" />
+    <Compile Include="Sql\Types.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

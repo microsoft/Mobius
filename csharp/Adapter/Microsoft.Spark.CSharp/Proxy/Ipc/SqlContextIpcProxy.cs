@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class SqlContextIpcProxy : ISqlContextProxy
     {
         private readonly JvmObjectReference jvmSqlContextReference;
@@ -19,6 +21,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public SqlContextIpcProxy(JvmObjectReference jvmSqlContextReference)
         {
             this.jvmSqlContextReference = jvmSqlContextReference;
+        }
+
+        public IDataFrameProxy CreateDataFrame(IRDDProxy rddProxy, IStructTypeProxy structTypeProxy)
+        {
+            var rdd = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "byteArrayRDDToAnyArrayRDD",
+                    new object[] { (rddProxy as RDDIpcProxy).JvmRddReference }).ToString());
+
+            return new DataFrameIpcProxy(
+                new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "applySchemaToPythonRDD",
+                    new object[] { rdd, (structTypeProxy as StructTypeIpcProxy).JvmStructTypeReference }).ToString()), this);
         }
 
         public IDataFrameProxy ReadDataFrame(string path, StructType schema, Dictionary<string, string> options)
@@ -44,7 +57,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     new JvmObjectReference(
                         SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
                             "org.apache.spark.sql.api.csharp.SQLUtils", "loadTextFile",
-                            new object[] {jvmSqlContextReference, path, delimiter, (schema.StructTypeProxy as StructTypeIpcProxy).JvmStructTypeReference}).ToString()
+                            new object[] { jvmSqlContextReference, path, delimiter, schema.Json}).ToString()
                         ), this
                     );
         }
@@ -74,14 +87,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var hashTableReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
             var arrayListReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
 
-            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython",
-                new object[]
+            var dt =  new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.types.DataType", "fromJson", new object[] { "\"" + returnType + "\"" }));
+
+            var udf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.UserDefinedPythonFunction", new object[]
                 {
                     name, command, hashTableReference, arrayListReference, 
                     SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
-                    arrayListReference, null, "\"" + returnType + "\""
+                    arrayListReference, null, dt
                 });
+
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython", new object[] {name, udf});
         }
     }
 }
