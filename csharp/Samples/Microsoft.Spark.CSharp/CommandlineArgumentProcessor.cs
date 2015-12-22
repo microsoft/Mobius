@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.Samples
     /// </summary>
     internal class CommandlineArgumentProcessor
     {
-        private const string UsageFileName = "usage.md";
+        private const string UsageFileName = "samplesusage.md";
 
         private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(CommandlineArgumentProcessor));
         internal static Configuration ProcessArugments(string[] args)
@@ -71,10 +71,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
         private static void PrintUsage()
         {
-            using (StreamReader usageStreamReader = new StreamReader(UsageFileName))
-            {
-                Console.Write(usageStreamReader.ReadToEnd());
-            }
+            Console.Write(File.ReadAllText(UsageFileName));
         }
     }
 }
