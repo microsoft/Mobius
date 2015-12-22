@@ -130,6 +130,11 @@ namespace Microsoft.Spark.CSharp
                         Stopwatch funcProcessWatch = new Stopwatch();
                         commandProcessWatch.Start();
 
+                        int rddId = SerDe.ReadInt(s);
+                        int stageId = SerDe.ReadInt(s);
+                        int partitionId = SerDe.ReadInt(s);
+                        logger.LogInfo(string.Format("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId));
+
                         string deserializerMode = SerDe.ReadString(s);
                         logger.LogInfo("Deserializer mode: " + deserializerMode);
 

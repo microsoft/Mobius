@@ -517,6 +517,15 @@ namespace Microsoft.Spark.CSharp.Core
             var stream = new MemoryStream();
             formatter.Serialize(stream, workerFunc);
             List<byte[]> commandPayloadBytesList = new List<byte[]>();
+
+            // reserver 12 bytes for RddId, stageId and partitionId, this info will be filled in CSharpRDD.scala
+            byte[] rddInfo = new byte[12];
+            for (int i = 0; i < rddInfo.Length; i++)
+            {
+                rddInfo[i] = 0;
+            }
+            commandPayloadBytesList.Add(rddInfo);
+
             // add deserializer mode
             var modeBytes = Encoding.UTF8.GetBytes(deserializerMode.ToString());
             var length = modeBytes.Length;
