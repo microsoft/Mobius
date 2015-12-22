@@ -35,5 +35,6 @@ lib/
 
 # Generated Files #
 ############
+SparkCLRCodeCoverage.xml
 AdapterTestCoverage.xml
 TestResult.xml
