@@ -104,6 +104,10 @@ namespace AdapterTest
                     var formatter = new BinaryFormatter();
                     using (MemoryStream s = new MemoryStream(command))
                     {
+                        int rddId = SerDe.ReadInt(s);
+                        int stageId = SerDe.ReadInt(s);
+                        int partitionId = SerDe.ReadInt(s);
+
                         SerDe.ReadString(s);
                         SerDe.ReadString(s);
                         CSharpWorkerFunc workerFunc = (CSharpWorkerFunc)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));

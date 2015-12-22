@@ -3,6 +3,7 @@
 
 package org.apache.spark.api.csharp
 
+import java.nio.ByteBuffer
 import java.nio.channels.{OverlappingFileLockException, FileChannel, FileLock}
 import java.util.{List => JList, Map => JMap}
 import java.io._
@@ -34,7 +35,18 @@ class CSharpRDD(
 
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     unzip(new File(cSharpWorkerExecutable).getAbsoluteFile.getParentFile)
-    logInfo(s"compute CSharpRDD, split_index: ${split.index}, stageId: ${context.stageId()}, partitionId: ${context.partitionId()}")
+    logInfo(s"compute CSharpRDD[${this.id}], stageId: ${context.stageId()}, partitionId: ${context.partitionId()}, split_index: ${split.index}")
+
+    // fill rddId, stageId and partitionId info
+    val bb = ByteBuffer.allocate(12)
+    bb.putInt(this.id)
+    bb.putInt(context.stageId())
+    bb.putInt(context.partitionId())
+    val bytes = bb.array()
+    for (i <- 0 until bytes.size) {
+      command(i) = bytes(i)
+    }
+
     super.compute(split, context)
   }
 
