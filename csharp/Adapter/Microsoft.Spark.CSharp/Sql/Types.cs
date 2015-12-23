@@ -325,7 +325,7 @@ namespace Microsoft.Spark.CSharp.Sql
         internal StructType(IStructTypeProxy structTypeProxy)
         {
             this.structTypeProxy = structTypeProxy;
-            var jsonSchema = (structTypeProxy as StructTypeIpcProxy).ToJson();
+            var jsonSchema = structTypeProxy.ToJson();
             FromJson(jsonSchema);
         }
 
