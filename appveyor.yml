@@ -1,7 +1,8 @@
-version: 1.4.1-SNAPSHOT.{build}
+version: 1.4.1-SNAPSHOT-{build}
 
 #build C# solution and scala project
 build_script:
+  - cmd: echo appveyor env variables: BUILD_NUMBER=[%APPVEYOR_BUILD_NUMBER%] BUILD_VERSION=[%APPVEYOR_BUILD_VERSION%] REPO_TAG=[%APPVEYOR_REPO_TAG%] REPO_TAG_NAME=[%APPVEYOR_REPO_TAG_NAME%] APPVEYOR=[%APPVEYOR%] CI=[%CI%]
   - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
@@ -14,3 +15,30 @@ test:
 # scripts to run after tests
 after_test:
   - cmd: Runsamples.cmd --validate
+  - cmd: dir csharp\Microsoft.SparkCLR.*nupkg
+  - cmd: dir scala\target\spark-clr*.jar
+
+deploy:
+  release: testsparkclr-$(appveyor_repo_tag_name)
+  description: 'test sparkclr release'
+  provider: GitHub
+  auth_token:
+    secure: 4JIzL2DO3OXXjdrso+VhA0RjMvUAg8BnZRHXojswaryXFe9mDJ3ExjssASWL1FZq # your encrypted token from GitHub
+  artifact: /Microsoft.*\.nupkg/,/spark-clr.*\.jar/
+  draft: true 
+  prerelease: true
+  on:
+    # branch: master             # release from master branch only
+    # branch: branch-1.4         # release from branch-1.4 branch only
+    appveyor_repo_tag: true      # deploy on tag push only
+
+# deploy:
+#   provider: NuGet
+#   # server:                  # remove to push to NuGet.org
+#   api_key:
+#     secure: 8/aUEkMI5hEiCETWDwHnRk7VXF5bPVMjrtGqYhLmDt/1A2uy8N8UwioZENNGGmdm
+#   skip_symbols: true
+#   # symbol_server:           # remove to push symbols to SymbolSource.org
+#   # artifact: /.*\.nupkg/
+#   # artifact: Microsoft.SparkCLR.1.0.0.nupkg
+#   artifact: /Microsoft.*\.nupkg/
