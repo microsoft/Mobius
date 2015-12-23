@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Sql;
@@ -58,7 +59,46 @@ namespace AdapterTest
             // arrange
             mockDataFrameReaderProxy.Setup(m => m.Schema(It.IsAny<StructType>()));
             var dataFrameReader = new DataFrameReader(mockDataFrameReaderProxy.Object, sparkContext);
-            var schema = new StructType(new Mock<IStructTypeProxy>().Object);
+            const string jsonSchema = @"
+                {
+                  ""type"" : ""struct"",
+                  ""fields"" : [ {
+                    ""name"" : ""address"",
+                    ""type"" : {
+                      ""type"" : ""struct"",
+                      ""fields"" : [ {
+                        ""name"" : ""city"",
+                        ""type"" : ""string"",
+                        ""nullable"" : true,
+                        ""metadata"" : { }
+                      }, {
+                        ""name"" : ""state"",
+                        ""type"" : ""string"",
+                        ""nullable"" : true,
+                        ""metadata"" : { }
+                      } ]
+                    },
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  }, {
+                    ""name"" : ""age"",
+                    ""type"" : ""long"",
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  }, {
+                    ""name"" : ""id"",
+                    ""type"" : ""string"",
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  }, {
+                    ""name"" : ""name"",
+                    ""type"" : ""string"",
+                    ""nullable"" : true,
+                    ""metadata"" : { }
+                  } ]
+                }";
+            var mockStructTypeProxy = new MockStructTypeProxy(jsonSchema);
+            var schema = new StructType(mockStructTypeProxy);
 
             // act
             var reader = dataFrameReader.Schema(schema);
