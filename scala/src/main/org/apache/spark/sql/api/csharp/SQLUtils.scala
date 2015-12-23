@@ -3,14 +3,16 @@
 
 package org.apache.spark.sql.api.csharp
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
+import java.io.{ByteArrayOutputStream, DataOutputStream}
 
 import org.apache.spark.SparkContext
 import org.apache.spark.api.csharp.SerDe
 import org.apache.spark.api.java.{JavaRDD, JavaSparkContext}
+import org.apache.spark.api.python.SerDeUtil
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.types.{DataType, FloatType, StructField, StructType}
+import org.apache.spark.sql.types.{DataType, FloatType, StructType}
 import org.apache.spark.sql._
+import java.util.{ArrayList => JArrayList}
 
 /**
  * Utility functions for DataFrame in SparkCLR
@@ -29,10 +31,6 @@ object SQLUtils {
 
   def toSeq[T](arr: Array[T]): Seq[T] = {
     arr.toSeq
-  }
-
-  def createStructType(fields : Seq[StructField]): StructType = {
-    StructType(fields)
   }
 
   def getSQLDataType(dataType: String): DataType = {
@@ -54,17 +52,6 @@ object SQLUtils {
     }
   }
 
-  def createStructField(name: String, dataType: String, nullable: Boolean): StructField = {
-    val dtObj = getSQLDataType(dataType)
-    StructField(name, dtObj, nullable)
-  }
-
-  def createDF(rdd: RDD[Array[Byte]], schema: StructType, sqlContext: SQLContext): DataFrame = {
-    val num = schema.fields.size
-    val rowRDD = rdd.map(bytesToRow(_, schema))
-    sqlContext.createDataFrame(rowRDD, schema)
-  }
-
   def dfToRowRDD(df: DataFrame): RDD[Array[Byte]] = {
     df.map(r => rowToCSharpBytes(r))
   }
@@ -77,14 +64,6 @@ object SQLUtils {
     }
   }
 
-  private[this] def bytesToRow(bytes: Array[Byte], schema: StructType): Row = {
-    val bis = new ByteArrayInputStream(bytes)
-    val dis = new DataInputStream(bis)
-    val num = SerDe.readInt(dis)
-    Row.fromSeq((0 until num).map { i =>
-      doConversion(SerDe.readObject(dis), schema.fields(i).dataType)
-    }.toSeq)
-  }
 
   private[this] def rowToCSharpBytes(row: Row): Array[Byte] = {
     val bos = new ByteArrayOutputStream()
@@ -176,8 +155,11 @@ object SQLUtils {
       dfReader.load(path)
   }
 
-  def loadTextFile(sqlContext: SQLContext, path: String, delimiter: String, schema: StructType) : DataFrame = {
+  def loadTextFile(sqlContext: SQLContext, path: String, delimiter: String, schemaJson: String) : DataFrame = {
     val stringRdd = sqlContext.sparkContext.textFile(path)
+
+    val schema = createSchema(schemaJson)
+
     val rowRdd = stringRdd.map{s =>
       val columns = s.split(delimiter)
       columns.length match {
@@ -216,5 +198,22 @@ object SQLUtils {
     }
 
     sqlContext.createDataFrame(rowRdd, schema)
+  }
+
+  def createSchema(schemaJson: String) : StructType = {
+    DataType.fromJson(schemaJson).asInstanceOf[StructType]
+  }
+
+  def byteArrayRDDToAnyArrayRDD(jrdd: JavaRDD[Array[Byte]]) : RDD[Array[_ >: AnyRef]] = {
+    // JavaRDD[Array[Byte]] -> JavaRDD[Any]
+    val jrddAny = SerDeUtil.pythonToJava(jrdd, true)
+
+    // JavaRDD[Any] -> RDD[Array[_]]
+    jrddAny.rdd.map {
+      case objs: JArrayList[_] =>
+        objs.toArray
+      case obj if obj.getClass.isArray =>
+        obj.asInstanceOf[Array[_]].toArray
+    }
   }
 }

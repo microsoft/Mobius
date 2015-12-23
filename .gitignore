@@ -32,3 +32,9 @@ run/
 tools/
 *.log
 lib/
+
+# Generated Files #
+############
+SparkCLRCodeCoverage.xml
+AdapterTestCoverage.xml
+TestResult.xml

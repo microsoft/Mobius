@@ -28,19 +28,26 @@ namespace WorkerTest
         private string sparkFilesDir = "";
         private int numberOfIncludesItems = 0;
         private int numBroadcastVariables = 0;
-        private byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
+        private readonly byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
 
         private TcpListener CreateServer(StringBuilder output, out Process worker)
         {
-            TcpListener tcpListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
+            TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
             int port = (tcpListener.LocalEndpoint as IPEndPoint).Port;
 
-            worker = new Process();
-            worker.StartInfo.FileName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\CSharpWorker.exe";
-            worker.StartInfo.UseShellExecute = false;
-            worker.StartInfo.RedirectStandardInput = true;
-            worker.StartInfo.RedirectStandardOutput = true;
+            string exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
+
+            worker = new Process
+            {
+                StartInfo =
+                {
+                    FileName = Path.Combine(exeLocation, "CSharpWorker.exe"),
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true
+                }
+            };
             worker.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
             {
                 if (!String.IsNullOrEmpty(e.Data))
@@ -49,6 +56,7 @@ namespace WorkerTest
                     output.AppendLine(e.Data);
                 }
             });
+            Console.WriteLine("Starting worker process from {0}", worker.StartInfo.FileName);
             worker.Start();
             worker.BeginOutputReadLine();
             worker.StandardInput.WriteLine(port);
@@ -180,7 +188,7 @@ namespace WorkerTest
                 s.Write(command, 0, command.Length / 2);
             }
 
-            AssertWorker(worker, output, -1, string.Format("System.ArgumentException: Incomplete bytes read: "));
+            AssertWorker(worker, output, -1, "System.ArgumentException: Incomplete bytes read: ");
 
             CSharpRDD_SocketServer.Stop();
         }

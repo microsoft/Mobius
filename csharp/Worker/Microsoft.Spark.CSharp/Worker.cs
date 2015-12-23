@@ -50,7 +50,7 @@ namespace Microsoft.Spark.CSharp
                 int javaPort = int.Parse(Console.ReadLine());
                 logger.LogInfo("java_port: " + javaPort);
                 sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                sock.Connect(IPAddress.Parse("127.0.0.1"), javaPort);
+                sock.Connect(IPAddress.Loopback, javaPort);
             }
             catch (Exception e)
             {
@@ -129,6 +129,11 @@ namespace Microsoft.Spark.CSharp
                         Stopwatch commandProcessWatch = new Stopwatch();
                         Stopwatch funcProcessWatch = new Stopwatch();
                         commandProcessWatch.Start();
+
+                        int rddId = SerDe.ReadInt(s);
+                        int stageId = SerDe.ReadInt(s);
+                        int partitionId = SerDe.ReadInt(s);
+                        logger.LogInfo(string.Format("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId));
 
                         string deserializerMode = SerDe.ReadString(s);
                         logger.LogInfo("Deserializer mode: " + deserializerMode);

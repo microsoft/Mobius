@@ -64,6 +64,10 @@ namespace AdapterTest.Mocks
 
             using (MemoryStream s = new MemoryStream(command))
             {
+                int rddId = SerDe.ReadInt(s);
+                int stageId = SerDe.ReadInt(s);
+                int partitionId = SerDe.ReadInt(s);
+
                 string deserializerMode = SerDe.ReadString(s);
                 string serializerMode = SerDe.ReadString(s);
                 CSharpWorkerFunc workerFunc = (CSharpWorkerFunc)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
@@ -200,7 +204,7 @@ namespace AdapterTest.Mocks
                     return ms.ToArray();
                 });
 
-            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 0);
+            TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
 
             Task.Run(() =>

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class SqlContextIpcProxy : ISqlContextProxy
     {
         private readonly JvmObjectReference jvmSqlContextReference;
@@ -25,6 +27,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             var javaDataFrameReaderReference = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "read");
             return new DataFrameReaderIpcProxy(new JvmObjectReference(javaDataFrameReaderReference.ToString()), this);
+        }
+        
+        public IDataFrameProxy CreateDataFrame(IRDDProxy rddProxy, IStructTypeProxy structTypeProxy)
+        {
+            var rdd = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "byteArrayRDDToAnyArrayRDD",
+                    new object[] { (rddProxy as RDDIpcProxy).JvmRddReference }).ToString());
+
+            return new DataFrameIpcProxy(
+                new JvmObjectReference(
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "applySchemaToPythonRDD",
+                    new object[] { rdd, (structTypeProxy as StructTypeIpcProxy).JvmStructTypeReference }).ToString()), this);
         }
 
         public IDataFrameProxy ReadDataFrame(string path, StructType schema, Dictionary<string, string> options)
@@ -50,7 +63,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     new JvmObjectReference(
                         SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
                             "org.apache.spark.sql.api.csharp.SQLUtils", "loadTextFile",
-                            new object[] {jvmSqlContextReference, path, delimiter, (schema.StructTypeProxy as StructTypeIpcProxy).JvmStructTypeReference}).ToString()
+                            new object[] { jvmSqlContextReference, path, delimiter, schema.Json}).ToString()
                         ), this
                     );
         }

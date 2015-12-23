@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 
 namespace Microsoft.Spark.CSharp.Sql
@@ -47,9 +48,16 @@ namespace Microsoft.Spark.CSharp.Sql
             return new DataFrame(sqlContextProxy.ReadDataFrame(path, schema, options), sparkContext);
         }
 
-        public DataFrame CreateDataFrame(RDD<byte[]> rdd, StructType schema)
+        public DataFrame CreateDataFrame(RDD<object[]> rdd, StructType schema)
         {
-            throw new NotImplementedException();    
+            // Note: This is for pickling RDD, convert to RDD<byte[]> which happens in CSharpWorker. 
+            // The below sqlContextProxy.CreateDataFrame() will call byteArrayRDDToAnyArrayRDD() of SQLUtils.scala which only accept RDD of type RDD[Array[Byte]].
+            // In byteArrayRDDToAnyArrayRDD() of SQLUtils.scala, the SerDeUtil.pythonToJava() will be called which is a mapPartitions inside. 
+            // It will be executed until the CSharpWorker finishes Pickling to RDD[Array[Byte]].
+            var rddRow = rdd.Map(r => r);
+            rddRow.serializedMode = SerializedMode.Row;
+
+            return new DataFrame(sqlContextProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext); 
         }
 
         /// <summary>
