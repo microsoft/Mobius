@@ -94,7 +94,7 @@ sparkclr-submit.cmd --verbose --master yarn-cluster --exe SparkCLRSamples.exe %S
 
 # Running Unit Tests
 
-* In Visual Studio: Install NUnit Test Adapter. Run the tests through "Test" -> "Run" -> "All Tests"
+* In Visual Studio: Install NUnit3 Test Adapter. Run the tests through "Test" -> "Run" -> "All Tests"
 
 * Install NUnit Runner 3.0 or above using NuGet (see [https://www.nuget.org/packages/NUnit.Runners/](https://www.nuget.org/packages/NUnit.Runners/)). In Developer Command Prompt for VS, set `NUNITCONSOLE` to the path to nunit console, and navigate to `SparkCLR\csharp` and run the following command: 
     ```

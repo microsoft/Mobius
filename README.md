@@ -49,7 +49,7 @@ maxLatencyByDcDataFrame.ShowSchema();
 maxLatencyByDcDataFrame.Show();
 ```
 
-Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory for complete samples.
+Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory and [sample usage](csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
 
 ## Documents
 
