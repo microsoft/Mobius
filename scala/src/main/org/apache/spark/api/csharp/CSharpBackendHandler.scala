@@ -226,13 +226,18 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
       }
 
       if (!parameterWrapperType.isInstance(args(i))) {
-        //if (!parameterWrapperType.isAssignableFrom(args(i).getClass)) {
+        // non primitive types
         if (!parameterType.isPrimitive && args(i) != null) {
           return false
         }
-        //}
+
+        // primitive types
+        if (parameterType.isPrimitive && !parameterWrapperType.isInstance(args(i))) {
+          return false
+        }
       }
     }
+
     true
   }
 
