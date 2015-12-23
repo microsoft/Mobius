@@ -23,6 +23,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             this.jvmSqlContextReference = jvmSqlContextReference;
         }
 
+        public IDataFrameReaderProxy Read()
+        {
+            var javaDataFrameReaderReference = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "read");
+            return new DataFrameReaderIpcProxy(new JvmObjectReference(javaDataFrameReaderReference.ToString()), this);
+        }
+        
         public IDataFrameProxy CreateDataFrame(IRDDProxy rddProxy, IStructTypeProxy structTypeProxy)
         {
             var rdd = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "byteArrayRDDToAnyArrayRDD",

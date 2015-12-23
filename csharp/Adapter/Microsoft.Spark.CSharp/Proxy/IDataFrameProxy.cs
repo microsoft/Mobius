@@ -36,7 +36,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy UnionAll(IDataFrameProxy otherScalaDataFrameReference);
         IDataFrameProxy Subtract(IDataFrameProxy otherScalaDataFrameReference);
         IDataFrameProxy Drop(string columnName);
-        IDataFrameProxy DropNa(int? thresh, string[] subset);
+        IDataFrameNaFunctionsProxy Na();
         IDataFrameProxy DropDuplicates();
         IDataFrameProxy DropDuplicates(string[] subset);
         IDataFrameProxy Replace<T>(object subset, Dictionary<T, T> toReplaceAndValueDict);

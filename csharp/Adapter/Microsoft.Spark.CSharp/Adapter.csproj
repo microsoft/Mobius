@@ -84,10 +84,14 @@
     <Compile Include="Interop\Ipc\PayloadHelper.cs" />
     <Compile Include="Interop\Ipc\SerDe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Proxy\IDataFrameNaFunctionsProxy.cs" />
     <Compile Include="Proxy\IDataFrameProxy.cs" />
+    <Compile Include="Proxy\IDataFrameReaderProxy.cs" />
     <Compile Include="Proxy\IDataFrameWriterProxy.cs" />
     <Compile Include="Proxy\IDStreamProxy.cs" />
     <Compile Include="Proxy\Ipc\DataFrameIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DataFrameNaFunctionsIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DataFrameReaderIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\DataFrameWriterIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\DStreamIpcProxy.cs" />
     <Compile Include="Proxy\Ipc\RDDIpcProxy.cs" />
@@ -112,6 +116,8 @@
     <Compile Include="Services\LoggerServiceFactory.cs" />
     <Compile Include="Sql\Column.cs" />
     <Compile Include="Sql\DataFrame.cs" />
+    <Compile Include="Sql\DataFrameNaFunctions.cs" />
+    <Compile Include="Sql\DataFrameReader.cs" />
     <Compile Include="Sql\DataFrameWriter.cs" />
     <Compile Include="Sql\PythonSerDe.cs" />
     <Compile Include="Sql\RowConstructor.cs" />

@@ -27,6 +27,11 @@ namespace AdapterTest.Mocks
             mockSparkContextProxy = scProxy;
         }
 
+        public IDataFrameReaderProxy Read()
+        {
+            throw new NotImplementedException();
+        }
+
         public IDataFrameProxy CreateDataFrame(IRDDProxy rddProxy, IStructTypeProxy structTypeProxy)
         {
             throw new NotImplementedException();

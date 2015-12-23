@@ -164,8 +164,14 @@ namespace AdapterTest
             var mockSchemaProxy = new Mock<IStructTypeProxy>();
             var mockFieldProxy = new Mock<IStructFieldProxy>();
             var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
-            mockDataFrameProxy.Setup(m => m.DropNa(It.IsAny<int?>(), It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
             mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockSchemaProxy.Object);
+
+            // dataframeNaFunctionsProxy
+            var dataFrameNaFunctionsProxy = new Mock<IDataFrameNaFunctionsProxy>();
+            dataFrameNaFunctionsProxy.Setup(d => d.Drop(It.IsAny<int>(), It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+
+            mockDataFrameProxy.Setup(m => m.Na()).Returns(dataFrameNaFunctionsProxy.Object);
+            
             mockSchemaProxy.Setup(m => m.GetStructTypeFields()).Returns(new List<IStructFieldProxy> { mockFieldProxy.Object });
             mockFieldProxy.Setup(m => m.GetStructFieldName()).Returns(columnName);
             var sc = new SparkContext(null);
@@ -175,8 +181,9 @@ namespace AdapterTest
             var actualResultDataFrame = originalDataFrame.DropNa();
 
             // Assert
-            mockDataFrameProxy.Verify(m => m.DropNa(1, It.Is<string[]>(subset => subset.Length == 1 && 
-                subset.Contains(columnName)))); // assert DropNa of Proxy was invoked with correct parameters
+            // assert DropNa of Proxy was invoked with correct parameters
+            dataFrameNaFunctionsProxy.Verify(m => m.Drop(1, It.Is<string[]>(subset => subset.Length == 1 && 
+                subset.Contains(columnName))));
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
         }
 
@@ -327,8 +334,6 @@ namespace AdapterTest
             var mockSchemaProxy = new Mock<IStructTypeProxy>();
             var mockFieldProxy = new Mock<IStructFieldProxy>();
             var mockStructDataTypeProxy = new Mock<IStructDataTypeProxy>();
-            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
-            mockDataFrameProxy.Setup(m => m.DropNa(It.IsAny<int?>(), It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
             mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockSchemaProxy.Object);
             mockSchemaProxy.Setup(m => m.GetStructTypeFields()).Returns(new List<IStructFieldProxy> { mockFieldProxy.Object });
             mockFieldProxy.Setup(m => m.GetStructFieldName()).Returns(columnName);
@@ -585,6 +590,34 @@ namespace AdapterTest
             var f = new Func<Row, IEnumerable<int>>(row => new int[] { row.Size() });
 
             RDD<int> rdd = dataFrame.FlatMap(f);
+
+            // assert
+            Assert.IsNotNull(rdd);
+            Assert.AreEqual(count, rdd.Count());
+        }
+
+        [Test]
+        public void TestMap()
+        {
+            // mock rddProxy
+            const int count = 4;
+            Mock<IRDDProxy> mockRddProxy = new Mock<IRDDProxy>();
+            mockRddProxy.Setup(r => r.Count()).Returns(count);
+
+            // mock sparkContextProxy
+            Mock<ISparkContextProxy> mockSparkContextProxy = new Mock<ISparkContextProxy>();
+            mockSparkContextProxy.Setup(ctx => ctx.CreateCSharpRdd(It.IsAny<IRDDProxy>(),
+                It.IsAny<byte[]>(),
+                null, null, It.IsAny<bool>(), null, null)).Returns(mockRddProxy.Object);
+            var sc = new SparkContext(null);
+
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            SetPrivatePropertyValue(sc, "SparkContextProxy", mockSparkContextProxy.Object);
+            SetPrivateFieldValue(dataFrame, "rdd", new RDD<Row>(mockRddProxy.Object, sc));
+
+            var f = new Func<Row, int>(row => row.Size());
+
+            RDD<int> rdd = dataFrame.Map(f);
 
             // assert
             Assert.IsNotNull(rdd);
@@ -1279,6 +1312,107 @@ namespace AdapterTest
         }
 
         #endregion
-    }
 
+        [Test]
+        public void TestSaveAsParquetFile()
+        {
+            Mock<IDataFrameWriterProxy> mockDataFrameWriterProxy = new Mock<IDataFrameWriterProxy>();
+
+            // arrange
+            mockDataFrameProxy.Setup(m => m.Write()).Returns(mockDataFrameWriterProxy.Object);
+            mockDataFrameWriterProxy.Setup(m => m.Format(It.IsAny<string>()));
+            mockDataFrameWriterProxy.Setup(m => m.Save());
+            mockDataFrameWriterProxy.Setup(m => m.Options(It.IsAny<Dictionary<string, string>>()));
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            const string path = "file_path";
+
+            // Act
+            dataFrame.SaveAsParquetFile(path);
+
+            // assert
+            mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
+           
+            mockDataFrameWriterProxy.Verify(m => m.Save(), Times.Once);
+            mockDataFrameWriterProxy.Verify(m => m.Format("parquet"), Times.Once);
+            mockDataFrameWriterProxy.Verify(m => m.Options(
+                It.Is<Dictionary<string, string>>(dict => dict["path"] == "file_path" && dict.Count == 1)), Times.Once);
+            mockDataFrameWriterProxy.Verify(m => m.Save(), Times.Once);
+        }
+
+        [Test]
+        public void TestInsertInto()
+        {
+            Mock<IDataFrameWriterProxy> mockDataFrameWriterProxy = new Mock<IDataFrameWriterProxy>();
+
+            // arrange
+            mockDataFrameProxy.Setup(m => m.Write()).Returns(mockDataFrameWriterProxy.Object);
+            mockDataFrameWriterProxy.Setup(m => m.Mode(It.IsAny<string>()));
+            mockDataFrameWriterProxy.Setup(m => m.InsertInto(It.IsAny<string>()));
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            const string table = "table_name";
+            // Act
+            dataFrame.InsertInto(table, true);
+
+            // assert
+            mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
+
+            mockDataFrameWriterProxy.Verify(m => m.InsertInto(table), Times.Once);
+            mockDataFrameWriterProxy.Verify(m => m.Mode(SaveMode.Overwrite.GetStringValue()), Times.Once);
+        }
+
+        [Test]
+        public void TestSaveAsTable()
+        {
+            Mock<IDataFrameWriterProxy> mockDataFrameWriterProxy = new Mock<IDataFrameWriterProxy>();
+
+            // arrange
+            mockDataFrameProxy.Setup(m => m.Write()).Returns(mockDataFrameWriterProxy.Object);
+            mockDataFrameWriterProxy.Setup(m => m.Format(It.IsAny<string>()));
+            mockDataFrameWriterProxy.Setup(m => m.Mode(It.IsAny<string>()));
+            mockDataFrameWriterProxy.Setup(m => m.Options(It.IsAny<Dictionary<string, string>>()));
+            mockDataFrameWriterProxy.Setup(m => m.SaveAsTable(It.IsAny<string>()));
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            const string table = "table_name";
+            // Act
+            dataFrame.SaveAsTable(table);
+
+            // assert
+            mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
+            mockDataFrameWriterProxy.Verify(m => m.Mode(SaveMode.ErrorIfExists.GetStringValue()), Times.Once);
+            mockDataFrameWriterProxy.Verify(m => m.SaveAsTable(table), Times.Once);
+        }
+
+        [Test]
+        public void TestSave()
+        {
+            Mock<IDataFrameWriterProxy> mockDataFrameWriterProxy = new Mock<IDataFrameWriterProxy>();
+
+            // arrange
+            mockDataFrameProxy.Setup(m => m.Write()).Returns(mockDataFrameWriterProxy.Object);
+            mockDataFrameWriterProxy.Setup(m => m.Format(It.IsAny<string>()));
+            mockDataFrameWriterProxy.Setup(m => m.Mode(It.IsAny<string>()));
+            mockDataFrameWriterProxy.Setup(m => m.Options(It.IsAny<Dictionary<string, string>>()));
+            mockDataFrameWriterProxy.Setup(m => m.Save());
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            const string path = "path_value";
+
+            // Act
+            dataFrame.Save(path);
+
+            // assert
+            mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
+            mockDataFrameWriterProxy.Verify(m => m.Mode(SaveMode.ErrorIfExists.GetStringValue()), Times.Once);
+            // mockDataFrameWriterProxy.Verify(m => m.Format(null), Times.Once);
+            mockDataFrameWriterProxy.Verify(m => m.Options(It.IsAny<Dictionary<string,string>>()), Times.Exactly(1));
+            mockDataFrameWriterProxy.Verify(m => m.Save(), Times.Once);
+        }
+    }
 }
