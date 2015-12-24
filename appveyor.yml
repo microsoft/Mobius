@@ -15,8 +15,12 @@ test:
 # scripts to run after tests
 after_test:
   - cmd: Runsamples.cmd --validate
-  - cmd: dir csharp\Microsoft.SparkCLR.*nupkg
+  - cmd: dir csharp\Microsoft*.nupkg
   - cmd: dir scala\target\spark-clr*.jar
+
+artifacts:          
+  - path: '**\Microsoft*.nupkg' # find all NuGet packages recursively
+  - path: 'scala\target\spark-clr*.jar' # find all NuGet packages recursively
 
 deploy:
   release: testsparkclr-$(appveyor_repo_tag_name)
