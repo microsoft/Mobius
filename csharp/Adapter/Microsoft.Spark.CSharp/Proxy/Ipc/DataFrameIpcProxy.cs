@@ -247,20 +247,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string[] joinColumnNames)
         {
-            throw new NotSupportedException("Not supported in 1.4.1");
+            var stringSequenceReference = new JvmObjectReference(
+                     SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", new object[] { joinColumnNames }).ToString());
 
-            //TODO - uncomment this in 1.5
-            //var stringSequenceReference = new JvmObjectReference(
-            //         SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", new object[] { joinColumnNames }).ToString());
-
-            //return
-            //    new JvmObjectReference(
-            //            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(scalaDataFrameReference, "join", new object[]
-            //            {
-            //                otherScalaDataFrameReference,
-            //                stringSequenceReference
-            //            }).ToString()
-            //        );
+            return
+                new DataFrameIpcProxy(new JvmObjectReference(
+                        SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDataFrameReference, "join", new object[]
+                        {
+                            (otherScalaDataFrameReference as DataFrameIpcProxy).jvmDataFrameReference,
+                            stringSequenceReference
+                        }).ToString()
+                    ), sqlContextProxy);
         }
 
         public IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, IColumnProxy scalaColumnReference, string joinType)

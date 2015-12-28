@@ -201,6 +201,11 @@ namespace Microsoft.Spark.CSharp.Samples
 
                 i++;
             }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, rows.Length);
+            }
         }
 
         /// <summary>
@@ -260,26 +265,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.AreEqual(1, filteredCount);
             }
         }
-
-        private static DataFrame GetMetricsDataFrame()
-        {
-            var metricsSchema = new StructType(
-                new[]
-                {
-                    new StructField("unknown", new StringType(), false),
-                    new StructField("date", new StringType(), false),
-                    new StructField("time", new StringType(), false),
-                    new StructField("guid", new StringType(), false),
-                    new StructField("lang", new StringType(), false),
-                    new StructField("country", new StringType(), false),
-                    new StructField("latency", new StringType(), false),
-                });
-
-            return
-                GetSqlContext()
-                    .TextFile(SparkCLRSamples.Configuration.GetInputDataPath(MetricsLog), metricsSchema);
-        }
-
+        
         /// <summary>
         /// Sample to load two text files and join them using temptable constructs
         /// </summary>
@@ -329,6 +315,15 @@ namespace Microsoft.Spark.CSharp.Samples
             
             avgLatencyByDcDataFrame.ShowSchema();
             avgLatencyByDcDataFrame.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                CollectionAssert.AreEquivalent(new[] { "C1", "max(C6)" }, maxLatencyByDcDataFrame.Schema.Fields.Select(f => f.Name).ToArray());
+                CollectionAssert.AreEquivalent(new[] { "iowa", "texas", "singapore", "ireland" }, maxLatencyByDcDataFrame.Collect().Select(row => row.Get("C1")).ToArray());
+
+                CollectionAssert.AreEquivalent(new[] { "C1", "avg(C6)" }, avgLatencyByDcDataFrame.Schema.Fields.Select(f => f.Name).ToArray());
+                CollectionAssert.AreEquivalent(new[] { "iowa", "texas", "singapore", "ireland" }, avgLatencyByDcDataFrame.Collect().Select(row => row.Get("C1")).ToArray());
+            }
         }
 
         /// <summary>
@@ -349,6 +344,14 @@ namespace Microsoft.Spark.CSharp.Samples
                 var isNullable = peopleDataFrameSchemaField.IsNullable;
                 Console.WriteLine("Name={0}, DT.string={1}, DT.simplestring={2}, DT.isNullable={3}", name, stringVal, simpleStringVal, isNullable);
             }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual("address:struct<city:string,state:string>", peopleDataFrameSchemaFields[0].SimpleString);
+                Assert.AreEqual("age:long", peopleDataFrameSchemaFields[1].SimpleString);
+                Assert.AreEqual("id:string", peopleDataFrameSchemaFields[2].SimpleString);
+                Assert.AreEqual("name:string", peopleDataFrameSchemaFields[3].SimpleString);
+            }
         }
 
         /// <summary>
@@ -357,7 +360,8 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFConversionSample()
         {
-            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            // repartitioning below so that batching in pickling does not impact count on Rdd created from the dataframe
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(4);
             var stringRddCreatedFromDataFrame = peopleDataFrame.ToJSON();
             var stringRddCreatedFromDataFrameRowCount = stringRddCreatedFromDataFrame.Count();
 
@@ -365,6 +369,12 @@ namespace Microsoft.Spark.CSharp.Samples
             var byteArrayRddCreatedFromDataFrameRowCount = byteArrayRddCreatedFromDataFrame.Count();
 
             Console.WriteLine("stringRddCreatedFromDataFrameRowCount={0}, byteArrayRddCreatedFromDataFrameRowCount={1}", stringRddCreatedFromDataFrameRowCount, byteArrayRddCreatedFromDataFrameRowCount);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, stringRddCreatedFromDataFrameRowCount);
+                Assert.AreEqual(4, byteArrayRddCreatedFromDataFrameRowCount);
+            }
         }
 
         /// <summary>
@@ -383,6 +393,13 @@ namespace Microsoft.Spark.CSharp.Samples
             var sqlCountDataFrame = GetSqlContext().Sql("SELECT count(name) FROM selectedcolumns where name='Bill'");
             var sqlCountDataFrameRowCount = sqlCountDataFrame.Count();
             Console.WriteLine("projectedFilteredDataFrameCount={0}, sqlCountDataFrameRowCount={1}", projectedFilteredDataFrameCount, sqlCountDataFrameRowCount);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                CollectionAssert.AreEqual(new[] { "name", "state" }, projectedFilteredDataFrame.Schema.Fields.Select(f => f.Name).ToArray());
+                Assert.IsTrue(projectedFilteredDataFrame.Collect().All(row => row.Get("name") == "Bill" || row.Get("state") == "California"));
+                Assert.AreEqual(2, sqlCountDataFrame.Collect().ToArray()[0].Get(0));
+            }
         }
 
         /// <summary>
@@ -393,16 +410,36 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var orderDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(OrderJson));
-            
-            //Following example does not work in Spark 1.4.1 - uncomment in 1.5
-            //var peopleDataFrame2 = GetSqlContext().JsonFile(Samples.GetInputDataPath(PeopleJson));
-            //var columnNameJoin = peopleDataFrame.Join(peopleDataFrame2, new string[] {"id"});
-            //columnNameJoin.Show();
-            //columnNameJoin.ShowDF();
 
             var expressionJoin = peopleDataFrame.Join(orderDataFrame, peopleDataFrame["id"] == orderDataFrame["personid"]);
             expressionJoin.ShowSchema();
             expressionJoin.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collected = expressionJoin.Collect().ToArray();
+                Assert.AreEqual(2, collected.Length);
+                Assert.IsTrue(collected.Any(row => "123" == row.Get("id")));
+                Assert.IsTrue(collected.Any(row => "456" == row.Get("id")));
+            }
+        }
+
+        /// <summary>
+        /// Sample to join DataFrames using DSL
+        /// </summary>
+        [Sample]
+        internal static void DFJoinMultiColSample()
+        {
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            var multiColumnJoin = peopleDataFrame.Join(peopleDataFrame, new string[] { "name", "id" });
+            multiColumnJoin.ShowSchema();
+            multiColumnJoin.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var schema = multiColumnJoin.Schema;
+                CollectionAssert.AreEquivalent(new[] { "name", "id", "age", "address", "age", "address" }, schema.Fields.Select(f => f.Name.ToLower()).ToArray());
+            }
         }
 
         /// <summary>
@@ -416,6 +453,12 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var intersected = peopleDataFrame1.Intersect(peopleDataFrame2);
             intersected.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                // intersected should have the same items as peopleDataFrame2
+                AreRowListEquivalent(peopleDataFrame2.Rdd.Collect().ToList(), intersected.Rdd.Collect().ToList());
+            }
         }
 
         /// <summary>
@@ -429,6 +472,12 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var unioned = peopleDataFrame1.UnionAll(peopleDataFrame2);
             unioned.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                // unioned should have the same items as peopleDataFrame1
+                AreRowListEquivalent(peopleDataFrame1.Rdd.Collect().ToList(), unioned.Rdd.Collect().ToList());
+            }
         }
 
         /// <summary>
@@ -442,10 +491,16 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var subtracted = peopleDataFrame1.Subtract(peopleDataFrame2);
             subtracted.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                // subtracted should have items peopleDataFrame1 have but peopleDataFrame2 not have
+                AreRowListEquivalent(peopleDataFrame1.Rdd.Collect().Where(row => row.Get("name") != "Bill").ToList(), subtracted.Rdd.Collect().ToList());
+            }
         }
 
         /// <summary>
-        /// Sample to drop a DataFrame from another DataFrame using DSL.
+        /// Sample to drop a column from DataFrame using DSL.
         /// </summary>
         [Sample]
         internal static void DFDropSample()
@@ -454,6 +509,11 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var dropped = peopleDataFrame.Drop("name");
             dropped.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                CollectionAssert.AreEquivalent(new[] { "id", "age", "address" }, dropped.Schema.Fields.Select(f => f.Name).ToArray());
+            }
         }
 
         /// <summary>
@@ -607,6 +667,11 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var dropped = peopleDataFrame.DropDuplicates(new[] { "name" });
             dropped.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(1, dropped.Collect().Count(row => row.Get("name") == "Bill"));
+            }
         }
 
         /// <summary>
@@ -877,18 +942,15 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
 
-            var collected = peopleDataFrame.Collect().ToArray();
-            var address = collected[0].Get("address");
-
             DataFrame freqItems = peopleDataFrame.FreqItems(new []{"name"}, 0.4);
             freqItems.Show();
 
-            // TODO(guwang): add assertion
-            //if (SparkCLRSamples.Configuration.IsValidationEnabled)
-            //{
-            //    var collected = freqItems.Collect();
-            //    var row = collected.ToArray()[0];
-            //}
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collected = freqItems.Collect().ToArray();
+                Assert.AreEqual(1, collected.Length);
+                Assert.AreEqual("Bill", collected[0].Get(0)[0].ToString());
+            }
         }
 
         /// <summary>
@@ -1015,6 +1077,14 @@ namespace Microsoft.Spark.CSharp.Samples
             var maxAggDataFrame = peopleDataFrame.GroupBy("name").Agg(new Dictionary<string, string> {{"age", "max"}});
             var maxAggDataFrameCount = maxAggDataFrame.Count();
             Console.WriteLine("countAggDataFrameCount: {0}, maxAggDataFrameCount: {1}.", countAggDataFrameCount, maxAggDataFrameCount);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(1, countAggDataFrameCount);
+                Assert.AreEqual(2, countAggDataFrame.Collect().ToArray()[0].Get("count(name)"));
+                Assert.AreEqual(3, maxAggDataFrameCount);
+                Assert.AreEqual(43, maxAggDataFrame.Collect().ToArray().First(row => row.Get("name") == "Bill").Get("max(age)"));
+            }
         }
 
         /// <summary>
@@ -1024,18 +1094,26 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFProjectionFilterUDFSample()
         {
             GetSqlContext().RegisterFunction<string, string, string>("FullAddress", (city, state) => city + " " + state);
-            GetSqlContext().RegisterFunction<bool, string, int>("PeopleFilter", (name, age) => name == "Bill" && age > 30);
+            GetSqlContext().RegisterFunction<bool, string, int>("PeopleFilter", (name, age) => name == "Bill" && age > 80);
 
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
 
             // DataFrame query
-            peopleDataFrame.SelectExpr("name", "age * 2 as age", "FullAddress(address.city, address.state) as address")
-                .Where("name='Bill' and age > 40 and PeopleFilter(name, age)")
-                .Show();
+            var functionAppliedDF = peopleDataFrame.SelectExpr("name", "age * 2 as age", "FullAddress(address.city, address.state) as address")
+                .Where("PeopleFilter(name, age)");
 
-            // equivalent sql script
-            peopleDataFrame.RegisterTempTable("people");
-            GetSqlContext().Sql("SELECT name, age*2 as age, FullAddress(address.city, address.state) as address FROM people where name='Bill' and age > 40 and PeopleFilter(name, age)").Show();
+            functionAppliedDF.ShowSchema();
+            functionAppliedDF.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collected = functionAppliedDF.Collect().ToArray();
+                CollectionAssert.AreEquivalent(new[] { "name", "age", "address" }, functionAppliedDF.Schema.Fields.Select(f => f.Name).ToArray());
+                Assert.AreEqual(1, collected.Length);
+                Assert.AreEqual("Bill", collected[0].Get("name"));
+                Assert.AreEqual(86, collected[0].Get("age"));
+                Assert.AreEqual("Seattle Washington", collected[0].Get("address"));
+            }
         }
 
         /// <summary>
@@ -1395,6 +1473,11 @@ namespace Microsoft.Spark.CSharp.Samples
             bool isLocal = peopleDataFrame.IsLocal;
 
             Console.WriteLine("IsLocal: {0}", isLocal);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(false, isLocal);
+            }
         }
 
         /// <summary>
@@ -1470,7 +1553,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue((numPartitions + 1) == newNumPartitions);
+                Assert.AreEqual(numPartitions + 1, newNumPartitions);
             }
         }
 
@@ -1483,10 +1566,29 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
 
             Console.WriteLine("With a seed:");
-            peopleDataFrame.Sample(false, 0.25, new Random().Next()).Show();
+            var sampleDFWithSeed = peopleDataFrame.Sample(false, 0.25, new Random().Next());
+            sampleDFWithSeed.Show();
 
             Console.WriteLine("Without a seed:");
-            peopleDataFrame.Sample(false, 0.25, null).Show();
+            var sampleDFWithoutSeed = peopleDataFrame.Sample(false, 0.25, null);
+            sampleDFWithoutSeed.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var originalDFCollected = peopleDataFrame.Collect().ToArray();
+                var sampleDFWithSeedCollected = sampleDFWithSeed.Collect().ToArray();
+                var sampleDFWithoutSeedCollected = sampleDFWithoutSeed.Collect().ToArray();
+                if (sampleDFWithSeedCollected.Length > 0)
+                {
+                    // sample DataFrame should be a subset of original DataFrame
+                    Assert.IsTrue(sampleDFWithSeedCollected.All(sample => originalDFCollected.Any(original => IsRowEqual(original, sample))));
+                }
+                if (sampleDFWithoutSeedCollected.Length > 0)
+                {
+                    // sample DataFrame should be a subset of original DataFrame
+                    Assert.IsTrue(sampleDFWithoutSeedCollected.All(sample => originalDFCollected.Any(original => IsRowEqual(original, sample))));
+                }
+            }
         }
 
         /// <summary>
@@ -1568,8 +1670,53 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFForeachPartitionSample()
         {
-            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            peopleDataFrame.ForeachPartition(iter => { foreach (var row in iter) Console.WriteLine(row); });
+            const int partitionNumber = 3;
+            var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(partitionNumber);
+            Console.WriteLine("Partition number: " + partitionNumber);
+            var accumulator = SparkCLRSamples.SparkContext.Accumulator(0);
+            peopleDataFrame.ForeachPartition(new PartitionCountHelper(accumulator).Execute);
+            Console.WriteLine("Partition number counted by ForeachPartition :" + accumulator.Value);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(partitionNumber, accumulator.Value);
+            }
+        }
+
+        [Serializable]
+        internal class PartitionCountHelper
+        {
+            private Accumulator<int> accumulator;
+            internal PartitionCountHelper(Accumulator<int> accumulator)
+            {
+                this.accumulator = accumulator;
+            }
+
+            internal void Execute(IEnumerable<Row> iter)
+            {
+                // Count only once for a partition iter
+                accumulator = accumulator + 1;
+                int i = 0;
+                foreach (var row in iter)
+                {
+                    i++;
+                }
+            }
+        }
+
+        [Serializable]
+        internal class ForeachRowHelper
+        {
+            private Accumulator<int> accumulator;
+            internal ForeachRowHelper(Accumulator<int> accumulator)
+            {
+                this.accumulator = accumulator;
+            }
+
+            internal void Execute(Row row)
+            {
+                accumulator = accumulator + 1;
+            }
         }
 
         /// <summary>
@@ -1579,7 +1726,14 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFForeachSample()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            peopleDataFrame.Foreach(row => { Console.WriteLine(row); });
+            var accumulator = SparkCLRSamples.SparkContext.Accumulator(0);
+            peopleDataFrame.Foreach(new ForeachRowHelper(accumulator).Execute);
+
+            Console.WriteLine("DataFrame Row count: " + accumulator.Value);
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(4, accumulator.Value);
+            }
         }
 
         [Serializable]
@@ -1604,7 +1758,7 @@ namespace Microsoft.Spark.CSharp.Samples
         /// ForeachPartition sample with accumulator
         /// </summary>
         [Sample]
-        internal static void DFForeachPartitionSampleWithAccumulator()
+        internal static void DFForeachnSampleWithAccumulator()
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var accumulator = SparkCLRSamples.SparkContext.Accumulator(0);
