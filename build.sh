@@ -26,15 +26,10 @@ mvn clean -q
 [ $? -ne 0 ] && exit 1
 
 # Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
-# however, it breaks debug mode in IntellJ. A temporary workaroud to add shade-plugin
+# however, it breaks debug mode in IntellJ. So enable shade-plugin
 # only in build.cmd to create the uber-package.
-cp pom.xml /tmp/pom.xml.original
-sed -i -e '/<\!--OTHER PLUGINS-->/r other-plugin.xml' pom.xml
 # build the package
-mvn package -q
-[ $? -ne 0 ] && exit 1
-# After uber package is created, restore Pom.xml
-cp /tmp/pom.xml.original pom.xml
+mvn package -Puber-jar -q
 
 if [ $? -ne 0 ]
 then
