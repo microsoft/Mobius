@@ -42,17 +42,11 @@ call mvn.cmd clean
 
 @rem
 @rem Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
-@rem however, it breaks debug mode in IntellJ. A temporary workaroud to add shade-plugin
+@rem however, it breaks debug mode in IntellJ. So enable shade-plugin
 @rem only in build.cmd to create the uber-package.
 @rem
-copy /y pom.xml %temp%\pom.xml.original
-powershell -f ..\scripts\addotherplugin.ps1 pom.xml other-plugin.xml "<!--OTHER PLUGINS-->"
 @rem build the package
-call mvn.cmd package
-@rem
-@rem After uber package is created, restore Pom.xml
-@rem
-copy /y %temp%\pom.xml.original pom.xml
+call mvn.cmd package -Puber-jar
 
 if %ERRORLEVEL% NEQ 0 (
 	@echo Build SparkCLR Scala components failed, stop building.
