@@ -31,10 +31,14 @@ namespace AdapterTest
             var socketStream = ssc.SocketTextStream(IPAddress.Loopback.ToString(), 12345);
             Assert.IsNotNull(socketStream.DStreamProxy);
 
+<<<<<<< 1b025447650d8c2a36b151dfb9e1b5ed5039e5f7
             var kafkaStream = ssc.KafkaStream(IPAddress.Loopback + ":2181", "testGroupId", new Dictionary<string, int> { { "testTopic1", 1 } }, new Dictionary<string, string>());
+=======
+            var kafkaStream = KafkaUtils.CreateStream(ssc, "127.0.0.1:2181", "testGroupId", new Dictionary<string, int> { { "testTopic1", 1 } }, new Dictionary<string, string>());
+>>>>>>> add an overload of UpdateStateByKey API and move kafka DStream to KafkaUtil class
             Assert.IsNotNull(kafkaStream.DStreamProxy);
 
-            var directKafkaStream = ssc.DirectKafkaStream(new List<string> { "testTopic2" }, new Dictionary<string, string>(), new Dictionary<string, long>());
+            var directKafkaStream = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic2" }, new Dictionary<string, string>(), new Dictionary<string, long>());
             Assert.IsNotNull(directKafkaStream.DStreamProxy);
 
             var union = ssc.Union(textFile, socketStream);
