@@ -93,6 +93,61 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "checkpoint", new object[] { directory });
         }
 
+        public bool CheckpointExists(string checkpointPath)
+        {
+            if (checkpointPath == null)
+                return false;
+
+            var path = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", checkpointPath);
+            var conf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.conf.Configuration");
+            var fs = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(path, "getFileSystem", conf));
+
+            return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(fs, "exists", path) &&
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(fs, "listStatus", path) != null;
+        }
+
+        public IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string serializationMode)
+        {
+            var jvmDStreamReference =
+                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpDStream",
+                    new object[] {(jdstream as DStreamIpcProxy).jvmDStreamReference, func, serializationMode});
+
+            var javaDStreamReference =
+                new JvmObjectReference(
+                    (string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+            return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
+        public IDStreamProxy CreateCSharpTransformed2DStream(IDStreamProxy jdstream, IDStreamProxy jother, byte[] func, string serializationMode, string serializationModeOther)
+        {
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpTransformed2DStream",
+                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, (jother as DStreamIpcProxy).jvmDStreamReference, func, serializationMode, serializationModeOther });
+
+            var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+            return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
+        public IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode)
+        {
+            var windowDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { windowSeconds * 1000 });
+            var slideDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { slideSeconds * 1000 });
+
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpReducedWindowedDStream",
+                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, invFunc, windowDurationReference, slideDurationReference, serializationMode });
+
+            var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+            return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
+        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string serializationMode, string serializationMode2)
+        {
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpStateDStream",
+                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, serializationMode, serializationMode2 });
+
+            var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+            return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
         public IDStreamProxy TextFileStream(string directory)
         {
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "textFileStream", new object[] { directory }).ToString());
@@ -190,10 +245,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                                 IFormatter formatter = new BinaryFormatter();
                                 object func = formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
 
-                                string deserializer = SerDe.ReadString(s);
+                                string serializedMode = SerDe.ReadString(s);
                                 RDD<dynamic> rdd = null;
                                 if (jrdds[0].Id != null)
-                                    rdd = new RDD<dynamic>(new RDDIpcProxy(jrdds[0]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), deserializer));
+                                    rdd = new RDD<dynamic>(new RDDIpcProxy(jrdds[0]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), serializedMode));
 
                                 if (func is Func<double, RDD<dynamic>, RDD<dynamic>>)
                                 {
@@ -203,8 +258,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                                 }
                                 else if (func is Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)
                                 {
-                                    string deserializer2 = SerDe.ReadString(s);
-                                    RDD<dynamic> rdd2 = new RDD<dynamic>(new RDDIpcProxy(jrdds[1]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), deserializer2));
+                                    string serializedMode2 = SerDe.ReadString(s);
+                                    RDD<dynamic> rdd2 = new RDD<dynamic>(new RDDIpcProxy(jrdds[1]), sparkContext, (SerializedMode)Enum.Parse(typeof(SerializedMode), serializedMode2));
                                     JvmObjectReference jrdd = ((((Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)func)(time, rdd, rdd2) as PipelinedRDD<dynamic>).RddProxy as RDDIpcProxy).JvmRddReference;
                                     SerDe.Write(s, (byte)'j');
                                     SerDe.Write(s, jrdd.Id);

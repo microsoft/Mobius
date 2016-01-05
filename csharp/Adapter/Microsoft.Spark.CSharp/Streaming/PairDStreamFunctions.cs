@@ -296,7 +296,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             }
 
             return new DStream<KeyValuePair<K, V>>(
-                SparkCLREnvironment.SparkCLRProxy.CreateCSharpReducedWindowedDStream(
+                SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpReducedWindowedDStream(
                     reduced.Piplinable ? reduced.prevDStreamProxy : reduced.DStreamProxy, 
                     stream.ToArray(),
                     invStream == null ? null : invStream.ToArray(),
@@ -351,7 +351,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             var stream = new MemoryStream();
             formatter.Serialize(stream, func);
 
-            return new DStream<KeyValuePair<K, S>>(SparkCLREnvironment.SparkCLRProxy.CreateCSharpStateDStream(
+            return new DStream<KeyValuePair<K, S>>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpStateDStream(
                     self.Piplinable ? self.prevDStreamProxy : self.DStreamProxy,
                     stream.ToArray(),
                     self.serializedMode.ToString(),

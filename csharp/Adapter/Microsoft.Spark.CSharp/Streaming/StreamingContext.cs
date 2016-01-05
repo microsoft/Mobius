@@ -55,7 +55,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public StreamingContext(SparkContext sparkContext, long durationMs)
         {
             this.sparkContext = sparkContext;
-            this.streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationMs);
+            streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationMs);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static StreamingContext GetOrCreate(string checkpointPath, Func<StreamingContext> creatingFunc)
         {
-            if (!SparkCLREnvironment.SparkCLRProxy.CheckpointExists(checkpointPath))
+            if (!SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CheckpointExists(checkpointPath))
             {
                 var ssc = creatingFunc();
                 ssc.Checkpoint(checkpointPath);
@@ -81,12 +81,12 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         public void Start()
         {
-            this.streamingContextProxy.Start();
+            streamingContextProxy.Start();
         }
 
         public void Stop()
         {
-            this.streamingContextProxy.Stop();
+            streamingContextProxy.Stop();
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="durationMs">Minimum duration that each DStream should remember its RDDs</param>
         public void Remember(long durationMs)
         {
-            this.streamingContextProxy.Remember(durationMs);
+            streamingContextProxy.Remember(durationMs);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </param>
         public void Checkpoint(string directory)
         {
-            this.streamingContextProxy.Checkpoint(directory);
+            streamingContextProxy.Checkpoint(directory);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         public void AwaitTermination()
         {
-            this.streamingContextProxy.AwaitTermination();
+            streamingContextProxy.AwaitTermination();
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="timeout">time to wait in seconds</param>
         public void AwaitTermination(int timeout)
         {
-            this.streamingContextProxy.AwaitTermination(timeout);
+            streamingContextProxy.AwaitTermination(timeout);
         }
 
         /// <summary>

@@ -38,3 +38,8 @@ lib/
 SparkCLRCodeCoverage.xml
 AdapterTestCoverage.xml
 TestResult.xml
+
+# Office Doc Temp files #
+#########################
+docs/~$SparkCLR.pptx
+docs/~$arkCLR.docx

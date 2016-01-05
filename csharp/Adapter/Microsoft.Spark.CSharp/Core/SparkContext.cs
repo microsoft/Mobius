@@ -518,7 +518,7 @@ namespace Microsoft.Spark.CSharp.Core
             formatter.Serialize(stream, workerFunc);
             List<byte[]> commandPayloadBytesList = new List<byte[]>();
 
-            // reserver 12 bytes for RddId, stageId and partitionId, this info will be filled in CSharpRDD.scala
+            // reserve 12 bytes for RddId, stageId and partitionId, this info will be filled in CSharpRDD.scala
             byte[] rddInfo = new byte[12];
             for (int i = 0; i < rddInfo.Length; i++)
             {

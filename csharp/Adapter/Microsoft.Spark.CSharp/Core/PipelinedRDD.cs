@@ -39,13 +39,12 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     workerFunc = newWorkerFunc,
                     preservesPartitioning = preservesPartitioning && preservesPartitioningParam,
-                    previousRddProxy = this.previousRddProxy,
-                    prevSerializedMode = this.prevSerializedMode,
-
-                    sparkContext = this.sparkContext,
+                    previousRddProxy = previousRddProxy,
+                    prevSerializedMode = prevSerializedMode,
+                    sparkContext = sparkContext,
                     rddProxy = null,
                     serializedMode = SerializedMode.Byte,
-                    partitioner = preservesPartitioning ? this.partitioner : null
+                    partitioner = preservesPartitioning ? partitioner : null
                 };
                 return pipelinedRDD;
             }
@@ -101,28 +100,28 @@ namespace Microsoft.Spark.CSharp.Core
     internal class CSharpWorkerFunc
     {
         // using dynamic types to keep deserialization simple in worker side
-        private Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func;
+        private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func;
 
         // stackTrace of this func, for debug purpose
-        private string stackTrace;
+        private readonly string stackTrace;
 
         public CSharpWorkerFunc(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func)
         {
             this.func = func;
-            this.stackTrace = new StackTrace(true).ToString();
+            stackTrace = new StackTrace(true).ToString();
         }
 
         public CSharpWorkerFunc(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func, string innerStackTrace)
         {
             this.func = func;
-            this.stackTrace = new StackTrace(true).ToString() + "\nInner stack trace ...\n" + innerStackTrace;
+            stackTrace = new StackTrace(true).ToString() + "\nInner stack trace ...\n" + innerStackTrace;
         }
 
         public Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> Func
         {
             get
             {
-                return this.func;
+                return func;
             }
         }
 
@@ -130,7 +129,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             get
             {
-                return this.stackTrace;
+                return stackTrace;
             }
         }
     }

@@ -60,9 +60,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(new JvmObjectReference(id));
         }
 
-        public void CallForeachRDD(byte[] func, string deserializer)
+        public void CallForeachRDD(byte[] func, string serializedMode)
         {
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpDStream", "callForeachRDD", new object[] { javaDStreamReference, func, deserializer });
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpDStream", "callForeachRDD", new object[] { javaDStreamReference, func, serializedMode });
         }
 
 
