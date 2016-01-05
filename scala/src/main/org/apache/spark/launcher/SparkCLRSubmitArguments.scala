@@ -19,7 +19,7 @@ import scala.collection.mutable.{ArrayBuffer, HashMap}
 object SparkCLRSubmitArguments {
 
   val csharpRunnerClass: String = "org.apache.spark.deploy.csharp.CSharpRunner"
-  var exitFn: Int => Unit = (exitCode: Int) => System.exit(exitCode)
+  var exitFn: Int => Unit = (exitCode: Int) => CSharpUtils.exit(exitCode)
   var printStream: PrintStream = System.err
 
   def main(args: Array[String]): Unit = {
@@ -73,7 +73,7 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
   var options: Array[Array[String]] = null
 
   def this(args: Seq[String], env: Map[String, String]) {
-    this(args, env, (exitCode: Int) => System.exit(exitCode), System.err)
+    this(args, env, (exitCode: Int) => CSharpUtils.exit(exitCode), System.err)
   }
 
   private def printError(str: String): Unit = {
