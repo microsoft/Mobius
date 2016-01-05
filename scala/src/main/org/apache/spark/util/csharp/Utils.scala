@@ -4,6 +4,7 @@
 package org.apache.spark.util.csharp
 
 import java.io._
+import java.util.{TimerTask, Timer}
 import java.util.zip.{ZipEntry, ZipOutputStream, ZipFile}
 import org.apache.commons.io.IOUtils
 
@@ -111,4 +112,43 @@ object Utils {
       zipFile.close()
     }
   }
+
+  /**
+   * Exits the JVM, trying to do it nicely, otherwise doing it nastily.
+   *
+   * @param status  the exit status, zero for OK, non-zero for error
+   * @param maxDelayMillis  the maximum delay in milliseconds
+   */
+  def exit(status: Int, maxDelayMillis: Long) {
+    try {
+      println(s"Utils.exit() with status: $status, maxDelayMillis: $maxDelayMillis")
+
+      // setup a timer, so if nice exit fails, the nasty exit happens
+      val timer = new Timer()
+      timer.schedule(new TimerTask() {
+        @Override
+        def run() {
+          Runtime.getRuntime.halt(status)
+        }
+      }, maxDelayMillis)
+      // try to exit nicely
+      System.exit(status);
+    } catch  {
+      // exit nastily if we have a problem
+      case ex: Throwable => Runtime.getRuntime.halt(status)
+    } finally {
+      // should never get here
+      Runtime.getRuntime.halt(status)
+    }
+  }
+
+  /**
+   * Exits the JVM, trying to do it nicely, wait 1 second
+   *
+   * @param status  the exit status, zero for OK, non-zero for error
+   */
+  def exit(status: Int): Unit = {
+    exit(status, 1000)
+  }
+
 }
