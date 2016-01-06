@@ -39,9 +39,9 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     workerFunc = newWorkerFunc,
                     preservesPartitioning = preservesPartitioning && preservesPartitioningParam,
-                    previousRddProxy = previousRddProxy,
-                    prevSerializedMode = prevSerializedMode,
-                    sparkContext = sparkContext,
+                    previousRddProxy = this.previousRddProxy,
+                    prevSerializedMode = this.prevSerializedMode,
+                    sparkContext = this.sparkContext,
                     rddProxy = null,
                     serializedMode = SerializedMode.Byte,
                     partitioner = preservesPartitioning ? partitioner : null
