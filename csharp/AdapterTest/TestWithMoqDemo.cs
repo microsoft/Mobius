@@ -153,7 +153,7 @@ namespace AdapterTest
 
             mockDStreamProxy.Setup(m => m.AsJavaDStream()).Returns(mockDStreamProxy.Object);
 
-            _mockSparkCLRProxy.Setup(m => m.CreateCSharpDStream(It.IsAny<IDStreamProxy>(), It.IsAny<byte[]>(), It.IsAny<string>()))
+            _mockSparkCLRProxy.Setup(m => m.StreamingContextProxy.CreateCSharpDStream(It.IsAny<IDStreamProxy>(), It.IsAny<byte[]>(), It.IsAny<string>()))
                 .Returns<IDStreamProxy, byte[], string>((jdstream, func, deserializer) =>
                 {
                     Func<double, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>>)new BinaryFormatter().Deserialize(new MemoryStream(func));

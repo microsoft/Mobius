@@ -78,8 +78,6 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.streamingContext = streamingContext;
             this.dstreamProxy = dstreamProxy;
             this.serializedMode = serializedMode;
-            isCached = false;
-            isCheckpointed = false;
         }
 
         /// <summary>
@@ -319,7 +317,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<V> TransformWith<U, V>(Func<double, RDD<T>, RDD<U>, RDD<V>> f, DStream<U> other, bool keepSerializer = false)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>> prevF = this.Piplinable ? (this as TransformedDStream<T>).func : null;
+            Func<double, RDD<dynamic>, RDD<dynamic>> prevF = Piplinable ? (this as TransformedDStream<T>).func : null;
             Func<double, RDD<dynamic>, RDD<dynamic>> otherF = other.Piplinable ? (other as TransformedDStream<U>).func : null;
 
             Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new TransformWithDynamicHelper<T, U, V>(f, prevF, otherF).Execute;
@@ -328,11 +326,11 @@ namespace Microsoft.Spark.CSharp.Streaming
             var stream = new MemoryStream();
             formatter.Serialize(stream, func);
 
-            return new DStream<V>(SparkCLREnvironment.SparkCLRProxy.CreateCSharpTransformed2DStream(
-                    this.Piplinable ? prevDStreamProxy : DStreamProxy, 
+            return new DStream<V>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpTransformed2DStream(
+                    Piplinable ? prevDStreamProxy : DStreamProxy, 
                     other.Piplinable ? other.prevDStreamProxy : other.DStreamProxy, 
                     stream.ToArray(),
-                    (this.Piplinable ? prevSerializedMode : serializedMode).ToString(), 
+                    (Piplinable ? prevSerializedMode : serializedMode).ToString(), 
                     (other.Piplinable ? other.prevSerializedMode : other.serializedMode).ToString()), 
                 streamingContext,
                 keepSerializer ? serializedMode : SerializedMode.Byte);

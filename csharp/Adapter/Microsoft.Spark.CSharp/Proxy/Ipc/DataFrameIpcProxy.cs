@@ -336,7 +336,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IDataFrameNaFunctionsProxy Na()
         {
             return new DataFrameNaFunctionsIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                    this.jvmDataFrameReference, "na")), sqlContextProxy);
+                    jvmDataFrameReference, "na")), sqlContextProxy);
         }
 
         /// <summary>
@@ -652,7 +652,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             get
             {
                 return new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                    this.dataFrameProxy, "na"));
+                    dataFrameProxy, "na"));
             }
         }
     }
@@ -669,7 +669,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             get
             {
                 return new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                    this.dataFrameProxy, "stat"));
+                    dataFrameProxy, "stat"));
             }
         }
     }

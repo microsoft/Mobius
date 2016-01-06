@@ -79,7 +79,6 @@ namespace Microsoft.Spark.CSharp.Sql
                 return ParseAtomicType(json);
             }
 
-            throw new ArgumentException(string.Format("Could not parse data type: {0}", json));
         }
 
         private static AtomicType ParseAtomicType(JToken type)

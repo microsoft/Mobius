@@ -101,12 +101,12 @@ namespace Microsoft.Spark.CSharp.Core
         {
             RDD<U> r = (this is PipelinedRDD<T>) ? new PipelinedRDD<U>() : new RDD<U>();
 
-            r.rddProxy = this.rddProxy;
-            r.sparkContext = this.sparkContext;
-            r.previousRddProxy = this.previousRddProxy;
-            r.prevSerializedMode = this.prevSerializedMode;
-            r.serializedMode = this.serializedMode;
-            r.partitioner = this.partitioner;
+            r.rddProxy = rddProxy;
+            r.sparkContext = sparkContext;
+            r.previousRddProxy = previousRddProxy;
+            r.prevSerializedMode = prevSerializedMode;
+            r.serializedMode = serializedMode;
+            r.partitioner = partitioner;
 
             if (this is PipelinedRDD<T>)
             {
@@ -252,10 +252,10 @@ namespace Microsoft.Spark.CSharp.Core
                 previousRddProxy = rddProxy,
                 prevSerializedMode = serializedMode,
 
-                sparkContext = this.sparkContext,
+                sparkContext = sparkContext,
                 rddProxy = null,
                 serializedMode = SerializedMode.Byte,
-                partitioner = preservesPartitioningParam ? this.partitioner : null
+                partitioner = preservesPartitioningParam ? partitioner : null
             };
             return pipelinedRDD;
         }
@@ -435,7 +435,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Union(RDD<T> other)
         {
             var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
-            if (partitioner == other.partitioner && this.RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
+            if (partitioner == other.partitioner && RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
                 rdd.partitioner = partitioner;
             return rdd;
         }

@@ -16,7 +16,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         int SlideDuration { get; }
         IDStreamProxy Window(int windowSeconds, int slideSeconds = 0);
         IDStreamProxy AsJavaDStream();
-        void CallForeachRDD(byte[] func, string deserializer);
+        void CallForeachRDD(byte[] func, string serializedMode);
         void Print(int num = 10);
         void Persist(StorageLevelType storageLevelType);
         void Checkpoint(long intervalMs);

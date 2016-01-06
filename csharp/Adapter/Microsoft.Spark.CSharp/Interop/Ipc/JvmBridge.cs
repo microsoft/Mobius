@@ -179,7 +179,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             return errorMessage.ToString();
         }
 
-        private string GetParamsAsString(object[] parameters)
+        private string GetParamsAsString(IEnumerable<object> parameters)
         {
             var paramsString = new StringBuilder();
 

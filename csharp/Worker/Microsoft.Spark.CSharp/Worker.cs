@@ -119,12 +119,12 @@ namespace Microsoft.Spark.CSharp
 
                     Accumulator.accumulatorRegistry.Clear();
 
-                    int lengthOCommandByteArray = SerDe.ReadInt(s);
-                    logger.LogInfo("command_len: " + lengthOCommandByteArray);
+                    int lengthOfCommandByteArray = SerDe.ReadInt(s);
+                    logger.LogInfo("command length: " + lengthOfCommandByteArray);
 
                     IFormatter formatter = new BinaryFormatter();
 
-                    if (lengthOCommandByteArray > 0)
+                    if (lengthOfCommandByteArray > 0)
                     {
                         Stopwatch commandProcessWatch = new Stopwatch();
                         Stopwatch funcProcessWatch = new Stopwatch();
@@ -148,7 +148,7 @@ namespace Microsoft.Spark.CSharp
 
                         var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
                         var func = workerFunc.Func;
-                        logger.LogInfo(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
+                        logger.LogDebug(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
                         DateTime initTime = DateTime.UtcNow;
                         int count = 0;
 
@@ -330,15 +330,15 @@ namespace Microsoft.Spark.CSharp
     {
         private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WorkerInputEnumerator));
 
-        private Stream inputStream;
-        private string deserializedMode;
+        private readonly Stream inputStream;
+        private readonly string deserializedMode;
 
         // cache deserialized object read from input stream
         private object[] items = null;
         private int pos = 0;
 
-        IFormatter formatter = new BinaryFormatter();
-        private Stopwatch watch = new Stopwatch();
+        private readonly IFormatter formatter = new BinaryFormatter();
+        private readonly Stopwatch watch = new Stopwatch();
 
         public WorkerInputEnumerator(Stream inputStream, string deserializedMode)
         {
