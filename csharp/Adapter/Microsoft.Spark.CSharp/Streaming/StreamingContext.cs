@@ -55,7 +55,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         public StreamingContext(SparkContext sparkContext, long durationMs)
         {
             this.sparkContext = sparkContext;
-            this.streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationMs);
+            streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationMs);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static StreamingContext GetOrCreate(string checkpointPath, Func<StreamingContext> creatingFunc)
         {
-            if (!SparkCLREnvironment.SparkCLRProxy.CheckpointExists(checkpointPath))
+            if (!SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CheckpointExists(checkpointPath))
             {
                 var ssc = creatingFunc();
                 ssc.Checkpoint(checkpointPath);
@@ -81,12 +81,12 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         public void Start()
         {
-            this.streamingContextProxy.Start();
+            streamingContextProxy.Start();
         }
 
         public void Stop()
         {
-            this.streamingContextProxy.Stop();
+            streamingContextProxy.Stop();
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="durationMs">Minimum duration that each DStream should remember its RDDs</param>
         public void Remember(long durationMs)
         {
-            this.streamingContextProxy.Remember(durationMs);
+            streamingContextProxy.Remember(durationMs);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </param>
         public void Checkpoint(string directory)
         {
-            this.streamingContextProxy.Checkpoint(directory);
+            streamingContextProxy.Checkpoint(directory);
         }
 
         /// <summary>
@@ -142,76 +142,11 @@ namespace Microsoft.Spark.CSharp.Streaming
         }
 
         /// <summary>
-        /// Create an input stream that pulls messages from a Kafka Broker.
-        /// </summary>
-        /// <param name="zkQuorum">Zookeeper quorum (hostname:port,hostname:port,..).</param>
-        /// <param name="groupId">The group id for this consumer.</param>
-        /// <param name="topics">Dict of (topic_name -> numPartitions) to consume. Each partition is consumed in its own thread.</param>
-        /// <param name="kafkaParams">Additional params for Kafka</param>
-        /// <returns>A DStream object</returns>
-        public DStream<KeyValuePair<byte[], byte[]>> KafkaStream(string zkQuorum, string groupId, Dictionary<string, int> topics, Dictionary<string, string> kafkaParams)
-        {
-            return this.KafkaStream(zkQuorum, groupId, topics, kafkaParams, StorageLevelType.MEMORY_AND_DISK_SER_2);
-        }
-
-        /// <summary>
-        /// Create an input stream that pulls messages from a Kafka Broker.
-        /// </summary>
-        /// <param name="zkQuorum">Zookeeper quorum (hostname:port,hostname:port,..).</param>
-        /// <param name="groupId">The group id for this consumer.</param>
-        /// <param name="topics">Dict of (topic_name -> numPartitions) to consume. Each partition is consumed in its own thread.</param>
-        /// <param name="kafkaParams">Additional params for Kafka</param>
-        /// <param name="storageLevelType">RDD storage level.</param>
-        /// <returns>A DStream object</returns>
-        public DStream<KeyValuePair<byte[], byte[]>> KafkaStream(string zkQuorum, string groupId, Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, StorageLevelType storageLevelType)
-        {
-            if (kafkaParams == null)
-                kafkaParams = new Dictionary<string, string>();
-
-            if (!string.IsNullOrEmpty(zkQuorum))
-                kafkaParams["zookeeper.connect"] = zkQuorum;
-            if (groupId != null)
-                kafkaParams["group.id"] = groupId;
-            if (kafkaParams.ContainsKey("zookeeper.connection.timeout.ms"))
-                kafkaParams["zookeeper.connection.timeout.ms"] = "10000";
-
-            return new DStream<KeyValuePair<byte[], byte[]>>(this.streamingContextProxy.KafkaStream(topics, kafkaParams, storageLevelType), this);
-        }
-
-        /// <summary>
-        /// Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
-        /// 
-        /// This is not a receiver based Kafka input stream, it directly pulls the message from Kafka
-        /// in each batch duration and processed without storing.
-        /// 
-        /// This does not use Zookeeper to store offsets. The consumed offsets are tracked
-        /// by the stream itself. For interoperability with Kafka monitoring tools that depend on
-        /// Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application.
-        /// You can access the offsets used in each batch from the generated RDDs (see
-        /// 
-        /// To recover from driver failures, you have to enable checkpointing in the StreamingContext.
-        /// The information on consumed offset can be recovered from the checkpoint.
-        /// See the programming guide for details (constraints, etc.).
-        /// 
-        /// </summary>
-        /// <param name="topics">list of topic_name to consume.</param>
-        /// <param name="kafkaParams">
-        ///     Additional params for Kafka. Requires "metadata.broker.list" or "bootstrap.servers" to be set
-        ///     with Kafka broker(s) (NOT zookeeper servers), specified in host1:port1,host2:port2 form.        
-        /// </param>
-        /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
-        /// <returns>A DStream object</returns>
-        public DStream<KeyValuePair<byte[], byte[]>> DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
-        {
-            return new DStream<KeyValuePair<byte[], byte[]>>(this.streamingContextProxy.DirectKafkaStream(topics, kafkaParams, fromOffsets), this, SerializedMode.Pair);
-        }
-
-        /// <summary>
         /// Wait for the execution to stop.
         /// </summary>
         public void AwaitTermination()
         {
-            this.streamingContextProxy.AwaitTermination();
+            streamingContextProxy.AwaitTermination();
         }
 
         /// <summary>
@@ -220,7 +155,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="timeout">time to wait in seconds</param>
         public void AwaitTermination(int timeout)
         {
-            this.streamingContextProxy.AwaitTermination(timeout);
+            streamingContextProxy.AwaitTermination(timeout);
         }
 
         /// <summary>

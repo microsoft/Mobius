@@ -124,7 +124,7 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == this.GetType() && Equals(this.columnProxy, ((Column)obj).columnProxy);
+            return obj.GetType() == GetType() && Equals(columnProxy, ((Column)obj).columnProxy);
         }
 
         /// <summary>

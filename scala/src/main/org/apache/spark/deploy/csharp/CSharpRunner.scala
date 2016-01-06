@@ -103,7 +103,9 @@ object CSharpRunner {
           builder.redirectErrorStream(true) // Ugly but needed for stdout and stderr to synchronize
           val process = builder.start()
 
-          new RedirectThread(process.getInputStream, System.out, "redirect CSharp output").start()
+          // Redirect stdout and stderr of C# process
+          new RedirectThread(process.getInputStream, System.out, "redirect CSharp stdout").start()
+          new RedirectThread(process.getErrorStream, System.out, "redirect CSharp stderr").start()
 
           returnCode = process.waitFor()
           closeBackend(csharpBackend)
@@ -112,20 +114,20 @@ object CSharpRunner {
         }
 
         println("[CSharpRunner.main] Return CSharpBackend code " + returnCode)
-        System.exit(returnCode)
+        CSharpSparkUtils.exit(returnCode)
       } else {
         println("***********************************************************************")
         println("* [CSharpRunner.main] Backend running debug mode. Press enter to exit *")
         println("***********************************************************************")
         Console.readLine()
         closeBackend(csharpBackend)
-        System.exit(0)
+        CSharpSparkUtils.exit(0)
       }
     } else {
       // scalastyle:off println
       println("[CSharpRunner.main] CSharpBackend did not initialize in " + backendTimeout + " seconds")
       // scalastyle:on println
-      System.exit(-1)
+      CSharpSparkUtils.exit(-1)
     }
   }
 

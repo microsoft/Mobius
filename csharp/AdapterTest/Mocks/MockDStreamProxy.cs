@@ -43,7 +43,7 @@ namespace AdapterTest.Mocks
             return this;
         }
 
-        public void CallForeachRDD(byte[] func, string deserializer)
+        public void CallForeachRDD(byte[] func, string serializedMode)
         {
             Action<double, RDD<dynamic>> f = (Action<double, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
             f(DateTime.UtcNow.Ticks, new RDD<dynamic>(rddProxy, new SparkContext("", "")));
