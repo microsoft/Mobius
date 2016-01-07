@@ -20,29 +20,22 @@ after_test:
 
 artifacts:          
   - path: '**\Microsoft*.nupkg' # find all NuGet packages recursively
-  - path: 'scala\target\spark-clr*.jar' # find all NuGet packages recursively
+  - path: 'scala\target\spark-clr*.jar'
 
 deploy:
-  release: testsparkclr-$(appveyor_repo_tag_name)
-  description: 'test sparkclr release'
-  provider: GitHub
-  auth_token:
-    secure: 4JIzL2DO3OXXjdrso+VhA0RjMvUAg8BnZRHXojswaryXFe9mDJ3ExjssASWL1FZq # your encrypted token from GitHub
-  artifact: /Microsoft.*\.nupkg/,/spark-clr.*\.jar/
-  draft: true 
-  prerelease: true
-  on:
-    # branch: master             # release from master branch only
-    # branch: branch-1.4         # release from branch-1.4 branch only
-    appveyor_repo_tag: true      # deploy on tag push only
+  - provider: GitHub
+    auth_token:
+      secure: 4JIzL2DO3OXXjdrso+VhA0RjMvUAg8BnZRHXojswaryXFe9mDJ3ExjssASWL1FZq # your encrypted token from GitHub
+    artifact: /Microsoft.*\.nupkg/,/spark-clr.*\.jar/
+    on:
+      appveyor_repo_tag: true   # deploy on tag push only
 
-# deploy:
-#   provider: NuGet
-#   # server:                  # remove to push to NuGet.org
-#   api_key:
-#     secure: 8/aUEkMI5hEiCETWDwHnRk7VXF5bPVMjrtGqYhLmDt/1A2uy8N8UwioZENNGGmdm
-#   skip_symbols: true
-#   # symbol_server:           # remove to push symbols to SymbolSource.org
-#   # artifact: /.*\.nupkg/
-#   # artifact: Microsoft.SparkCLR.1.0.0.nupkg
-#   artifact: /Microsoft.*\.nupkg/
+  - provider: NuGet
+    # server:                   # remove to push to NuGet.org
+    api_key:
+      secure: 8/aUEkMI5hEiCETWDwHnRk7VXF5bPVMjrtGqYhLmDt/1A2uy8N8UwioZENNGGmdm
+    skip_symbols: false 
+    # symbol_server:            # remove to push symbols to SymbolSource.org
+    artifact: /Microsoft.*\.nupkg/
+    on:
+      appveyor_repo_tag: true   # deploy on tag push only
