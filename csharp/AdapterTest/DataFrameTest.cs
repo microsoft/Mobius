@@ -1329,7 +1329,7 @@ namespace AdapterTest
             const string path = "file_path";
 
             // Act
-            dataFrame.SaveAsParquetFile(path);
+            dataFrame.Write().Parquet(path);
 
             // assert
             mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
@@ -1349,18 +1349,18 @@ namespace AdapterTest
             // arrange
             mockDataFrameProxy.Setup(m => m.Write()).Returns(mockDataFrameWriterProxy.Object);
             mockDataFrameWriterProxy.Setup(m => m.Mode(It.IsAny<string>()));
-            mockDataFrameWriterProxy.Setup(m => m.InsertInto(It.IsAny<string>()));
+            mockDataFrameWriterProxy.Setup(m => m.SaveAsTable(It.IsAny<string>()));
 
             var sc = new SparkContext(null);
             var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
             const string table = "table_name";
             // Act
-            dataFrame.InsertInto(table, true);
+            dataFrame.Write().Mode(SaveMode.Overwrite).SaveAsTable(table);
 
             // assert
             mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
 
-            mockDataFrameWriterProxy.Verify(m => m.InsertInto(table), Times.Once);
+            mockDataFrameWriterProxy.Verify(m => m.SaveAsTable(table), Times.Once);
             mockDataFrameWriterProxy.Verify(m => m.Mode(SaveMode.Overwrite.GetStringValue()), Times.Once);
         }
 
@@ -1379,8 +1379,9 @@ namespace AdapterTest
             var sc = new SparkContext(null);
             var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
             const string table = "table_name";
+            
             // Act
-            dataFrame.SaveAsTable(table);
+            dataFrame.Write().Mode(SaveMode.ErrorIfExists).SaveAsTable(table);
 
             // assert
             mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
@@ -1405,7 +1406,7 @@ namespace AdapterTest
             const string path = "path_value";
 
             // Act
-            dataFrame.Save(path);
+            dataFrame.Write().Mode(SaveMode.ErrorIfExists).Save(path);
 
             // assert
             mockDataFrameProxy.Verify(m => m.Write(), Times.Once());
