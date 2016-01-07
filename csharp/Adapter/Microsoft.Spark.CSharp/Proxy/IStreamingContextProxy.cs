@@ -14,7 +14,6 @@ namespace Microsoft.Spark.CSharp.Proxy
     internal interface IStreamingContextProxy
     {
         SparkContext SparkContext { get; }
-        bool CheckpointExists(string checkpointPath);
         void Start();
         void Stop();
         void Remember(long durationMs);

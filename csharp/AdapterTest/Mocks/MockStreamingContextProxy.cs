@@ -107,9 +107,5 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy(rdd.RddProxy);
         }
 
-        public bool CheckpointExists(string checkpointPath)
-        {
-            return false;
-        }
     }
 }

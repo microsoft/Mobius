@@ -67,6 +67,19 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return sparkContextProxy;
         }
 
+        public bool CheckpointExists(string checkpointPath)
+        {
+            if (checkpointPath == null)
+                return false;
+
+            var path = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", checkpointPath);
+            var conf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.conf.Configuration");
+            var fs = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(path, "getFileSystem", conf));
+
+            return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(fs, "exists", path) &&
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(fs, "listStatus", path) != null;
+        }
+
         public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
         {
             streamingContextIpcProxy = new StreamingContextIpcProxy(sparkContext, durationMs);
