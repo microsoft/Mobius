@@ -6,6 +6,7 @@
 * Maven 3.3.3 or above.
 * Mono 4.2 stable or above. The download and installation instructions for Mono are available in [http://www.mono-project.com/download/#download-lin](http://www.mono-project.com/download/#download-lin).
 * NuGet.
+* XSLTPROC
 
 The following environment variables should be set properly:
 
