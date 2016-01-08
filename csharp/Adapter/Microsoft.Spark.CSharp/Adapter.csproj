@@ -159,6 +159,10 @@
     <XslTransformation
       XslInputPath="..\documentation\DocFormatter.xsl"
       XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML"
-      OutputPaths="..\documentation\SparkCLR_API_Documentation.md" />
+      OutputPaths="..\documentation\SparkCLR_API_Documentation.md"
+      Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec 
+      Command="xsltproc -o ../documentation/SparkCLR_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML"
+      Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
 </Project>
