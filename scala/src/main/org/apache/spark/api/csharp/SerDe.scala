@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/*
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 
 package org.apache.spark.api.csharp
 
@@ -7,13 +9,12 @@ import java.io.{DataOutputStream, DataInputStream}
 import java.sql.{Time, Timestamp, Date}
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConversions._
 
 /**
  * Functions to serialize and deserialize between CLR & JVM.
  * This implementation of methods is mostly identical to the SerDe implementation in R.
  */
-//TODO look into the possibility of reusing SerDe from R implementation
+// TODO look into the possibility of reusing SerDe from R implementation
 object SerDe {
   def readObjectType(dis: DataInputStream): Char = {
     dis.readByte().toChar
@@ -66,8 +67,7 @@ object SerDe {
   def readStringBytes(in: DataInputStream, len: Int): String = {
     val bytes = new Array[Byte](len)
     in.readFully(bytes)
-    //assert(bytes(len - 1) == 0)
-    val str = new String(bytes/*.dropRight(1)*/, "UTF-8")
+    val str = new String(bytes, "UTF-8")
     str
   }
 
@@ -77,8 +77,6 @@ object SerDe {
   }
 
   def readBoolean(in: DataInputStream): Boolean = {
-    //val intVal = in.readInt()
-    //if (intVal == 0) false else true
     return in.readBoolean()
   }
 
@@ -156,7 +154,7 @@ object SerDe {
     }
   }
 
-  //Using the same mapping as SparkR implementation for now
+  // Using the same mapping as SparkR implementation for now
   // Methods to write out data from Java to C#
   //
   // Type mapping from Java to C#
@@ -274,8 +272,6 @@ object SerDe {
   }
 
   def writeBoolean(out: DataOutputStream, value: Boolean): Unit = {
-    //val intValue = if (value) 1 else 0
-    //out.writeInt(intValue)
     out.writeBoolean(value)
   }
 
@@ -293,10 +289,6 @@ object SerDe {
 
   // NOTE: Only works for ASCII right now
   def writeString(out: DataOutputStream, value: String): Unit = {
-    /*val len = value.length
-    out.writeInt(len + 1) // For the \0
-    out.writeBytes(value)
-    out.writeByte(0)*/
     val len = value.length
     out.writeInt(len)
     out.writeBytes(value)
