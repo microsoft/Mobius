@@ -4,15 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Reflection;
 using System.IO;
 using System.Security.Cryptography;
-
-using Microsoft.Spark.CSharp.Interop;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -156,9 +151,9 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Return an RDD containing all pairs of elements with matching keys in C{self} and C{other}.
+        /// Return an RDD containing all pairs of elements with matching keys in this RDD and <paramref name="other"/>.
         /// 
-        /// Each pair of elements will be returned as a (k, (v1, v2)) tuple, where (k, v1) is in C{self} and (k, v2) is in C{other}.
+        /// Each pair of elements will be returned as a (k, (v1, v2)) tuple, where (k, v1) is in this RDD and (k, v2) is in <paramref name="other"/>.
         /// 
         /// Performs a hash join across the cluster.
         /// 
@@ -189,11 +184,11 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Perform a left outer join of C{self} and C{other}.
+        /// Perform a left outer join of this RDD and <paramref name="other"/>.
         /// 
-        /// For each element (k, v) in C{self}, the resulting RDD will either
-        /// contain all pairs (k, (v, w)) for w in C{other}, or the pair
-        /// (k, (v, None)) if no elements in C{other} have key k.
+        /// For each element (k, v) in this RDD, the resulting RDD will either
+        /// contain all pairs (k, (v, Option)) for w in <paramref name="other"/>, where Option.IsDefined is TRUE, or the pair
+        /// (k, (v, Option)) if no elements in <paramref name="other"/> have key k, where Option.IsDefined is FALSE. 
         /// 
         /// Hash-partitions the resulting RDD into the given number of partitions.
         /// 
@@ -203,7 +198,8 @@ namespace Microsoft.Spark.CSharp.Core
         ///     new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
         /// var m = l.LeftOuterJoin(r).Collect();
         /// 
-        /// [('a', (1, 2)), ('b', (4, None))]
+        /// [('a', (1, 2)), ('b', (4, Option))]
+        /// * Option.IsDefined = FALSE
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
@@ -212,22 +208,21 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, Tuple<V, W>>> LeftOuterJoin<K, V, W>(
+        public static RDD<KeyValuePair<K, Tuple<V, Option<W>>>> LeftOuterJoin<K, V, W>(
             this RDD<KeyValuePair<K, V>> self,
             RDD<KeyValuePair<K, W>> other,
             int numPartitions = 0)
         {
             return self.GroupWith(other, numPartitions).FlatMapValues(
-                input => input.Item1.SelectMany(v => input.Item2.DefaultIfEmpty().Select(w => new Tuple<V, W>(v, w)))
-                );
+                input => input.Item1.SelectMany(v => input.Item2.NullIfEmpty().Select(optionW => new Tuple<V, Option<W>>(v, optionW)))                );
         }
 
         /// <summary>
-        /// Perform a right outer join of C{self} and C{other}.
+        /// Perform a right outer join of this RDD and <paramref name="other"/>.
         /// 
-        /// For each element (k, w) in C{other}, the resulting RDD will either
-        /// contain all pairs (k, (v, w)) for v in this, or the pair (k, (None, w))
-        /// if no elements in C{self} have key k.
+        /// For each element (k, w) in <paramref name="other"/>, the resulting RDD will either
+        /// contain all pairs (k, (Option, w)) for v in this, where Option.IsDefined is TRUE, or the pair (k, (Option, w))
+        /// if no elements in this RDD have key k, where Option.IsDefined is FALSE.
         /// 
         /// Hash-partitions the resulting RDD into the given number of partitions.
         /// 
@@ -237,7 +232,8 @@ namespace Microsoft.Spark.CSharp.Core
         ///     new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
         /// var m = l.RightOuterJoin(r).Collect();
         /// 
-        /// [('a', (2, 1)), ('b', (None, 4))]
+        /// [('a', (2, 1)), ('b', (Option, 4))]
+        /// * Option.IsDefined = FALSE
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
@@ -246,13 +242,13 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, Tuple<V, W>>> RightOuterJoin<K, V, W>(
+        public static RDD<KeyValuePair<K, Tuple<Option<V>, W>>> RightOuterJoin<K, V, W>(
             this RDD<KeyValuePair<K, V>> self,
             RDD<KeyValuePair<K, W>> other,
             int numPartitions = 0)
         {
             return self.GroupWith(other, numPartitions).FlatMapValues(
-                input => input.Item1.DefaultIfEmpty().SelectMany(v => input.Item2.Select(w => new Tuple<V, W>(v, w)))
+                input => input.Item1.NullIfEmpty().SelectMany(v => input.Item2.Select(w => new Tuple<Option<V>, W>(v, w)))
                 );
         }
 
@@ -285,13 +281,13 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, Tuple<V, W>>> FullOuterJoin<K, V, W>(
+        public static RDD<KeyValuePair<K, Tuple<Option<V>, Option<W>>>> FullOuterJoin<K, V, W>(
             this RDD<KeyValuePair<K, V>> self,
             RDD<KeyValuePair<K, W>> other,
             int numPartitions = 0)
         {
             return self.GroupWith(other, numPartitions).FlatMapValues(
-                    input => input.Item1.DefaultIfEmpty().SelectMany(v => input.Item2.DefaultIfEmpty().Select(w => new Tuple<V, W>(v, w)))
+                    input => input.Item1.NullIfEmpty().SelectMany(v => input.Item2.NullIfEmpty().Select(w => new Tuple<Option<V>, Option<W>>(v, w)))
                 );
         }
 
@@ -985,6 +981,11 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 return input.Key.ToString() == key.ToString();
             }
+        }
+
+        public static List<Option<T>> NullIfEmpty<T>(this IEnumerable<T> list)
+        {
+            return list.Any() ? list.Select(v => new Option<T>(v)).ToList() : new List<Option<T>>() { new Option<T>() };
         }
     }
 }

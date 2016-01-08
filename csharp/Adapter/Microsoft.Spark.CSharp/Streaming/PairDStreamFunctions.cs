@@ -166,12 +166,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static DStream<KeyValuePair<K, Tuple<V, W>>> LeftOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
+        public static DStream<KeyValuePair<K, Tuple<V, Option<W>>>> LeftOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, W>>>(new LeftOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, Option<W>>>>(new LeftOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
         }
 
         /// <summary>
@@ -185,12 +185,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static DStream<KeyValuePair<K, Tuple<V, W>>> RightOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
+        public static DStream<KeyValuePair<K, Tuple<Option<V>, W>>> RightOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, W>>>(new RightOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<Option<V>, W>>>(new RightOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
         }
 
         /// <summary>
@@ -204,12 +204,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static DStream<KeyValuePair<K, Tuple<V, W>>> FullOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
+        public static DStream<KeyValuePair<K, Tuple<Option<V>, Option<W>>>> FullOuterJoin<K, V, W>(this DStream<KeyValuePair<K, V>> self, DStream<KeyValuePair<K, W>> other, int numPartitions = 0)
         {
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<V, W>>>(new FullOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<KeyValuePair<K, W>, KeyValuePair<K, Tuple<Option<V>, Option<W>>>>(new FullOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
         }
 
         /// <summary>
@@ -487,7 +487,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.numPartitions = numPartitions;
         }
 
-        internal RDD<KeyValuePair<K, Tuple<V, W>>> Execute(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
+        internal RDD<KeyValuePair<K, Tuple<V, Option<W>>>> Execute<K,V,W>(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
         {
             return l.LeftOuterJoin<K, V, W>(r, numPartitions);
         }
@@ -502,7 +502,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.numPartitions = numPartitions;
         }
 
-        internal RDD<KeyValuePair<K, Tuple<V, W>>> Execute(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
+        internal RDD<KeyValuePair<K, Tuple<Option<V>, W>>> Execute(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
         {
             return l.RightOuterJoin<K, V, W>(r, numPartitions);
         }
@@ -517,7 +517,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.numPartitions = numPartitions;
         }
 
-        internal RDD<KeyValuePair<K, Tuple<V, W>>> Execute(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
+        internal RDD<KeyValuePair<K, Tuple<Option<V>, Option<W>>>> Execute(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
         {
             return l.FullOuterJoin<K, V, W>(r, numPartitions);
         }
