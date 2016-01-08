@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
+/*
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 package org.apache.spark.util.csharp
 
 import java.io._
@@ -85,7 +86,7 @@ object Utils {
    * @param targetDir target directory
    */
   def unzip(file: File, targetDir: File): Unit = {
-    if(!targetDir.exists()){
+    if (!targetDir.exists()){
       targetDir.mkdir()
     }
 
@@ -121,7 +122,9 @@ object Utils {
    */
   def exit(status: Int, maxDelayMillis: Long) {
     try {
+      // scalastyle:off println
       println(s"Utils.exit() with status: $status, maxDelayMillis: $maxDelayMillis")
+      // scalastyle:on println
 
       // setup a timer, so if nice exit fails, the nasty exit happens
       val timer = new Timer()
@@ -133,7 +136,7 @@ object Utils {
       }, maxDelayMillis)
       // try to exit nicely
       System.exit(status);
-    } catch  {
+    } catch {
       // exit nastily if we have a problem
       case ex: Throwable => Runtime.getRuntime.halt(status)
     } finally {

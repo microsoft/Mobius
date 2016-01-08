@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/*
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 
 package org.apache.spark.launcher
 
@@ -16,6 +18,7 @@ import scala.util.control.Breaks._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{ArrayBuffer, HashMap}
 
+// scalastyle:off println
 object SparkCLRSubmitArguments {
 
   val csharpRunnerClass: String = "org.apache.spark.deploy.csharp.CSharpRunner"
@@ -31,10 +34,16 @@ object SparkCLRSubmitArguments {
 /**
  * Parses and encapsulates arguments from the SparkCLR-submit script.
  *
- * Current implementation needs to access "opts" attributes from SparkSubmitOptionParser, and the "opts" can only be accessed in the same package.
+ * Current implementation needs to access "opts" attributes from SparkSubmitOptionParser,
+ * and the "opts" can only be accessed in the same package.
  * This is the reason why this class is put into current package.
  */
-class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitFn: Int => Unit, printStream: PrintStream) extends SparkSubmitArgumentsParser {
+class SparkCLRSubmitArguments(
+    args: Seq[String],
+    env: Map[String, String],
+    exitFn: Int => Unit,
+    printStream: PrintStream)
+  extends SparkSubmitArgumentsParser {
 
   import SparkCLRSubmitArguments._
 
@@ -64,7 +73,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
   var childArgs: ArrayBuffer[String] = new ArrayBuffer[String]()
 
-  var sparkCLRJarPath: String = new File(CSharpRunner.getClass.getProtectionDomain.getCodeSource.getLocation.getPath).getPath
+  var sparkCLRJarPath: String =
+    new File(CSharpRunner.getClass.getProtectionDomain.getCodeSource.getLocation.getPath).getPath
 
   var remoteSparkCLRJarPath: String = null
 
@@ -149,8 +159,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
   }
 
   /**
-   * As "opts" is a final variable, we can't append a new element to it, or assign a new array to it.
-   * As a workaround, we build a new option array `options` for parsing.
+   * As "opts" is a final variable, we can't append a new element to it, or assign a new array to
+   * it. As a workaround, we build a new option array `options` for parsing.
    */
   private def updateOpts(): Unit = {
     // Compared to the original options, we remove `--class` option, add two new options `--exe`
@@ -264,7 +274,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
    * treated as application arguments.
    */
   override protected def handleUnknown(opt: String): Boolean = {
-    // need to give user hints that "--class" option is not supported in csharpspark-submit.cmd, use --main-executable instead.
+    // need to give user hints that "--class" option is not supported in csharpspark-submit.cmd,
+    // use --main-executable instead.
 
     if (opt == CLASS) {
       SparkSubmit.printErrorAndExit(s"Option '$CLASS' is not supported in SparkCLR submission.")
@@ -284,9 +295,10 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
   }
 
   private def inferSubmitArguments(): Unit = {
-    //figure out deploy mode
+    // figure out deploy mode
     deployMode = Option(deployMode).orElse(env.get("DEPLOY_MODE")).orNull
-    master = Option(master).orElse(sparkProperties.get("spark.master")).orElse(env.get("MASTER")).orNull
+    master = Option(master).orElse(sparkProperties.get("spark.master"))
+      .orElse(env.get("MASTER")).orNull
     master match {
       case "yarn-cluster" => deployMode = "cluster"
       case "yarn-client" => deployMode = "client"
@@ -303,7 +315,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     }
 
     if (primaryResource == null) {
-      printErrorAndExit("No primary resource found; Please specify one with a zip file or a directory)")
+      printErrorAndExit("No primary resource found; " +
+        "Please specify one with a zip file or a directory)")
     }
 
     if (mainExecutable == null || !mainExecutable.toLowerCase().endsWith(".exe")) {
@@ -312,7 +325,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
 
     if (deployMode == "cluster" && master.startsWith("spark://")) {
       if (remoteSparkCLRJarPath == null) {
-        printErrorAndExit(s"No remote sparkclr jar found; please specify one with option $REMOTE_SPARKCLR_JAR_PATH")
+        printErrorAndExit(s"No remote sparkclr jar found; " +
+          s"please specify one with option $REMOTE_SPARKCLR_JAR_PATH")
       }
 
       if (!remoteSparkCLRJarPath.toLowerCase.startsWith("hdfs://")) {
@@ -385,7 +399,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
           }
 
           case "cluster" => {
-            cmd += (s" --class $csharpRunnerClass $sparkCLRJarPath " + zippedPrimaryResource.getName)
+            cmd += (s" --class $csharpRunnerClass $sparkCLRJarPath "
+              + zippedPrimaryResource.getName)
           }
 
           case _ =>
@@ -413,7 +428,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
       case pr if pr.endsWith(".zip") => {
         deployMode match {
           case "cluster" =>
-          case _ => mainExecutable = new File(new File(primaryResource).getAbsoluteFile.getParent, mainExecutable).getPath
+          case _ => mainExecutable =
+            new File(new File(primaryResource).getAbsoluteFile.getParent, mainExecutable).getPath
         }
       }
 
@@ -422,8 +438,9 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
   }
 
   /**
-   * In order not to miss any driver dependencies, all files under user driver directory (SparkCLR DLLs and CSharpWorker.exe should also be included)
-   * will assembled into a zip file and shipped by --file parameter
+   * In order not to miss any driver dependencies, all files under user driver directory (SparkCLR
+   * DLLs and CSharpWorker.exe should also be included) will assembled into a zip file and shipped
+   * by --file parameter
    * @return
    */
   private def zipPrimaryResource(): File = {
@@ -433,12 +450,14 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     primaryResource match {
 
       case pr if new File(pr).isDirectory => {
-        zippedResource = new File(System.getProperty("java.io.tmpdir"), new File(primaryResource).getName + "_" + System.currentTimeMillis() + ".zip")
+        zippedResource = new File(System.getProperty("java.io.tmpdir"),
+          new File(primaryResource).getName + "_" + System.currentTimeMillis() + ".zip")
         CSharpUtils.zip(new File(primaryResource), zippedResource)
       }
 
       case pr if pr.endsWith(".exe") => {
-        zippedResource = new File(System.getProperty("java.io.tmpdir"), System.currentTimeMillis() + ".zip")
+        zippedResource = new File(System.getProperty("java.io.tmpdir"),
+          System.currentTimeMillis() + ".zip")
         CSharpUtils.zip(new File(primaryResource).getParentFile, zippedResource)
       }
 
@@ -448,7 +467,8 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     }
 
     if (zippedResource != null && !primaryResource.endsWith(".zip")) {
-      SparkSubmit.printStream.println("Zip driver directory " + new File(primaryResource).getAbsolutePath + " to " + zippedResource.getPath)
+      SparkSubmit.printStream.println("Zip driver directory "
+        + new File(primaryResource).getAbsolutePath + " to " + zippedResource.getPath)
     }
 
     zippedResource
@@ -564,3 +584,4 @@ class SparkCLRSubmitArguments(args: Seq[String], env: Map[String, String], exitF
     exitFn(exitCode)
   }
 }
+// scalastyle:on println
