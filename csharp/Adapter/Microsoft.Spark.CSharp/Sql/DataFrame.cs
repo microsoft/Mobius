@@ -964,6 +964,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
         // saveAsParquetFile(self, path)
+        [Obsolete(" Deprecated. As of 1.4.0, replaced by write().parquet()", true)]
         public void SaveAsParquetFile(String path)
         {
             Write().Parquet(path);
@@ -974,12 +975,13 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
         // insertInto(self, tableName, overwrite=False)
+        [Obsolete("Deprecated. As of 1.4.0, replaced by write().mode(SaveMode.Append|SaveMode.Overwrite).saveAsTable(tableName)", true)]
         public void InsertInto(string tableName, bool overwrite = false)
         {
             var mode = overwrite ? SaveMode.Overwrite : SaveMode.Append;
             Write().Mode(mode).InsertInto(tableName);
         }
-
+     
         /// <summary>
         /// Creates a table from the the contents of this DataFrame based on a given data source, 
         /// SaveMode specified by mode, and a set of options.
@@ -994,6 +996,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
         // saveAsTable(self, tableName, source=None, mode="error", **options)
+        [Obsolete("Deprecated. As of 1.4.0, replaced by write().format(source).mode(mode).options(options).saveAsTable(tableName)", true)]
         public void SaveAsTable(string tableName, string source = null, SaveMode mode = SaveMode.ErrorIfExists, params string[] options)
         {
             var dataFrameWriter = Write().Mode(mode);
@@ -1014,6 +1017,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
         // save(self, path=None, source=None, mode="error", **options)
+        [Obsolete("Deprecated. As of 1.4.0, replaced by write().format(source).mode(mode).options(options).save(path)", true)]
         public void Save(string path = null, string source = null, SaveMode mode = SaveMode.ErrorIfExists, params string[] options)
         {
             var dataFrameWriter = Write().Mode(mode);

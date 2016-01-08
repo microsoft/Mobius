@@ -1871,7 +1871,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
-            peopleDataFrame.Coalesce(1).SaveAsParquetFile(parquetPath);
+            peopleDataFrame.Coalesce(1).Write().Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
@@ -1898,7 +1898,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().JsonFile(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var path = Path.GetTempPath() + "DF_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
-            peopleDataFrame.Save(path, "json", SaveMode.ErrorIfExists, "option1", "option_value1");
+            peopleDataFrame.Write().Format("json").Mode(SaveMode.ErrorIfExists).Options(new Dictionary<string, string>() { { "option1", "option_value1" } }).Save(path);
 
             Console.WriteLine("Save dataframe to: {0}", path);
             Console.WriteLine("Files:");
