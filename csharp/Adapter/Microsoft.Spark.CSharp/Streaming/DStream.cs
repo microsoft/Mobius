@@ -433,7 +433,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             var keyed = Map(v => new KeyValuePair<int, T>(1, v));
             var reduced = keyed.ReduceByKeyAndWindow(reduceFunc, invReduceFunc, windowSeconds, slideSeconds, 1);
-            return reduced.Map(kv => (T)kv.Value);
+            return reduced.Map(kv => kv.Value);
         }
 
         /// <summary>
