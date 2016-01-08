@@ -53,6 +53,11 @@ namespace AdapterTest.Mocks
             get { return streamingContextProxy; }
         }
 
+        public bool CheckpointExists(string checkpointPath)
+        {
+            return false;
+        }
+
         public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
         {
             streamingContextProxy = new MockStreamingContextProxy();

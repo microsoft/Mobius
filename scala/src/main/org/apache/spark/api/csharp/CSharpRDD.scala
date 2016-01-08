@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/*
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 
 package org.apache.spark.api.csharp
 
@@ -22,20 +24,30 @@ import org.apache.spark.util.csharp.{Utils => CSharpUtils}
  * it just extends from it without overriding any behavior for now
  */
 class CSharpRDD(
-                                @transient parent: RDD[_],
-                                command: Array[Byte],
-                                envVars: JMap[String, String],
-                                cSharpIncludes: JList[String],
-                                preservePartitioning: Boolean,
-                                cSharpWorkerExecutable: String,
-                                unUsedVersionIdentifier: String,
-                                broadcastVars: JList[Broadcast[PythonBroadcast]],
-                                accumulator: Accumulator[JList[Array[Byte]]])
-  extends PythonRDD (parent, command, envVars, cSharpIncludes, preservePartitioning, cSharpWorkerExecutable, unUsedVersionIdentifier, broadcastVars, accumulator) {
+    @transient parent: RDD[_],
+    command: Array[Byte],
+    envVars: JMap[String, String],
+    cSharpIncludes: JList[String],
+    preservePartitioning: Boolean,
+    cSharpWorkerExecutable: String,
+    unUsedVersionIdentifier: String,
+    broadcastVars: JList[Broadcast[PythonBroadcast]],
+    accumulator: Accumulator[JList[Array[Byte]]])
+  extends PythonRDD (
+    parent,
+    command,
+    envVars,
+    cSharpIncludes,
+    preservePartitioning,
+    cSharpWorkerExecutable,
+    unUsedVersionIdentifier,
+    broadcastVars,
+    accumulator) {
 
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     unzip(new File(cSharpWorkerExecutable).getAbsoluteFile.getParentFile)
-    logInfo(s"compute CSharpRDD[${this.id}], stageId: ${context.stageId()}, partitionId: ${context.partitionId()}, split_index: ${split.index}")
+    logInfo(s"compute CSharpRDD[${this.id}], stageId: ${context.stageId()}" +
+      s", partitionId: ${context.partitionId()}, split_index: ${split.index}")
 
     // fill rddId, stageId and partitionId info
     val bb = ByteBuffer.allocate(12)
@@ -52,10 +64,12 @@ class CSharpRDD(
 
   /**
    * Uncompress all zip files under directory cSharpWorkerWorkingDir.
-   * As .zip file is supported to be submitted by sparkclr-submit.cmd, and there might be some runtime dependencies of cSharpWorker.exe in the zip files,
+   * As .zip file is supported to be submitted by sparkclr-submit.cmd, and there might be
+   * some runtime dependencies of cSharpWorker.exe in the zip files,
    * so before start to execute cSharpWorker.exe, uncompress all zip files first.
    *
-   * One executor might process multiple splits, if zip files have already been unzipped in the previous split, there is no need to unzip them again.
+   * One executor might process multiple splits, if zip files have already been unzipped
+   * in the previous split, there is no need to unzip them again.
    * Once uncompression is done, a flag file "doneFlag" will be created.
    * @param cSharpWorkerWorkingDir directory where cSharpWorker.exe is located
    */
@@ -84,7 +98,8 @@ class CSharpRDD(
 
     val unzippingFlag = new File(cSharpWorkerWorkingDir, unzippingFlagName)
 
-    // if another thread is uncompressing files, current thread just needs to wait the operation done and return
+    // if another thread is uncompressing files,
+    // current thread just needs to wait the operation done and return
     if (unzippingFlag.exists()) {
       waitUnzipOperationDone(doneFlag)
       return
@@ -115,7 +130,7 @@ class CSharpRDD(
       // so if obtain the lock successfully, there is no chance that the unzippingFlag still exists
       unzippingFlag.createNewFile()
 
-      //unzip file
+      // unzip file
       for (zipFile <- files) {
         CSharpUtils.unzip(new File(cSharpWorkerWorkingDir, zipFile), cSharpWorkerWorkingDir)
         logInfo("Unzip file: " + zipFile)
@@ -165,7 +180,10 @@ class CSharpRDD(
 }
 
 object CSharpRDD {
-  def createRDDFromArray(sc: SparkContext, arr: Array[Array[Byte]], numSlices: Int): JavaRDD[Array[Byte]] = {
+  def createRDDFromArray(
+      sc: SparkContext,
+      arr: Array[Array[Byte]],
+      numSlices: Int): JavaRDD[Array[Byte]] = {
     JavaRDD.fromRDD(sc.parallelize(arr, numSlices))
   }
 }

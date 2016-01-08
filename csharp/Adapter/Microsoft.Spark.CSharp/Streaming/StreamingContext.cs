@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static StreamingContext GetOrCreate(string checkpointPath, Func<StreamingContext> creatingFunc)
         {
-            if (!SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CheckpointExists(checkpointPath))
+            if (!SparkCLREnvironment.SparkCLRProxy.CheckpointExists(checkpointPath))
             {
                 var ssc = creatingFunc();
                 ssc.Checkpoint(checkpointPath);

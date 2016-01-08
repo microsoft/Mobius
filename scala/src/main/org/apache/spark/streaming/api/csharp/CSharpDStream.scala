@@ -20,11 +20,10 @@ package org.apache.spark.streaming.api.csharp
 import org.apache.spark.api.csharp._
 import org.apache.spark.api.csharp.SerDe._
 
-import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
-import java.util.{ArrayList => JArrayList, List => JList}
+import java.util.{ArrayList => JArrayList}
 import scala.collection.JavaConversions._
 import scala.language.existentials
 
@@ -78,7 +77,7 @@ object CSharpDStream {
         // log exception only when callback socket is not shutdown explicitly
         if (!CSharpBackend.callbackSocketShutdown) {
           // TODO: change println to log
-          System.err.println("CSharp transform callback failed with " + e)
+          System.err.println("CSharp transform callback failed with " + e) // scalastyle:off println
           e.printStackTrace()
         }
 
