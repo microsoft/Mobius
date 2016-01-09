@@ -6,7 +6,7 @@ For example, the word count sample in Apache Spark can be implemented in C# as f
 
 ```c#
 var lines = sparkContext.TextFile(@"hdfs://path/to/input.txt");  
-var words = lines.FlatMap(s => s.Split(new[] { " " }, StringSplitOptions.None));
+var words = lines.FlatMap(s => s.Split(' '));
 var wordCounts = words.Map(w => new KeyValuePair<string, int>(w.Trim(), 1))  
                       .ReduceByKey((x, y) => x + y);  
 var wordCountCollection = wordCounts.Collect();  
