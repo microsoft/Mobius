@@ -511,7 +511,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var lines = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath("words.txt"), 1);
             
-            var words = lines.FlatMap(s => s.Split(new[] {" "}, StringSplitOptions.None));
+            var words = lines.FlatMap(s => s.Split(' '));
             
             var wordCounts = words.Map(w => new KeyValuePair<string, int>(w.Trim(), 1))
                                   .ReduceByKey((x, y) => x + y).Collect();
@@ -566,12 +566,12 @@ namespace Microsoft.Spark.CSharp.Samples
            
             var requestsColumns = requests.Map(s =>
             {
-                var columns = s.Split(new[] { "," }, StringSplitOptions.None);
+                var columns = s.Split(',');
                 return new KeyValuePair<string, string[]>(columns[0], new[] { columns[1], columns[2], columns[3] });
             });
             var metricsColumns = metrics.Map(s =>
             {
-                var columns = s.Split(new[] { "," }, StringSplitOptions.None);
+                var columns = s.Split(',');
                 return new KeyValuePair<string, string[]>(columns[3], new[] { columns[4], columns[5], columns[6] });
             });
 
@@ -639,7 +639,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var mulogs = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath("csvtestlog.txt"), 2);
             var mulogsProjected = mulogs.Map(x =>
             {
-                var columns = x.Split(new[] { "," }, StringSplitOptions.None);
+                var columns = x.Split(',');
                 return string.Format("{0},{1},{2},{3}", columns[0], columns[1], columns[2], columns[3]);
             });
 
