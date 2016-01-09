@@ -50,23 +50,53 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDataFrameProxy Jdbc(string url, string table, string[] predicates, Dictionary<string, string> connectionProperties)
         {
+            var propertiesJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Properties", new object[] { });
+            if (connectionProperties != null)
+            {
+                foreach (var property in connectionProperties)
+                {
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(propertiesJvmReference, "setProperty",
+                        new object[] { property.Key, property.Value });
+                }
+            }
+
             return new DataFrameIpcProxy(new JvmObjectReference(
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                jvmDataFrameReaderReference, "jdbc", new object[] { url, table, predicates, connectionProperties }).ToString()), sqlContextProxy);
+                jvmDataFrameReaderReference, "jdbc", new object[] { url, table, predicates, propertiesJvmReference }).ToString()), sqlContextProxy);
         }
 
         public IDataFrameProxy Jdbc(string url, string table, Dictionary<string, string> properties)
         {
+            var propertiesJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Properties", new object[] {});
+            if (properties != null)
+            {
+                foreach (var property in properties)
+                {
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(propertiesJvmReference, "setProperty",
+                        new object[] {property.Key, property.Value});
+                }
+            }
+
             return new DataFrameIpcProxy(new JvmObjectReference(
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                jvmDataFrameReaderReference, "jdbc", new object[] { url, table, properties }).ToString()), sqlContextProxy);
+                jvmDataFrameReaderReference, "jdbc", new object[] { url, table, propertiesJvmReference }).ToString()), sqlContextProxy);
         }
 
         public IDataFrameProxy Jdbc(string url, string table, string columnName, string lowerBound, string upperBound, int numPartitions, Dictionary<string, string> connectionProperties)
         {
+            var propertiesJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Properties", new object[] { });
+            if (connectionProperties != null)
+            {
+                foreach (var property in connectionProperties)
+                {
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(propertiesJvmReference, "setProperty",
+                        new object[] { property.Key, property.Value });
+                }
+            }
+
             return new DataFrameIpcProxy(new JvmObjectReference(
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                jvmDataFrameReaderReference, "jdbc", new object[] { url, table, columnName, lowerBound, upperBound, numPartitions, connectionProperties }).ToString()),
+                jvmDataFrameReaderReference, "jdbc", new object[] { url, table, columnName, lowerBound, upperBound, numPartitions, propertiesJvmReference }).ToString()),
                 sqlContextProxy);
         }
 
