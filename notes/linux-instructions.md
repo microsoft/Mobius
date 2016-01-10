@@ -14,7 +14,7 @@ The following environment variables should be set properly:
 
 ## Instructions
 
-* With `JAVA_HOME` set properly, navigate to [SparkCLR](../build) directory: 
+* With `JAVA_HOME` set properly, navigate to [SparkCLR/build](../build) directory: 
 
   ```  
   ./build.sh  
@@ -33,7 +33,7 @@ The following environment variables should be set properly:
     ./clean.sh  
     ```  
     
-[build.sh](build.sh) prepares the following directories under `SparkCLR\run` after the build is done:
+[build.sh](../build/build.sh) prepares the following directories under `SparkCLR\run` after the build is done:
 
   * **lib** ( `spark-clr*.jar` )  
   * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
@@ -52,7 +52,7 @@ JDK is installed, and the following environment variables should be set properly
 
 ## Running in Local mode
 
-With `JAVA_HOME` set properly, navigate to [SparkCLR](../build) directory:
+With `JAVA_HOME` set properly, navigate to [SparkCLR\build](../build) directory:
 
 ```  
 ./run-samples.sh  
@@ -60,7 +60,7 @@ With `JAVA_HOME` set properly, navigate to [SparkCLR](../build) directory:
 
 It is **required** to run [build.sh](../build/build.sh) prior to running [run-samples.sh](../build/run-samples.sh).
 
-[run-samples.sh](../build/run-samples.sh) downloads Apache Spark 1.4.1 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/run` directory created by [Build.cmd](../build/build.cmd), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/run/Temp`.
+[run-samples.sh](../build/run-samples.sh) downloads Apache Spark 1.4.1 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/run` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/run/Temp`.
 
 **Note that SparkCLR requires a customized Apache Spark**. To build the customized Apache Spark, follow the steps below:
 
