@@ -46,7 +46,7 @@ export PATH="$SPARK_HOME/bin:$PATH"
 if [ ! "$verbose" = "--verbose" ];
 then
   # redirect the logs from console (default) to /tmp
-  cp "$FWDIR"/scripts/spark.conf/*.properties "$SPARK_HOME/conf/"
+  cp "$FWDIR"/../scripts/spark.conf/*.properties "$SPARK_HOME/conf/"
   sed -i "s/\${env:TEMP}/\/tmp/g" "$SPARK_HOME/conf/log4j.properties"
 else
   # remove customized log4j.properties, revert back to out-of-the-box Spark logging to console

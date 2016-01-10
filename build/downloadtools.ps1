@@ -345,10 +345,10 @@ function Update-SparkVerboseMode
     
         # replace {env:TEMP} with temp path
         $targetFile = "$temp\log4j.properties.temp"
-        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\scripts\spark.conf\log4j.properties" $targetFile
+        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\..\scripts\spark.conf\log4j.properties" $targetFile
     
         # copy customized log4j properties to SPARK_HOME\conf
-        copy-item  $scriptDir\scripts\spark.conf\*.properties $S_HOME\conf -force
+        copy-item  $scriptDir\..\scripts\spark.conf\*.properties $S_HOME\conf -force
         copy-item  $targetFile $S_HOME\conf\log4j.properties -force
     }
     else
