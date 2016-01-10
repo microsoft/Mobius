@@ -63,8 +63,8 @@ Refer to the [docs folder](docs).
 
 ## Building, Running and Debugging SparkCLR
 
-* [Windows Instructions](windows-instructions.md)
-* [Linux Instructions](linux-instructions.md)
+* [Windows Instructions](notes/windows-instructions.md)
+* [Linux Instructions](notes/linux-instructions.md)
 
 (Note: Tested only with Spark 1.5.2)
 
@@ -79,4 +79,4 @@ SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full
 [![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/pr)](http://issuestats.com/github/Microsoft/SparkCLR)
 [![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/issue)](http://issuestats.com/github/Microsoft/SparkCLR)
 
-We welcome contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md). 
+We welcome contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md). 

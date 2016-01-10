@@ -19,7 +19,7 @@ fi
 [ ! -d "$SPARKCLR_HOME/scripts" ] && mkdir "$SPARKCLR_HOME/scripts"
 
 echo "Assemble SparkCLR Scala components"
-pushd "$FWDIR/scala"
+pushd "$FWDIR/../scala"
 
 # clean the target directory first
 mvn clean -q
@@ -53,7 +53,7 @@ then
 fi
 
 echo "Assemble SparkCLR C# components"
-pushd "$FWDIR/csharp"
+pushd "$FWDIR/../csharp"
 
 # clean any possible previous build first
 ./clean.sh
@@ -79,7 +79,7 @@ cp Samples/Microsoft.Spark.CSharp/data/* "$SPARKCLR_HOME/data/"
 popd
 
 echo "Assemble SparkCLR script components"
-pushd "$FWDIR/scripts"
+pushd "$FWDIR/../scripts"
 cp *.sh  "$SPARKCLR_HOME/scripts/"
 popd
 

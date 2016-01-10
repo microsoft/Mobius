@@ -1,4 +1,4 @@
-@echo OFF
+REM @echo OFF
 setlocal
 
 @rem check prerequisites
@@ -35,7 +35,7 @@ if NOT EXIST "%SPARKCLR_HOME%\samples" mkdir "%SPARKCLR_HOME%\samples"
 if NOT EXIST "%SPARKCLR_HOME%\scripts" mkdir "%SPARKCLR_HOME%\scripts"
 
 @echo Assemble SparkCLR Scala components
-pushd "%CMDHOME%\scala"
+pushd "%CMDHOME%\..\scala"
 
 @rem clean the target directory first
 call mvn.cmd clean
@@ -67,7 +67,7 @@ if EXIST "%CMDHOME%\lib" (
 )
 
 @echo Assemble SparkCLR C# components
-pushd "%CMDHOME%\csharp"
+pushd "%CMDHOME%\..\csharp"
 
 @rem clean any possible previous build first
 call Clean.cmd
@@ -92,12 +92,12 @@ copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
 popd
 
 @echo Assemble SparkCLR script components
-pushd "%CMDHOME%\scripts"
+pushd "%CMDHOME%\..\scripts"
 copy /y *.cmd  "%SPARKCLR_HOME%\scripts\"
 popd
 
 @echo zip run directory
 pushd %~dp0
 if not exist ".\target" (mkdir .\target)
-powershell -f .\scripts\zipdir.ps1 -dir "%SPARKCLR_HOME%" -target ".\target\run.zip"
+powershell -f .\zipdir.ps1 -dir "%SPARKCLR_HOME%" -target ".\target\run.zip"
 popd
