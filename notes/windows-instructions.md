@@ -13,26 +13,26 @@ JDK should be downloaded manually, and the following environment variables shoul
 
 ## Instructions
 
-* In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set properly, navigate to [SparkCLR](../../) directory: 
+* In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set properly, navigate to [SparkCLR\build](../build/) directory: 
 
 	```  
 	Build.cmd  
 	```
 
 * Optional: 
-	- Under [SparkCLR\scala](./scala) directory, run the following command to clean spark-clr*.jar built above: 
+	- Under [SparkCLR\scala](../scala) directory, run the following command to clean spark-clr*.jar built above: 
 
 		```  
 		mvn clean
 		```  
 
- 	- Under [SparkCLR\csharp](./csharp) directory, run the following command to clean the .NET binaries built above:
+ 	- Under [SparkCLR\csharp](../csharp) directory, run the following command to clean the .NET binaries built above:
 
 		```  
 		Clean.cmd  
 		```  
 		
-[Build.cmd](Build.cmd) downloads necessary build tools; after the build is done, it prepares the folowing directories under `SparkCLR\run`:
+[Build.cmd](../build/Build.cmd) downloads necessary build tools; after the build is done, it prepares the folowing directories under `SparkCLR\run`:
 
   * **lib** ( `spark-clr*.jar` )  
   * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
@@ -50,18 +50,18 @@ JDK should be downloaded manually, and the following environment variables shoul
 
 ## Running in Local mode
 
-In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set properly, navigate to [SparkCLR](../../) directory:
+In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set properly, navigate to [SparkCLR\build](../build/) directory:
 
 ```  
 RunSamples.cmd  
 ```
 
-It is **required** to run [Build.cmd](./Build.cmd) prior to running [RunSamples.cmd](./RunSamples.cmd).
+It is **required** to run [Build.cmd](./build/Build.cmd) prior to running [RunSamples.cmd](../build/RunSamples.cmd).
 
-[RunSamples.cmd](./RunSamples.cmd) downloads Apache Spark 1.4.1, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](./Build.cmd), and invokes [sparkclr-submit.cmd](./scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
+[RunSamples.cmd](../build/RunSamples.cmd) downloads Apache Spark 1.4.1, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
 
-A few more [RunSamples.cmd](./RunSamples.cmd) examples:
-- To display all options supported by [RunSamples.cmd](./RunSamples.cmd): 
+A few more [RunSamples.cmd](./build/RunSamples.cmd) examples:
+- To display all options supported by [RunSamples.cmd](../build/RunSamples.cmd): 
 
     ```  
     RunSamples.cmd  --help
