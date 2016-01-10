@@ -1,5 +1,24 @@
 version: 1.4.1-SNAPSHOT-{build}
 
+environment:
+  securefile:          
+    secure: Ytj1W9EwvU5JP+PlFUQ7CSing7qenLuDgUNbniX8BAY=
+  ossrh-user:          
+    secure: T9zNd6DB0T6PXfUfxo5W2w==
+  ossrh-pass:          
+    secure: 39ewTowxhIB09wMhP1rU+SJ6MahjvGTlJTO/VH+v8/M=
+  gpg-pass:          
+    secure: t8UyjbNBnWJLrl8XFS/MbQ==
+
+install:
+  # - cmd: powershell -f build\script\dumpsoftware.ps1
+  - cmd: nuget install secure-file -ExcludeVersion
+  - cmd: secure-file\tools\secure-file -decrypt build\data\private_token.asc.enc -secret %securefile% -out build\data\private_token.asc
+  - cmd: secure-file\tools\secure-file -decrypt build\data\public_token.asc.enc -secret %securefile% -out build\data\public_token.asc
+  - cmd: secure-file\tools\secure-file -decrypt build\data\ownertrustblob.txt.enc -secret %securefile% -out  build\data\ownertrustblob.txt
+  - cmd: if not exist "%USERPROFILE%\.m2" mkdir %USERPROFILE%\.m2
+  - cmd: powershell -NoProfile -ExecutionPolicy Bypass -Command "((Get-Content build\data\settings.xml) -replace '{user}', '%ossrh-user%' -replace '{pass}', '%ossrh-pass%' -replace '{passphrase}', '%gpg-pass%') | Set-Content %USERPROFILE%\.m2\settings.xml -force"
+
 #build C# solution and scala project
 build_script:
   - cmd: echo appveyor environment BUILD_NUMBER=[%APPVEYOR_BUILD_NUMBER%] BUILD_VERSION=[%APPVEYOR_BUILD_VERSION%] REPO_TAG=[%APPVEYOR_REPO_TAG%] REPO_TAG_NAME=[%APPVEYOR_REPO_TAG_NAME%] APPVEYOR=[%APPVEYOR%] CI=[%CI%]
