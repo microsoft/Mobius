@@ -65,7 +65,7 @@ It is **required** to run [build.sh](../build/build.sh) prior to running [run-sa
 **Note that SparkCLR requires a customized Apache Spark**. To build the customized Apache Spark, follow the steps below:
 
 1. Download and unpack the binary package of Apache Spark 1.4.1.
-2. Download and unpack the source package of Apache Spark 1.4.1, apply the diff patch [PythonWorkerFactory.scala.patch](../PythonWorkerFactory.scala.patch) on **core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala**, and build Spark following the [instructions](http://spark.apache.org/docs/latest/building-spark.html).
+2. Download and unpack the source package of Apache Spark 1.4.1, apply the diff patch [PythonWorkerFactory.scala.patch](../notes/PythonWorkerFactory.scala.patch) on **core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala**, and build Spark following the [instructions](http://spark.apache.org/docs/latest/building-spark.html).
 3. Replace lib/spark-assembly\*hadoop\*.jar in the binary package with assembly/target/scala-2.10/spark-assembly\*hadoop\*.jar built in Step 2. Use/deploy this modified binary package for Spark.
 
 A few more [run-samples.sh](../build/run-samples.sh) examples:
