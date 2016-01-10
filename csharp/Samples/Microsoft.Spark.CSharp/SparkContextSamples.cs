@@ -17,15 +17,15 @@ namespace Microsoft.Spark.CSharp.Samples
         [Serializable]
         internal class BroadcastHelper<T>
         {
-            private readonly T[] value;
-            internal BroadcastHelper(T[] value)
+            private readonly Broadcast<T[]> broadcastVar;
+            internal BroadcastHelper(Broadcast<T[]> broadcastVar)
             {
-                this.value = value;
+                this.broadcastVar = broadcastVar;
             }
 
             internal IEnumerable<T> Execute(int i)
             {
-                return value;
+                return broadcastVar.Value;
             }
         }
 
@@ -34,14 +34,16 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var b = SparkCLRSamples.SparkContext.Broadcast<int[]>(Enumerable.Range(1, 5).ToArray());
             foreach (var value in b.Value)
+            {
                 Console.Write(value + " ");
+            }   
             Console.WriteLine();
 
-            b.Unpersist();
-
-            var r = SparkCLRSamples.SparkContext.Parallelize(new[] { 0, 0 }, 1).FlatMap(new BroadcastHelper<int>(b.Value).Execute).Collect();
+            var r = SparkCLRSamples.SparkContext.Parallelize(new[] { 0, 0 }, 1).FlatMap(new BroadcastHelper<int>(b).Execute).Collect();
             foreach (var value in r)
+            {
                 Console.Write(value + " ");
+            }  
             Console.WriteLine();
         }
 
