@@ -20,4 +20,4 @@ after_test:
     - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
     - pip install codecov
     - codecov -f "..\csharp\SparkCLRCodeCoverage.xml"
-    - cmd: .\build\Runsamples.cmd --validate
+    - cmd: .\Runsamples.cmd --validate
