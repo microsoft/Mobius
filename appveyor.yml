@@ -5,7 +5,7 @@ build_script:
   - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
-  - cmd: Build.cmd
+  - cmd: .\build\Build.cmd
 
 # need test section below - otherwise auto discovery will run samples will fail build (since it has no text fixtures)
 test:
@@ -19,4 +19,4 @@ after_test:
     - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
     - pip install codecov
     - codecov -f "SparkCLRCodeCoverage.xml"
-    - cmd: Runsamples.cmd --validate
+    - cmd: .\build\Runsamples.cmd --validate

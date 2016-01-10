@@ -16,6 +16,6 @@ script:
   - export MAVEN_OPTS="-XX:MaxPermSize=2g -Xmx4g"
   - export JAVA_OPTS="-XX:MaxPermSize=2g -Xmx4g"
   - export NUNITCONSOLE="`pwd`/testrunner/NUnit.Console.3.0.0/tools/nunit3-console.exe"
-  - ./build.sh
+  - ./build/build.sh
   - ./csharp/test.sh
-  - ./run-samples.sh --validate
+  - ./build/run-samples.sh --validate
