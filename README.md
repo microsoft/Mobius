@@ -51,9 +51,13 @@ maxLatencyByDcDataFrame.Show();
 
 Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory and [sample usage](csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
 
+## API Documentation
+
+Refer to [SparkCLR C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in SparkCLR.
+
 ## Documents
 
-Refer to the [docs folder](docs).
+Refer to the [docs folder](docs) for design overview and other info on SparkCLR
 
 ## Build Status
 
@@ -66,7 +70,7 @@ Refer to the [docs folder](docs).
 * [Windows Instructions](notes/windows-instructions.md)
 * [Linux Instructions](notes/linux-instructions.md)
 
-(Note: Tested only with Spark 1.5.2)
+(Note: Tested with Spark 1.5.2)
 
 ## License
 
