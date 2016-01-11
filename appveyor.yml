@@ -12,14 +12,12 @@ environment:
 
 install:
   # - cmd: powershell -f build\script\dumpsoftware.ps1
-  - cmd: echo %securefile%
-  - cmd: nuget install secure-file -ExcludeVersion
-  - cmd: echo secure-file\tools\secure-file -decrypt build\data\private_token.asc.enc -secret %securefile% -out build\data\private_token.asc
-  - cmd: secure-file\tools\secure-file -decrypt build\data\private_token.asc.enc -secret %securefile% -out build\data\private_token.asc
-  - cmd: secure-file\tools\secure-file -decrypt build\data\public_token.asc.enc -secret %securefile% -out build\data\public_token.asc
-  - cmd: secure-file\tools\secure-file -decrypt build\data\ownertrustblob.txt.enc -secret %securefile% -out  build\data\ownertrustblob.txt
-  - cmd: if not exist "%USERPROFILE%\.m2" mkdir %USERPROFILE%\.m2
-  - cmd: powershell -NoProfile -ExecutionPolicy Bypass -Command "((Get-Content build\data\settings.xml) -replace '{user}', '%ossrh-user%' -replace '{pass}', '%ossrh-pass%' -replace '{passphrase}', '%gpg-pass%') | Set-Content %USERPROFILE%\.m2\settings.xml -force"
+  - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (nuget install secure-file -ExcludeVersion)
+  - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (secure-file\tools\secure-file -decrypt build\data\private_token.asc.enc -secret %securefile% -out build\data\private_token.asc)
+  - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (secure-file\tools\secure-file -decrypt build\data\public_token.asc.enc -secret %securefile% -out build\data\public_token.asc)
+  - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (secure-file\tools\secure-file -decrypt build\data\ownertrustblob.txt.enc -secret %securefile% -out  build\data\ownertrustblob.txt)
+  - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (if not exist "%USERPROFILE%\.m2" mkdir %USERPROFILE%\.m2)
+  - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (powershell -NoProfile -ExecutionPolicy Bypass -Command "((Get-Content build\data\settings.xml) -replace '{user}', '%ossrh-user%' -replace '{pass}', '%ossrh-pass%' -replace '{passphrase}', '%gpg-pass%') | Set-Content %USERPROFILE%\.m2\settings.xml -force")
 
 #build C# solution and scala project
 build_script:
