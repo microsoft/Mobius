@@ -142,6 +142,13 @@
             Return the broadcasted value
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
+            <summary>
+            Container for an optional value of type T. If the value of type T is present, the Option.IsDefined is TRUE and GetValue() return the value. 
+            If the value is absent, the Option.IsDefined is FALSE, exception will be thrown when calling GetValue().
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDDCollector">
             <summary>
             Used for collect operation on RDD
@@ -436,9 +443,9 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Join``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
             <summary>
-            Return an RDD containing all pairs of elements with matching keys in C{self} and C{other}.
+            Return an RDD containing all pairs of elements with matching keys in this RDD and <paramref name="other"/>.
             
-            Each pair of elements will be returned as a (k, (v1, v2)) tuple, where (k, v1) is in C{self} and (k, v2) is in C{other}.
+            Each pair of elements will be returned as a (k, (v1, v2)) tuple, where (k, v1) is in this RDD and (k, v2) is in <paramref name="other"/>.
             
             Performs a hash join across the cluster.
             
@@ -461,11 +468,11 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.LeftOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
             <summary>
-            Perform a left outer join of C{self} and C{other}.
+            Perform a left outer join of this RDD and <paramref name="other"/>.
             
-            For each element (k, v) in C{self}, the resulting RDD will either
-            contain all pairs (k, (v, w)) for w in C{other}, or the pair
-            (k, (v, None)) if no elements in C{other} have key k.
+            For each element (k, v) in this RDD, the resulting RDD will either
+            contain all pairs (k, (v, Option)) for w in <paramref name="other"/>, where Option.IsDefined is TRUE, or the pair
+            (k, (v, Option)) if no elements in <paramref name="other"/> have key k, where Option.IsDefined is FALSE. 
             
             Hash-partitions the resulting RDD into the given number of partitions.
             
@@ -475,7 +482,8 @@
                 new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
             var m = l.LeftOuterJoin(r).Collect();
             
-            [('a', (1, 2)), ('b', (4, None))]
+            [('a', (1, 2)), ('b', (4, Option))]
+            * Option.IsDefined = FALSE
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>
@@ -487,11 +495,11 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.RightOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
             <summary>
-            Perform a right outer join of C{self} and C{other}.
+            Perform a right outer join of this RDD and <paramref name="other"/>.
             
-            For each element (k, w) in C{other}, the resulting RDD will either
-            contain all pairs (k, (v, w)) for v in this, or the pair (k, (None, w))
-            if no elements in C{self} have key k.
+            For each element (k, w) in <paramref name="other"/>, the resulting RDD will either
+            contain all pairs (k, (Option, w)) for v in this, where Option.IsDefined is TRUE, or the pair (k, (Option, w))
+            if no elements in this RDD have key k, where Option.IsDefined is FALSE.
             
             Hash-partitions the resulting RDD into the given number of partitions.
             
@@ -501,7 +509,8 @@
                 new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
             var m = l.RightOuterJoin(r).Collect();
             
-            [('a', (2, 1)), ('b', (None, 4))]
+            [('a', (2, 1)), ('b', (Option, 4))]
+            * Option.IsDefined = FALSE
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>

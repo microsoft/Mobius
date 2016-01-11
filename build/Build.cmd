@@ -1,4 +1,4 @@
-REM @echo OFF
+@echo OFF
 setlocal
 
 @rem check prerequisites
