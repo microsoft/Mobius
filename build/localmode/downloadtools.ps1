@@ -213,20 +213,25 @@ function Download-BuildTools
     }
     
     # Apache Maven
-    $mvnCmd = "$toolsDir\apache-maven-3.3.3\bin\mvn.cmd"
+	$mvnVer = "apache-maven-3.3.3"
+    $mvnCmd = "$toolsDir\$mvnVer\bin\mvn.cmd"
     if (!(test-path $mvnCmd))
     {
-        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz"
-        $output="$toolsDir\apache-maven-3.3.3-bin.tar.gz"
+        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.3/binaries/$mvnVer-bin.tar.gz"
+        $output="$toolsDir\$mvnVer-bin.tar.gz"
         Download-File $url $output
         Untar-File $output $toolsDir
+
+        # Add downloaded Mvn to path + env
+        $envStream.WriteLine("set M2_HOME=$toolsDir\$mvnVer");
+        $envStream.WriteLine("set M2=%M2_HOME%\bin");
     }
     else
     {
         Write-Output "[downloadtools.Download-BuildTools] $mvnCmd exists already. No download and extraction needed"
     }
     
-    $mavenBin = "$toolsDir\apache-maven-3.3.3\bin"
+    $mavenBin = "$toolsDir\$mvnVer\bin"
     if (!($path -like "*$mavenBin*"))
     {
         # add maven bin
