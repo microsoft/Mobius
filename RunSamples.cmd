@@ -27,6 +27,7 @@ if %precheck% == "bad" (goto :eof)
 @rem
 set SPARK_VERSION=1.4.1
 set HADOOP_VERSION=2.6
+
 @echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
 
 @rem Windows 7/8/10 may not allow powershell scripts by default
@@ -37,6 +38,12 @@ pushd %~dp0
 powershell -f downloadtools.ps1 run !VERBOSE!
 call tools\updateruntime.cmd
 popd
+
+@rem downloadtools.ps1 sets ProjectVersion when invoked in AppVeyor
+if defined ProjectVersion (
+    set SPARKCLR_JAR=spark-clr-%ProjectVersion%.jar
+    echo SPARKCLR_JAR is %SPARKCLR_JAR%
+)
 
 SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
