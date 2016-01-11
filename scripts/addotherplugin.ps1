@@ -91,7 +91,7 @@ Replace-VariableInFile $variable $otherPlugin $targetPom $tempPom
 $content = (Get-Content $tempPom)
 $content = $content -replace '<!--\s*<scope>provided</scope>\s*-->', '<scope>provided</scope>'
 
-$content | Out-File $targetPom -force
+$content | Set-Content $targetPom -force
 
 Write-Output "[addotherplugin.ps1] updated $targetPom"
 

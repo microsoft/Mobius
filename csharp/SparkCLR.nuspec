@@ -15,10 +15,17 @@
     <dependencies>
       <dependency id="Razorvine.Pyrolite" version="4.10.0.0" />
       <dependency id="Razorvine.Serpent" version="1.12.0.0" />
+      <dependency id="log4net" version="2.0.5" />
+      <dependency id="Newtonsoft.Json" version="7.0.1" />
     </dependencies>
   </metadata>
   <files>
     <file src="Adapter/Microsoft.Spark.CSharp/bin/Release/Microsoft.Spark.CSharp.Adapter.dll" target="lib/net45" />
+    <!--TravisCI fails to find the pdb in the location below. Workaround by enabling that only for AppVeyor-->
+    <!--appveyoronly<file src="Adapter/Microsoft.Spark.CSharp/bin/Release/Microsoft.Spark.CSharp.Adapter.pdb" target="lib/net45" />appveyoronly-->
     <file src="Worker/Microsoft.Spark.CSharp/bin/Release/CSharpWorker.exe" target="lib/net45" />
+    <!--appveyoronly<file src="Worker/Microsoft.Spark.CSharp/bin/Release/CSharpWorker.pdb" target="lib/net45" />appveyoronly-->
+    <file src="Worker/Microsoft.Spark.CSharp/bin/Release/CSharpWorker.exe.config" target="lib/net45" />
+    <file src="**/*.cs" target="src" />
   </files>
 </package>

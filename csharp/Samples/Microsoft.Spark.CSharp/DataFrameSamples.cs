@@ -175,7 +175,7 @@ namespace Microsoft.Spark.CSharp.Samples
         /// <summary>
         /// Sample to load two text files and join them using temptable constructs
         /// </summary>
-        [Sample]
+        [Sample("experimental")]
         internal static void DFTextFileJoinTempTableSample()
         {
             var requestsDataFrame = GetSqlContext().TextFile(SparkCLRSamples.Configuration.GetInputDataPath(RequestsLog));
@@ -204,7 +204,7 @@ namespace Microsoft.Spark.CSharp.Samples
         /// <summary>
         /// Sample to load two text files and join them using DataFrame DSL
         /// </summary>
-        [Sample]
+        [Sample("experimental")]
         internal static void DFTextFileJoinTableDSLSample()
         {
             //C0 - guid, C1 - datacenter
@@ -999,7 +999,7 @@ namespace Microsoft.Spark.CSharp.Samples
         /// <summary>
         /// Sample to run distinct() operation on DataFrame
         /// </summary>
-        [Sample]
+        [Sample("experimental")]
         internal static void DFDistinctSample()
         {
             var csvTestLogDataFrame = GetSqlContext().TextFile(SparkCLRSamples.Configuration.GetInputDataPath(CSVTestLog));

@@ -13,6 +13,9 @@ if (($tagName.Length -gt 1) -and ($tagName.SubString(0,1).ToLower() -eq "v"))
 
     $content = (Get-Content $root\csharp\SparkCLR.nuspec)
     $content = $content -replace "<version>.*</version>", "<version>$versionStr</version>"
+
+    # enable symbols for appveyor build
+    $content = $content -replace "<!--appveyoronly", "" -replace "appveyoronly-->", ""
     
     $content | Out-File $root\csharp\SparkCLR.compiled.nuspec
 }
