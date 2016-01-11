@@ -48,8 +48,8 @@ namespace AdapterTest
         public void TestDataFrameJoin()
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
-            var dataFrame = sqlContext.JsonFile(@"c:\path\to\input.json"); 
-            var dataFrame2 = sqlContext.JsonFile(@"c:\path\to\input2.json"); 
+            var dataFrame = sqlContext.Read().Json(@"c:\path\to\input.json");
+            var dataFrame2 = sqlContext.Read().Json(@"c:\path\to\input2.json"); 
             var joinedDataFrame = dataFrame.Join(dataFrame2, "JoinCol");
             var paramValuesToJoinMethod = (joinedDataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
             var paramValuesToSecondDataFrameJsonFileMethod = ((paramValuesToJoinMethod[0] as MockDataFrameProxy).mockDataFrameReference as object[]);
