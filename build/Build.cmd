@@ -88,6 +88,8 @@ if %ERRORLEVEL% NEQ 0 (
 
 @echo SparkCLR Scala binaries
 copy /y target\*.jar "%SPARKCLR_HOME%\lib\"
+@REM Exclude any original pre-shaded .jar files
+del /q "%SPARKCLR_HOME%\lib\original-*"
 popd
 
 @REM Any .jar files under the lib directory will be copied to the staged runtime lib tree.
