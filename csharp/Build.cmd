@@ -15,6 +15,9 @@ SET MSBUILDOPT=/verbosity:minimal
 
 if "%builduri%" == "" set builduri=Build.cmd
 
+cd "%CMDHOME%"
+@cd
+
 set PROJ_NAME=SparkCLR
 set PROJ=%CMDHOME%\%PROJ_NAME%.sln
 
@@ -23,7 +26,7 @@ set PROJ=%CMDHOME%\%PROJ_NAME%.sln
 @echo Restore NuGet packages ===================
 SET STEP=NuGet-Restore
 
-nuget restore
+nuget restore "%PROJ%"
 
 @if ERRORLEVEL 1 GOTO :ErrorStop
 

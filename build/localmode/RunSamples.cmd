@@ -8,11 +8,6 @@ set CMDHOME=%CMDHOME:~0,-1%
 set VERBOSE=
 set USER_EXE=
 
-set CMDHOME=%~dp0
-
-@REM Remove trailing backslash \
-set CMDHOME=%CMDHOME:~0,-1%
-
 :argsloop
 
 if "%1" == "" (
@@ -54,7 +49,7 @@ set HADOOP_VERSION=2.6
 powershell -Command Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
 
 @rem download runtime dependencies
-pushd %CMDHOME%
+pushd "%CMDHOME%"
 powershell -f downloadtools.ps1 run !VERBOSE!
 @echo [RunSamples.cmd] UpdateRuntime.cmd
 type ..\tools\updateruntime.cmd
