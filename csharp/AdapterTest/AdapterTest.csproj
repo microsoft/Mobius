@@ -67,6 +67,7 @@
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
+    <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />
     <Compile Include="Mocks\MockRDDCollector.cs" />
     <Compile Include="Mocks\MockRow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

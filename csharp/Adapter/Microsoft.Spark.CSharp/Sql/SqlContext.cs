@@ -76,6 +76,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         /// <param name="path">path to JSON file</param>
         /// <returns></returns>
+        [Obsolete("Deprecated. As of 1.4.0, replaced by read().json()")]
         public DataFrame JsonFile(string path)
         {
             return new DataFrame(sqlContextProxy.JsonFile(path), sparkContext);
@@ -87,6 +88,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="path">path to JSON file</param>
         /// <param name="schema">schema to use</param>
         /// <returns></returns>
+        [Obsolete("Deprecated. As of 1.4.0, replaced by read().json()")]
         public DataFrame JsonFile(string path, StructType schema)
         {
             return Read().Schema(schema).Json(path);
