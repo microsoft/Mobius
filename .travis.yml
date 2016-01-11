@@ -20,3 +20,7 @@ script:
   - ./build.sh
   - ../csharp/test.sh
   - ./run-samples.sh --validate
+notifications:
+  email:
+    recipients:
+      - sparkclrbld@microsoft.com
