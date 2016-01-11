@@ -4022,7 +4022,10 @@
             <typeparam name="V"></typeparam>
             <typeparam name="S"></typeparam>
             <param name="self"></param>
-            <param name="updateFunc"></param>
+            <param name="updateFunc">
+                State update function - (newValues, oldState) => newState
+                If this function returns None, then corresponding state key-value pair will be eliminated.
+            </param>
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
@@ -4035,7 +4038,20 @@
             <typeparam name="V"></typeparam>
             <typeparam name="S"></typeparam>
             <param name="self"></param>
-            <param name="updateFunc">State update function. If this function returns None, then corresponding state key-value pair will be eliminated.</param>
+            <param name="updateFunc">State update function - IEnumerable[K, [newValues, oldState]] => IEnumerable[K, newState]</param>
+            <param name="numPartitions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.UpdateStateByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{System.Int32,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,System.Tuple{System.Collections.Generic.IEnumerable{``1},``2}}},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``2}}},System.Int32)">
+            <summary>
+            Return a new "state" DStream where the state for each key is updated by applying
+            the given function on the previous state of the key and the new values of the key.
+            </summary>
+            <typeparam name="K"></typeparam>
+            <typeparam name="V"></typeparam>
+            <typeparam name="S"></typeparam>
+            <param name="self"></param>
+            <param name="updateFunc">State update function - (pid, IEnumerable[K, [newValues, oldState]]) => IEnumerable[K, newState]</param>
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
