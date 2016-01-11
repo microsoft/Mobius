@@ -82,14 +82,14 @@
           <artifactId>spark-core_2.10</artifactId>
           <version>${spark.version}</version>
           <!--the following is placeholder for building uber package. Please keep as-is-->
-          <scope>provided</scope>
+	  <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
           <artifactId>spark-streaming_2.10</artifactId>
           <version>${spark.version}</version>
           <!--the following is placeholder for building uber package. Please keep as-is-->
-          <scope>provided</scope>
+	  <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
@@ -101,7 +101,7 @@
           <artifactId>spark-sql_2.10</artifactId>
           <version>${spark.version}</version>
           <!--the following is placeholder for building uber package. Please keep as-is-->
-          <scope>provided</scope>
+	  <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>com.databricks</groupId>
@@ -197,138 +197,10 @@
                 </execution>
               </executions>
           </plugin>
-
           <!--The comment below is the placeholder by build.cmd to add shade-plugin and others. Please keep as-is-->
-                    <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-shade-plugin</artifactId>
-              <version>2.4.1</version>
-              <executions>
-                  <execution>
-                      <phase>package</phase>
-                      <goals>
-                          <goal>shade</goal>
-                      </goals>
-                      <configuration>
-                      <!-- Fix java.lang.SecurityException being thrown, when the uber jar is executed.
-                      Details: Some dependency jar files are signed jar files.  A jar file is signed by using jarsigner, 
-                               which creates 2 additional files and places them in META-INF: (1) a signature file, 
-                               with a .SF extension, and (2) a signature block file, with a .DSA, .RSA, or .EC extension.  
-                               Since the uber-jar file is created, the signatures and integrity of signed JAR files are no longer 
-                               valid.  When the uber-jar file is executed, java.lang.SecurityException is thrown. -->
-                          <filters>
-                              <filter>
-                                  <artifact>*:*</artifact>
-                                  <excludes>
-                                      <exclude>META-INF/*.SF</exclude>
-                                      <exclude>META-INF/*.DSA</exclude>
-                                      <exclude>META-INF/*.RSA</exclude>
-                                  </excludes>
-                              </filter>
-                          </filters>
-                      </configuration>
-                  </execution>
-              </executions>
-          </plugin>
-
+          <!--OTHER PLUGINS-->
       </plugins>
     </build>
-
-    <profiles>
-
-      <!-- TODO: this profile should be part of default profile, once all scala code style issues are fixed -->
-      <profile>
-        <id>check-scala-style</id>
-        <activation>
-          <property>
-            <name>doSytleCheck</name>
-            <value>true</value>
-          </property>
-        </activation>
-        <build>
-          <plugins>
-            <plugin>
-              <groupId>org.scalastyle</groupId>
-              <artifactId>scalastyle-maven-plugin</artifactId>
-              <version>0.7.0</version>
-              <configuration>
-                <verbose>false</verbose>
-                <failOnViolation>false</failOnViolation>
-                <includeTestSourceDirectory>false</includeTestSourceDirectory>
-                <failOnWarning>false</failOnWarning>
-                <sourceDirectory>${basedir}/src/main</sourceDirectory>
-                <testSourceDirectory>${basedir}/src/test/scala</testSourceDirectory>
-                <configLocation>scalastyle-config.xml</configLocation>
-                <outputFile>${basedir}/target/scalastyle-output.xml</outputFile>
-                <inputEncoding>${encoding}</inputEncoding>
-                <outputEncoding>${encoding}</outputEncoding>
-              </configuration>
-              <executions>
-                <execution>
-                  <goals>
-                    <goal>check</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
-          </plugins>
-        </build>
-      </profile>
-
-      <!-- This profile is for signing the jar -->
-      <profile>
-        <id>generate-signed-files</id>
-        <activation>
-          <property>
-            <name>doSign</name>
-            <value>true</value>
-          </property>
-        </activation>
-        <build>
-          <plugins>
-            <!-- sign stuff for maven-central via OSSRH/Sonatype -->
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-gpg-plugin</artifactId>
-              <version>1.6</version>
-              <executions>
-                <execution>
-                  <id>sign-artifacts</id>
-                  <phase>verify</phase>
-                  <goals>
-                    <goal>sign</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
-          </plugins>
-        </build>
-      </profile>
-
-      <!-- This profile is for deplying to sonatype -->
-      <profile>
-        <id>release-to-ossrh</id>
-        <activation>
-          <property>
-            <name>doRelease</name>
-            <value>true</value>
-          </property>
-        </activation>
-        <build>
-          <plugins>
-            <plugin>
-              <groupId>org.sonatype.plugins</groupId>
-              <artifactId>nexus-staging-maven-plugin</artifactId>
-              <version>1.6.6</version>
-              <extensions>true</extensions>
-              <configuration>
-                <serverId>ossrh</serverId>
-                <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                <autoReleaseAfterClose>true</autoReleaseAfterClose>
-              </configuration>
-            </plugin>
-          </plugins>
-        </build>
-      </profile>
-    </profiles>
+    <!--The comment below is the placeholder by build.cmd to add profiles for AppVeyor. Please keep as-is-->
+    <!--PROFILES-->
 </project>

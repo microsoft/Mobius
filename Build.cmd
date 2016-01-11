@@ -53,6 +53,8 @@ powershell -f ..\scripts\addotherplugin.ps1 pom.xml other-plugin.xml "<!--OTHER 
 @rem
 IF NOT "%APPVEYOR_REPO_TAG%" == "true" (goto :nosign)
 
+powershell -f ..\scripts\addotherplugin.ps1 pom.xml profiles.xml "<!--PROFILES-->"
+
 gpg2 --batch --yes --import ..\build\data\private_token.asc
 gpg2 --batch --yes --import ..\build\data\public_token.asc
 
