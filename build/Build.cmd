@@ -37,7 +37,7 @@ if NOT EXIST "%SPARKCLR_HOME%\samples" mkdir "%SPARKCLR_HOME%\samples"
 pushd "%CMDHOME%\..\scala"
 
 @rem clean the target directory first
-call mvn.cmd clean
+call mvn.cmd %MVN_QUIET% clean
 
 @rem
 @rem Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
@@ -51,7 +51,7 @@ copy /y pom.xml %temp%\pom.xml.patched
 IF "%APPVEYOR_REPO_TAG%" == "true" (goto :sign)
 
     @rem build the package
-    call mvn.cmd package -Puber-jar
+    call mvn.cmd %MVN_QUIET% package -Puber-jar
     goto :mvndone
 
 :sign
@@ -71,7 +71,7 @@ IF "%APPVEYOR_REPO_TAG%" == "true" (goto :sign)
     gpg2 --list-key
     
     @rem build the package, sign, deploy to maven central
-    call mvn clean deploy -Puber-jar -DdoSign=true -DdoRelease=true
+    call mvn %MVN_QUIET% clean deploy -Puber-jar -DdoSign=true -DdoRelease=true
 
 :mvndone
 

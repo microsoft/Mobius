@@ -25,6 +25,7 @@ build_script:
   - cmd: echo appveyor environment BUILD_NUMBER=[%APPVEYOR_BUILD_NUMBER%] BUILD_VERSION=[%APPVEYOR_BUILD_VERSION%] REPO_TAG=[%APPVEYOR_REPO_TAG%] REPO_TAG_NAME=[%APPVEYOR_REPO_TAG_NAME%] APPVEYOR=[%APPVEYOR%] CI=[%CI%]
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
+  - cmd: SET MVN_QUIET=--quiet
   - cmd: cd .\build
   - cmd: .\Build.cmd
   - cmd: cd ..
