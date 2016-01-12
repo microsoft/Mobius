@@ -38,6 +38,12 @@ powershell -f downloadtools.ps1 run !VERBOSE!
 call tools\updateruntime.cmd
 popd
 
+@rem downloadtools.ps1 sets ProjectVersion when invoked in AppVeyor
+if defined ProjectVersion (
+    set SPARKCLR_JAR=spark-clr_2.10-%ProjectVersion%.jar
+    echo [RunSamples.cmd] SPARKCLR_JAR=%SPARKCLR_JAR%
+)
+
 SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
