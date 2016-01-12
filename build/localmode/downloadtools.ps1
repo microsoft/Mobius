@@ -397,10 +397,10 @@ function Update-SparkVerboseMode
     
         # replace {env:TEMP} with temp path
         $targetFile = "$temp\log4j.properties.temp"
-        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\..\scripts\spark.conf\log4j.properties" $targetFile
+        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\..\run\scripts\spark.conf\log4j.properties" $targetFile
     
         # copy customized log4j properties to SPARK_HOME\conf
-        copy-item  $scriptDir\..\scripts\spark.conf\*.properties $S_HOME\conf -force
+        copy-item  $scriptDir\..\run\scripts\spark.conf\*.properties $S_HOME\conf -force
         copy-item  $targetFile $S_HOME\conf\log4j.properties -force
     }
     else
@@ -438,7 +438,7 @@ function Backup-CSharpConfig($configPath, $originalSuffix)
 
 function Update-CSharpVerboseMode
 {
-    $configPath = "$scriptDir\run\samples"
+    $configPath = "$scriptDir\..\run\samples"
     $originalSuffix = ".orginal"
     Backup-CSharpConfig $configPath $originalSuffix
 
@@ -447,7 +447,7 @@ function Update-CSharpVerboseMode
         #
         # Disable (comment out) console appender in worker and sample.config files
         #
-        $configPath = "$scriptDir\run\samples"
+        $configPath = "$scriptDir\..\run\samples"
         $configFiles = get-childitem $configPath -filter *.config
 
         pushd $configPath
@@ -519,7 +519,7 @@ if (!($PSBoundParameters.ContainsKey('stage')))
 
 # Create tools directory
 $scriptDir = Get-ScriptDirectory
-$toolsDir = Join-Path -path $scriptDir -ChildPath tools
+$toolsDir = "$scriptDir\..\tools"
 New-Item -ItemType Directory -Force -Path $toolsDir | Out-Null
 pushd "$toolsDir"
     
