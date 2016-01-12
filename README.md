@@ -1,4 +1,4 @@
-# SparkCLR
+<h1><img src='/logo/spark-clr-clear-500x200.png' width='200px' alt='SparkCLR logo' /></h1>
 
 [SparkCLR](https://github.com/Microsoft/SparkCLR) (pronounced Sparkler) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
 
