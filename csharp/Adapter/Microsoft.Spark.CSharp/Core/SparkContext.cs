@@ -106,6 +106,16 @@ namespace Microsoft.Spark.CSharp.Core
             SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
         }
 
+        internal void StartAccumulatorServer()
+        {
+            if (accumulatorServer == null)
+            {
+                accumulatorServer = new AccumulatorServer();
+                int port = accumulatorServer.StartUpdateServer();
+                SparkContextProxy.Accumulator(port);
+            }
+        }
+
         public RDD<string> TextFile(string filePath, int minPartitions = 0)
         {
             return new RDD<string>(SparkContextProxy.TextFile(filePath, minPartitions), this, SerializedMode.String);
@@ -389,11 +399,9 @@ namespace Microsoft.Spark.CSharp.Core
         {
             if (accumulatorServer == null)
             {
-                accumulatorServer = new AccumulatorServer();
-                int port = accumulatorServer.StartUpdateServer();
-
-                SparkContextProxy.Accumulator(port);
+                StartAccumulatorServer();
             }
+
             return new Accumulator<T>(nextAccumulatorId++, value);
         }
 
