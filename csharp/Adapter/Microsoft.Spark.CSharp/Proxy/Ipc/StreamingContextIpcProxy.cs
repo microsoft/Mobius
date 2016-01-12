@@ -126,9 +126,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
         }
 
-        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string serializationMode, string serializationMode2)
+        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string className, string serializationMode, string serializationMode2)
         {
-            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpStateDStream",
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp." + className,
                 new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, serializationMode, serializationMode2 });
 
             var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
@@ -185,7 +185,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         new object[] 
                         { 
                             (firstDStream as DStreamIpcProxy).javaDStreamReference,
-                            otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference).ToArray()
+                            SparkContextIpcProxy.GetJavaList<JvmObjectReference>(otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
                         }
                     )));
         }
