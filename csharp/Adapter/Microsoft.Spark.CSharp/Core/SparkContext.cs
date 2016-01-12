@@ -5,12 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading.Tasks;
-using System.Net;
-using System.Net.Sockets;
 
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
@@ -326,11 +322,6 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<byte[]> HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
         {
             return new RDD<byte[]>(SparkContextProxy.HadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
-        }
-
-        internal RDD<T> CheckpointFile<T>(string filePath, SerializedMode serializedMode)
-        {
-            return new RDD<T>(SparkContextProxy.CheckpointFile(filePath), this, serializedMode);
         }
 
         /// <summary>

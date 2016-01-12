@@ -64,6 +64,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="BroadcastTest.cs" />
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
