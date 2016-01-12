@@ -59,7 +59,7 @@ Refer to [SparkCLR C# API documentation](csharp/Adapter/documentation/SparkCLR_A
 
 SparkCLR API usage samples are available at:
 
-* [Samples project](csharp/Samples) which uses a comprehensive set of SparkCLR APIs to implement samples that are also used for functional validation of APIs
+* [Samples project](csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of SparkCLR APIs to implement samples that are also used for functional validation of APIs
 
 * [Examples folder](./examples) which contains standalone SparkCLR projects that can be used as templates to start developing SparkCLR applications
 
