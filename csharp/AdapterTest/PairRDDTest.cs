@@ -27,7 +27,8 @@ namespace AdapterTest
         {
             foreach (var record in pairs.CountByKey())
             {
-                Assert.AreEqual(record.Value, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                // the 1st paramter of AreEqual() method is the expected value, the 2nd one is the acutal value.
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value);
             }
         }
 
@@ -36,21 +37,53 @@ namespace AdapterTest
         {
             foreach (var record in pairs.GroupWith(pairs).Collect())
             {
-                Assert.AreEqual(record.Value.Item1.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
-                Assert.AreEqual(record.Value.Item2.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item1.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item2.Count);
             }
             foreach (var record in pairs.GroupWith(pairs, pairs).Collect())
             {
-                Assert.AreEqual(record.Value.Item1.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
-                Assert.AreEqual(record.Value.Item2.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
-                Assert.AreEqual(record.Value.Item3.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item1.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item2.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item3.Count);
             }
             foreach (var record in pairs.GroupWith(pairs, pairs, pairs).Collect())
             {
-                Assert.AreEqual(record.Value.Item1.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
-                Assert.AreEqual(record.Value.Item2.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
-                Assert.AreEqual(record.Value.Item3.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
-                Assert.AreEqual(record.Value.Item4.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item1.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item2.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item3.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item4.Count);
+            }
+        }
+
+        /// <summary>
+        /// Test RDD.GroupWith() method with different KeyValuePair<K,V> types.
+        /// </summary>
+        [Test]
+        public void TestPairRddGroupWith2()
+        {
+            var pairs1 = pairs.Map(p => new KeyValuePair<string, double>(p.Key, Convert.ToDouble(p.Value)));
+            var pairs2 = pairs.Map(p => new KeyValuePair<string, string>(p.Key, p.Value.ToString()));
+            var pairs3 = pairs.Map(p => new KeyValuePair<string, long>(p.Key, Convert.ToInt64(p.Value)));
+
+            foreach (var record in pairs.GroupWith(pairs1).Collect())
+            {
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item1.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item2.Count);
+            }
+
+            foreach (var record in pairs.GroupWith(pairs1, pairs2).Collect())
+            {
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item1.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item2.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item3.Count);
+            }
+
+            foreach (var record in pairs.GroupWith(pairs1, pairs2, pairs3).Collect())
+            {
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item1.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item2.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item3.Count);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Item4.Count);
             }
         }
 
@@ -59,9 +92,9 @@ namespace AdapterTest
         {
             var reduce = pairs.ReduceByKey((x, y) => x + y);
             var records = reduce.SubtractByKey(reduce.Filter(kvp => kvp.Key != "The")).Collect();
-            Assert.AreEqual(records.Length, 1);
-            Assert.AreEqual(records[0].Key, "The");
-            Assert.AreEqual(records[0].Value, 23);
+            Assert.AreEqual(1, records.Length);
+            Assert.AreEqual("The", records[0].Key);
+            Assert.AreEqual(23, records[0].Value);
         }
 
         [Test]
@@ -69,7 +102,7 @@ namespace AdapterTest
         {
             foreach (var record in pairs.ReduceByKeyLocally((x, y) => x + y))
             {
-                Assert.AreEqual(record.Value, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value);
             }
         }
 
@@ -78,7 +111,7 @@ namespace AdapterTest
         {
             foreach (var record in pairs.FoldByKey(() => 0, (x, y) => x + y).Collect())
             {
-                Assert.AreEqual(record.Value, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value);
             }
         }
 
@@ -87,7 +120,7 @@ namespace AdapterTest
         {
             foreach (var record in pairs.AggregateByKey(() => 0, (x, y) => x + y, (x, y) => x + y).Collect())
             {
-                Assert.AreEqual(record.Value, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value);
             }
         }
 
@@ -96,7 +129,7 @@ namespace AdapterTest
         {
             foreach (var record in pairs.GroupByKey().Collect())
             {
-                Assert.AreEqual(record.Value.Count, record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22);
+                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Count);
             }
         }
 
@@ -104,22 +137,22 @@ namespace AdapterTest
         public void TestPairRddLookup()
         {
             var records = pairs.ReduceByKey((x, y) => x + y).Lookup("The");
-            Assert.AreEqual(records.Length, 1);
-            Assert.AreEqual(records[0], 23);
+            Assert.AreEqual(1, records.Length);
+            Assert.AreEqual(23, records[0]);
         }
 
         [Test]
         public void TestPairRddKeys()
         {
             var records = pairs.ReduceByKey((x, y) => x + y).Keys().Collect();
-            Assert.AreEqual(records.Length, 9);
+            Assert.AreEqual(9, records.Length);
         }
 
         [Test]
         public void TestPairRddValues()
         {
             var records = pairs.ReduceByKey((x, y) => x + y).Values().Collect();
-            Assert.AreEqual(records.Length, 9);
+            Assert.AreEqual(9, records.Length);
         }
 
         [Test]

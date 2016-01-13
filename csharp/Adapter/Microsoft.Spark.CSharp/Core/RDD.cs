@@ -70,14 +70,6 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
 
-        internal int DefaultReducePartitions
-        {
-            get
-            {
-                return GetNumPartitions();
-            }
-        }
-
         internal RDD() { }
 
         internal RDD(IRDDProxy rddProxy, SparkContext sparkContext, SerializedMode serializedMode = SerializedMode.Byte)
