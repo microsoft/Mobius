@@ -64,6 +64,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
             var sparkConfProxy = new SparkConfIpcProxy(jvmSparkConfReference);
             sparkContext = new SparkContext(sparkContextProxy, new SparkConf(sparkConfProxy));
+
+            // TODO: We don't know whether accumulator variable is used before restart. We just start accumuator server for safety.
+            sparkContext.StartAccumulatorServer();
         }
 
         public void Start()
