@@ -26,7 +26,7 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Return a L{StatCounter} object that captures the mean, variance
+        /// Return a <see cref="StatCounter"/> object that captures the mean, variance
         /// and count of the RDD's elements in one operation.
         /// </summary>
         /// <param name="self"></param>

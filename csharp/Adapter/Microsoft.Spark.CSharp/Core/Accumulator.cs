@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
@@ -13,7 +10,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Reflection;
 
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Services;
@@ -23,13 +19,13 @@ namespace Microsoft.Spark.CSharp.Core
 {
     /// <summary>
     /// A shared variable that can be accumulated, i.e., has a commutative and associative "add"
-    /// operation. Worker tasks on a Spark cluster can add values to an Accumulator with the C{+=}
-    /// operator, but only the driver program is allowed to access its value, using C{value}.
+    /// operation. Worker tasks on a Spark cluster can add values to an Accumulator with the +=
+    /// operator, but only the driver program is allowed to access its value, using Value.
     /// Updates from the workers get propagated automatically to the driver program.
     /// 
-    /// While C{SparkContext} supports accumulators for primitive data types like C{int} and
-    /// C{float}, users can also define accumulators for custom types by providing a custom
-    /// L{AccumulatorParam} object. Refer to the doctest of this module for an example.
+    /// While <see cref="SparkContext"/> supports accumulators for primitive data types like int and
+    /// float, users can also define accumulators for custom types by providing a custom
+    /// <see cref="AccumulatorParam{T}"/> object. Refer to the doctest of this module for an example.
     /// 
     /// See python implementation in accumulators.py, worker.py, PythonRDD.scala
     /// 
