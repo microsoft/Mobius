@@ -5,12 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading.Tasks;
-using System.Net;
-using System.Net.Sockets;
 
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
@@ -154,7 +150,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Hadoop-supported file system URI. Each file is read as a single record and returned in a
         /// key-value pair, where the key is the path of each file, the value is the content of each file.
         ///
-        /// &lt;p> For example, if you have the following files:
+        /// For example, if you have the following files:
         /// {{{
         ///   hdfs://a-hdfs-path/part-00000
         ///   hdfs://a-hdfs-path/part-00001
@@ -164,10 +160,10 @@ namespace Microsoft.Spark.CSharp.Core
         ///
         /// Do
         /// {{{
-        ///   JavaPairRDD&lt;String, String> rdd = sparkContext.wholeTextFiles("hdfs://a-hdfs-path")
+        ///   <see cref="RDD{KeyValuePair{string, string}}"/> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
         /// }}}
         ///
-        /// &lt;p> then `rdd` contains
+        /// then `rdd` contains
         /// {{{
         ///   (a-hdfs-path/part-00000, its content)
         ///   (a-hdfs-path/part-00001, its content)
@@ -175,9 +171,9 @@ namespace Microsoft.Spark.CSharp.Core
         ///   (a-hdfs-path/part-nnnnn, its content)
         /// }}}
         ///
-        /// @note Small files are preferred, large file is also allowable, but may cause bad performance.
+        /// Small files are preferred, large file is also allowable, but may cause bad performance.
         ///
-        /// @param minPartitions A suggestion value of the minimal splitting number for input data.
+        /// minPartitions A suggestion value of the minimal splitting number for input data.
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="minPartitions"></param>
@@ -202,7 +198,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// }}}
         ///
         /// Do
-        /// `JavaPairRDD&lt;String, byte[]> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+        /// <see cref="RDD{KeyValuePair{string, byte[]}}"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
         ///
         /// then `rdd` contains
         /// {{{
@@ -233,7 +229,7 @@ namespace Microsoft.Spark.CSharp.Core
         ///         and value Writable classes
         ///     2. Serialization is attempted via Pyrolite pickling
         ///     3. If this fails, the fallback is to call 'toString' on each key and value
-        ///     4. C{PickleSerializer} is used to deserialize pickled objects on the Python side
+        ///     4. PickleSerializer is used to deserialize pickled objects on the Python side
         ///     
         /// </summary>
         /// <param name="filePath">path to sequncefile</param>
@@ -376,8 +372,8 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Create an L{Accumulator} with the given initial value, using a given
-        /// L{AccumulatorParam} helper object to define how to add values of the
+        /// Create an <see cref="Accumulator"/> with the given initial value, using a given
+        /// <see cref="AccumulatorParam{T}"/> helper object to define how to add values of the
         /// data type if provided. Default AccumulatorParams are used for integers
         /// and floating-point numbers if you do not provide one. For other types,
         /// a custom AccumulatorParam can be used.
@@ -495,7 +491,7 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Cancel active jobs for the specified group. See L{SparkContext.setJobGroup} for more information.
+        /// Cancel active jobs for the specified group. See <see cref="SetJobGroup"/> for more information.
         /// </summary>
         /// <param name="groupId"></param>
         public void CancelJobGroup(string groupId)
