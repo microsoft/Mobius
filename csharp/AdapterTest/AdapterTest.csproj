@@ -64,6 +64,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="ColumnTest.cs" />
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Mocks\MockRDDCollector.cs" />
     <Compile Include="Mocks\MockRow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RowTest.cs" />
     <Compile Include="TestWithMoqDemo.cs" />
     <Compile Include="Mocks\MockStructTypeProxy.cs" />
     <Compile Include="DStreamTest.cs" />
