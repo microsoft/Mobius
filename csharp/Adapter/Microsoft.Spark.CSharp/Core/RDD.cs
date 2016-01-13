@@ -4,17 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Reflection;
-using System.IO;
-using System.Net.Sockets;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.Spark.CSharp.Interop.Ipc;
-using Microsoft.Spark.CSharp.Sql;
-using Razorvine.Pickle;
-using Razorvine.Pickle.Objects;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -77,14 +67,6 @@ namespace Microsoft.Spark.CSharp.Core
             get
             {
                 return RddProxy.Name;
-            }
-        }
-
-        internal int DefaultReducePartitions
-        {
-            get
-            {
-                return GetNumPartitions();
             }
         }
 
