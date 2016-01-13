@@ -19,7 +19,7 @@ SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
 
-set SPARKCLR_HOME=%CMDHOME%\run
+set SPARKCLR_HOME=%CMDHOME%\runtime
 @echo SPARKCLR_HOME=%SPARKCLR_HOME%
 
 if EXIST "%SPARKCLR_HOME%" (
@@ -48,7 +48,14 @@ copy /y pom.xml %temp%\pom.xml.original
 powershell -f ..\build\localmode\patchpom.ps1 pom.xml 
 copy /y pom.xml %temp%\pom.xml.patched
 
-IF NOT "%APPVEYOR_REPO_TAG%" == "true" (goto :nosign)
+IF "%APPVEYOR_REPO_TAG%" == "true" (goto :sign)
+
+    @rem build the package
+    call mvn.cmd package -Puber-jar
+    goto :mvndone
+
+:sign
+
     @rem
     @rem prepare signing only when APPVEYOR_REPO_TAG is available
     @rem
@@ -63,23 +70,8 @@ IF NOT "%APPVEYOR_REPO_TAG%" == "true" (goto :nosign)
     
     gpg2 --list-key
     
-    @rem ProjectVersion is set in downloadtools.ps1, based on AppVeyor-Repo-Tag
-    if DEFINED ProjectVersion (
-      set SPARKCLR_NAME=spark-clr_2.10-%ProjectVersion%
-      echo call mvn versions:set -DnewVersion=%ProjectVersion%
-      call mvn versions:set -DnewVersion=%ProjectVersion%
-    )
-
-    echo SPARKCLR_NAME=%SPARKCLR_NAME%
-    
     @rem build the package, sign, deploy to maven central
     call mvn clean deploy -Puber-jar -DdoSign=true -DdoRelease=true
-    goto :mvndone
-
-:nosign
-
-    @rem build the package
-    call mvn.cmd package -Puber-jar
 
 :mvndone
 
@@ -89,10 +81,11 @@ IF NOT "%APPVEYOR_REPO_TAG%" == "true" (goto :nosign)
 copy /y %temp%\pom.xml.original pom.xml
 
 if %ERRORLEVEL% NEQ 0 (
-	@echo Build SparkCLR Scala components failed, stop building.
-	popd
-	goto :eof
+    @echo Build SparkCLR Scala components failed, stop building.
+    popd
+    goto :eof
 )
+
 @echo SparkCLR Scala binaries
 copy /y target\*.jar "%SPARKCLR_HOME%\lib\"
 popd
@@ -111,19 +104,19 @@ pushd "%CMDHOME%\..\csharp"
 
 @rem clean any possible previous build first
 call Clean.cmd
-
 call Build.cmd
 
 if %ERRORLEVEL% NEQ 0 (
-	@echo Build SparkCLR C# components failed, stop building.
-	popd
-	goto :eof
+    @echo Build SparkCLR C# components failed, stop building.
+    popd
+    goto :eof
 )
+
 @echo SparkCLR C# binaries
 copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\bin\"
 
 @echo SparkCLR C# Samples binaries
-rem need to include CSharpWorker.exe.config in samples folder
+@rem need to include CSharpWorker.exe.config in samples folder
 copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 
@@ -138,22 +131,16 @@ xcopy /e /y "%CMDHOME%\..\scripts"  "%SPARKCLR_HOME%\scripts\"
 pushd %~dp0
 if not exist ".\target" (mkdir .\target)
 
-if not defined SPARKCLR_NAME (
-    powershell -f .\localmode\zipdir.ps1 -dir "%SPARKCLR_HOME%" -target ".\target\run.zip"
+if not defined ProjectVersion (
+    powershell -f .\localmode\zipdir.ps1 -dir "%SPARKCLR_HOME%" -target ".\target\runtime.zip"
     goto :distdone
 )
 
-set TARGET_FILE=.\run\scripts\sparkclr-submit.cmd
-@rem update sparkclr version in sparkclr-submit.cmd file
-powershell -NoProfile -ExecutionPolicy Bypass -Command "((Get-Content %TARGET_FILE%) -replace '\(set SPARKCLR_JAR=.*\)', '(set SPARKCLR_JAR=%SPARKCLR_NAME%.jar)') | Set-Content %TARGET_FILE% -force"
-
-xcopy /e /y ..\examples  .\examples\
-@rem update sparkclr nuget package reference versions in *.csproj and packages.config under .\examples
-powershell -f .\localmode\setversion.ps1 -dir .\examples -version %ProjectVersion%
+set SPARKCLR_NAME=spark-clr_2.10-%ProjectVersion%
 
 @rem Create the zip file
-@echo 7z a .\target\%SPARKCLR_NAME%.zip run localmode .\examples
-7z a .\target\%SPARKCLR_NAME%.zip run localmode examples
+@echo 7z a .\target\%SPARKCLR_NAME%.zip runtime localmode ..\examples
+7z a .\target\%SPARKCLR_NAME%.zip runtime localmode ..\examples
 
 :distdone
 popd

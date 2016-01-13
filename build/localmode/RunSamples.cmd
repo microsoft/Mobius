@@ -3,7 +3,11 @@ setlocal enabledelayedexpansion
 
 set VERBOSE=
 set USER_EXE=
+
 set CMDHOME=%~dp0
+
+@REM Remove trailing backslash \
+set CMDHOME=%CMDHOME:~0,-1%
 
 :argsloop
 
@@ -47,16 +51,11 @@ powershell -f downloadtools.ps1 run !VERBOSE!
 call ..\tools\updateruntime.cmd
 popd
 
-@rem downloadtools.ps1 sets ProjectVersion when invoked in AppVeyor
 if defined ProjectVersion (
     set SPARKCLR_JAR=spark-clr_2.10-%ProjectVersion%.jar
 )
 
-
-@REM Remove trailing backslash \
-set CMDHOME=%CMDHOME:~0,-1%
-
-set SPARKCLR_HOME=%CMDHOME%\..\run
+set SPARKCLR_HOME=%CMDHOME%\..\runtime
 set SPARKCSV_JARS=
 
 @rem RunSamples.cmd is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.

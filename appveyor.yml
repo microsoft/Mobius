@@ -11,7 +11,7 @@ environment:
     secure: t8UyjbNBnWJLrl8XFS/MbQ==
 
 install:
-  # - cmd: powershell -f build\script\dumpsoftware.ps1
+  - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (set ProjectVersion=%APPVEYOR_TAG_NAME:~1%)
   - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (nuget install secure-file -ExcludeVersion)
   - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (secure-file\tools\secure-file -decrypt build\data\private_token.asc.enc -secret %securefile% -out build\data\private_token.asc)
   - cmd: IF "%APPVEYOR_REPO_TAG%" == "true" (secure-file\tools\secure-file -decrypt build\data\public_token.asc.enc -secret %securefile% -out build\data\public_token.asc)
@@ -21,6 +21,7 @@ install:
 
 #build C# solution and scala project
 build_script:
+  - cmd: echo [build_script] ProjectVersion=%ProjectVersion%
   - cmd: echo appveyor environment BUILD_NUMBER=[%APPVEYOR_BUILD_NUMBER%] BUILD_VERSION=[%APPVEYOR_BUILD_VERSION%] REPO_TAG=[%APPVEYOR_REPO_TAG%] REPO_TAG_NAME=[%APPVEYOR_REPO_TAG_NAME%] APPVEYOR=[%APPVEYOR%] CI=[%CI%]
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
@@ -37,6 +38,7 @@ test:
 
 # scripts to run after tests
 after_test:
+    - cmd: echo [after_test] ProjectVersion=%ProjectVersion%
     - .\csharp\packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -target:.\csharp\packages\NUnit.Console.3.0.1\tools\nunit3-console.exe -register:user "-targetargs:"".\csharp\WorkerTest\bin\Debug\WorkerTest.dll"" "".\csharp\AdapterTest\bin\Debug\AdapterTest.dll"" " -filter:"+[CSharpWorker*|Microsoft.Spark.CSharp*]*" -excludebyattribute:*.ExcludeFromCodeCoverage* -hideskipped:All -output:.\SparkCLRCodeCoverage.xml
     - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
     - pip install codecov

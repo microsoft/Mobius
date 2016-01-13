@@ -2,7 +2,7 @@
 
 export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export SPARKCLR_HOME="$FWDIR/run"
+export SPARKCLR_HOME="$FWDIR/runtime"
 echo "SPARKCLR_HOME=$SPARKCLR_HOME"
 
 if [ -d "$SPARKCLR_HOME" ];
