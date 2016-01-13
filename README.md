@@ -1,4 +1,4 @@
-# SparkCLR
+<h1><img src='/logo/spark-clr-clear-500x200.png' width='200px' alt='SparkCLR logo' /></h1>
 
 [SparkCLR](https://github.com/Microsoft/SparkCLR) (pronounced Sparkler) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
 
@@ -54,6 +54,14 @@ Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory and [sample usage](
 ## API Documentation
 
 Refer to [SparkCLR C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in SparkCLR.
+
+## API Usage
+
+SparkCLR API usage samples are available at:
+
+* [Samples project](csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of SparkCLR APIs to implement samples that are also used for functional validation of APIs
+
+* [Examples folder](./examples) which contains standalone SparkCLR projects that can be used as templates to start developing SparkCLR applications
 
 ## Documents
 

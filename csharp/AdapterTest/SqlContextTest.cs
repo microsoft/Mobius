@@ -30,7 +30,7 @@ namespace AdapterTest
         public void TestSqlContextJsonFile()
         {
             var sqlContext = new SqlContext(new SparkContext("", "")); 
-            var dataFrame = sqlContext.JsonFile(@"c:\path\to\input.json");
+            var dataFrame = sqlContext.Read().Json(@"c:\path\to\input.json");
             var paramValuesToJsonFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
             Assert.AreEqual(@"c:\path\to\input.json", paramValuesToJsonFileMethod[0]);
         }

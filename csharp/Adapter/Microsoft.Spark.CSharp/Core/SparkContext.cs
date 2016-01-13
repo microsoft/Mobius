@@ -324,11 +324,6 @@ namespace Microsoft.Spark.CSharp.Core
             return new RDD<byte[]>(SparkContextProxy.HadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
         }
 
-        internal RDD<T> CheckpointFile<T>(string filePath, SerializedMode serializedMode)
-        {
-            return new RDD<T>(SparkContextProxy.CheckpointFile(filePath), this, serializedMode);
-        }
-
         /// <summary>
         /// Build the union of a list of RDDs.
         /// 

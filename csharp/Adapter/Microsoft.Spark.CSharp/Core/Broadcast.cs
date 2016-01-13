@@ -66,10 +66,13 @@ namespace Microsoft.Spark.CSharp.Core
         private readonly IBroadcastProxy broadcastProxy;
         [NonSerialized]
         private T value;
+        [NonSerialized]
+        private bool valueLoaded = false;
 
         internal Broadcast(SparkContext sparkContext, T value)
         {
             this.value = value;
+            this.valueLoaded = true;
             path = Path.GetTempFileName();
             DumpBroadcast<T>(value, path);
             broadcastProxy = sparkContext.SparkContextProxy.ReadBroadcastFromFile(path, out broadcastId);
@@ -79,17 +82,23 @@ namespace Microsoft.Spark.CSharp.Core
         /// Return the broadcasted value
         /// </summary>
         public T Value 
-        { 
-            get 
+        {
+            get
             {
-                if (value == null)
+                if (!valueLoaded)
                 {
                     if (broadcastRegistry.ContainsKey(broadcastId))
+                    {
                         value = LoadBroadcast<T>(broadcastRegistry[broadcastId].path);
+                        valueLoaded = true;
+                    }
                     else
+                    {
                         throw new ArgumentException(string.Format("Attempted to use broadcast id {0} after it was destroyed.", broadcastId));
+                    }
                 }
-                return value; 
+
+                return value;
             } 
         }
 

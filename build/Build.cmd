@@ -1,4 +1,4 @@
-REM @echo OFF
+@echo OFF
 setlocal
 
 @rem check prerequisites
@@ -45,8 +45,44 @@ call mvn.cmd clean
 @rem however, it breaks debug mode in IntellJ. So enable shade-plugin
 @rem only in build.cmd to create the uber-package.
 @rem
+copy /y pom.xml %temp%\pom.xml.original
+powershell -f ..\build\script\patchpom.ps1 pom.xml 
+copy /y pom.xml %temp%\pom.xml.patched
+
+@rem
+@rem prepare signing only when APPVEYOR_REPO_TAG is available
+@rem
+IF NOT "%APPVEYOR_REPO_TAG%" == "true" (goto :nosign)
+
+gpg2 --batch --yes --import ..\build\data\private_token.asc
+gpg2 --batch --yes --import ..\build\data\public_token.asc
+
+pushd %APPDATA%\gnupg 
+del /q trustdb.gpg 
+popd
+gpg2 --batch --yes --import-ownertrust < ..\build\data\ownertrustblob.txt
+
+gpg2 --list-key
+
+@rem ProjectVersion is set in downloadtools.ps1, based on AppVeyor-Repo-Tag
+if DEFINED ProjectVersion (
+  echo call mvn versions:set -DnewVersion=%ProjectVersion%
+  call mvn versions:set -DnewVersion=%ProjectVersion%
+)
+
+@rem build the package, sign, deploy to maven central
+call mvn clean deploy -Puber-jar -DdoSign=true -DdoRelease=true
+goto :mvndone
+
+:nosign
 @rem build the package
 call mvn.cmd package -Puber-jar
+
+:mvndone
+@rem
+@rem After uber package is created, restore Pom.xml
+@rem
+copy /y %temp%\pom.xml.original pom.xml
 
 if %ERRORLEVEL% NEQ 0 (
 	@echo Build SparkCLR Scala components failed, stop building.

@@ -25,5 +25,6 @@
     <file src="Worker\Microsoft.Spark.CSharp\bin\Release\CSharpWorker.exe" target="lib\net45" />
     <file src="Worker\Microsoft.Spark.CSharp\bin\Release\CSharpWorker.pdb" target="lib\net45" />
     <file src="Worker\Microsoft.Spark.CSharp\bin\Release\CSharpWorker.exe.config" target="lib\net45" />
+    <file src="**\*.cs" target="src" />
   </files>
 </package>
