@@ -150,7 +150,7 @@ namespace Microsoft.Spark.CSharp.Core
     internal class AccumulatorServer : System.Net.Sockets.TcpListener
     {
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(AccumulatorServer));
-        private bool serverShutdown;
+        private volatile bool serverShutdown;
 
         internal AccumulatorServer()
             : base(IPAddress.Loopback, 0)
