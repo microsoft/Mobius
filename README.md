@@ -95,7 +95,7 @@ SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full
 
 * SparkCLR project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
 
-* Ask questions using [issues on GitHub](https://github.com/Microsoft/SparkCLR) or on [Stack Overflow](https://stackoverflow.com/questions/ask?tags=sparkclr) or by sending mail to sparkclr-user@googlegroups.com or on [SparkCLR room in Gitter](https://gitter.im/Microsoft/SparkCLR)
+* Ask questions using [issues on GitHub](https://github.com/Microsoft/SparkCLR) or on [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr) or by sending mail to sparkclr-user@googlegroups.com or on [SparkCLR room in Gitter](https://gitter.im/Microsoft/SparkCLR)
 
 
 
