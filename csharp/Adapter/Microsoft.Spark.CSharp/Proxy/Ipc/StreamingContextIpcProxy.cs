@@ -267,6 +267,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                             if (!callbackSocketShutdown)
                             {
                                 logger.LogException(e);
+
+                                // exit when exception happens
+                                logger.LogError("ProcessCallbackRequest fail, will exit ...");
+                                Thread.Sleep(1000);
+                                System.Environment.Exit(1);
                             }
                         }
                     }
