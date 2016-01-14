@@ -19,4 +19,5 @@ script:
   - cd ./build
   - ./build.sh
   - ../csharp/test.sh
+  - cd ./localmode
   - ./run-samples.sh --validate

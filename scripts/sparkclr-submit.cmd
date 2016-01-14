@@ -1,8 +1,19 @@
 @echo off
 setlocal enabledelayedexpansion
+
+set CMDHOME=%~dp0
+
+@REM Remove trailing backslash \
+set CMDHOME=%CMDHOME:~0,-1%
+
 if "%SPARK_HOME%" == "" goto :sparkhomeerror
 if "%JAVA_HOME%" == "" goto :javahomeerror
-if "%SPARKCLR_HOME%" == "" goto :sparkclrhomeerror
+
+if "%SPARKCLR_HOME%" == "" (
+    if not exist %CMDHOME%\..\lib\spark-clr*.jar (goto :sparkclrhomeerror)
+    set SPARKCLR_HOME=%CMDHOME%\..
+    @echo [sparkclr-submit.cmd] SPARKCLR_HOME is set to !SPARKCLR_HOME!
+)
 
 if "%SPARK_CONF_DIR%" == "" (
 	SET SPARK_CONF_DIR=%SPARK_HOME%\conf

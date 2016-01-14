@@ -272,19 +272,6 @@ function Download-BuildTools
     	}
     }
 
-    # set projectversion with repo-tag
-    $tagName = $env:APPVEYOR_REPO_TAG_NAME
-    Write-Host "[downloadtools.Download-BuildTools] [INFO] tagname=[$tagName]"
-    
-    if (($tagName.Length -gt 1) -and ($tagName.SubString(0,1).ToLower() -eq "v"))
-    {
-        $len = $tagName.Length - 1
-        $versionStr = $tagName.SubString(1, $len)
-    
-        Write-Host "[downloadtools.Download-BuildTools] [INFO] Setting project version to $versionStr"
-        $envStream.WriteLine("set ProjectVersion=$versionStr");
-    }
-
     $envStream.close()
 }
 
@@ -359,19 +346,6 @@ function Download-RuntimeDependencies
 
     $envStream.WriteLine("set HADOOP_HOME=$H_HOME");
 
-    # set projectversion with repo-tag
-    $tagName = $env:APPVEYOR_REPO_TAG_NAME
-    Write-Host "[downloadtools.Download-RuntimeDependencies] [INFO] tagname=[$tagName]"
-    
-    if (($tagName.Length -gt 1) -and ($tagName.SubString(0,1).ToLower() -eq "v"))
-    {
-        $len = $tagName.Length - 1
-        $versionStr = $tagName.SubString(1, $len)
-    
-        Write-Host "[downloadtools.Download-RuntimeDependencies] [INFO] Setting project version to $versionStr"
-        $envStream.WriteLine("set ProjectVersion=$versionStr");
-    }
-
     $envStream.close()
 
     Update-SparkVerboseMode
@@ -397,10 +371,10 @@ function Update-SparkVerboseMode
     
         # replace {env:TEMP} with temp path
         $targetFile = "$temp\log4j.properties.temp"
-        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\..\run\scripts\spark.conf\log4j.properties" $targetFile
+        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\spark.conf\log4j.properties" $targetFile
     
         # copy customized log4j properties to SPARK_HOME\conf
-        copy-item  $scriptDir\..\run\scripts\spark.conf\*.properties $S_HOME\conf -force
+        copy-item  $scriptDir\spark.conf\*.properties $S_HOME\conf -force
         copy-item  $targetFile $S_HOME\conf\log4j.properties -force
     }
     else
@@ -438,7 +412,7 @@ function Backup-CSharpConfig($configPath, $originalSuffix)
 
 function Update-CSharpVerboseMode
 {
-    $configPath = "$scriptDir\..\run\samples"
+    $configPath = "$scriptDir\..\runtime\samples"
     $originalSuffix = ".orginal"
     Backup-CSharpConfig $configPath $originalSuffix
 
@@ -447,7 +421,7 @@ function Update-CSharpVerboseMode
         #
         # Disable (comment out) console appender in worker and sample.config files
         #
-        $configPath = "$scriptDir\..\run\samples"
+        $configPath = "$scriptDir\..\runtime\samples"
         $configFiles = get-childitem $configPath -filter *.config
 
         pushd $configPath
@@ -540,4 +514,3 @@ else
 }
 
 popd
-
