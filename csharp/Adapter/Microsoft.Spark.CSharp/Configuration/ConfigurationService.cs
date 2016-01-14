@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,6 +25,8 @@ namespace Microsoft.Spark.CSharp.Configuration
         public const string CSharpWorkerPathSettingKey = "CSharpWorkerPath";
         public const string CSharpBackendPortNumberSettingKey = "CSharpBackendPortNumber";
         public const string SPARKCLR_HOME = "SPARKCLR_HOME";
+        public const string SPARK_MASTER = "spark.master";
+        public const string CSHARPBACKEND_PORT = "CSHARPBACKEND_PORT";
 
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(ConfigurationService));
         private readonly SparkCLRConfiguration configuration;
@@ -39,8 +42,13 @@ namespace Microsoft.Spark.CSharp.Configuration
 
         internal ConfigurationService()
         {
-            var appConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetEntryAssembly().Location);
-            var sparkMaster = Environment.GetEnvironmentVariable("spark.master"); //set by CSharpRunner when launching driver process
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly == null) // happens when instantiate ConfigurationService in unit tests
+            {
+                entryAssembly = new StackTrace().GetFrames().Last().GetMethod().Module.Assembly;
+            }
+            var appConfig = ConfigurationManager.OpenExeConfiguration(entryAssembly.Location);
+            var sparkMaster = Environment.GetEnvironmentVariable(SPARK_MASTER); //set by CSharpRunner when launching driver process
             if (sparkMaster == null)
             {
                 configuration = new SparkCLRDebugConfiguration(appConfig);
@@ -96,12 +104,12 @@ namespace Microsoft.Spark.CSharp.Configuration
             internal virtual int GetPortNumber()
             {
                 int portNo;
-                if (!int.TryParse(Environment.GetEnvironmentVariable("CSHARPBACKEND_PORT"), out portNo))
+                if (!int.TryParse(Environment.GetEnvironmentVariable(CSHARPBACKEND_PORT), out portNo))
                 {
-                    throw new Exception("Environment variable CSHARPBACKEND_PORT not set");
+                    throw new Exception("Environment variable " + CSHARPBACKEND_PORT + " not set");
                 }
 
-                logger.LogInfo("CSharpBackend successfully read from environment variable CSHARPBACKEND_PORT");
+                logger.LogInfo("CSharpBackend successfully read from environment variable " + CSHARPBACKEND_PORT);
                 return portNo;
             }
 
