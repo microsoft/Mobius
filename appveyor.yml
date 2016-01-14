@@ -22,12 +22,12 @@ install:
 #build C# solution and scala project
 build_script:
   - cmd: echo appveyor environment BUILD_NUMBER=[%APPVEYOR_BUILD_NUMBER%] BUILD_VERSION=[%APPVEYOR_BUILD_VERSION%] REPO_TAG=[%APPVEYOR_REPO_TAG%] REPO_TAG_NAME=[%APPVEYOR_REPO_TAG_NAME%] APPVEYOR=[%APPVEYOR%] CI=[%CI%]
-  - cmd: SET PATH=%JAVA_HOME%\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: cd .\build
   - cmd: .\Build.cmd
   - cmd: cd ..
+  - cmd: dir .\build\target\*.zip
 
 # need test section below - otherwise auto discovery will run samples will fail build (since it has no text fixtures)
 test:
@@ -41,21 +41,22 @@ after_test:
     - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
     - pip install codecov
     - codecov -f "SparkCLRCodeCoverage.xml"
-    - cmd: cd .\build
+    - cmd: cd .\build\localmode
     - cmd: .\Runsamples.cmd --validate
-    - cmd: cd ..
+    - cmd: cd ..\..
     - cmd: dir csharp\Microsoft*.nupkg
     - cmd: dir scala\target\spark-clr*.jar
 
 artifacts:          
   - path: '**\Microsoft*.nupkg'                 # find all NuGet packages recursively
   - path: 'scala\target\spark-clr*.jar'
+  - path: 'build\target\spark-clr*.zip'
 
 deploy:
   - provider: GitHub                            # deploy to GitHub releases
     auth_token:                                 
       secure: 4JIzL2DO3OXXjdrso+VhA0RjMvUAg8BnZRHXojswaryXFe9mDJ3ExjssASWL1FZq 
-    artifact: /Microsoft.*\.nupkg/,/spark-clr.*\.jar/
+    artifact: /spark-clr.*\.zip/
     on:
       appveyor_repo_tag: true                   # deploy on tag push only
 

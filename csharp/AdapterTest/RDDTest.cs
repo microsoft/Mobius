@@ -7,6 +7,8 @@ using System.Linq;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Proxy;
+using Moq;
 using NUnit.Framework;
 
 namespace AdapterTest
@@ -25,6 +27,14 @@ namespace AdapterTest
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
             words = lines.FlatMap(l => l.Split(' '));
+        }
+
+        [Test]
+        public void TestRddName()
+        {
+            const string name = "RDD-1";
+            var rdd = words.SetName(name);
+            Assert.AreEqual(name, rdd.Name);
         }
 
         [Test]
@@ -57,7 +67,9 @@ namespace AdapterTest
         [Test]
         public void TestRddToLocalIterator()
         {
-            Assert.AreEqual(201, words.ToLocalIterator().Count());
+            // 201 - count of records in each partition of `words` RDD.
+            // For this mocked RDD `words`, the count of local iterator will be equal to (# of records in each parition) * numPartitions
+            Assert.AreEqual(201 * words.GetNumPartitions(), words.ToLocalIterator().Count());
         }
 
         [Test]
@@ -140,9 +152,10 @@ namespace AdapterTest
         public void TestRddZipWithUniqueId()
         {
             int index = 0;
+            int num = words.GetNumPartitions();
             foreach (var record in words.ZipWithUniqueId().Collect())
             {
-                Assert.AreEqual(index++, record.Value);
+                Assert.AreEqual(num * index++, record.Value);
             }
         }
 
@@ -150,6 +163,9 @@ namespace AdapterTest
         public void TestRddTakeSample()
         {
             Assert.AreEqual(20, words.TakeSample(true, 20, 1).Length);
+            Assert.AreEqual(20, words.TakeSample(true, 20, 1).Length);
+            Assert.Throws<ArgumentException>(() => words.TakeSample(true, -1, 1));
+            Assert.AreEqual(0, words.TakeSample(true, 0, 1).Length);
         }
 
         [Test]
@@ -194,6 +210,130 @@ namespace AdapterTest
             Assert.AreEqual(@"c:\path\to\rddinput.txt", paramValuesToTextFileMethodInRdd1[0]);
             var paramValuesToTextFileMethodInRdd2 = (paramValuesToUnionMethod[1] as MockRddProxy).mockRddReference as object[];
             Assert.AreEqual(@"c:\path\to\rddinput2.txt", paramValuesToTextFileMethodInRdd2[0]);
+        }
+
+        [Test]
+        public void TestRddCache()
+        {
+            Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
+            rddProxy.Setup(m => m.Cache());
+            var rdd = new RDD<string> {rddProxy = rddProxy.Object};
+
+            Assert.IsFalse(rdd.IsCached);
+
+            var cachedRdd = rdd.Cache();
+
+            Assert.IsTrue(cachedRdd.IsCached);
+        }
+
+        [Test]
+        public void TestRddPersistAndUnPersist()
+        {
+            Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
+            rddProxy.Setup(m => m.Persist(It.IsAny<StorageLevelType>()));
+
+            var rdd = new RDD<string> {rddProxy = rddProxy.Object};
+           
+            Assert.IsFalse(rdd.IsCached);
+            // test persist
+            var persistedRdd = rdd.Persist(StorageLevelType.MEMORY_AND_DISK);
+
+            Assert.IsNotNull(persistedRdd);
+            Assert.IsTrue(persistedRdd.IsCached);
+
+            // test unpersist
+            rddProxy.Setup(m => m.Unpersist());
+            var unPersistedRdd = persistedRdd.Unpersist();
+            Assert.IsNotNull(unPersistedRdd);
+            Assert.IsFalse(unPersistedRdd.IsCached);
+        }
+
+        [Test]
+        public void TestCheckpoint()
+        {
+            Assert.IsFalse(words.IsCheckpointed);
+            words.Checkpoint();
+            Assert.IsTrue(words.IsCheckpointed);
+        }
+
+        [Test]
+        public void TestRandomSplit()
+        {
+            Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
+            rddProxy.Setup(m => m.RandomSplit(It.IsAny<double[]>(), It.IsAny<long>())).Returns(new[] {new Mock<IRDDProxy>().Object, new Mock<IRDDProxy>().Object});
+
+            var rdd = new RDD<string> { rddProxy = rddProxy.Object };
+
+            var rdds = rdd.RandomSplit(new double[] {2, 3}, 17);
+            Assert.IsNotNull(rdds);
+            Assert.AreEqual(2, rdds.Length);
+        }
+
+        [Test]
+        public void TestCartesian()
+        {
+            var rdd = words.Cartesian(words);
+            Assert.IsNotNull(rdd);
+            Assert.AreEqual(SerializedMode.Pair, rdd.serializedMode);
+            Assert.IsNotNull(rdd.RddProxy);
+        }
+
+        [Test]
+        public void TestPipe()
+        {
+            var rdd = words.Pipe("cat");
+            Assert.IsNotNull(rdd);
+            Assert.IsNotNull(rdd.RddProxy);
+        }
+
+        [Test]
+        public void TestToDebugString()
+        {
+            Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
+            const string expectedDebugStr = "Debug String";
+            rddProxy.Setup(m => m.ToDebugString()).Returns(expectedDebugStr);
+
+            var rdd = new RDD<string> { rddProxy = rddProxy.Object };
+
+            var debugStr = rdd.ToDebugString();
+            Assert.IsNotNull(debugStr);
+            Assert.AreEqual(expectedDebugStr, debugStr);
+        }
+
+        [Test]
+        public void TestGetStorageLevel()
+        {
+            Assert.AreEqual(StorageLevel.storageLevel[StorageLevelType.MEMORY_ONLY], words.GetStorageLevel());
+        }
+
+        [Test]
+        public void TestCoalesce()
+        {
+            const int numPartitions = 4;
+            const bool shuffle = true;
+            Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
+            Mock<IRDDProxy> coalescedRddProxy = new Mock<IRDDProxy>();
+            rddProxy.Setup(m => m.Coalesce(It.IsAny<int>(), It.IsAny<bool>())).Returns(coalescedRddProxy.Object);
+
+            var rdd = new RDD<string> { rddProxy = rddProxy.Object };
+
+            var coalescedRdd = rdd.Coalesce(numPartitions, shuffle);
+            Assert.IsNotNull(coalescedRdd);
+            Assert.AreEqual(coalescedRddProxy.Object, coalescedRdd.RddProxy);
+        }
+
+        [Test]
+        public void TestRandomSampleWithRange()
+        {
+            Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
+            Mock<IRDDProxy> sampledRddProxy = new Mock<IRDDProxy>();
+            rddProxy.Setup(m => m.RandomSampleWithRange(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<long>())).Returns(sampledRddProxy.Object);
+
+            var rdd = new RDD<string> { rddProxy = rddProxy.Object };
+
+            var sampledRdd = rdd.RandomSampleWithRange(0.1, 0.8, new Random().Next());
+            Assert.IsNotNull(sampledRdd);
+            Assert.AreEqual(sampledRddProxy.Object, sampledRdd.RddProxy);
         }
     }
 }

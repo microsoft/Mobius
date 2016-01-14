@@ -135,6 +135,10 @@ namespace Microsoft.Spark.CSharp.Sql
             {
                 throw new Exception(string.Format("i ({0}) >= columnCount ({1})", i, columnCount));
             }
+            else if(i < 0)
+            {
+                throw new Exception(string.Format("i ({0}) < 0", i));
+            }
 
             return values[i];
         }

@@ -46,7 +46,7 @@ namespace Microsoft.Spark.CSharp.Core
         internal T value;
         private readonly AccumulatorParam<T> accumulatorParam = new AccumulatorParam<T>();
 
-        internal Accumulator(int accumulatorId, T value)
+        public Accumulator(int accumulatorId, T value)
         {
             this.accumulatorId = accumulatorId;
             this.value = value;
@@ -146,7 +146,7 @@ namespace Microsoft.Spark.CSharp.Core
     internal class AccumulatorServer : System.Net.Sockets.TcpListener
     {
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(AccumulatorServer));
-        private bool serverShutdown;
+        private volatile bool serverShutdown;
 
         internal AccumulatorServer()
             : base(IPAddress.Loopback, 0)
@@ -178,8 +178,19 @@ namespace Microsoft.Spark.CSharp.Core
                             {
                                 var ms = new MemoryStream(SerDe.ReadBytes(ns));
                                 KeyValuePair<int, dynamic> update = (KeyValuePair<int, dynamic>)formatter.Deserialize(ms);
-                                Accumulator accumulator = Accumulator.accumulatorRegistry[update.Key];
-                                accumulator.GetType().GetMethod("Add").Invoke(accumulator, new object[] { update.Value });
+
+                                if (Accumulator.accumulatorRegistry.ContainsKey(update.Key))
+                                {
+                                    Accumulator accumulator = Accumulator.accumulatorRegistry[update.Key];
+                                    accumulator.GetType().GetMethod("Add").Invoke(accumulator, new object[] { update.Value });
+                                }
+                                else
+                                {
+                                    Console.Error.WriteLine("WARN: cann't find update.Key: {0} for accumulator, will create a new one", update.Key);
+                                    var genericAccumulatorType = typeof(Accumulator<>);
+                                    var specificAccumulatorType = genericAccumulatorType.MakeGenericType(update.Value.GetType());
+                                    Activator.CreateInstance(specificAccumulatorType, new object[] { update.Key, update.Value });
+                                }
                             }
                             ns.WriteByte((byte)1);  // acknowledge byte other than -1
                             ns.Flush();
