@@ -53,6 +53,8 @@ Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory and [sample usage](
 
 ## API Documentation
 
+[![Join the chat at https://gitter.im/Microsoft/SparkCLR](https://badges.gitter.im/Microsoft/SparkCLR.svg)](https://gitter.im/Microsoft/SparkCLR?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Refer to [SparkCLR C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in SparkCLR.
 
 ## API Usage
