@@ -65,17 +65,21 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="ColumnTest.cs" />
+    <Compile Include="AccumulatorTest.cs" />
     <Compile Include="BroadcastTest.cs" />
     <Compile Include="ConfigurationServiceTest.cs" />
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
     <Compile Include="JsonSerDeTest.cs" />
+    <Compile Include="FunctionsTest.cs" />
     <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />
     <Compile Include="Mocks\MockRDDCollector.cs" />
     <Compile Include="Mocks\MockRow.cs" />
     <Compile Include="PayloadHelperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RowTest.cs" />
     <Compile Include="SerDeTest.cs" />
     <Compile Include="StatusTrackerTest.cs" />
     <Compile Include="TestWithMoqDemo.cs" />
@@ -102,6 +106,7 @@
     <Compile Include="PairRDDTest.cs" />
     <Compile Include="ComparableRDDTest.cs" />
     <Compile Include="DoubleRDDTest.cs" />
+    <Compile Include="UserDefinedFunctionTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">

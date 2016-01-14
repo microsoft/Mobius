@@ -51,7 +51,7 @@ if EXIST %PROJ_NAME%.nuspec (
   @echo ===== Build NuGet package for %PROJ% =====
   SET STEP=NuGet-Pack
 
-  powershell -f %CMDHOME%\..\build\script\nugetpack.ps1
+  powershell -f %CMDHOME%\..\build\localmode\nugetpack.ps1
   @if ERRORLEVEL 1 GOTO :ErrorStop
   @echo NuGet package ok for %PROJ%
 )
