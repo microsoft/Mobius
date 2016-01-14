@@ -69,9 +69,9 @@ Refer to the [docs folder](docs) for design overview and other info on SparkCLR
 
 ## Build Status
 
-|Ubuntu 14.04.3 LTS |Windows |
-|-------------------|:------:|
-|[![Build status](https://travis-ci.org/Microsoft/SparkCLR.svg?branch=master)](https://travis-ci.org/Microsoft/SparkCLR) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |
+|Ubuntu 14.04.3 LTS |Windows |Unit test coverage |
+|-------------------|:------:|:-----------------:|
+|[![Build status](https://travis-ci.org/Microsoft/SparkCLR.svg?branch=master)](https://travis-ci.org/Microsoft/SparkCLR) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |[![codecov.io](https://codecov.io/github/Microsoft/SparkCLR/coverage.svg?branch=master)](https://codecov.io/github/Microsoft/SparkCLR?branch=master) |
 
 ## Building, Running and Debugging SparkCLR
 
