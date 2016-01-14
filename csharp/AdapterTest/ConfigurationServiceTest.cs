@@ -21,6 +21,7 @@ namespace AdapterTest
     /// Validates implementation of configuration service that helps getting config settings
     /// to be used in SparkCLR runtime
     /// </summary>
+    [TestFixture]
     class ConfigurationServiceTest
     {
         // Set environment variable with new value, and return old value for enviroment reset after each test finishes
