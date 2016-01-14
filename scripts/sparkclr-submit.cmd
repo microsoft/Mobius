@@ -36,7 +36,7 @@ if "%SPARK_ASSEMBLY_JAR%"=="0" (
   exit /b 1
 )
 
-if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.5.2-SNAPSHOT.jar)
+if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.5.200.jar)
 echo SPARKCLR_JAR=%SPARKCLR_JAR% 
 
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
@@ -97,4 +97,4 @@ goto :eof
 	@echo Example 2:
 	@echo sparkclr-submit.cmd [--verbose] [--master local] [--deploy-mode client] [--name testapp] --exe csdriver.exe c:\sparkclrapp\driver.zip arg1 arg2 arg3
 	@echo Example 3:
-	@echo sparkclr-submit.cmd [--verbose] --master spark://host:port --deploy-mode cluster [--name testapp] --exe csdriver.exe --remote-sparkclr-jar hdfs://path/to/spark-clr-1.4.1-SNAPSHOT.jar hdfs://path/to/driver.zip arg1 arg2 arg3
+	@echo sparkclr-submit.cmd [--verbose] --master spark://host:port --deploy-mode cluster [--name testapp] --exe csdriver.exe --remote-sparkclr-jar hdfs://path/to/spark-clr-1.5.200.jar hdfs://path/to/driver.zip arg1 arg2 arg3
