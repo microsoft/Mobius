@@ -22,6 +22,11 @@ namespace Microsoft.Spark.CSharp.Sql
                 Functions.GetReturnType(typeof(RT)));
         }
 
+        internal UserDefinedFunction(IUDFProxy udfProxy)
+        {
+            this.udfProxy = udfProxy;
+        }
+
         private Column Execute(params Column[] columns)
         {
             return new Column(udfProxy.Apply(columns.Select(c => c.ColumnProxy).ToArray()));

@@ -278,7 +278,7 @@ namespace Microsoft.Spark.CSharp.Sql
         #endregion
 
         #region window functions
-        public static Column rowNumber()
+        public static Column RowNumber()
         {
             return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("rowNumber"));
         }

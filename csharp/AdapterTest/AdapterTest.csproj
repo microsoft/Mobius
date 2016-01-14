@@ -70,6 +70,7 @@
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
+    <Compile Include="FunctionsTest.cs" />
     <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />
     <Compile Include="Mocks\MockRDDCollector.cs" />
     <Compile Include="Mocks\MockRow.cs" />
@@ -102,6 +103,7 @@
     <Compile Include="PairRDDTest.cs" />
     <Compile Include="ComparableRDDTest.cs" />
     <Compile Include="DoubleRDDTest.cs" />
+    <Compile Include="UserDefinedFunctionTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
