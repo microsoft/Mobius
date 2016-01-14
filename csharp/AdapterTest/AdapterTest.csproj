@@ -72,7 +72,9 @@
     <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />
     <Compile Include="Mocks\MockRDDCollector.cs" />
     <Compile Include="Mocks\MockRow.cs" />
+    <Compile Include="PayloadHelperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerDeTest.cs" />
     <Compile Include="StatusTrackerTest.cs" />
     <Compile Include="TestWithMoqDemo.cs" />
     <Compile Include="Mocks\MockStructTypeProxy.cs" />
