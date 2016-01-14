@@ -16,6 +16,8 @@ if not exist "%JAVA_HOME%\bin\java.exe" (
     goto :eof
 )
 
+set path=%path%;%JAVA_HOME%\bin
+
 set version="unknown"
 if "%VisualStudioVersion%" == "" ( goto vstudiowarning)
 
