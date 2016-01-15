@@ -63,6 +63,8 @@ SparkCLR API usage samples are available at:
 
 * [Examples folder](./examples) which contains standalone SparkCLR projects that can be used as templates to start developing SparkCLR applications
 
+* Performance test scenarios implemented in [C#](csharp/Perf/Microsoft.Spark.CSharp) and [Scala](scala/perf) for side by side comparison of Spark driver code
+
 ## Documents
 
 Refer to the [docs folder](docs) for design overview and other info on SparkCLR
