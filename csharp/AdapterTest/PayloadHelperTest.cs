@@ -30,16 +30,22 @@ namespace AdapterTest
             const string expectedMethod = "method1";
             object[] expectedParams =
             {
-                1, // int 
+                1, // int
+                int.MinValue, // int
                 2L, // long
+                long.MinValue, // long
                 3D, // double
+                double.MinValue, // double
                 "holo", // string
                 true,  // bool
                 new JvmObjectReference(Guid.NewGuid().ToString()), // jvm object reference
                 new byte[] { 1, 2 }, // byte[]
                 new int[] {100, 200}, // int[]
+                new int[] {-100, -200}, // int[]
                 new long[] {300L, 500L}, // long[]
-                new double[] {99d, 1000d}, // int[]
+                new long[] {-300L, -500L}, // long[]
+                new double[] {99d, 1000d}, // double[]
+                new double[] {-99d, -1000d}, // double[]
                 new List<byte[]>() {SerDe.ToBytes(100), SerDe.ToBytes(200)}, // IEnumerable<byte[]>
                 new string[] {"Hello", "World!"}, // IEnumerable<string>
                 new JvmObjectReference[]  // IEnumerable<JvmObjectReference>
