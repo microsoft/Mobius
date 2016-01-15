@@ -41,7 +41,7 @@
     </Reference>
     <Reference Include="CSharpWorker">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200-preview-4\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200-preview-5\lib\net45\CSharpWorker.exe</HintPath>
     </Reference>
     <Reference Include="log4net">
       <SpecificVersion>False</SpecificVersion>
@@ -49,7 +49,7 @@
     </Reference>
     <Reference Include="Microsoft.Spark.CSharp.Adapter">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200-preview-4\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
+      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200-preview-5\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
     </Reference>
     <Reference Include="Razorvine.Pyrolite">
       <SpecificVersion>False</SpecificVersion>
@@ -76,7 +76,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-    <None Include="..\packages\Microsoft.SparkCLR.1.5.200-preview-4\lib\net45\CSharpWorker.exe.config">
+    <None Include="..\packages\Microsoft.SparkCLR.1.5.200-preview-5\lib\net45\CSharpWorker.exe.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
