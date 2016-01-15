@@ -36,7 +36,7 @@ if "%SPARK_ASSEMBLY_JAR%"=="0" (
   exit /b 1
 )
 
-if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.5.200.jar)
+if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.5.200-preview-4.jar)
 echo SPARKCLR_JAR=%SPARKCLR_JAR% 
 
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
