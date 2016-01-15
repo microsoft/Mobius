@@ -1,6 +1,10 @@
 @echo OFF
 setlocal enabledelayedexpansion
 
+SET CMDHOME=%~dp0
+@REM Remove trailing backslash \
+set CMDHOME=%CMDHOME:~0,-1%
+
 set VERBOSE=
 set USER_EXE=
 
@@ -31,9 +35,13 @@ if "%1" == "" (
     goto argsloop
 )
 
+pushd "%CMDHOME%"
+@echo [RunSamples.cmd] CWD=
+@cd
+
 @rem check prerequisites
 call precheck.cmd
-if %precheck% == "bad" (goto :eof)
+if "%precheck%" == "bad" (goto :EOF)
 
 @rem 
 @rem setup Hadoop and Spark versions
@@ -72,7 +80,9 @@ set SAMPLES_DIR=%SPARKCLR_HOME%\samples
 @echo [RunSamples.cmd] SPARKCLR_HOME=%SPARKCLR_HOME%
 @echo [RunSamples.cmd] SPARKCSV_JARS=%SPARKCSV_JARS%
 
-pushd %SPARKCLR_HOME%\scripts
+pushd "%SPARKCLR_HOME%\scripts"
+@echo [RunSamples.cmd] CWD=
+@cd
 
 if "!USER_EXE!"=="" (
     @echo [RunSamples.cmd] call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
@@ -82,4 +92,13 @@ if "!USER_EXE!"=="" (
     call sparkclr-submit.cmd %*
 )
 
-popd
+@if ERRORLEVEL 1 GOTO :ErrorStop
+
+@GOTO :EOF
+
+:ErrorStop
+set RC=%ERRORLEVEL%
+@echo ===== sparkclr-submit FAILED error %RC% =====
+exit /B %RC%
+
+:EOF
