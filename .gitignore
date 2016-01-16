@@ -28,8 +28,8 @@
 **/target/
 **/.idea/
 scala/dependency-reduced-pom.xml
-run/
-tools/
+build/runtime/
+build/tools/
 *.log
 lib/
 
@@ -38,6 +38,7 @@ lib/
 SparkCLRCodeCoverage.xml
 AdapterTestCoverage.xml
 TestResult.xml
+csharp/SparkCLR.compiled.nuspec
 
 # Office Doc Temp files #
 #########################
