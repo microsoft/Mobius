@@ -61,8 +61,18 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void Jdbc(string url, string table, Dictionary<string, string> properties)
         {
+            var propertiesJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Properties", new object[] { });
+            if (properties != null)
+            {
+                foreach (var property in properties)
+                {
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(propertiesJvmReference, "setProperty",
+                        new object[] { property.Key, property.Value });
+                }
+            }
+
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
-                jvmDataFrameWriterReference, "jdbc", new object[] { url, table, properties });
+                jvmDataFrameWriterReference, "jdbc", new object[] { url, table, propertiesJvmReference });
         }
     }
 }
