@@ -38,7 +38,7 @@ then
 	exit 1
 fi
 echo "SparkCLR Scala binaries"
-cp target/*.jar "$SPARKCLR_HOME/lib/"
+cp target/spark*.jar "$SPARKCLR_HOME/lib/"
 popd
 
 # Any .jar files under the lib directory will be copied to the staged runtime lib tree.
