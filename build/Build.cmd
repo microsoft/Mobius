@@ -1,6 +1,8 @@
 @setlocal
 @echo OFF
 
+if "%1" == "csharp" set buildCSharp=true
+
 SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
@@ -21,6 +23,8 @@ popd
 
 set SPARKCLR_HOME=%CMDHOME%\runtime
 @echo SPARKCLR_HOME=%SPARKCLR_HOME%
+
+if defined buildCSharp goto :buildCSharp
 
 if EXIST "%SPARKCLR_HOME%" (
     @echo Delete existing %SPARKCLR_HOME% ...
@@ -99,6 +103,7 @@ if EXIST "%CMDHOME%\lib" (
   )
 )
 
+:buildCSharp
 @echo Assemble SparkCLR C# components
 pushd "%CMDHOME%\..\csharp"
 
