@@ -81,8 +81,8 @@ Refer to the [docs folder](docs) for design overview and other info on SparkCLR
 |---|:------:|:----:|
 |Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-sparkclr) |[linux-instructions.md](notes/linux-instructions.md#building-sparkclr) |
 |Run samples (functional tests) in local mode |[windows-instructions.md](notes/windows-instructions.md#running-samples) |[linux-instructions.md](notes/linux-instructions.md#running-samples) |
-|Run standlone examples in Client mode |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |
-|Run standlone examples in Cluster mode |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |
+|Run standlone examples in Client mode |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |
+|Run standlone examples in Cluster mode |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |
 
 Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using SparkCLR with Spark on Linux
 
@@ -105,10 +105,8 @@ SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full
 
 * SparkCLR project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
 
-* Ask questions using [issues on GitHub](https://github.com/Microsoft/SparkCLR) or on [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr) or by sending mail to sparkclr-user@googlegroups.com or on [SparkCLR room in Gitter](https://gitter.im/Microsoft/SparkCLR)
-
-
-
-
-
- 
+* Options to ask your question to the SparkCLR community
+  * create issue on [GitHub](https://github.com/Microsoft/SparkCLR)
+  * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
+  * send email to sparkclr-user@googlegroups.com
+  * join chat at [SparkCLR room in Gitter](https://gitter.im/Microsoft/SparkCLR)
