@@ -52,24 +52,24 @@ JDK is installed, and the following environment variables should be set properly
 
 ## Running in Local mode
 
-With `JAVA_HOME` set properly, navigate to [SparkCLR\build](../build) directory:
+With `JAVA_HOME` set properly, navigate to [SparkCLR\build\localmode](../build/localmode) directory:
 
 ```  
 ./run-samples.sh  
 ```
 
-It is **required** to run [build.sh](../build/build.sh) prior to running [run-samples.sh](../build/run-samples.sh).
+It is **required** to run [build.sh](../build/build.sh) prior to running [run-samples.sh](../build/localmode/run-samples.sh).
 
-[run-samples.sh](../build/run-samples.sh) downloads Apache Spark 1.4.1 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/run` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/run/Temp`.
+[run-samples.sh](../build/localmode/run-samples.sh) downloads Apache Spark 1.6.0 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/run` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/run/Temp`.
 
 **Note that SparkCLR requires a customized Apache Spark**. To build the customized Apache Spark, follow the steps below:
 
-1. Download and unpack the binary package of Apache Spark 1.4.1.
-2. Download and unpack the source package of Apache Spark 1.4.1, apply the diff patch [PythonWorkerFactory.scala.patch](../notes/PythonWorkerFactory.scala.patch) on **core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala**, and build Spark following the [instructions](http://spark.apache.org/docs/latest/building-spark.html).
+1. Download and unpack the binary package of Apache Spark 1.6.0.
+2. Download and unpack the source package of Apache Spark 1.6.0, apply the diff patch [PythonWorkerFactory.scala.patch](../notes/PythonWorkerFactory.scala.patch) on **core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala**, and build Spark following the [instructions](http://spark.apache.org/docs/latest/building-spark.html).
 3. Replace lib/spark-assembly\*hadoop\*.jar in the binary package with assembly/target/scala-2.10/spark-assembly\*hadoop\*.jar built in Step 2. Use/deploy this modified binary package for Spark.
 
-A few more [run-samples.sh](../build/run-samples.sh) examples:
-- To display all options supported by [run-samples.sh](../build/run-samples.sh): 
+A few more [run-samples.sh](../build/localmode/run-samples.sh) examples:
+- To display all options supported by [run-samples.sh](../build/localmode/run-samples.sh): 
 
     ```  
     run-samples.sh  --help

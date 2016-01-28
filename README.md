@@ -75,12 +75,20 @@ Refer to the [docs folder](docs) for design overview and other info on SparkCLR
 |-------------------|:------:|:-----------------:|
 |[![Build status](https://travis-ci.org/Microsoft/SparkCLR.svg?branch=master)](https://travis-ci.org/Microsoft/SparkCLR) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |[![codecov.io](https://codecov.io/github/Microsoft/SparkCLR/coverage.svg?branch=master)](https://codecov.io/github/Microsoft/SparkCLR?branch=master) |
 
-## Building, Running and Debugging SparkCLR
+## Getting Started
 
-* [Windows Instructions](notes/windows-instructions.md)
-* [Linux Instructions](notes/linux-instructions.md)
+| |Windows |Linux |
+|---|:------:|:----:|
+|Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-sparkclr) |[linux-instructions.md](notes/linux-instructions.md#building-sparkclr) |
+|Run samples (functional tests) in local mode |[windows-instructions.md](notes/windows-instructions.md#running-samples) |[linux-instructions.md](notes/linux-instructions.md#running-samples) |
+|Run standlone examples in Client mode |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |
+|Run standlone examples in Cluster mode |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |[Quick start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |
 
-(Note: Tested with Spark 1.5.2)
+Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using SparkCLR with Spark on Linux
+
+## Supported Spark Versions
+
+SparkCLR is built and tested with [Spark 1.4.1](https://github.com/Microsoft/SparkCLR/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/SparkCLR/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/SparkCLR/tree/master).
 
 ## License
 
