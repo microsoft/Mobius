@@ -58,10 +58,10 @@ RunSamples.cmd
 
 It is **required** to run [Build.cmd](../build/Build.cmd) prior to running [RunSamples.cmd](../build/RunSamples.cmd).
 
-[RunSamples.cmd](../build/RunSamples.cmd) downloads Apache Spark 1.4.1, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
+[RunSamples.cmd](../build/localmode/RunSamples.cmd) downloads Apache Spark 1.6.0, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
 
-A few more [RunSamples.cmd](../build/RunSamples.cmd) examples:
-- To display all options supported by [RunSamples.cmd](../build/RunSamples.cmd): 
+A few more [RunSamples.cmd](../build/localmode/RunSamples.cmd) examples:
+- To display all options supported by [RunSamples.cmd](../build/localmode/RunSamples.cmd): 
 
     ```  
     RunSamples.cmd  --help

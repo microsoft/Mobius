@@ -62,6 +62,7 @@ namespace Microsoft.Spark.CSharp
                     context.Checkpoint(checkpointPath);
 
                     var lines = context.TextFileStream(Path.Combine(directory, "test"));
+                    lines = context.Union(lines, lines);
                     var words = lines.FlatMap(l => l.Split(' '));
                     var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
 

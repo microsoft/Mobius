@@ -64,6 +64,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
             var sparkConfProxy = new SparkConfIpcProxy(jvmSparkConfReference);
             sparkContext = new SparkContext(sparkContextProxy, new SparkConf(sparkConfProxy));
+
+            // TODO: We don't know whether accumulator variable is used before restart. We just start accumuator server for safety.
+            sparkContext.StartAccumulatorServer();
         }
 
         public void Start()
@@ -126,9 +129,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
         }
 
-        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string serializationMode, string serializationMode2)
+        public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string className, string serializationMode, string serializationMode2)
         {
-            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpStateDStream",
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp." + className,
                 new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, serializationMode, serializationMode2 });
 
             var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
@@ -185,7 +188,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         new object[] 
                         { 
                             (firstDStream as DStreamIpcProxy).javaDStreamReference,
-                            otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference).ToArray()
+                            SparkContextIpcProxy.GetJavaList<JvmObjectReference>(otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
                         }
                     )));
         }
@@ -202,7 +205,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         private void ProcessCallbackRequest(object socket)
         {
-            logger.LogInfo("new thread created to process callback request");
+            logger.LogDebug("new thread created to process callback request");
 
             try
             {
@@ -216,7 +219,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                             string cmd = SerDe.ReadString(s);
                             if (cmd == "close")
                             {
-                                logger.LogInfo("receive close cmd from Scala side");
+                                logger.LogDebug("receive close cmd from Scala side");
                                 break;
                             }
                             else if (cmd == "callback")
@@ -264,6 +267,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                             if (!callbackSocketShutdown)
                             {
                                 logger.LogException(e);
+
+                                // exit when exception happens
+                                logger.LogError("ProcessCallbackRequest fail, will exit ...");
+                                Thread.Sleep(1000);
+                                System.Environment.Exit(1);
                             }
                         }
                     }
@@ -274,7 +282,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 logger.LogException(e);
             }
 
-            logger.LogInfo("thread to process callback request exit");
+            logger.LogDebug("thread to process callback request exit");
         }
 
         public int StartCallback()
