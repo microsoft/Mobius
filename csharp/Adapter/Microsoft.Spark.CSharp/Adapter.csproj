@@ -132,6 +132,7 @@
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\Kafka.cs" />
+    <Compile Include="Streaming\MapWithStateDStream.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />
@@ -149,7 +150,7 @@
     <PreBuildEvent>
     </PreBuildEvent>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
@@ -162,7 +163,7 @@
       XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML"
       OutputPaths="..\documentation\SparkCLR_API_Documentation.md"
       Condition="'$(OS)' == 'Windows_NT'" />
-    <Exec 
+    <Exec
       Command="xsltproc -o ../documentation/SparkCLR_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML"
       Condition="'$(OS)' != 'Windows_NT'" />
   </Target>

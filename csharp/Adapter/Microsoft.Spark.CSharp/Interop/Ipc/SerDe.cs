@@ -74,13 +74,13 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 (int)value[2] << 8 |
                 (int)value[1] << 16 |
                 (int)value[0] << 24;
-        } 
+        }
 
         public static int ReadInt(Stream s)
         {
             return ToInt(ReadBytes(s, 4));
-        } 
-        
+        }
+
         public static long ReadLong(Stream s)
         {
             byte[] buffer = ReadBytes(s, 8);
@@ -94,19 +94,19 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 (long)buffer[1] << 48 |
                 (long)buffer[0] << 56;
         }
-        
+
         public static double ReadDouble(Stream s)
         {
             byte[] buffer = ReadBytes(s, 8);
             Array.Reverse(buffer); //Netty byte order is BigEndian
             return BitConverter.ToDouble(buffer, 0);
         }
-        
+
         public static string ReadString(Stream s)
         {
             return ToString(ReadBytes(s));
         }
-        
+
         public static byte[] ReadBytes(Stream s, int length)
         {
             if (length < 0)
@@ -138,7 +138,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
             return buffer;
         }
-        
+
         public static byte[] ReadBytes(Stream s)
         {
             var lengthBuffer = ReadBytes(s, 4);
@@ -151,14 +151,14 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
             return ReadBytes(s, length);
         }
-        
+
         public static string ReadObjectId(Stream s)
         {
             var type = s.ReadByte();
 
             if (type == 'n')
                 return null;
-            
+
             if (type != 'j')
             {
                 Console.WriteLine("Expecting java object identifier type");
@@ -167,11 +167,25 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
             return ReadString(s);
         }
-        
+
         public static void Write(Stream s, byte value)
         {
             s.WriteByte(value);
             totalWriteNum += 1;
+        }
+
+        public static void WriteBytes(Stream s, byte[] value)
+        {
+            if (value == null || value.Length == 0)
+            {
+                Write(s, 0);
+            }
+            else
+            {
+                Write(s, value.Length);
+                Write(s, value);
+            }
+
         }
 
         public static void Write(Stream s, byte[] value)
@@ -182,24 +196,24 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public static void Write(Stream s, int value)
         {
-            Write(s, new byte[] { 
+            Write(s, new byte[] {
                 (byte)(value >> 24),
-                (byte)(value >> 16), 
-                (byte)(value >> 8), 
+                (byte)(value >> 16),
+                (byte)(value >> 8),
                 (byte)value
             });
         }
 
         public static void Write(Stream s, long value)
         {
-            Write(s, new byte[] { 
+            Write(s, new byte[] {
                 (byte)(value >> 56),
-                (byte)(value >> 48), 
-                (byte)(value >> 40), 
-                (byte)(value >> 32), 
-                (byte)(value >> 24), 
-                (byte)(value >> 16), 
-                (byte)(value >> 8), 
+                (byte)(value >> 48),
+                (byte)(value >> 40),
+                (byte)(value >> 32),
+                (byte)(value >> 24),
+                (byte)(value >> 16),
+                (byte)(value >> 8),
                 (byte)value,
             });
         }

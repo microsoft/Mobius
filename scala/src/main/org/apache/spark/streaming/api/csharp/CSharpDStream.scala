@@ -67,6 +67,7 @@ object CSharpDStream {
         x.map(JavaRDD.fromRDD(_).asInstanceOf[AnyRef]).orNull))
       writeDouble(dos, time.milliseconds.toDouble)
       writeBytes(dos, cSharpfunc)
+      writeInt(dos, serializationModeList.length)
       serializationModeList.foreach(x => writeString(dos, x))
       dos.flush()
       val result = Option(readObject(dis).asInstanceOf[JavaRDD[Array[Byte]]]).map(_.rdd)
@@ -105,7 +106,8 @@ object CSharpDStream {
 class CSharpDStream(
                      parent: DStream[_],
                      cSharpFunc: Array[Byte],
-                     serializationMode: String)
+                     serializationMode: String,
+                     serializationMode2: String)
   extends DStream[Array[Byte]] (parent.ssc) {
 
   override def dependencies: List[DStream[_]] = List(parent)
@@ -115,7 +117,7 @@ class CSharpDStream(
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
     val rdd = parent.compute(validTime)
     if (rdd.isDefined) {
-      CSharpDStream.callCSharpTransform(List(rdd), validTime, cSharpFunc, List(serializationMode))
+      CSharpDStream.callCSharpTransform(List(rdd), validTime, cSharpFunc, List(serializationMode, serializationMode2))
     } else {
       None
     }

@@ -21,5 +21,6 @@ namespace Microsoft.Spark.CSharp.Proxy
         void Persist(StorageLevelType storageLevelType);
         void Checkpoint(long intervalMs);
         IRDDProxy[] Slice(long fromUnixTime, long toUnixTime);
+        IDStreamProxy StateSnapshots();
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
@@ -231,7 +232,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             int windowSeconds, int slideSeconds, int numPartitions = 0)
         {
             var ls = self.MapValues(x => new List<V> { x });
-            
+
             var grouped = ls.ReduceByKeyAndWindow(
                     (a, b) => { a.AddRange(b); return a; },
                     (a, b) => { a.RemoveRange(0, b.Count); return a; },
@@ -297,12 +298,12 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             return new DStream<KeyValuePair<K, V>>(
                 SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpReducedWindowedDStream(
-                    reduced.Piplinable ? reduced.prevDStreamProxy : reduced.DStreamProxy, 
+                    reduced.Piplinable ? reduced.prevDStreamProxy : reduced.DStreamProxy,
                     stream.ToArray(),
                     invStream == null ? null : invStream.ToArray(),
                     windowSeconds,
                     slideSeconds,
-                    (reduced.Piplinable ? reduced.prevSerializedMode : reduced.serializedMode).ToString()), 
+                    (reduced.Piplinable ? reduced.prevSerializedMode : reduced.serializedMode).ToString()),
                 self.streamingContext
             );
         }
@@ -327,7 +328,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             return UpdateStateByKey<K, V, S>(self, new UpdateStateByKeyHelper<K, V, S>(updateFunc).Execute, numPartitions);
         }
-        
+
         /// <summary>
         /// Return a new "state" DStream where the state for each key is updated by applying
         /// the given function on the previous state of the key and the new values of the key.
@@ -345,7 +346,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             return UpdateStateByKey<K, V, S>(self, new MapPartitionsHelper<KeyValuePair<K, Tuple<IEnumerable<V>, S>>, KeyValuePair<K, S>>(updateFunc).Execute, numPartitions);
         }
-        
+
         /// <summary>
         /// Return a new "state" DStream where the state for each key is updated by applying
         /// the given function on the previous state of the key and the new values of the key.
@@ -379,6 +380,28 @@ namespace Microsoft.Spark.CSharp.Streaming
                     self.serializedMode.ToString(),
                     (self.Piplinable ? self.prevSerializedMode : self.serializedMode).ToString()),
                 self.streamingContext);
+        }
+
+        /// <summary>
+        /// Return a new "state" DStream where the state for each key is updated by applying
+        /// the given function on the previous state of the key and the new values of the key.
+        /// </summary>
+        public static MapWithStateDStream<K, V, S, M> MapWithState<K, V, S, M>(this DStream<KeyValuePair<K, V>> self, StateSpec<K, V, S, M> stateSpec)
+        {
+            DStream<byte[]> bDStream = self.Map(new KeyValuePair2BytesHelper<K, V>().Execute);
+            bDStream.serializedMode = SerializedMode.None;
+
+            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func = new MapWithStateHelper<K, V, S, M>(stateSpec.mappingFunction).Execute;
+            var command = SparkContext.BuildCommand(new CSharpWorkerFunc(func), SerializedMode.None, SerializedMode.None);
+
+            var dstream = new DStream<byte[]>(
+                SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpMapStateDStream(
+                    bDStream.DStreamProxy, command, stateSpec.idleDuration.Milliseconds),
+                self.streamingContext, SerializedMode.None);
+
+            var deserializedDStream = dstream.Map(new DeserializeHelper<M>().Execute);
+
+            return new MapWithStateDStream<K, V, S, M>(deserializedDStream.DStreamProxy, dstream.DStreamProxy, deserializedDStream.streamingContext);
         }
     }
 
@@ -454,7 +477,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             return func(kvp.Value).Select(v => new KeyValuePair<K, U>(kvp.Key, v));
         }
     }
-    
+
     [Serializable]
     internal class GroupByKeyHelper<K, V>
     {
@@ -554,10 +577,10 @@ namespace Microsoft.Spark.CSharp.Streaming
         private readonly Func<KeyValuePair<K, V>, bool> filterFunc;
         private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
 
-        internal ReduceByKeyAndWindowHelper(Func<V, V, V> reduceF, 
-            Func<V, V, V> invReduceF, 
-            int numPartitions, 
-            Func<KeyValuePair<K, V>, bool> filterF, 
+        internal ReduceByKeyAndWindowHelper(Func<V, V, V> reduceF,
+            Func<V, V, V> invReduceF,
+            int numPartitions,
+            Func<KeyValuePair<K, V>, bool> filterF,
             Func<double, RDD<dynamic>, RDD<dynamic>> prevF)
         {
             reduceFunc = reduceF;
@@ -577,7 +600,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             {
                 if (prevFunc != null)
                     a = prevFunc(t, a);
-                
+
                 r = a.ConvertTo<KeyValuePair<K, V>>().Union(r).ReduceByKey<K, V>(reduceFunc);
             }
             if (filterFunc != null)
@@ -600,7 +623,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             return r.ConvertTo<dynamic>();
         }
     }
-    
+
     [Serializable]
     internal class UpdateStateByKeyHelper<K, V, S>
     {
@@ -624,7 +647,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
         private readonly int numPartitions;
         internal UpdateStateByKeysHelper(
-            Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> f, 
+            Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> f,
             Func<double, RDD<dynamic>, RDD<dynamic>> prevF, int numPartitions)
         {
             func = f;

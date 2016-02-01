@@ -23,7 +23,7 @@ using Razorvine.Pickle.Objects;
 namespace Microsoft.Spark.CSharp
 {
     /// <summary>
-    /// Worker implementation for SparkCLR. The implementation is identical to the 
+    /// Worker implementation for SparkCLR. The implementation is identical to the
     /// worker used in PySpark. The RDD implementation to fork an external process
     /// and pipe data in and out between JVM & the other runtime is already implemented in PySpark.
     /// SparkCLR uses the same design and implementation of PythonRDD (CSharpRDD extends PythonRDD).
@@ -230,7 +230,7 @@ namespace Microsoft.Spark.CSharp
                         SerDe.Write(s, ToUnixTime(initTime));
                         SerDe.Write(s, ToUnixTime(finish_time));
 
-                        SerDe.Write(s, 0L); //shuffle.MemoryBytesSpilled  
+                        SerDe.Write(s, 0L); //shuffle.MemoryBytesSpilled
                         SerDe.Write(s, 0L); //shuffle.DiskBytesSpilled
 
                         commandProcessWatch.Stop();
@@ -457,6 +457,22 @@ namespace Microsoft.Spark.CSharp
 
                         result = new object[1];
                         result[0] = new KeyValuePair<byte[], byte[]>(pairKey, pairValue);
+                        break;
+                    }
+
+                case "None":
+                    {
+                        result = new object[1];
+                        if (messageLength > 0)
+                        {
+                            byte[] buffer = SerDe.ReadBytes(inputStream, messageLength);
+                            result[0] = buffer;
+                        }
+                        else
+                        {
+                            result[0] = null;
+                        }
+
                         break;
                     }
 

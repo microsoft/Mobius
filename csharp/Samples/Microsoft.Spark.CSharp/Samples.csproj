@@ -54,6 +54,7 @@
     <Compile Include="CommandlineArgumentProcessor.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="DataFrameSamples.cs" />
+    <Compile Include="DStreamStateSample.cs" />
     <Compile Include="DStreamSamples.cs" />
     <Compile Include="MiscSamples.cs" />
     <Compile Include="DoubleRDDSamples.cs" />

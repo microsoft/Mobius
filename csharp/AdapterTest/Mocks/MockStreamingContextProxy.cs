@@ -71,7 +71,7 @@ namespace AdapterTest.Mocks
             get { throw new NotImplementedException(); }
         }
 
-        public IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string serializationMode)
+        public IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string serializationMode, string serializationMode2)
         {
             Func<double, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
             RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,
@@ -107,5 +107,9 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy(rdd.RddProxy);
         }
 
+        public IDStreamProxy CreateCSharpMapStateDStream(IDStreamProxy jdstream, byte[] func, long timeoutIntervalInMillis)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

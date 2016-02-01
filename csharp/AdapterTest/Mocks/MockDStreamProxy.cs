@@ -65,5 +65,10 @@ namespace AdapterTest.Mocks
         {
             return new IRDDProxy[] { rddProxy };
         }
+
+        public IDStreamProxy StateSnapshots()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
