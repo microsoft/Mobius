@@ -259,6 +259,10 @@ class CSharpStateDStream(
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
 }
 
+/**
+ * MapWithStateDStream API support follows 'internal' DStream idea from
+ * scala\org\apache\spark\streaming\dstream\MapWithStateDStream.scala
+ */
 
 class CSharpMapWithStateDStream(
                            parent: DStream[Array[Byte]],
