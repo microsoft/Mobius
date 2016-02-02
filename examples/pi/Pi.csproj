@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Spark.CSharp.Examples</RootNamespace>
-    <AssemblyName>SparkCLRPiExample</AssemblyName>
+    <AssemblyName>SparkClrPi</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
@@ -41,7 +41,7 @@
     </Reference>
     <Reference Include="CSharpWorker">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.5.20\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe</HintPath>
     </Reference>
     <Reference Include="log4net">
       <SpecificVersion>False</SpecificVersion>
