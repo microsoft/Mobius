@@ -33,7 +33,7 @@ The following environment variables should be set properly:
     ./clean.sh  
     ```  
     
-[build.sh](../build/build.sh) prepares the following directories under `SparkCLR\run` after the build is done:
+[build.sh](../build/build.sh) prepares the following directories under `SparkCLR\build\localmode` after the build is done:
 
   * **lib** ( `spark-clr*.jar` )  
   * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
