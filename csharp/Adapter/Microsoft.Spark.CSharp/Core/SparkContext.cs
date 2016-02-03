@@ -10,11 +10,13 @@ using System.Text;
 
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Core
 {
     public class SparkContext
     {
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkContext));
         internal ISparkContextProxy SparkContextProxy { get; private set; }
         internal SparkConf SparkConf { get; private set; }
 
@@ -65,18 +67,15 @@ namespace Microsoft.Spark.CSharp.Core
 
         public SparkContext(string master, string appName, string sparkHome)
             : this(master, appName, sparkHome, null)
-        {
-        }
+        {}
 
         public SparkContext(string master, string appName)
             : this(master, appName, null, null)
-        {
-        }
+        {}
 
         public SparkContext(SparkConf conf)
             : this(null, null, null, conf)
-        {
-        }
+        {}
 
         /// <summary>
         /// when created from checkpoint
@@ -114,6 +113,7 @@ namespace Microsoft.Spark.CSharp.Core
 
         public RDD<string> TextFile(string filePath, int minPartitions = 0)
         {
+            logger.LogInfo("Reading text file {0} as RDD<string> with {1} partitions", filePath, minPartitions);
             return new RDD<string>(SparkContextProxy.TextFile(filePath, minPartitions), this, SerializedMode.String);
         }
 
@@ -142,6 +142,7 @@ namespace Microsoft.Spark.CSharp.Core
             if (numSlices < 1)
                 numSlices = 1;
 
+            logger.LogInfo("Parallelizing {0} items to form RDD in the cluster with {1} partitions", collectionOfByteRepresentationOfObjects.Count, numSlices);
             return new RDD<T>(SparkContextProxy.Parallelize(collectionOfByteRepresentationOfObjects, numSlices), this);
         }
 
@@ -401,9 +402,16 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         public void Stop()
         {
+            logger.LogInfo("Stopping SparkContext");
+            logger.LogInfo("Note that there might be error in Spark logs on the failure to delete userFiles directory " +
+                           "under Spark temp directory (spark.local.dir config value in local mode)");
+            logger.LogInfo("This error may be ignored for now. See https://issues.apache.org/jira/browse/SPARK-8333 for details");
+
             if (accumulatorServer != null)
                 accumulatorServer.Shutdown();
+
             SparkContextProxy.Stop();
+
         }
 
         /// <summary>

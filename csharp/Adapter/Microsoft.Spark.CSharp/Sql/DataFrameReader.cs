@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -14,6 +15,8 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class DataFrameReader
     {
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(DataFrameReader));
+
         private readonly IDataFrameReaderProxy dataFrameReaderProxy;
         private readonly SparkContext sparkContext;
 
@@ -27,6 +30,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public DataFrameReader Format(string source)
         {
+            logger.LogInfo("Input data source format for the reader is '{0}'", source);
             dataFrameReaderProxy.Format(source);
             return this;
         }
@@ -48,6 +52,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrameReader Option(string key, string value)
         {
             dataFrameReaderProxy.Options(new Dictionary<string, string>(){{key, value}});
+            logger.LogInfo("Input key-vaue option for the data source is {0}={1}", key, value);
             return this;
         }
 
@@ -75,6 +80,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public DataFrame Load()
         {
+            logger.LogInfo("Loading DataFrame using the reader");
             return new DataFrame(dataFrameReaderProxy.Load(), sparkContext);
         }
 
@@ -84,6 +90,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public DataFrame Jdbc(string url, string table, Dictionary<String, String> properties)
         {
+            logger.LogInfo("Constructing DataFrame using JDBC source. Url={0}, tableName={1}", url, table);
             return new DataFrame(dataFrameReaderProxy.Jdbc(url, table, properties), sparkContext);
         }
 
@@ -106,6 +113,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrame Jdbc(string url, string table, string columnName, string lowerBound, string upperBound, 
             int numPartitions, Dictionary<String, String> connectionProperties)
         {
+            logger.LogInfo("Constructing DataFrame using JDBC source. Url={0}, tableName={1}, columnName={2}", url, table, columnName);
             return new DataFrame(dataFrameReaderProxy.Jdbc(url, table, columnName, lowerBound, upperBound, numPartitions, connectionProperties), sparkContext);
         }
 
@@ -125,6 +133,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Normally at least a "user" and "password" property should be included.</param>
         public DataFrame Jdbc(string url, string table, string[] predicates, Dictionary<String, String> connectionProperties)
         {
+            logger.LogInfo("Constructing DataFrame using JDBC source. Url={0}, table={1}", url, table);
             return new DataFrame(dataFrameReaderProxy.Jdbc(url, table, predicates, connectionProperties), sparkContext);
         }
 
@@ -137,6 +146,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="path">input path</param>
         public DataFrame Json(string path)
         {
+            logger.LogInfo("Constructing DataFrame using JSON source {0}", path);
             return Format("json").Load(path);
         }
 
@@ -146,6 +156,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public DataFrame Parquet(params string[] path)
         {
+            logger.LogInfo("Constructing DataFrame using Parquet source {0}", string.Join(";", path));
             return new DataFrame(dataFrameReaderProxy.Parquet(path), sparkContext);
         }
     }
