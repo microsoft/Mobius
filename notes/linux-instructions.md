@@ -33,7 +33,7 @@ The following environment variables should be set properly:
     ./clean.sh  
     ```  
     
-[build.sh](../build/build.sh) prepares the following directories under `SparkCLR\build\localmode` after the build is done:
+[build.sh](../build/build.sh) prepares the following directories under `SparkCLR\build\runtime` after the build is done:
 
   * **lib** ( `spark-clr*.jar` )  
   * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
@@ -62,7 +62,7 @@ It is **required** to run [build.sh](../build/build.sh) prior to running [run-sa
 
 **Note that SparkCLR requires a customized Apache Spark for use in Linux** (see [linux-compatibility.md](./linux-compatibility.md) for details).
 
-[run-samples.sh](../build/localmode/run-samples.sh) downloads Apache Spark 1.6.0 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/run` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/run/Temp`.
+[run-samples.sh](../build/localmode/run-samples.sh) downloads Apache Spark 1.6.0 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/build/runtime` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/build/runtime/Temp`.
 
 A few more [run-samples.sh](../build/localmode/run-samples.sh) examples:
 - To display all options supported by [run-samples.sh](../build/localmode/run-samples.sh): 
