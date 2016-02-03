@@ -32,7 +32,7 @@ JDK should be downloaded manually, and the following environment variables shoul
 		Clean.cmd  
 		```  
 		
-[Build.cmd](../build/Build.cmd) downloads necessary build tools; after the build is done, it prepares the folowing directories under `SparkCLR\run`:
+[Build.cmd](../build/Build.cmd) downloads necessary build tools; after the build is done, it prepares the folowing directories under `SparkCLR\build\runtime`:
 
   * **lib** ( `spark-clr*.jar` )  
   * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
@@ -58,7 +58,7 @@ RunSamples.cmd
 
 It is **required** to run [Build.cmd](../build/Build.cmd) prior to running [RunSamples.cmd](../build/RunSamples.cmd).
 
-[RunSamples.cmd](../build/localmode/RunSamples.cmd) downloads Apache Spark 1.6.0, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\run` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\run\Temp`.
+[RunSamples.cmd](../build/localmode/RunSamples.cmd) downloads Apache Spark 1.6.0, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR\build\runtime` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `SparkCLR\build\runtime\Temp`.
 
 A few more [RunSamples.cmd](../build/localmode/RunSamples.cmd) examples:
 - To display all options supported by [RunSamples.cmd](../build/localmode/RunSamples.cmd): 
