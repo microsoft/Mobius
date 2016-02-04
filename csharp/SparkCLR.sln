@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfBenchmark", "Perf\Micro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerTest", "WorkerTest\WorkerTest.csproj", "{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shell", "shell\Shell.csproj", "{61FF0035-3910-4356-B2DC-AF6B857317AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repl", "Repl\Repl.csproj", "{61FF0035-3910-4356-B2DC-AF6B857317AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

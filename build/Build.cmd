@@ -36,7 +36,7 @@ if NOT EXIST "%SPARKCLR_HOME%\bin" mkdir "%SPARKCLR_HOME%\bin"
 if NOT EXIST "%SPARKCLR_HOME%\data" mkdir "%SPARKCLR_HOME%\data"
 if NOT EXIST "%SPARKCLR_HOME%\lib" mkdir "%SPARKCLR_HOME%\lib"
 if NOT EXIST "%SPARKCLR_HOME%\samples" mkdir "%SPARKCLR_HOME%\samples"
-if NOT EXIST "%SPARKCLR_HOME%\shell" mkdir "%SPARKCLR_HOME%\shell"
+if NOT EXIST "%SPARKCLR_HOME%\repl" mkdir "%SPARKCLR_HOME%\repl"
 
 @echo Assemble SparkCLR Scala components
 pushd "%CMDHOME%\..\scala"
@@ -128,16 +128,15 @@ copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 
 @echo SparkCLR Samples data
 copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
+
+@echo SparkCLR REPL
+copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\repl\"
+copy /y Repl\bin\Release\* "%SPARKCLR_HOME%\repl\"
+
 popd
 
 @echo Assemble SparkCLR script components
 xcopy /e /y "%CMDHOME%\..\scripts"  "%SPARKCLR_HOME%\scripts\"
-
-@echo SparkCLR REPL
-pushd "%CMDHOME%\csharp"
-copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\shell\"
-copy /y shell\bin\Release\* "%SPARKCLR_HOME%\shell\"
-popd
 
 @echo Make distribution
 pushd "%CMDHOME%"
