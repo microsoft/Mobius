@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -35,13 +37,14 @@ namespace Microsoft.Spark.CSharp
             Directory.CreateDirectory(dllDirectory);
         }
 
-        public static bool IsCompleteSubmission(string code)
+        internal static bool IsCompleteSubmission(string code)
         {
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
+            var options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Diagnose, SourceCodeKind.Script);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options);
             return SyntaxFactory.IsCompleteSubmission(syntaxTree);
         }
 
-        public static object Execute(string code)
+        internal static object Execute(string code)
         {
             Script<object> script;
             if (previousState == null)
@@ -71,7 +74,7 @@ namespace Microsoft.Spark.CSharp
                 DisplayErrors(script.Compile());
                 return null;
             }
-            
+
             PersistCompilation(script.GetCompilation());
             if (host == null)
             {
@@ -79,7 +82,7 @@ namespace Microsoft.Spark.CSharp
                 var sc = new SparkContext(conf);
                 host = new SparkCLRHost
                 {
-                    sc = sc, 
+                    sc = sc,
                     sqlContext = new SqlContext(sc)
                 };
             }
@@ -120,7 +123,7 @@ namespace Microsoft.Spark.CSharp
             finally
             {
                 Console.ResetColor();
-            } 
+            }
         }
 
         private static void PersistCompilation(Compilation compilation)
@@ -149,18 +152,40 @@ namespace Microsoft.Spark.CSharp
             while (true)
             {
                 Console.Write("> ");
-                var line = Console.ReadLine();
-                if (string.IsNullOrEmpty(line))
+                var inputLines = new StringBuilder();
+                bool cancelSubmission = false;
+ 
+                while (true)
+                {
+                    var line = Console.ReadLine();
+
+                    if (string.IsNullOrEmpty(line))
+                    {
+                        cancelSubmission = true;
+                        break;
+                    }
+
+                    if (line.Trim().Equals(":quit", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return;
+                    }    
+
+                    inputLines.AppendLine(line);
+
+                    if (CSharpScriptEngine.IsCompleteSubmission(inputLines.ToString()))
+                    {
+                        break;
+                    }
+
+                    Console.Write(". ");
+                }
+
+                if (cancelSubmission)
                 {
                     continue;
                 }
 
-                if (line.Trim().Equals(":quit", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    break;
-                }
-
-                var returnValue = CSharpScriptEngine.Execute(line);
+                var returnValue = CSharpScriptEngine.Execute(inputLines.ToString());
                 if (returnValue != null)
                 {
                     Console.WriteLine(returnValue);
