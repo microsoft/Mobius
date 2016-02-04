@@ -8,6 +8,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Interop;
@@ -132,6 +133,28 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 return this.stackTrace;
             }
+        }
+
+        protected CSharpWorkerFunc(SerializationInfo info, StreamingContext context)
+        {
+            info.SetType(typeof(CSharpWorkerFunc));
+            try
+            {
+                func = (Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>)info.GetValue("func", typeof(CSharpWorkerFunc));
+            }
+            catch (Exception)
+            {
+                
+                Console.WriteLine("Can't find fun field.");
+            }
+            
+        }
+
+        [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.SetType(typeof(CSharpWorkerFunc));
+            info.AddValue("func", func, typeof(CSharpWorkerFunc));
         }
     }
 }

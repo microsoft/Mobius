@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adapter", "Adapter\Microsoft.Spark.CSharp\Adapter.csproj", "{CE999A96-F42B-4E80-B208-709D7F49A77C}"
 EndProject
@@ -18,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfBenchmark", "Perf\Microsoft.Spark.CSharp\PerfBenchmark.csproj", "{ADC09740-6969-4225-9093-038857CE693B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerTest", "WorkerTest\WorkerTest.csproj", "{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shell", "shell\Shell.csproj", "{61FF0035-3910-4356-B2DC-AF6B857317AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +51,10 @@ Global
 		{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61FF0035-3910-4356-B2DC-AF6B857317AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61FF0035-3910-4356-B2DC-AF6B857317AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61FF0035-3910-4356-B2DC-AF6B857317AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61FF0035-3910-4356-B2DC-AF6B857317AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

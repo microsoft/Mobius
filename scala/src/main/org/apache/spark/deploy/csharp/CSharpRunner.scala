@@ -104,6 +104,7 @@ object CSharpRunner {
           val process = builder.start()
 
           new RedirectThread(process.getInputStream, System.out, "redirect CSharp output").start()
+          new RedirectThread(System.in, process.getOutputStream, "redirect JVM input").start()
 
           returnCode = process.waitFor()
           closeBackend(csharpBackend)

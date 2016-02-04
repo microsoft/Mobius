@@ -2,6 +2,7 @@
 setlocal enabledelayedexpansion
 
 set VERBOSE=
+set INTERACTIVE=
 
 :argsloop
 
@@ -12,6 +13,10 @@ if "%1" == "" (
     if "%1" == "--verbose" (
         set VERBOSE="verbose"
         @echo [RunSamples.cmd] VERBOSE is !VERBOSE!
+    )
+    if "%1" == "-i" (
+        set INTERACTIVE="interactive"
+        @echo [RunSamples.cmd] Interactive mode is ON.
     )
     rem - shift the arguments and examine %1 again
     shift
@@ -60,7 +65,12 @@ set SAMPLES_DIR=%SPARKCLR_HOME%\samples
 
 pushd %SPARKCLR_HOME%\scripts
 
-@echo [RunSamples.cmd] call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
-call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+if !INTERACTIVE! == "interactive" (
+	@echo [RunSamples.cmd] call sparkclr-shell.cmd %*
+	call sparkclr-shell.cmd
+) else (
+	@echo [RunSamples.cmd] call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+	call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+)
 
 popd

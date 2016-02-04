@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -12,6 +13,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
@@ -22,6 +24,30 @@ using Razorvine.Pickle.Objects;
 
 namespace Microsoft.Spark.CSharp
 {
+    internal class SparkCLRAssemblyHandler
+    {
+
+        private readonly ConcurrentDictionary<string, Assembly> assemblyDict = new ConcurrentDictionary<string, Assembly>();
+
+        public void SetAssemblies(Assembly[] assemblies)
+        {
+            foreach (var assembly in assemblies)
+            {
+                assemblyDict[assembly.FullName] = assembly;
+            }
+        }
+
+        public Assembly Handler(object source, ResolveEventArgs e)
+        {
+            if (assemblyDict.ContainsKey(e.Name))
+            {
+                return assemblyDict[e.Name];
+            }
+
+            return null;
+        }
+    }
+
     /// <summary>
     /// Worker implementation for SparkCLR. The implementation is identical to the 
     /// worker used in PySpark. The RDD implementation to fork an external process
@@ -36,6 +62,9 @@ namespace Microsoft.Spark.CSharp
 
         static void Main(string[] args)
         {
+            var assemblyHandler = new SparkCLRAssemblyHandler();
+            AppDomain.CurrentDomain.AssemblyResolve += assemblyHandler.Handler;
+
             // if there exists exe.config file, then use log4net
             if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile))
             {
@@ -122,7 +151,7 @@ namespace Microsoft.Spark.CSharp
                     int lengthOCommandByteArray = SerDe.ReadInt(s);
                     logger.LogInfo("command_len: " + lengthOCommandByteArray);
 
-                    IFormatter formatter = new BinaryFormatter();
+                    BinaryFormatter formatter = new BinaryFormatter();
 
                     if (lengthOCommandByteArray > 0)
                     {
@@ -141,14 +170,28 @@ namespace Microsoft.Spark.CSharp
                         string serializerMode = SerDe.ReadString(s);
                         logger.LogInfo("Serializer mode: " + serializerMode);
 
-                        byte[] command = SerDe.ReadBytes(s);
+                        string runMode = SerDe.ReadString(s);
+                        logger.LogInfo("Run mode: " + runMode);
 
+                        if (runMode.Equals("shell", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int assembliesCount = SerDe.ReadInt(s);
+                            logger.LogInfo("Total received assemblies count: " + assembliesCount);
+                            var assemblies = new Assembly[assembliesCount];
+                            for (var i = 0; i < assembliesCount; i++)
+                            {
+                                assemblies[i] = Assembly.Load(SerDe.ReadBytes(s, SerDe.ReadInt(s)));
+                            }
+                            assemblyHandler.SetAssemblies(assemblies);
+                        }
+
+                        byte[] command = SerDe.ReadBytes(s);
                         logger.LogInfo("command bytes read: " + command.Length);
                         var stream = new MemoryStream(command);
 
                         var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
                         var func = workerFunc.Func;
-                        logger.LogInfo(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
+                        //logger.LogInfo(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
                         DateTime initTime = DateTime.UtcNow;
                         int count = 0;
 
@@ -287,6 +330,7 @@ namespace Microsoft.Spark.CSharp
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine(e.StackTrace);
                     logger.LogError(e.ToString());
                     try
                     {
@@ -338,6 +382,7 @@ namespace Microsoft.Spark.CSharp
         private int pos = 0;
 
         IFormatter formatter = new BinaryFormatter();
+
         private Stopwatch watch = new Stopwatch();
 
         public WorkerInputEnumerator(Stream inputStream, string deserializedMode)

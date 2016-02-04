@@ -33,6 +33,7 @@ if NOT EXIST "%SPARKCLR_HOME%\data" mkdir "%SPARKCLR_HOME%\data"
 if NOT EXIST "%SPARKCLR_HOME%\lib" mkdir "%SPARKCLR_HOME%\lib"
 if NOT EXIST "%SPARKCLR_HOME%\samples" mkdir "%SPARKCLR_HOME%\samples"
 if NOT EXIST "%SPARKCLR_HOME%\scripts" mkdir "%SPARKCLR_HOME%\scripts"
+if NOT EXIST "%SPARKCLR_HOME%\shell" mkdir "%SPARKCLR_HOME%\shell"
 
 @echo Assemble SparkCLR Scala components
 pushd "%CMDHOME%\scala"
@@ -100,6 +101,12 @@ popd
 @echo Assemble SparkCLR script components
 pushd "%CMDHOME%\scripts"
 copy /y *.cmd  "%SPARKCLR_HOME%\scripts\"
+popd
+
+@echo Install SparkCLR Shell
+pushd "%CMDHOME%\csharp"
+copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\shell\"
+copy /y shell\bin\Release\* "%SPARKCLR_HOME%\shell\"
 popd
 
 @echo zip run directory

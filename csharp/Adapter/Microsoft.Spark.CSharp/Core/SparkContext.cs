@@ -514,7 +514,9 @@ namespace Microsoft.Spark.CSharp.Core
         internal static byte[] BuildCommand(CSharpWorkerFunc workerFunc, SerializedMode deserializerMode = SerializedMode.Byte, SerializedMode serializerMode = SerializedMode.Byte)
         {
             var formatter = new BinaryFormatter();
+            formatter.AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple;
             var stream = new MemoryStream();
+            Console.WriteLine("WorkerFunc:" + workerFunc);
             formatter.Serialize(stream, workerFunc);
             List<byte[]> commandPayloadBytesList = new List<byte[]>();
 
@@ -540,6 +542,29 @@ namespace Microsoft.Spark.CSharp.Core
             Array.Reverse(lengthAsBytes);
             commandPayloadBytesList.Add(lengthAsBytes);
             commandPayloadBytesList.Add(modeBytes);
+
+            // run mode
+            var runMode = Environment.GetEnvironmentVariable("SPARKCLR_RUN_MODE");
+            if (string.IsNullOrEmpty(runMode))
+            {
+                runMode = "normal";
+            }
+            Console.WriteLine("Runmode:" + runMode);
+            AppendRunMode(commandPayloadBytesList, runMode);
+
+            // add assembly when run mode is shell
+            if (runMode.Equals("shell", StringComparison.InvariantCultureIgnoreCase))
+            {
+                const string compilationDir = "SPARKCLR_SCRIPT_COMPILATION_DIR";
+                var dllDir = Environment.GetEnvironmentVariable(compilationDir);
+                if (string.IsNullOrEmpty(dllDir))
+                {
+                    throw new Exception("Env variable '" + compilationDir + "' not set.");
+                }
+
+                AppendAssemblies(commandPayloadBytesList, dllDir);
+            }
+
             // add func
             var funcBytes = stream.ToArray();
             var funcBytesLengthAsBytes = BitConverter.GetBytes(funcBytes.Length);
@@ -547,6 +572,38 @@ namespace Microsoft.Spark.CSharp.Core
             commandPayloadBytesList.Add(funcBytesLengthAsBytes);
             commandPayloadBytesList.Add(funcBytes);
             return commandPayloadBytesList.SelectMany(byteArray => byteArray).ToArray();
+        }
+
+        internal static void AppendRunMode(List<byte[]> commandPayloadBytesList, string runMode)
+        {
+            var runModeBytes = Encoding.UTF8.GetBytes(runMode);
+            AppendToCommandPayload(commandPayloadBytesList, runModeBytes);
+        }
+
+        internal static void AppendAssemblies(List<byte[]> commandPayloadBytesList, string dllDir)
+        {
+            List<byte[]> payloads = Directory.GetFiles(dllDir).Select(File.ReadAllBytes).Where(bytes => bytes.Length > 0).ToList();
+            AppendToCommandPayload(commandPayloadBytesList, payloads.Count);
+            foreach (var p in payloads)
+            {
+                AppendToCommandPayload(commandPayloadBytesList, p);
+            }
+        }
+
+        internal static void AppendToCommandPayload(List<byte[]> commandPayloadBytesList, int num)
+        {
+            var numAsBytes = BitConverter.GetBytes(num);
+            Array.Reverse(numAsBytes);
+            commandPayloadBytesList.Add(numAsBytes);
+        }
+
+        internal static void AppendToCommandPayload(List<byte[]> commandPayloadBytesList, byte[] bytes)
+        {
+            var length = bytes.Length;
+            var lengthAsBytes = BitConverter.GetBytes(length);
+            Array.Reverse(lengthAsBytes);
+            commandPayloadBytesList.Add(lengthAsBytes);
+            commandPayloadBytesList.Add(bytes);
         }
     }
 }
