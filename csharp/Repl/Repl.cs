@@ -132,7 +132,7 @@ namespace Microsoft.Spark.CSharp
         }
     }
 
-    class Shell
+    class Repl
     {
         static void Main(string[] args)
         {
