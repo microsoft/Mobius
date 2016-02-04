@@ -76,27 +76,6 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 (int)value[0] << 24;
         } 
 
-        public static int Convert(int value)
-        {
-            var buffer = BitConverter.GetBytes(value);
-            Array.Reverse(buffer); //Netty byte order is BigEndian
-            return BitConverter.ToInt32(buffer, 0);
-        }
-
-        public static long Convert(long value)
-        {
-            var buffer = BitConverter.GetBytes(value);
-            Array.Reverse(buffer); //Netty byte order is BigEndian
-            return BitConverter.ToInt64(buffer, 0);
-        }
-
-        public static double Convert(double value)
-        {
-            var buffer = BitConverter.GetBytes(value);
-            Array.Reverse(buffer); //Netty byte order is BigEndian
-            return BitConverter.ToDouble(buffer, 0);
-        }
-
         public static int ReadInt(Stream s)
         {
             return ToInt(ReadBytes(s, 4));

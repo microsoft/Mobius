@@ -77,7 +77,7 @@ namespace Microsoft.Spark.CSharp
             {
                 PrintFiles();
                 int javaPort = int.Parse(Console.ReadLine());
-                logger.LogInfo("java_port: " + javaPort);
+                logger.LogDebug("java_port: " + javaPort);
                 sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 sock.Connect(IPAddress.Loopback, javaPort);
             }
@@ -95,12 +95,12 @@ namespace Microsoft.Spark.CSharp
                     DateTime bootTime = DateTime.UtcNow;
 
                     int splitIndex = SerDe.ReadInt(s);
-                    logger.LogInfo("split_index: " + splitIndex);
+                    logger.LogDebug("split_index: " + splitIndex);
                     if (splitIndex == -1)
                         Environment.Exit(-1);
 
                     string ver = SerDe.ReadString(s);
-                    logger.LogInfo("ver: " + ver);
+                    logger.LogDebug("ver: " + ver);
 
                     //// initialize global state
                     //shuffle.MemoryBytesSpilled = 0
@@ -108,13 +108,13 @@ namespace Microsoft.Spark.CSharp
 
                     // fetch name of workdir
                     string sparkFilesDir = SerDe.ReadString(s);
-                    logger.LogInfo("spark_files_dir: " + sparkFilesDir);
+                    logger.LogDebug("spark_files_dir: " + sparkFilesDir);
                     //SparkFiles._root_directory = sparkFilesDir
                     //SparkFiles._is_running_on_worker = True
 
                     // fetch names of includes - not used //TODO - complete the impl
                     int numberOfIncludesItems = SerDe.ReadInt(s);
-                    logger.LogInfo("num_includes: " + numberOfIncludesItems);
+                    logger.LogDebug("num_includes: " + numberOfIncludesItems);
 
                     if (numberOfIncludesItems > 0)
                     {
@@ -126,7 +126,7 @@ namespace Microsoft.Spark.CSharp
 
                     // fetch names and values of broadcast variables
                     int numBroadcastVariables = SerDe.ReadInt(s);
-                    logger.LogInfo("num_broadcast_variables: " + numBroadcastVariables);
+                    logger.LogDebug("num_broadcast_variables: " + numBroadcastVariables);
 
                     if (numBroadcastVariables > 0)
                     {
@@ -148,12 +148,12 @@ namespace Microsoft.Spark.CSharp
 
                     Accumulator.accumulatorRegistry.Clear();
 
-                    int lengthOCommandByteArray = SerDe.ReadInt(s);
-                    logger.LogInfo("command_len: " + lengthOCommandByteArray);
+                    int lengthOfCommandByteArray = SerDe.ReadInt(s);
+                    logger.LogDebug("command length: " + lengthOfCommandByteArray);
 
                     BinaryFormatter formatter = new BinaryFormatter();
 
-                    if (lengthOCommandByteArray > 0)
+                    if (lengthOfCommandByteArray > 0)
                     {
                         Stopwatch commandProcessWatch = new Stopwatch();
                         Stopwatch funcProcessWatch = new Stopwatch();
@@ -165,10 +165,10 @@ namespace Microsoft.Spark.CSharp
                         logger.LogInfo(string.Format("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId));
 
                         string deserializerMode = SerDe.ReadString(s);
-                        logger.LogInfo("Deserializer mode: " + deserializerMode);
+                        logger.LogDebug("Deserializer mode: " + deserializerMode);
 
                         string serializerMode = SerDe.ReadString(s);
-                        logger.LogInfo("Serializer mode: " + serializerMode);
+                        logger.LogDebug("Serializer mode: " + serializerMode);
 
                         string runMode = SerDe.ReadString(s);
                         logger.LogInfo("Run mode: " + runMode);
@@ -186,12 +186,12 @@ namespace Microsoft.Spark.CSharp
                         }
 
                         byte[] command = SerDe.ReadBytes(s);
-                        logger.LogInfo("command bytes read: " + command.Length);
+                        logger.LogDebug("command bytes read: " + command.Length);
                         var stream = new MemoryStream(command);
 
                         var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
                         var func = workerFunc.Func;
-                        //logger.LogInfo(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
+                        logger.LogDebug(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
                         DateTime initTime = DateTime.UtcNow;
                         int count = 0;
 
@@ -257,7 +257,7 @@ namespace Microsoft.Spark.CSharp
                         }
 
                         //TODO - complete the impl
-                        logger.LogInfo("Count: " + count);
+                        logger.LogDebug("Count: " + count);
 
                         //if profiler:
                         //    profiler.profile(process)
@@ -266,7 +266,7 @@ namespace Microsoft.Spark.CSharp
 
                         DateTime finish_time = DateTime.UtcNow;
                         const string format = "MM/dd/yyyy hh:mm:ss.fff tt";
-                        logger.LogInfo(string.Format("bootTime: {0}, initTime: {1}, finish_time: {2}",
+                        logger.LogDebug(string.Format("bootTime: {0}, initTime: {1}, finish_time: {2}",
                             bootTime.ToString(format), initTime.ToString(format), finish_time.ToString(format)));
                         SerDe.Write(s, (int)SpecialLengths.TIMING_DATA);
                         SerDe.Write(s, ToUnixTime(bootTime));
@@ -296,7 +296,7 @@ namespace Microsoft.Spark.CSharp
                     {
                         var ms = new MemoryStream();
                         var value = item.Value.GetType().GetField("value", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(item.Value);
-                        logger.LogInfo(string.Format("({0}, {1})", item.Key, value));
+                        logger.LogDebug(string.Format("({0}, {1})", item.Key, value));
                         formatter.Serialize(ms, new KeyValuePair<int, dynamic>(item.Key, value));
                         byte[] buffer = ms.ToArray();
                         SerDe.Write(s, buffer.Length);
@@ -309,7 +309,7 @@ namespace Microsoft.Spark.CSharp
                     if (end == (int)SpecialLengths.END_OF_STREAM)
                     {
                         SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
-                        logger.LogInfo("END_OF_STREAM: " + (int)SpecialLengths.END_OF_STREAM);
+                        logger.LogDebug("END_OF_STREAM: " + (int)SpecialLengths.END_OF_STREAM);
                     }
                     else
                     {
@@ -320,8 +320,8 @@ namespace Microsoft.Spark.CSharp
                     s.Flush();
 
                     // log bytes read and write
-                    logger.LogInfo(string.Format("total read bytes: {0}", SerDe.totalReadNum));
-                    logger.LogInfo(string.Format("total write bytes: {0}", SerDe.totalWriteNum));
+                    logger.LogDebug(string.Format("total read bytes: {0}", SerDe.totalReadNum));
+                    logger.LogDebug(string.Format("total write bytes: {0}", SerDe.totalWriteNum));
 
                     // wait for server to complete, otherwise server gets 'connection reset' exception
                     // Use SerDe.ReadBytes() to detect java side has closed socket properly
@@ -354,7 +354,7 @@ namespace Microsoft.Spark.CSharp
 
         private static void PrintFiles()
         {
-            logger.LogInfo("Files available in executor");
+            logger.LogDebug("Files available in executor");
             var driverFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var files = Directory.EnumerateFiles(driverFolder);
             foreach (var file in files)
@@ -374,16 +374,15 @@ namespace Microsoft.Spark.CSharp
     {
         private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WorkerInputEnumerator));
 
-        private Stream inputStream;
-        private string deserializedMode;
+        private readonly Stream inputStream;
+        private readonly string deserializedMode;
 
         // cache deserialized object read from input stream
         private object[] items = null;
         private int pos = 0;
 
-        IFormatter formatter = new BinaryFormatter();
-
-        private Stopwatch watch = new Stopwatch();
+        private readonly IFormatter formatter = new BinaryFormatter();
+        private readonly Stopwatch watch = new Stopwatch();
 
         public WorkerInputEnumerator(Stream inputStream, string deserializedMode)
         {
@@ -406,7 +405,7 @@ namespace Microsoft.Spark.CSharp
                 if (messageLength == (int)SpecialLengths.END_OF_DATA_SECTION)
                 {
                     hasNext = false;
-                    logger.LogInfo("END_OF_DATA_SECTION");
+                    logger.LogDebug("END_OF_DATA_SECTION");
                 }
                 else if ((messageLength > 0) || (messageLength == (int)SpecialLengths.NULL))
                 {

@@ -4,15 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Reflection;
 using System.IO;
 using System.Security.Cryptography;
-
-using Microsoft.Spark.CSharp.Interop;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -26,7 +21,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Return the key-value pairs in this RDD to the master as a dictionary.
         ///
-        /// var m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).CollectAsMap()
+        /// var m = sc.Parallelize(new[] { new <see cref="KeyValuePair{int, int}"/>(1, 2), new <see cref="KeyValuePair{int, int}"/>(3, 4) }, 1).CollectAsMap()
         /// m[1]
         /// 2
         /// m[3]
@@ -45,7 +40,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Return an RDD with the keys of each tuple.
         ///
-        /// >>> m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).Keys().Collect()
+        /// >>> m = sc.Parallelize(new[] { new <see cref="KeyValuePair{int, int}"/>(1, 2), new <see cref="KeyValuePair{int, int}"/>(3, 4) }, 1).Keys().Collect()
         /// [1, 3]
         /// </summary>
         /// <typeparam name="K"></typeparam>
@@ -60,7 +55,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Return an RDD with the values of each tuple.
         ///
-        /// >>> m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).Values().Collect()
+        /// >>> m = sc.Parallelize(new[] { new <see cref="KeyValuePair{int, int}"/>(1, 2), new <see cref="KeyValuePair{int, int}"/>(3, 4) }, 1).Values().Collect()
         /// [2, 4]
         /// 
         /// </summary>
@@ -79,14 +74,14 @@ namespace Microsoft.Spark.CSharp.Core
         /// This will also perform the merging locally on each mapper before
         /// sending results to a reducer, similarly to a "combiner" in MapReduce.
         /// 
-        /// Output will be hash-partitioned with C{numPartitions} partitions, or
-        /// the default parallelism level if C{numPartitions} is not specified.
+        /// Output will be hash-partitioned with <paramref name="numPartitions"/> partitions, or
+        /// the default parallelism level if <paramref name="numPartitions"/> is not specified.
         /// 
         /// sc.Parallelize(new[] 
         /// { 
-        ///     new KeyValuePair&lt;string, int>("a", 1), 
-        ///     new KeyValuePair&lt;string, int>("b", 1),
-        ///     new KeyValuePair&lt;string, int>("a", 1)
+        ///     new <see cref="KeyValuePair{string, int}"/>("a", 1), 
+        ///     new <see cref="KeyValuePair{string, int}"/>("b", 1),
+        ///     new <see cref="KeyValuePair{string, int}"/>("a", 1)
         /// }, 2)
         /// .ReduceByKey((x, y) => x + y).Collect()
         ///        
@@ -113,9 +108,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// sc.Parallelize(new[] 
         /// { 
-        ///     new KeyValuePair&lt;string, int>("a", 1), 
-        ///     new KeyValuePair&lt;string, int>("b", 1),
-        ///     new KeyValuePair&lt;string, int>("a", 1)
+        ///     new <see cref="KeyValuePair{string, int}"/>("a", 1), 
+        ///     new <see cref="KeyValuePair{string, int}"/>("b", 1),
+        ///     new <see cref="KeyValuePair{string, int}"/>("a", 1)
         /// }, 2)
         /// .ReduceByKeyLocally((x, y) => x + y).Collect()
         /// 
@@ -137,9 +132,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// sc.Parallelize(new[] 
         /// { 
-        ///     new KeyValuePair&lt;string, int>("a", 1), 
-        ///     new KeyValuePair&lt;string, int>("b", 1),
-        ///     new KeyValuePair&lt;string, int>("a", 1)
+        ///     new <see cref="KeyValuePair{string, int}"/>("a", 1), 
+        ///     new <see cref="KeyValuePair{string, int}"/>("b", 1),
+        ///     new <see cref="KeyValuePair{string, int}"/>("a", 1)
         /// }, 2)
         /// .CountByKey((x, y) => x + y).Collect()
         /// 
@@ -156,16 +151,16 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Return an RDD containing all pairs of elements with matching keys in C{self} and C{other}.
+        /// Return an RDD containing all pairs of elements with matching keys in this RDD and <paramref name="other"/>.
         /// 
-        /// Each pair of elements will be returned as a (k, (v1, v2)) tuple, where (k, v1) is in C{self} and (k, v2) is in C{other}.
+        /// Each pair of elements will be returned as a (k, (v1, v2)) tuple, where (k, v1) is in this RDD and (k, v2) is in <paramref name="other"/>.
         /// 
         /// Performs a hash join across the cluster.
         /// 
         /// var l = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 1), new <see cref="KeyValuePair{string, int}"/>("b", 4) }, 1);
         /// var r = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 2), new KeyValuePair&lt;string, int>("a", 3) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 2), new <see cref="KeyValuePair{string, int}"/>("a", 3) }, 1);
         /// var m = l.Join(r, 2).Collect();
         /// 
         /// [('a', (1, 2)), ('a', (1, 3))]
@@ -189,21 +184,22 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Perform a left outer join of C{self} and C{other}.
+        /// Perform a left outer join of this RDD and <paramref name="other"/>.
         /// 
-        /// For each element (k, v) in C{self}, the resulting RDD will either
-        /// contain all pairs (k, (v, w)) for w in C{other}, or the pair
-        /// (k, (v, None)) if no elements in C{other} have key k.
+        /// For each element (k, v) in this RDD, the resulting RDD will either
+        /// contain all pairs (k, (v, Option)) for w in <paramref name="other"/>, where Option.IsDefined is TRUE, or the pair
+        /// (k, (v, Option)) if no elements in <paramref name="other"/> have key k, where Option.IsDefined is FALSE. 
         /// 
         /// Hash-partitions the resulting RDD into the given number of partitions.
         /// 
         /// var l = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 1), new <see cref="KeyValuePair{string, int}"/>("b", 4) }, 1);
         /// var r = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 2) }, 1);
         /// var m = l.LeftOuterJoin(r).Collect();
         /// 
-        /// [('a', (1, 2)), ('b', (4, None))]
+        /// [('a', (1, 2)), ('b', (4, Option))]
+        /// * Option.IsDefined = FALSE
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
@@ -212,32 +208,32 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, Tuple<V, W>>> LeftOuterJoin<K, V, W>(
+        public static RDD<KeyValuePair<K, Tuple<V, Option<W>>>> LeftOuterJoin<K, V, W>(
             this RDD<KeyValuePair<K, V>> self,
             RDD<KeyValuePair<K, W>> other,
             int numPartitions = 0)
         {
             return self.GroupWith(other, numPartitions).FlatMapValues(
-                input => input.Item1.SelectMany(v => input.Item2.DefaultIfEmpty().Select(w => new Tuple<V, W>(v, w)))
-                );
+                input => input.Item1.SelectMany(v => input.Item2.NullIfEmpty().Select(optionW => new Tuple<V, Option<W>>(v, optionW)))                );
         }
 
         /// <summary>
-        /// Perform a right outer join of C{self} and C{other}.
+        /// Perform a right outer join of this RDD and <paramref name="other"/>.
         /// 
-        /// For each element (k, w) in C{other}, the resulting RDD will either
-        /// contain all pairs (k, (v, w)) for v in this, or the pair (k, (None, w))
-        /// if no elements in C{self} have key k.
+        /// For each element (k, w) in <paramref name="other"/>, the resulting RDD will either
+        /// contain all pairs (k, (Option, w)) for v in this, where Option.IsDefined is TRUE, or the pair (k, (Option, w))
+        /// if no elements in this RDD have key k, where Option.IsDefined is FALSE.
         /// 
         /// Hash-partitions the resulting RDD into the given number of partitions.
         /// 
         /// var l = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 2) }, 1);
         /// var r = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 1), new <see cref="KeyValuePair{string, int}"/>("b", 4) }, 1);
         /// var m = l.RightOuterJoin(r).Collect();
         /// 
-        /// [('a', (2, 1)), ('b', (None, 4))]
+        /// [('a', (2, 1)), ('b', (Option, 4))]
+        /// * Option.IsDefined = FALSE
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
@@ -246,33 +242,33 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, Tuple<V, W>>> RightOuterJoin<K, V, W>(
+        public static RDD<KeyValuePair<K, Tuple<Option<V>, W>>> RightOuterJoin<K, V, W>(
             this RDD<KeyValuePair<K, V>> self,
             RDD<KeyValuePair<K, W>> other,
             int numPartitions = 0)
         {
             return self.GroupWith(other, numPartitions).FlatMapValues(
-                input => input.Item1.DefaultIfEmpty().SelectMany(v => input.Item2.Select(w => new Tuple<V, W>(v, w)))
+                input => input.Item1.NullIfEmpty().SelectMany(v => input.Item2.Select(w => new Tuple<Option<V>, W>(v, w)))
                 );
         }
 
         /// <summary>
-        /// Perform a full outer join of C{self} and C{other}.
+        /// Perform a full outer join of this RDD and <paramref name="other"/>.
         /// 
-        /// For each element (k, v) in C{self}, the resulting RDD will either
-        /// contain all pairs (k, (v, w)) for w in C{other}, or the pair
-        /// (k, (v, None)) if no elements in C{other} have key k.
+        /// For each element (k, v) in this RDD, the resulting RDD will either
+        /// contain all pairs (k, (v, w)) for w in <paramref name="other"/>, or the pair
+        /// (k, (v, None)) if no elements in <paramref name="other"/> have key k.
         /// 
-        /// Similarly, for each element (k, w) in C{other}, the resulting RDD will
-        /// either contain all pairs (k, (v, w)) for v in C{self}, or the pair
-        /// (k, (None, w)) if no elements in C{self} have key k.
+        /// Similarly, for each element (k, w) in <paramref name="other"/>, the resulting RDD will
+        /// either contain all pairs (k, (v, w)) for v in this RDD, or the pair
+        /// (k, (None, w)) if no elements in this RDD have key k.
         /// 
         /// Hash-partitions the resulting RDD into the given number of partitions.
         /// 
         /// var l = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 1), <see cref="KeyValuePair{string, int}"/>("b", 4) }, 1);
         /// var r = sc.Parallelize(
-        ///     new[] { new KeyValuePair&lt;string, int>("a", 2), new KeyValuePair&lt;string, int>("c", 8) }, 1);
+        ///     new[] { new <see cref="KeyValuePair{string, int}"/>("a", 2), new <see cref="KeyValuePair{string, int}"/>("c", 8) }, 1);
         /// var m = l.FullOuterJoin(r).Collect();
         /// 
         /// [('a', (1, 2)), ('b', (4, None)), ('c', (None, 8))]
@@ -285,20 +281,20 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="other"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, Tuple<V, W>>> FullOuterJoin<K, V, W>(
+        public static RDD<KeyValuePair<K, Tuple<Option<V>, Option<W>>>> FullOuterJoin<K, V, W>(
             this RDD<KeyValuePair<K, V>> self,
             RDD<KeyValuePair<K, W>> other,
             int numPartitions = 0)
         {
             return self.GroupWith(other, numPartitions).FlatMapValues(
-                    input => input.Item1.DefaultIfEmpty().SelectMany(v => input.Item2.DefaultIfEmpty().Select(w => new Tuple<V, W>(v, w)))
+                    input => input.Item1.NullIfEmpty().SelectMany(v => input.Item2.NullIfEmpty().Select(w => new Tuple<Option<V>, Option<W>>(v, w)))
                 );
         }
 
         /// <summary>
         /// Return a copy of the RDD partitioned using the specified partitioner.
         /// 
-        /// sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x => new KeyValuePair&lt;int, int>(x, x)).PartitionBy(3).Glom().Collect()
+        /// sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x => new <see cref="KeyValuePair{int, int}"/>(x, x)).PartitionBy(3).Glom().Collect()
         /// </summary>
         /// <param name="self"></param>
         /// <param name="numPartitions"></param>
@@ -338,19 +334,19 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// Users provide three functions:
         /// 
-        ///     - C{initialValue}, e.g., creates an empty list
-        ///     - C{mergeValue}, to merge a V into a C (e.g., adds it to the end of
+        ///     - <paramref name="createCombiner"/>, which turns a V into a C (e.g., creates a one-element list)
+        ///     - <paramref name="mergeValue"/>, to merge a V into a C (e.g., adds it to the end of
         ///       a list)
-        ///     - C{mergeCombiners}, to combine two C's into a single one.
+        ///     - <paramref name="mergeCombiners"/>, to combine two C's into a single one.
         /// 
         /// In addition, users can control the partitioning of the output RDD.
         /// 
         /// sc.Parallelize(
         ///         new[] 
         ///         { 
-        ///             new KeyValuePair&lt;string, int>("a", 1), 
-        ///             new KeyValuePair&lt;string, int>("b", 1),
-        ///             new KeyValuePair&lt;string, int>("a", 1)
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1), 
+        ///             new <see cref="KeyValuePair{string, int}"/>("b", 1),
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1)
         ///         }, 2)
         ///         .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
         ///         
@@ -391,9 +387,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// sc.Parallelize(
         ///         new[] 
         ///         { 
-        ///             new KeyValuePair&lt;string, int>("a", 1), 
-        ///             new KeyValuePair&lt;string, int>("b", 1),
-        ///             new KeyValuePair&lt;string, int>("a", 1)
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1), 
+        ///             new <see cref="KeyValuePair{string, int}"/>("b", 1),
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1)
         ///         }, 2)
         ///         .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
         ///         
@@ -427,9 +423,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// sc.Parallelize(
         ///         new[] 
         ///         { 
-        ///             new KeyValuePair&lt;string, int>("a", 1), 
-        ///             new KeyValuePair&lt;string, int>("b", 1),
-        ///             new KeyValuePair&lt;string, int>("a", 1)
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1), 
+        ///             new <see cref="KeyValuePair{string, int}"/>("b", 1),
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1)
         ///         }, 2)
         ///         .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
         ///         
@@ -462,9 +458,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// sc.Parallelize(
         ///         new[] 
         ///         { 
-        ///             new KeyValuePair&lt;string, int>("a", 1), 
-        ///             new KeyValuePair&lt;string, int>("b", 1),
-        ///             new KeyValuePair&lt;string, int>("a", 1)
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1), 
+        ///             new <see cref="KeyValuePair{string, int}"/>("b", 1),
+        ///             new <see cref="KeyValuePair{string, int}"/>("a", 1)
         ///         }, 2)
         ///         .GroupByKey().MapValues(l => string.Join(" ", l)).Collect()
         ///         
@@ -492,8 +488,8 @@ namespace Microsoft.Spark.CSharp.Core
         /// sc.Parallelize(
         ///         new[] 
         ///         { 
-        ///             new KeyValuePair&lt;string, string[]>("a", new[]{"apple", "banana", "lemon"}), 
-        ///             new KeyValuePair&lt;string, string[]>("b", new[]{"grapes"})
+        ///             new <see cref="KeyValuePair{string, string[]}"/>("a", new[]{"apple", "banana", "lemon"}), 
+        ///             new <see cref="KeyValuePair{string, string[]}"/>("b", new[]{"grapes"})
         ///         }, 2)
         ///         .MapValues(x => x.Length).Collect()
         ///         
@@ -518,8 +514,8 @@ namespace Microsoft.Spark.CSharp.Core
         /// x = sc.Parallelize(
         ///         new[] 
         ///         { 
-        ///             new KeyValuePair&lt;string, string[]>("a", new[]{"x", "y", "z"}), 
-        ///             new KeyValuePair&lt;string, string[]>("b", new[]{"p", "r"})
+        ///             new <see cref="KeyValuePair{string, string[]}"/>("a", new[]{"x", "y", "z"}), 
+        ///             new <see cref="KeyValuePair{string, string[]}"/>("b", new[]{"p", "r"})
         ///         }, 2)
         ///         .FlatMapValues(x => x).Collect()
         ///         
@@ -567,11 +563,11 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// For each key k in C{self} or C{other}, return a resulting RDD that
-        /// contains a tuple with the list of values for that key in C{self} as well as C{other}.
+        /// For each key k in this RDD or <paramref name="other"/>, return a resulting RDD that
+        /// contains a tuple with the list of values for that key in this RDD as well as <paramref name="other"/>.
         /// 
-        /// var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
-        /// var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+        /// var x = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 1), new <see cref="KeyValuePair{string, int}"/>("b", 4) }, 2);
+        /// var y = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 2) }, 1);
         /// x.GroupWith(y).Collect();
         /// 
         /// [('a', ([1], [2])), ('b', ([4], []))]
@@ -612,9 +608,9 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 5), new KeyValuePair&lt;string, int>("b", 6) }, 2);
-        /// var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
-        /// var z = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+        /// var x = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 5), new <see cref="KeyValuePair{string, int}"/>("b", 6) }, 2);
+        /// var y = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 1), new <see cref="KeyValuePair{string, int}"/>("b", 4) }, 2);
+        /// var z = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 2) }, 1);
         /// x.GroupWith(y, z).Collect();
         /// </summary>
         /// <typeparam name="K"></typeparam>
@@ -657,10 +653,10 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 5), new KeyValuePair&lt;string, int>("b", 6) }, 2);
-        /// var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
-        /// var z = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
-        /// var w = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("b", 42) }, 1);
+        /// var x = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 5), new <see cref="KeyValuePair{string, int}"/>("b", 6) }, 2);
+        /// var y = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 1), new <see cref="KeyValuePair{string, int}"/>("b", 4) }, 2);
+        /// var z = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("a", 2) }, 1);
+        /// var w = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int}"/>("b", 42) }, 1);
         /// var m = x.GroupWith(y, z, w).MapValues(l => string.Join(" ", l.Item1) + " : " + string.Join(" ", l.Item2) + " : " + string.Join(" ", l.Item3) + " : " + string.Join(" ", l.Item4)).Collect();
         /// </summary>
         /// <typeparam name="K"></typeparam>
@@ -713,9 +709,9 @@ namespace Microsoft.Spark.CSharp.Core
         // /// Create a sample of this RDD using variable sampling rates for
         // /// different keys as specified by fractions, a key to sampling rate map.
         // /// 
-        // /// var fractions = new Dictionary&lt;string, double> { { "a", 0.2 }, { "b", 0.1 } };
+        // /// var fractions = new <see cref="Dictionary{string, double}"/> { { "a", 0.2 }, { "b", 0.1 } };
         // /// var rdd = sc.Parallelize(fractions.Keys.ToArray(), 2).Cartesian(sc.Parallelize(Enumerable.Range(0, 1000), 2));
-        // /// var sample = rdd.Map(t => new KeyValuePair&lt;string, int>(t.Item1, t.Item2)).SampleByKey(false, fractions, 2).GroupByKey().Collect();
+        // /// var sample = rdd.Map(t => new <see cref="KeyValuePair{string, int}"/>(t.Item1, t.Item2)).SampleByKey(false, fractions, 2).GroupByKey().Collect();
         // /// 
         // /// 100 &lt; sample["a"].Length &lt; 300 and 50 &lt; sample["b"].Length &lt; 150
         // /// true
@@ -745,10 +741,10 @@ namespace Microsoft.Spark.CSharp.Core
         //}
 
         /// <summary>
-        /// Return each (key, value) pair in C{self} that has no pair with matching key in C{other}.
+        /// Return each (key, value) pair in this RDD that has no pair with matching key in <paramref name="other"/>.
         /// 
-        /// var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int?>("a", 1), new KeyValuePair&lt;string, int?>("b", 4), new KeyValuePair&lt;string, int?>("b", 5), new KeyValuePair&lt;string, int?>("a", 2) }, 2);
-        /// var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int?>("a", 3), new KeyValuePair&lt;string, int?>("c", null) }, 2);
+        /// var x = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int?}"/>("a", 1), new <see cref="KeyValuePair{string, int?}"/>("b", 4), new <see cref="KeyValuePair{string, int?}"/>("b", 5), new <see cref="KeyValuePair{string, int?}"/>("a", 2) }, 2);
+        /// var y = sc.Parallelize(new[] { new <see cref="KeyValuePair{string, int?}"/>("a", 3), new <see cref="KeyValuePair{string, int?}"/>("c", null) }, 2);
         /// x.SubtractByKey(y).Collect();
         /// 
         /// [('b', 4), ('b', 5)]
@@ -772,7 +768,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// searching the partition that the key maps to.
         /// 
         /// >>> l = range(1000)
-        /// >>> rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) => new KeyValuePair&lt;int, int>(x, y)), 10)
+        /// >>> rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) => new <see cref="KeyValuePair{int, int}"/>(x, y)), 10)
         /// >>> rdd.lookup(42)
         /// [42]
         /// 
@@ -788,10 +784,10 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Output a Python RDD of key-value pairs (of form C{RDD[(K, V)]}) to any Hadoop file
+        /// Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
         /// system, using the new Hadoop OutputFormat API (mapreduce package). Keys/values are
         /// converted for output using either user specified converters or, by default,
-        /// L{org.apache.spark.api.python.JavaToWritableConverter}.
+        /// org.apache.spark.api.python.JavaToWritableConverter.
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
@@ -819,10 +815,10 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Output a Python RDD of key-value pairs (of form C{RDD[(K, V)]}) to any Hadoop file
+        /// Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
         /// system, using the old Hadoop OutputFormat API (mapred package). Keys/values are
         /// converted for output using either user specified converters or, by default,
-        /// L{org.apache.spark.api.python.JavaToWritableConverter}.
+        /// org.apache.spark.api.python.JavaToWritableConverter.
         /// </summary>
         /// <typeparam name="K"></typeparam>
         /// <typeparam name="V"></typeparam>
@@ -834,11 +830,11 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Output a Python RDD of key-value pairs (of form C{RDD[(K, V)]}) to any Hadoop file
+        /// Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
         /// system, using the old Hadoop OutputFormat API (mapred package). Key and value types
         /// will be inferred if not specified. Keys and values are converted for output using either
-        /// user specified converters or L{org.apache.spark.api.python.JavaToWritableConverter}. The
-        /// C{conf} is applied on top of the base Hadoop conf associated with the SparkContext
+        /// user specified converters or org.apache.spark.api.python.JavaToWritableConverter. The
+        /// <paramref name="conf"/> is applied on top of the base Hadoop conf associated with the SparkContext
         /// of this RDD to create a merged Hadoop MapReduce job configuration for saving the data.
         /// </summary>
         /// <typeparam name="K"></typeparam>
@@ -856,8 +852,8 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Output a Python RDD of key-value pairs (of form C{RDD[(K, V)]}) to any Hadoop file
-        /// system, using the L{org.apache.hadoop.io.Writable} types that we convert from the
+        /// Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
+        /// system, using the org.apache.hadoop.io.Writable types that we convert from the
         /// RDD's key and value types. The mechanism is as follows:
         /// 
         ///     1. Pyrolite is used to convert pickled Python RDD into RDD of Java objects.
@@ -985,6 +981,11 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 return input.Key.ToString() == key.ToString();
             }
+        }
+
+        public static List<Option<T>> NullIfEmpty<T>(this IEnumerable<T> list)
+        {
+            return list.Any() ? list.Select(v => new Option<T>(v)).ToList() : new List<Option<T>>() { new Option<T>() };
         }
     }
 }

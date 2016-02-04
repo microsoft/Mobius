@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/*
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 
 package org.apache.spark.sql.api.csharp
 
@@ -142,7 +144,11 @@ object SQLUtils {
     sqlContext.read.format(source).schema(schema).load()
   }
 
-  def loadTextFile(sqlContext: SQLContext, path: String, hasHeader: java.lang.Boolean, inferSchema: java.lang.Boolean) : DataFrame = {
+  def loadTextFile(
+                    sqlContext: SQLContext,
+                    path: String,
+                    hasHeader: java.lang.Boolean,
+                    inferSchema: java.lang.Boolean) : DataFrame = {
     var dfReader = sqlContext.read.format("com.databricks.spark.csv")
     if (hasHeader)
     {
@@ -155,7 +161,11 @@ object SQLUtils {
       dfReader.load(path)
   }
 
-  def loadTextFile(sqlContext: SQLContext, path: String, delimiter: String, schemaJson: String) : DataFrame = {
+  def loadTextFile(
+      sqlContext: SQLContext,
+      path: String,
+      delimiter: String,
+      schemaJson: String) : DataFrame = {
     val stringRdd = sqlContext.sparkContext.textFile(path)
 
     val schema = createSchema(schemaJson)
@@ -164,36 +174,38 @@ object SQLUtils {
       val columns = s.split(delimiter)
       columns.length match {
         case 1 => RowFactory.create(columns(0))
-        case 2 => RowFactory.create(columns(0),columns(1))
-        case 3 => RowFactory.create(columns(0),columns(1),columns(2))
-        case 4 => RowFactory.create(columns(0),columns(1),columns(2),columns(3))
-        case 5 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4))
-        case 6 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5))
-        case 7 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6))
-        case 8 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7))
-        case 9 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8))
-        case 10 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9))
-        case 11 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10))
-        case 12 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11))
-        case 13 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12))
-        case 14 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13))
-        case 15 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14))
-        case 16 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15))
-        case 17 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16))
-        case 18 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17))
-        case 19 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18))
-        case 20 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19))
-        case 21 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20))
-        case 22 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21))
-        case 23 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22))
-        case 24 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22),columns(23))
-        case 25 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22),columns(23),columns(24))
-        case 26 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22),columns(23),columns(24),columns(25))
-        case 27 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22),columns(23),columns(24),columns(25),columns(26))
-        case 28 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22),columns(23),columns(24),columns(25),columns(26),columns(27))
-        case 29 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22),columns(23),columns(24),columns(25),columns(26),columns(27),columns(28))
-        case 30 => RowFactory.create(columns(0),columns(1),columns(2),columns(3),columns(4),columns(5),columns(6),columns(7),columns(8),columns(9),columns(10),columns(11),columns(12),columns(13),columns(14),columns(15),columns(16),columns(17),columns(18),columns(19),columns(20),columns(21),columns(22),columns(23),columns(24),columns(25),columns(26),columns(27),columns(28),columns(29))
+        case 2 => RowFactory.create(columns(0), columns(1))
+        case 3 => RowFactory.create(columns(0), columns(1), columns(2))
+        case 4 => RowFactory.create(columns(0), columns(1), columns(2), columns(3))
+        case 5 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4))
+        // scalastyle:off
+        case 6 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5))
+        case 7 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6))
+        case 8 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7))
+        case 9 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8))
+        case 10 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9))
+        case 11 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10))
+        case 12 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11))
+        case 13 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12))
+        case 14 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13))
+        case 15 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14))
+        case 16 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15))
+        case 17 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16))
+        case 18 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17))
+        case 19 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18))
+        case 20 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19))
+        case 21 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20))
+        case 22 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21))
+        case 23 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22))
+        case 24 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22), columns(23))
+        case 25 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22), columns(23), columns(24))
+        case 26 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22), columns(23), columns(24), columns(25))
+        case 27 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22), columns(23), columns(24), columns(25), columns(26))
+        case 28 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22), columns(23), columns(24), columns(25), columns(26), columns(27))
+        case 29 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22), columns(23), columns(24), columns(25), columns(26), columns(27), columns(28))
+        case 30 => RowFactory.create(columns(0), columns(1), columns(2), columns(3), columns(4), columns(5), columns(6), columns(7), columns(8), columns(9), columns(10), columns(11), columns(12), columns(13), columns(14), columns(15), columns(16), columns(17), columns(18), columns(19), columns(20), columns(21), columns(22), columns(23), columns(24), columns(25), columns(26), columns(27), columns(28), columns(29))
         case _ => throw new Exception("Text files with more than 30 columns currently not supported") //TODO - if requirement comes up, generate code for additional columns
+        // scalastyle:on
       }
     }
 

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
+using NUnit.Framework;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -17,15 +18,15 @@ namespace Microsoft.Spark.CSharp.Samples
         [Serializable]
         internal class BroadcastHelper<T>
         {
-            private readonly T[] value;
-            internal BroadcastHelper(T[] value)
+            private readonly Broadcast<T[]> broadcastVar;
+            internal BroadcastHelper(Broadcast<T[]> broadcastVar)
             {
-                this.value = value;
+                this.broadcastVar = broadcastVar;
             }
 
             internal IEnumerable<T> Execute(int i)
             {
-                return value;
+                return broadcastVar.Value;
             }
         }
 
@@ -34,15 +35,29 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var b = SparkCLRSamples.SparkContext.Broadcast<int[]>(Enumerable.Range(1, 5).ToArray());
             foreach (var value in b.Value)
+            {
                 Console.Write(value + " ");
+            }   
             Console.WriteLine();
 
-            b.Unpersist();
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5 }, b.Value);
+            }
 
-            var r = SparkCLRSamples.SparkContext.Parallelize(new[] { 0, 0 }, 1).FlatMap(new BroadcastHelper<int>(b.Value).Execute).Collect();
+            RDD<int> rdd = SparkCLRSamples.SparkContext.Parallelize(new[] { 0, 0 }, 1);
+            var r = rdd.FlatMap(new BroadcastHelper<int>(b).Execute).Collect();
             foreach (var value in r)
+            {
                 Console.Write(value + " ");
+            }  
             Console.WriteLine();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                // each item in rdd is mapped to broadcast value.
+                CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5, 1, 2, 3, 4, 5 }, r);
+            }
         }
 
         [Serializable]
@@ -54,20 +69,25 @@ namespace Microsoft.Spark.CSharp.Samples
                 this.accumulator = accumulator;
             }
 
-            internal int Execute(int input)
+            internal void Execute(int input)
             {
-                accumulator += 1;
-                return input;
+                accumulator += input;
             }
         }
 
         [Sample]
         internal static void SparkContextAccumulatorSample()
         {
-            var a = SparkCLRSamples.SparkContext.Accumulator<int>(1);
-            var r = SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 3).Map(new AccumulatorHelper(a).Execute).Collect();
+            var a = SparkCLRSamples.SparkContext.Accumulator<int>(100);
+            SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4 }, 3).Foreach(new AccumulatorHelper(a).Execute);
 
-            Console.WriteLine(a.Value);
+            Console.WriteLine("accumulator value: " + a.Value);
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                // The value is accumulated on the initial value of the Accumulator which is 100. 110 = 100 + 1 + 2 + 3 + 4
+                Assert.AreEqual(110, a.Value);
+            }
         }
 
         [Sample]
@@ -102,7 +122,14 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var rdd1 = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 1, 2, 3 }, 1);
             var rdd2 = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 1, 2, 3 }, 1);
-            Console.WriteLine(string.Join(",", SparkCLRSamples.SparkContext.Union(new[] { rdd1, rdd2 }).Collect()));
+
+            var union = SparkCLRSamples.SparkContext.Union(new[] { rdd1, rdd2 }).Collect();
+            Console.WriteLine(string.Join(",", union));
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                CollectionAssert.AreEqual(new[] { 1, 1, 2, 3, 1, 1, 2, 3 }, union);
+            }
         }
     }
 }

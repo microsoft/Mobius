@@ -2,7 +2,7 @@
 
 export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export SPARKCLR_HOME="$FWDIR/run"
+export SPARKCLR_HOME="$FWDIR/runtime"
 echo "SPARKCLR_HOME=$SPARKCLR_HOME"
 
 if [ -d "$SPARKCLR_HOME" ];
@@ -19,22 +19,17 @@ fi
 [ ! -d "$SPARKCLR_HOME/scripts" ] && mkdir "$SPARKCLR_HOME/scripts"
 
 echo "Assemble SparkCLR Scala components"
-pushd "$FWDIR/scala"
+pushd "$FWDIR/../scala"
 
 # clean the target directory first
 mvn clean -q
 [ $? -ne 0 ] && exit 1
 
 # Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
-# however, it breaks debug mode in IntellJ. A temporary workaroud to add shade-plugin
+# however, it breaks debug mode in IntellJ. So enable shade-plugin
 # only in build.cmd to create the uber-package.
-cp pom.xml /tmp/pom.xml.original
-sed -i -e '/<\!--OTHER PLUGINS-->/r other-plugin.xml' pom.xml
 # build the package
-mvn package -q
-[ $? -ne 0 ] && exit 1
-# After uber package is created, restore Pom.xml
-cp /tmp/pom.xml.original pom.xml
+mvn package -Puber-jar -q
 
 if [ $? -ne 0 ]
 then
@@ -43,7 +38,7 @@ then
 	exit 1
 fi
 echo "SparkCLR Scala binaries"
-cp target/*.jar "$SPARKCLR_HOME/lib/"
+cp target/spark*.jar "$SPARKCLR_HOME/lib/"
 popd
 
 # Any .jar files under the lib directory will be copied to the staged runtime lib tree.
@@ -58,7 +53,7 @@ then
 fi
 
 echo "Assemble SparkCLR C# components"
-pushd "$FWDIR/csharp"
+pushd "$FWDIR/../csharp"
 
 # clean any possible previous build first
 ./clean.sh
@@ -84,7 +79,7 @@ cp Samples/Microsoft.Spark.CSharp/data/* "$SPARKCLR_HOME/data/"
 popd
 
 echo "Assemble SparkCLR script components"
-pushd "$FWDIR/scripts"
+pushd "$FWDIR/../scripts"
 cp *.sh  "$SPARKCLR_HOME/scripts/"
 popd
 

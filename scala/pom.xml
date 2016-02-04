@@ -1,10 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.microsoft.spark</groupId>
-  <artifactId>spark-clr</artifactId>
-  <version>1.5.2-SNAPSHOT</version>
-  <name>${project.artifactId}</name>
+  <groupId>com.microsoft.sparkclr</groupId>
+  <artifactId>spark-clr_2.10</artifactId>
+  <version>1.6.0-SNAPSHOT</version>
+  <name>SparkCLR Project</name>
   <description>C# language binding and extensions to Apache Spark</description>
+  <url>https://github.com/Microsoft/sparkclr</url>
   <inceptionYear>2015</inceptionYear>
   <licenses>
     <license>
@@ -14,12 +15,27 @@
     </license>
   </licenses>
 
+  <developers>
+    <developer>
+      <name>SparkCLR Team</name>
+      <email>sparkclrdev@microsoft.com</email>
+      <organization>Microsoft</organization>
+      <organizationUrl>http://www.microsoft.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:Microsoft/SparkCLR.git</connection>
+    <developerConnection>scm:git:git@github.com:Microsoft/SparkCLR.git</developerConnection>
+    <url>git@github.com:Microsoft/SparkCLR.git</url>
+  </scm>
+
   <properties>
     <maven.compiler.source>1.5</maven.compiler.source>
     <maven.compiler.target>1.5</maven.compiler.target>
     <encoding>UTF-8</encoding>
     <scala.version>2.10.4</scala.version>
-    <spark.version>1.5.2</spark.version>
+    <spark.version>1.6.0</spark.version>
     <scala.binary.version>2.10</scala.binary.version>
   </properties>
 
@@ -66,14 +82,14 @@
           <artifactId>spark-core_2.10</artifactId>
           <version>${spark.version}</version>
           <!--the following is placeholder for building uber package. Please keep as-is-->
-          <!--<scope>provided</scope>-->
+	      <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
           <artifactId>spark-streaming_2.10</artifactId>
           <version>${spark.version}</version>
           <!--the following is placeholder for building uber package. Please keep as-is-->
-          <!--<scope>provided</scope>-->
+	      <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
@@ -85,7 +101,7 @@
           <artifactId>spark-sql_2.10</artifactId>
           <version>${spark.version}</version>
           <!--the following is placeholder for building uber package. Please keep as-is-->
-          <!--<scope>provided</scope>-->
+	      <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>com.databricks</groupId>
@@ -94,6 +110,17 @@
       </dependency>
   </dependencies>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
   <build>
       <sourceDirectory>src/main</sourceDirectory>
       <testSourceDirectory>src/test/scala</testSourceDirectory>
@@ -101,8 +128,10 @@
           <plugin>
               <groupId>org.scala-tools</groupId>
               <artifactId>maven-scala-plugin</artifactId>
+              <version>2.15.2</version>
               <executions>
                   <execution>
+                      <id>id-compile</id>
                       <goals>
                           <goal>compile</goal>
                           <goal>testCompile</goal>
@@ -141,32 +170,169 @@
                   </execution>
               </executions>
           </plugin>
-          <plugin>
-              <groupId>org.scalastyle</groupId>
-              <artifactId>scalastyle-maven-plugin</artifactId>
-              <version>0.7.0</version>
-              <configuration>
-                  <verbose>false</verbose>
-                  <failOnViolation>false</failOnViolation>
-                  <includeTestSourceDirectory>false</includeTestSourceDirectory>
-                  <failOnWarning>false</failOnWarning>
-                  <sourceDirectory>${basedir}/src/main</sourceDirectory>
-                  <testSourceDirectory>${basedir}/src/test/scala</testSourceDirectory>
-                  <configLocation>scalastyle-config.xml</configLocation>
-                  <outputFile>${basedir}/target/scalastyle-output.xml</outputFile>
-                  <inputEncoding>${encoding}</inputEncoding>
-                  <outputEncoding>${encoding}</outputEncoding>
-              </configuration>
-              <executions>
-              <execution>
-                  <goals>
-                      <goal>check</goal>
-                  </goals>
-              </execution>
-          </executions>
-          </plugin>
           <!--The comment below is the placeholder by build.cmd to add shade-plugin and others. Please keep as-is-->
           <!--OTHER PLUGINS-->
       </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>uber-jar</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>2.4.1</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                  <goals>
+                    <goal>shade</goal>
+                  </goals>
+                <configuration>
+                  <!-- Fix java.lang.SecurityException being thrown, when the uber jar is executed.
+                  Details: Some dependency jar files are signed jar files.  A jar file is signed by using jarsigner, 
+                  which creates 2 additional files and places them in META-INF: (1) a signature file, 
+                  with a .SF extension, and (2) a signature block file, with a .DSA, .RSA, or .EC extension.  
+                  Since the uber-jar file is created, the signatures and integrity of signed JAR files are no longer 
+                  valid.  When the uber-jar file is executed, java.lang.SecurityException is thrown. -->
+                  <filters>
+                    <filter>
+                      <artifact>*:*</artifact>
+                      <excludes>
+                        <exclude>META-INF/*.SF</exclude>
+                        <exclude>META-INF/*.DSA</exclude>
+                        <exclude>META-INF/*.RSA</exclude>
+                      </excludes>
+                    </filter>
+                  </filters>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- TODO: this profile should be part of default profile, once all scala code style issues are fixed -->
+    <profile>
+      <id>check-scala-style</id>
+      <activation>
+        <property>
+          <name>doSytleCheck</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.scalastyle</groupId>
+            <artifactId>scalastyle-maven-plugin</artifactId>
+            <version>0.7.0</version>
+            <configuration>
+              <verbose>false</verbose>
+              <failOnViolation>false</failOnViolation>
+              <includeTestSourceDirectory>false</includeTestSourceDirectory>
+              <failOnWarning>false</failOnWarning>
+              <sourceDirectory>${basedir}/src/main</sourceDirectory>
+              <testSourceDirectory>${basedir}/src/test/scala</testSourceDirectory>
+              <configLocation>scalastyle-config.xml</configLocation>
+              <outputFile>${basedir}/target/scalastyle-output.xml</outputFile>
+              <inputEncoding>${encoding}</inputEncoding>
+              <outputEncoding>${encoding}</outputEncoding>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- This profile is for signing the jar -->
+    <profile>
+      <id>generate-signed-files</id>
+      <activation>
+        <property>
+          <name>doSign</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <!-- javadoc and sources attachments as required by sonatype maven central release -->
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-source-plugin</artifactId>
+              <version>2.2.1</version>
+              <executions>
+                <execution>
+                  <id>attach-sources</id>
+                  <goals>
+                    <goal>jar-no-fork</goal>
+                  </goals>
+                </execution>
+              </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.9.1</version>
+              <executions>
+                <execution>
+                  <id>attach-javadocs</id>
+                  <goals>
+                    <goal>jar</goal>
+                  </goals>
+                </execution>
+              </executions>
+          </plugin>
+          <!-- sign stuff for maven-central via OSSRH/Sonatype -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- This profile is for deplying to sonatype -->
+    <profile>
+      <id>release-to-ossrh</id>
+      <activation>
+        <property>
+          <name>doRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.6</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
 </project>

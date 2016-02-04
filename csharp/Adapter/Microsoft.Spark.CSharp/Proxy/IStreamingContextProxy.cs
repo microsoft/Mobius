@@ -25,5 +25,9 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDStreamProxy Union(IDStreamProxy firstDStreams, IDStreamProxy[] otherDStreams);
         void AwaitTermination();
         void AwaitTermination(int timeout);
+        IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string serializationMode);
+        IDStreamProxy CreateCSharpTransformed2DStream(IDStreamProxy jdstream, IDStreamProxy jother, byte[] func, string serializationMode, string serializationModeOther);
+        IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode);
+        IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string className, string serializationMode, string serializationMode2);
     }
 }

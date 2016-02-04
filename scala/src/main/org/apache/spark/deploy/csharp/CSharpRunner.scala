@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/*
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 
 package org.apache.spark.deploy.csharp
 
@@ -15,14 +17,15 @@ import org.apache.spark.util.{Utils, RedirectThread}
 import org.apache.spark.util.csharp.{Utils => CSharpSparkUtils}
 
 /**
- * Launched by sparkclr-submit.cmd. It launches CSharpBackend, gets its port number and launches C# process
- * passing the port number to it.
- * The runner implementation is mostly identical to RRunner with SparkCLR-specific customizations
+ * Launched by sparkclr-submit.cmd. It launches CSharpBackend,
+ * gets its port number and launches C# process passing the port number to it.
+ * The runner implementation is mostly identical to RRunner with SparkCLR-specific customizations.
  */
+// scalastyle:off println
 object CSharpRunner {
   def main(args: Array[String]): Unit = {
-    //determines if CSharpBackend need to be run in debug mode
-    //in debug mode this runner will not launch C# process
+    // determines if CSharpBackend need to be run in debug mode
+    // in debug mode this runner will not launch C# process
     var runInDebugMode = false
 
     if (args.length == 0) {
@@ -31,14 +34,15 @@ object CSharpRunner {
 
     if (args.length == 1 && args(0).equalsIgnoreCase("debug")) {
       runInDebugMode = true
-      println("[CSharpRunner.main] Debug mode is set. CSharp executable will not be launched as a sub-process.")
+      println("[CSharpRunner.main] Debug mode is set. " +
+        "CSharp executable will not be launched as a sub-process.")
     }
 
     var csharpExecutable = ""
     var otherArgs: Array[String] = null
 
     if (!runInDebugMode) {
-      if(args(0).toLowerCase.endsWith(".zip")) {
+      if (args(0).toLowerCase.endsWith(".zip")) {
         var zipFileName = args(0)
         val driverDir = new File("").getAbsoluteFile
 
@@ -49,11 +53,14 @@ object CSharpRunner {
 
         println(s"[CSharpRunner.main] Unzipping driver $zipFileName in $driverDir")
         CSharpSparkUtils.unzip(new File(zipFileName), driverDir)
-        csharpExecutable = PythonRunner.formatPath(args(1)) //reusing windows-specific formatting in PythonRunner
+        // reusing windows-specific formatting in PythonRunner
+        csharpExecutable = PythonRunner.formatPath(args(1))
         otherArgs = args.slice(2, args.length)
-      } else if(new File(args(0)).isDirectory) {
-        // In local mode, there will no zip file generated if given a directory, skip uncompression in this case
-        csharpExecutable = PythonRunner.formatPath(args(1)) //reusing windows-specific formatting in PythonRunner
+      } else if (new File(args(0)).isDirectory) {
+        // In local mode, there will no zip file generated if given a directory,
+        // skip uncompression in this case
+        // reusing windows-specific formatting in PythonRunner
+        csharpExecutable = PythonRunner.formatPath(args(1))
         otherArgs = args.slice(2, args.length)
       } else {
         csharpExecutable = PythonRunner.formatPath(args(0))
@@ -80,7 +87,8 @@ object CSharpRunner {
     val csharpBackendThread = new Thread("CSharpBackend") {
       override def run() {
         csharpBackendPortNumber = csharpBackend.init()
-        println("[CSharpRunner.main] Port number used by CSharpBackend is " + csharpBackendPortNumber) //TODO - send to logger also
+        println("[CSharpRunner.main] Port number used by CSharpBackend is "
+          + csharpBackendPortNumber) // TODO - send to logger also
         initialized.release()
         csharpBackend.run()
       }
@@ -98,35 +106,38 @@ object CSharpRunner {
 
           for ((key, value) <- Utils.getSystemProperties if key.startsWith("spark.")) {
             env.put(key, value)
-            println("[CSharpRunner.main] adding key=" + key + " and value=" + value + " to environment")
+            println("[CSharpRunner.main] adding key=" + key
+              + " and value=" + value + " to environment")
           }
           builder.redirectErrorStream(true) // Ugly but needed for stdout and stderr to synchronize
           val process = builder.start()
 
-          new RedirectThread(process.getInputStream, System.out, "redirect CSharp output").start()
           new RedirectThread(System.in, process.getOutputStream, "redirect JVM input").start()
+          // Redirect stdout and stderr of C# process
+          new RedirectThread(process.getInputStream, System.out, "redirect CSharp stdout").start()
+          new RedirectThread(process.getErrorStream, System.out, "redirect CSharp stderr").start()
 
           returnCode = process.waitFor()
           closeBackend(csharpBackend)
         } catch {
-          case t: Throwable => println("[CSharpRunner.main]" + t.getMessage + "\n" + t.getStackTrace)
+          case t: Throwable =>
+            println("[CSharpRunner.main]" + t.getMessage + "\n" + t.getStackTrace)
         }
 
         println("[CSharpRunner.main] Return CSharpBackend code " + returnCode)
-        System.exit(returnCode)
+        CSharpSparkUtils.exit(returnCode)
       } else {
         println("***********************************************************************")
         println("* [CSharpRunner.main] Backend running debug mode. Press enter to exit *")
         println("***********************************************************************")
         Console.readLine()
         closeBackend(csharpBackend)
-        System.exit(0)
+        CSharpSparkUtils.exit(0)
       }
     } else {
-      // scalastyle:off println
-      println("[CSharpRunner.main] CSharpBackend did not initialize in " + backendTimeout + " seconds")
-      // scalastyle:on println
-      System.exit(-1)
+      println("[CSharpRunner.main] CSharpBackend did not initialize in "
+        + backendTimeout + " seconds")
+      CSharpSparkUtils.exit(-1)
     }
   }
 
@@ -166,3 +177,4 @@ object CSharpRunner {
     csharpBackend.close()
   }
 }
+// scalastyle:on println

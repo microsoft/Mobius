@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Sql;
+using Moq;
 
 namespace AdapterTest.Mocks
 {
@@ -29,7 +30,7 @@ namespace AdapterTest.Mocks
 
         public IDataFrameReaderProxy Read()
         {
-            throw new NotImplementedException();
+            return new MockDataFrameReaderProxy(this);
         }
 
         public IDataFrameProxy CreateDataFrame(IRDDProxy rddProxy, IStructTypeProxy structTypeProxy)

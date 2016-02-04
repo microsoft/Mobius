@@ -1,4 +1,4 @@
-# SparkCLR
+<h1><img src='/logo/spark-clr-clear-500x200.png' width='200px' alt='SparkCLR logo' /></h1>
 
 [SparkCLR](https://github.com/Microsoft/SparkCLR) (pronounced Sparkler) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
 
@@ -6,7 +6,7 @@ For example, the word count sample in Apache Spark can be implemented in C# as f
 
 ```c#
 var lines = sparkContext.TextFile(@"hdfs://path/to/input.txt");  
-var words = lines.FlatMap(s => s.Split(new[] { " " }, StringSplitOptions.None));
+var words = lines.FlatMap(s => s.Split(' '));
 var wordCounts = words.Map(w => new KeyValuePair<string, int>(w.Trim(), 1))  
                       .ReduceByKey((x, y) => x + y);  
 var wordCountCollection = wordCounts.Collect();  
@@ -51,22 +51,44 @@ maxLatencyByDcDataFrame.Show();
 
 Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory and [sample usage](csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
 
+## API Documentation
+
+Refer to [SparkCLR C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in SparkCLR.
+
+## API Usage
+
+SparkCLR API usage samples are available at:
+
+* [Samples project](csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of SparkCLR APIs to implement samples that are also used for functional validation of APIs
+
+* [Examples folder](./examples) which contains standalone SparkCLR projects that can be used as templates to start developing SparkCLR applications
+
+* Performance test scenarios implemented in [C#](csharp/Perf/Microsoft.Spark.CSharp) and [Scala](scala/perf) for side by side comparison of Spark driver code
+
 ## Documents
 
-Refer to the [docs folder](docs).
+Refer to the [docs folder](docs) for design overview and other info on SparkCLR
 
 ## Build Status
 
-|Ubuntu 14.04.3 LTS |Windows |
-|-------------------|:------:|
-|[![Build status](https://travis-ci.org/Microsoft/SparkCLR.svg?branch=master)](https://travis-ci.org/Microsoft/SparkCLR) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |
+|Ubuntu 14.04.3 LTS |Windows |Unit test coverage |
+|-------------------|:------:|:-----------------:|
+|[![Build status](https://travis-ci.org/Microsoft/SparkCLR.svg?branch=master)](https://travis-ci.org/Microsoft/SparkCLR) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |[![codecov.io](https://codecov.io/github/Microsoft/SparkCLR/coverage.svg?branch=master)](https://codecov.io/github/Microsoft/SparkCLR?branch=master) |
 
-## Building, Running and Debugging SparkCLR
+## Getting Started
 
-* [Windows Instructions](windows-instructions.md)
-* [Linux Instructions](linux-instructions.md)
+| |Windows |Linux |
+|---|:------:|:----:|
+|Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-sparkclr) |[linux-instructions.md](notes/linux-instructions.md#building-sparkclr) |
+|Run samples (functional tests) in local mode |[windows-instructions.md](notes/windows-instructions.md#running-samples) |[linux-instructions.md](notes/linux-instructions.md#running-samples) |
+|Run standlone examples in Client mode |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |
+|Run standlone examples in Cluster mode |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |
 
-(Note: Tested only with Spark 1.5.2)
+Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using SparkCLR with Spark on Linux
+
+## Supported Spark Versions
+
+SparkCLR is built and tested with [Spark 1.4.1](https://github.com/Microsoft/SparkCLR/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/SparkCLR/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/SparkCLR/tree/master).
 
 ## License
 
@@ -74,9 +96,17 @@ Refer to the [docs folder](docs).
 
 SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
 
-## Contribution
+
+## Community
 
 [![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/pr)](http://issuestats.com/github/Microsoft/SparkCLR)
 [![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/issue)](http://issuestats.com/github/Microsoft/SparkCLR)
+[![Join the chat at https://gitter.im/Microsoft/SparkCLR](https://badges.gitter.im/Microsoft/SparkCLR.svg)](https://gitter.im/Microsoft/SparkCLR?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-We welcome contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md). 
+* SparkCLR project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
+
+* Options to ask your question to the SparkCLR community
+  * create issue on [GitHub](https://github.com/Microsoft/SparkCLR)
+  * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
+  * send email to sparkclr-user@googlegroups.com
+  * join chat at [SparkCLR room in Gitter](https://gitter.im/Microsoft/SparkCLR)

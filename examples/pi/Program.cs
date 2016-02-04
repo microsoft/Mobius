@@ -25,7 +25,6 @@ namespace Microsoft.Spark.CSharp.Examples
             var success = true;
 
             SparkContext = CreateSparkContext();
-            SparkContext.SetCheckpointDir(Path.GetTempPath());
 
             var stopWatch = Stopwatch.StartNew();
             var clockStart = stopWatch.Elapsed;

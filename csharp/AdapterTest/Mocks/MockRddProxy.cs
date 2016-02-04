@@ -22,7 +22,7 @@ namespace AdapterTest.Mocks
     {
         internal IEnumerable<dynamic> result;
         internal bool pickle;
-
+        internal string name;
         internal object[] mockRddReference;
 
         public IRDDCollector RDDCollector
@@ -93,7 +93,7 @@ namespace AdapterTest.Mocks
 
         public int GetNumPartitions()
         {
-            return 1;
+            return 2;
         }
 
         public IRDDProxy Sample(bool withReplacement, double fraction, long seed)
@@ -128,11 +128,13 @@ namespace AdapterTest.Mocks
 
         public string Name
         {
-            get { return null; }
+            get { return name; }
         }
 
         public void SetName(string name)
-        {}
+        {
+            this.name = name;
+        }
 
         public IRDDProxy Coalesce(int numPartitions, bool shuffle)
         {
@@ -179,7 +181,7 @@ namespace AdapterTest.Mocks
 
         public StorageLevel GetStorageLevel()
         {
-            return null;
+            return StorageLevel.storageLevel[StorageLevelType.MEMORY_ONLY];
         }
     }
 }

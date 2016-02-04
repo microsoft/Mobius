@@ -6,6 +6,7 @@
 * Maven 3.3.3 or above.
 * Mono 4.2 stable or above. The download and installation instructions for Mono are available in [http://www.mono-project.com/download/#download-lin](http://www.mono-project.com/download/#download-lin).
 * NuGet.
+* XSLTPROC
 
 The following environment variables should be set properly:
 
@@ -13,26 +14,26 @@ The following environment variables should be set properly:
 
 ## Instructions
 
-* With `JAVA_HOME` set properly, navigate to [SparkCLR](./) directory: 
+* With `JAVA_HOME` set properly, navigate to [SparkCLR/build](../build) directory: 
 
   ```  
   ./build.sh  
   ```
 
 * Optional: 
-  - Under [SparkCLR/scala](./scala) directory, run the following command to clean spark-clr*.jar built above: 
+  - Under [SparkCLR/scala](../scala) directory, run the following command to clean spark-clr*.jar built above: 
 
     ```  
     mvn clean
     ```  
 
-  - Under [SparkCLR/csharp](./csharp) directory, run the following command to clean the .NET binaries built above:
+  - Under [SparkCLR/csharp](../csharp) directory, run the following command to clean the .NET binaries built above:
 
     ```  
     ./clean.sh  
     ```  
     
-[build.sh](build.sh) prepares the following directories under `SparkCLR\run` after the build is done:
+[build.sh](../build/build.sh) prepares the following directories under `SparkCLR\build\runtime` after the build is done:
 
   * **lib** ( `spark-clr*.jar` )  
   * **bin** ( `Microsoft.Spark.CSharp.Adapter.dll`, `CSharpWorker.exe`)  
@@ -51,24 +52,20 @@ JDK is installed, and the following environment variables should be set properly
 
 ## Running in Local mode
 
-With `JAVA_HOME` set properly, navigate to [SparkCLR](./) directory:
+With `JAVA_HOME` set properly, navigate to [SparkCLR\build\localmode](../build/localmode) directory:
 
 ```  
 ./run-samples.sh  
 ```
 
-It is **required** to run [build.sh](./build.sh) prior to running [run-samples.sh](./run-samples.sh).
+It is **required** to run [build.sh](../build/build.sh) prior to running [run-samples.sh](../build/localmode/run-samples.sh).
 
-[run-samples.sh](./run-samples.sh) downloads Apache Spark 1.4.1 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/run` directory created by [Build.cmd](./build.cmd), and invokes [sparkclr-submit.sh](./scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/run/Temp`.
+**Note that SparkCLR requires a customized Apache Spark for use in Linux** (see [linux-compatibility.md](./linux-compatibility.md) for details).
 
-**Note that SparkCLR requires a customized Apache Spark**. To build the customized Apache Spark, follow the steps below:
+[run-samples.sh](../build/localmode/run-samples.sh) downloads Apache Spark 1.6.0 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `SparkCLR/build/runtime` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `SparkCLR/build/runtime/Temp`.
 
-1. Download and unpack the binary package of Apache Spark 1.4.1.
-2. Download and unpack the source package of Apache Spark 1.4.1, apply the diff patch [PythonWorkerFactory.scala.patch](./PythonWorkerFactory.scala.patch) on **core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala**, and build Spark following the [instructions](http://spark.apache.org/docs/latest/building-spark.html).
-3. Replace lib/spark-assembly\*hadoop\*.jar in the binary package with assembly/target/scala-2.10/spark-assembly\*hadoop\*.jar built in Step 2. Use/deploy this modified binary package for Spark.
-
-A few more [run-samples.sh](./run-samples.sh) examples:
-- To display all options supported by [run-samples.sh](./run-samples.sh): 
+A few more [run-samples.sh](../build/localmode/run-samples.sh) examples:
+- To display all options supported by [run-samples.sh](../build/localmode/run-samples.sh): 
 
     ```  
     run-samples.sh  --help

@@ -11,14 +11,14 @@ do
 done
 
 # setup Hadoop and Spark versions
-export SPARK_VERSION=1.5.2
+export SPARK_VERSION=1.6.0
 export HADOOP_VERSION=2.6
 echo "[run-samples.sh] SPARK_VERSION=$SPARK_VERSION, HADOOP_VERSION=$HADOOP_VERSION"
 
 export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # download runtime dependencies: spark
-export TOOLS_DIR="$FWDIR/tools"
+export TOOLS_DIR="$FWDIR/../tools"
 [ ! -d "$TOOLS_DIR" ] && mkdir "$TOOLS_DIR"
 
 export SPARK=spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION
@@ -46,7 +46,7 @@ export PATH="$SPARK_HOME/bin:$PATH"
 if [ ! "$verbose" = "--verbose" ];
 then
   # redirect the logs from console (default) to /tmp
-  cp "$FWDIR"/scripts/spark.conf/*.properties "$SPARK_HOME/conf/"
+  cp "$FWDIR"/spark.conf/*.properties "$SPARK_HOME/conf/"
   sed -i "s/\${env:TEMP}/\/tmp/g" "$SPARK_HOME/conf/log4j.properties"
 else
   # remove customized log4j.properties, revert back to out-of-the-box Spark logging to console
@@ -54,7 +54,7 @@ else
 fi
 
 # update sparkclr verbose mode
-export SPARKCLRCONF="$FWDIR/run/samples"
+export SPARKCLRCONF="$FWDIR/../runtime/samples"
 export SUFFIX=".original"
 if [ ! "$verbose" = "--verbose" ];
 then
@@ -78,7 +78,7 @@ else
 fi
 
 
-export SPARKCLR_HOME="$FWDIR/run"
+export SPARKCLR_HOME="$FWDIR/../runtime"
 export SPARKCSV_JARS=
 
 # run-samples.sh is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.

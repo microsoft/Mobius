@@ -237,10 +237,19 @@ namespace AdapterTest.Mocks
             get { throw new NotImplementedException(); }
         }
 
+        private int accumuatorServerPort = 0;
+
+        public int AccumulatorServerPort
+        {
+            get
+            {
+                return accumuatorServerPort;
+            }
+        }
 
         public void Accumulator(int port)
         {
-            throw new NotImplementedException();
+            accumuatorServerPort = port;
         }
 
         public IColumnProxy CreateColumnFromName(string name)

@@ -20,11 +20,10 @@ package org.apache.spark.streaming.api.csharp
 import org.apache.spark.api.csharp._
 import org.apache.spark.api.csharp.SerDe._
 
-import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
-import java.util.{ArrayList => JArrayList, List => JList}
+import java.util.{ArrayList => JArrayList}
 import scala.collection.JavaConversions._
 import scala.language.existentials
 
@@ -42,16 +41,16 @@ object CSharpDStream {
   /**
    * helper function for DStream.foreachRDD().
    */
-  def callForeachRDD(jdstream: JavaDStream[Array[Byte]], rfunc: Array[Byte],
-                     deserializer: String) {
+  def callForeachRDD(jdstream: JavaDStream[Array[Byte]], cSharpFunc: Array[Byte],
+                     serializationMode: String) {
     val func = (rdd: RDD[_], time: Time) => {
-      val res = callCSharpTransform(List(Some(rdd)), time, rfunc, List(deserializer))
+      val res = callCSharpTransform(List(Some(rdd)), time, cSharpFunc, List(serializationMode))
     }
     jdstream.dstream.foreachRDD(func)
   }
 
-  def callCSharpTransform(rdds: List[Option[RDD[_]]], time: Time, rfunc: Array[Byte],
-                     deserializers: List[String]): Option[RDD[Array[Byte]]] = {
+  def callCSharpTransform(rdds: List[Option[RDD[_]]], time: Time, cSharpfunc: Array[Byte],
+                          serializationModeList: List[String]): Option[RDD[Array[Byte]]] = {
     var socket: Socket = null
     try {
       socket = CSharpBackend.callbackSockets.poll()
@@ -67,8 +66,8 @@ object CSharpDStream {
       rdds.foreach(x => writeObject(dos,
         x.map(JavaRDD.fromRDD(_).asInstanceOf[AnyRef]).orNull))
       writeDouble(dos, time.milliseconds.toDouble)
-      writeBytes(dos, rfunc)
-      deserializers.foreach(x => writeString(dos, x))
+      writeBytes(dos, cSharpfunc)
+      serializationModeList.foreach(x => writeString(dos, x))
       dos.flush()
       val result = Option(readObject(dis).asInstanceOf[JavaRDD[Array[Byte]]]).map(_.rdd)
       CSharpBackend.callbackSockets.offer(socket)
@@ -78,7 +77,7 @@ object CSharpDStream {
         // log exception only when callback socket is not shutdown explicitly
         if (!CSharpBackend.callbackSocketShutdown) {
           // TODO: change println to log
-          System.err.println("CSharp transform callback failed with " + e)
+          System.err.println("CSharp transform callback failed with " + e) // scalastyle:off println
           e.printStackTrace()
         }
 
@@ -104,9 +103,9 @@ object CSharpDStream {
 }
 
 class CSharpDStream(
-                parent: DStream[_],
-                rfunc: Array[Byte],
-                deserializer: String)
+                     parent: DStream[_],
+                     cSharpFunc: Array[Byte],
+                     serializationMode: String)
   extends DStream[Array[Byte]] (parent.ssc) {
 
   override def dependencies: List[DStream[_]] = List(parent)
@@ -116,7 +115,7 @@ class CSharpDStream(
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
     val rdd = parent.compute(validTime)
     if (rdd.isDefined) {
-      CSharpDStream.callCSharpTransform(List(rdd), validTime, rfunc, List(deserializer))
+      CSharpDStream.callCSharpTransform(List(rdd), validTime, cSharpFunc, List(serializationMode))
     } else {
       None
     }
@@ -126,14 +125,14 @@ class CSharpDStream(
 }
 
 /**
- * Transformed from two DStreams in R.
+ * Transformed from two DStreams in CSharp
  */
 class CSharpTransformed2DStream(
-                            parent: DStream[_],
-                            parent2: DStream[_],
-                            rfunc: Array[Byte],
-                            deserializer: String,
-                            deserializer2: String)
+                                 parent: DStream[_],
+                                 parent2: DStream[_],
+                                 cSharpFunc: Array[Byte],
+                                 serializationMode: String,
+                                 serializatioinMode2: String)
   extends DStream[Array[Byte]] (parent.ssc) {
 
   override def dependencies: List[DStream[_]] = List(parent, parent2)
@@ -144,8 +143,8 @@ class CSharpTransformed2DStream(
     val empty: RDD[_] = ssc.sparkContext.emptyRDD
     val rdd1 = Some(parent.getOrCompute(validTime).getOrElse(empty))
     val rdd2 = Some(parent2.getOrCompute(validTime).getOrElse(empty))
-    CSharpDStream.callCSharpTransform(List(rdd1, rdd2), validTime, rfunc,
-      List(deserializer, deserializer2))
+    CSharpDStream.callCSharpTransform(List(rdd1, rdd2), validTime, cSharpFunc,
+      List(serializationMode, serializatioinMode2))
   }
 
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
@@ -155,12 +154,12 @@ class CSharpTransformed2DStream(
  * similar to ReducedWindowedDStream
  */
 class CSharpReducedWindowedDStream(
-                               parent: DStream[Array[Byte]],
-                               rreduceFunc: Array[Byte],
-                               rinvReduceFunc: Array[Byte],
-                               _windowDuration: Duration,
-                               _slideDuration: Duration,
-                               deserializer: String)
+                                    parent: DStream[Array[Byte]],
+                                    rreduceFunc: Array[Byte],
+                                    rinvReduceFunc: Array[Byte],
+                                    _windowDuration: Duration,
+                                    _slideDuration: Duration,
+                                    serializationMode: String)
   extends DStream[Array[Byte]] (parent.ssc) {
 
   super.persist(StorageLevel.MEMORY_ONLY)
@@ -200,7 +199,7 @@ class CSharpReducedWindowedDStream(
       val oldRDDs = parent.slice(previous.beginTime + parent.slideDuration, current.beginTime)
       val subtracted = if (oldRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(previousRDD, Some(ssc.sc.union(oldRDDs))),
-          validTime, rinvReduceFunc, List(deserializer, deserializer))
+          validTime, rinvReduceFunc, List(serializationMode, serializationMode))
       } else {
         previousRDD
       }
@@ -209,7 +208,7 @@ class CSharpReducedWindowedDStream(
       val newRDDs = parent.slice(previous.endTime + parent.slideDuration, current.endTime)
       if (newRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(subtracted, Some(ssc.sc.union(newRDDs))),
-          validTime, rreduceFunc, List(deserializer, deserializer))
+          validTime, rreduceFunc, List(serializationMode, serializationMode))
       } else {
         subtracted
       }
@@ -218,7 +217,7 @@ class CSharpReducedWindowedDStream(
       val currentRDDs = parent.slice(current.beginTime + parent.slideDuration, current.endTime)
       if (currentRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(None, Some(ssc.sc.union(currentRDDs))),
-          validTime, rreduceFunc, List(deserializer, deserializer))
+          validTime, rreduceFunc, List(serializationMode, serializationMode))
       } else {
         None
       }
@@ -232,10 +231,10 @@ class CSharpReducedWindowedDStream(
  * similar to StateDStream
  */
 class CSharpStateDStream(
-                     parent: DStream[Array[Byte]],
-                     reduceFunc: Array[Byte],
-					 deserializer: String,
-                     deserializer2: String)
+                          parent: DStream[Array[Byte]],
+                          reduceFunc: Array[Byte],
+                          serializationMode: String,
+                          serializationMode2: String)
   extends DStream[Array[Byte]](parent.ssc) {
 
   super.persist(StorageLevel.MEMORY_ONLY)
@@ -251,7 +250,7 @@ class CSharpStateDStream(
     val rdd = parent.getOrCompute(validTime)
     if (rdd.isDefined) {
       CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
-        List(deserializer, deserializer2))
+        List(serializationMode, serializationMode2))
     } else {
       lastState
     }
@@ -260,3 +259,55 @@ class CSharpStateDStream(
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
 }
 
+/**
+ * MapWithStateDStream API support follows 'internal' DStream idea from
+ * scala\org\apache\spark\streaming\dstream\MapWithStateDStream.scala
+ */
+
+class CSharpMapWithStateDStream(
+                           parent: DStream[Array[Byte]],
+                           mappingFunc: Array[Byte],
+                           deserializer: String,
+                           deserializer2: String)
+  extends DStream[Array[Byte]](parent.ssc) {
+
+  private val internalStream =
+    new InternalMapWithStateDStream(parent, mappingFunc, deserializer, deserializer2)
+
+  override def dependencies: List[DStream[_]] = List(internalStream)
+
+  override def slideDuration: Duration = internalStream.slideDuration
+
+  override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
+    internalStream.getOrCompute(validTime).map { _.mapPartitions(x => x.drop(1), true) }
+  }
+
+  val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
+}
+
+class InternalMapWithStateDStream(
+                                   parent: DStream[Array[Byte]],
+                                   mappingFunc: Array[Byte],
+                                   deserializer: String,
+                                   deserializer2: String)
+  extends DStream[Array[Byte]](parent.ssc) {
+
+  super.persist(StorageLevel.MEMORY_ONLY)
+
+  override def dependencies: List[DStream[_]] = List(parent)
+
+  override def slideDuration: Duration = parent.slideDuration
+
+  override val mustCheckpoint = true
+
+  override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
+    val lastState = getOrCompute(validTime - slideDuration).map { _.mapPartitions(x => x.take(1), true) }
+    val rdd = parent.getOrCompute(validTime)
+    if (rdd.isDefined) {
+      CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, mappingFunc,
+        List(deserializer, deserializer2))
+    } else {
+      lastState
+    }
+  }
+}

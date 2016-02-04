@@ -192,9 +192,11 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<int, int>> countByWord = (KeyValuePair<string, Tuple<int, int>>)record;
+                    KeyValuePair<string, Tuple<int, Option<int>>> countByWord = (KeyValuePair<string, Tuple<int, Option<int>>>)record;
                     Assert.AreEqual(countByWord.Value.Item1, countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : 22);
-                    Assert.AreEqual(countByWord.Value.Item2, countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : (countByWord.Key == "brown" ? 0 : 22));
+                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" ? 
+                        countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 23 : (countByWord.Key == "brown" ?
+                        countByWord.Value.Item2.IsDefined == true == false : countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 22));
                 }
             });
 
@@ -206,8 +208,11 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<int, int>> countByWord = (KeyValuePair<string, Tuple<int, int>>)record;
-                    Assert.AreEqual(countByWord.Value.Item1, countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : (countByWord.Key == "quick" || countByWord.Key == "lazy" ? 0 : 22));
+                    KeyValuePair<string, Tuple<Option<int>, int>> countByWord = (KeyValuePair<string, Tuple<Option<int>, int>>)record;
+                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" ? 
+                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 23 : 
+                        (countByWord.Key == "quick" || countByWord.Key == "lazy" ? countByWord.Value.Item1.IsDefined == false :
+                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 22));
                     Assert.AreEqual(countByWord.Value.Item2, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22);
                 }
             });
@@ -220,9 +225,15 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<int, int>> countByWord = (KeyValuePair<string, Tuple<int, int>>)record;
-                    Assert.AreEqual(countByWord.Value.Item1, countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : (countByWord.Key == "quick" || countByWord.Key == "lazy" ? 0 : 22));
-                    Assert.AreEqual(countByWord.Value.Item2, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : (countByWord.Key == "brown" ? 0 : 22));
+                    KeyValuePair<string, Tuple<Option<int>, Option<int>>> countByWord = (KeyValuePair<string, Tuple<Option<int>, Option<int>>>)record;
+                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" ?
+                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 23 :
+                        (countByWord.Key == "quick" || countByWord.Key == "lazy" ? countByWord.Value.Item1.IsDefined == false :
+                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 22));
+
+                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 
+                        countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 23 : 
+                        (countByWord.Key == "brown" ? countByWord.Value.Item2.IsDefined == false : countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 22));
                 }
             });
         }

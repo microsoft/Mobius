@@ -12,7 +12,7 @@ if ($stage.ToLower() -eq "run")
     $hadoopVersion = if ($envValue -eq $null) { "2.6" } else { $envValue }
     
     $envValue = [Environment]::GetEnvironmentVariable("SPARK_VERSION")
-    $sparkVersion = if ($envValue -eq $null) { "1.5.2" } else { $envValue }
+    $sparkVersion = if ($envValue -eq $null) { "1.6.0" } else { $envValue }
     
     Write-Output "[downloadtools] hadoopVersion=$hadoopVersion, sparkVersion=$sparkVersion"
 }
@@ -213,20 +213,25 @@ function Download-BuildTools
     }
     
     # Apache Maven
-    $mvnCmd = "$toolsDir\apache-maven-3.3.3\bin\mvn.cmd"
+	$mvnVer = "apache-maven-3.3.3"
+    $mvnCmd = "$toolsDir\$mvnVer\bin\mvn.cmd"
     if (!(test-path $mvnCmd))
     {
-        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz"
-        $output="$toolsDir\apache-maven-3.3.3-bin.tar.gz"
+        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.3/binaries/$mvnVer-bin.tar.gz"
+        $output="$toolsDir\$mvnVer-bin.tar.gz"
         Download-File $url $output
         Untar-File $output $toolsDir
+
+        # Add downloaded Mvn to path + env
+        $envStream.WriteLine("set M2_HOME=$toolsDir\$mvnVer");
+        $envStream.WriteLine("set M2=%M2_HOME%\bin");
     }
     else
     {
         Write-Output "[downloadtools.Download-BuildTools] $mvnCmd exists already. No download and extraction needed"
     }
     
-    $mavenBin = "$toolsDir\apache-maven-3.3.3\bin"
+    $mavenBin = "$toolsDir\$mvnVer\bin"
     if (!($path -like "*$mavenBin*"))
     {
         # add maven bin
@@ -244,6 +249,32 @@ function Download-BuildTools
     else
     {
         Write-Output "[downloadtools.Download-BuildTools] $nugetExe exists already. No download and extraction needed"
+    }
+
+    # gpg4win
+    if ($env:APPVEYOR_REPO_TAG -eq "true")
+    {
+        $gpgZip = "$toolsDir\gpg4win-vanilla-2.3.0.zip"
+        if (!(test-path $gpgZip))
+        {
+            $url = "https://github.com/SparkCLR/build/blob/master/tools/gpg4win-vanilla-2.3.0.zip?raw=true"
+            $output=$gpgZip
+            Download-File $url $output
+            # Unzip-File $output $toolsDir
+            Write-Output "[downloadtools.Download-BuildTools] Extracting $output to $toolsDir ..."
+            Invoke-Expression "& 7z x $output -o$toolsDir"
+        }
+        else
+        {
+            Write-Output "[downloadtools.Download-BuildTools] $gpgZip exists already. No download and extraction needed"
+        }
+
+    	$gpgBin = "$toolsDir\GnuPG\pub"
+    	if (!($path -like "*$gpgBin*"))
+    	{
+            # add maven bin
+            $envStream.WriteLine("set path=$gpgBin\;%path%");
+    	}
     }
 
     $envStream.close()
@@ -345,10 +376,10 @@ function Update-SparkVerboseMode
     
         # replace {env:TEMP} with temp path
         $targetFile = "$temp\log4j.properties.temp"
-        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\scripts\spark.conf\log4j.properties" $targetFile
+        Replace-VariableInFile '\${env:TEMP}' "$tempValue" "$scriptDir\spark.conf\log4j.properties" $targetFile
     
         # copy customized log4j properties to SPARK_HOME\conf
-        copy-item  $scriptDir\scripts\spark.conf\*.properties $S_HOME\conf -force
+        copy-item  $scriptDir\spark.conf\*.properties $S_HOME\conf -force
         copy-item  $targetFile $S_HOME\conf\log4j.properties -force
     }
     else
@@ -386,7 +417,7 @@ function Backup-CSharpConfig($configPath, $originalSuffix)
 
 function Update-CSharpVerboseMode
 {
-    $configPath = "$scriptDir\run\samples"
+    $configPath = "$scriptDir\..\runtime\samples"
     $originalSuffix = ".orginal"
     Backup-CSharpConfig $configPath $originalSuffix
 
@@ -395,7 +426,7 @@ function Update-CSharpVerboseMode
         #
         # Disable (comment out) console appender in worker and sample.config files
         #
-        $configPath = "$scriptDir\run\samples"
+        $configPath = "$scriptDir\..\runtime\samples"
         $configFiles = get-childitem $configPath -filter *.config
 
         pushd $configPath
@@ -467,7 +498,7 @@ if (!($PSBoundParameters.ContainsKey('stage')))
 
 # Create tools directory
 $scriptDir = Get-ScriptDirectory
-$toolsDir = Join-Path -path $scriptDir -ChildPath tools
+$toolsDir = "$scriptDir\..\tools"
 New-Item -ItemType Directory -Force -Path $toolsDir | Out-Null
 pushd "$toolsDir"
     
@@ -488,4 +519,3 @@ else
 }
 
 popd
-

@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -63,6 +65,7 @@
     <Compile Include="Configuration\IConfigurationService.cs" />
     <Compile Include="Core\Accumulator.cs" />
     <Compile Include="Core\Broadcast.cs" />
+    <Compile Include="Core\Option.cs" />
     <Compile Include="Core\RDDCollector.cs" />
     <Compile Include="Core\DoubleRDDFunctions.cs" />
     <Compile Include="Core\IRDDCollector.cs" />
@@ -128,6 +131,7 @@
     <Compile Include="Sql\Types.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
+    <Compile Include="Streaming\Kafka.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />
@@ -152,4 +156,14 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="AfterBuild">
+    <XslTransformation
+      XslInputPath="..\documentation\DocFormatter.xsl"
+      XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML"
+      OutputPaths="..\documentation\SparkCLR_API_Documentation.md"
+      Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec 
+      Command="xsltproc -o ../documentation/SparkCLR_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML"
+      Condition="'$(OS)' != 'Windows_NT'" />
+  </Target>
 </Project>

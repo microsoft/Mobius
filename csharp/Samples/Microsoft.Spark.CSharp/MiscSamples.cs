@@ -3,10 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Spark.CSharp.Core;
 using NUnit.Framework;
 
 namespace Microsoft.Spark.CSharp.Samples
@@ -51,7 +47,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Math.Abs(approximatePiValue - 3.14) <= 0.019);
+                Assert.AreEqual(3.14, approximatePiValue, 0.019);
             }
         }
 

@@ -4,17 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Reflection;
-using System.IO;
-using System.Net.Sockets;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.Spark.CSharp.Interop.Ipc;
-using Microsoft.Spark.CSharp.Sql;
-using Razorvine.Pickle;
-using Razorvine.Pickle.Objects;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -80,14 +70,6 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
 
-        internal int DefaultReducePartitions
-        {
-            get
-            {
-                return GetNumPartitions();
-            }
-        }
-
         internal RDD() { }
 
         internal RDD(IRDDProxy rddProxy, SparkContext sparkContext, SerializedMode serializedMode = SerializedMode.Byte)
@@ -101,12 +83,12 @@ namespace Microsoft.Spark.CSharp.Core
         {
             RDD<U> r = (this is PipelinedRDD<T>) ? new PipelinedRDD<U>() : new RDD<U>();
 
-            r.rddProxy = this.rddProxy;
-            r.sparkContext = this.sparkContext;
-            r.previousRddProxy = this.previousRddProxy;
-            r.prevSerializedMode = this.prevSerializedMode;
-            r.serializedMode = this.serializedMode;
-            r.partitioner = this.partitioner;
+            r.rddProxy = rddProxy;
+            r.sparkContext = sparkContext;
+            r.previousRddProxy = previousRddProxy;
+            r.prevSerializedMode = prevSerializedMode;
+            r.serializedMode = serializedMode;
+            r.partitioner = partitioner;
 
             if (this is PipelinedRDD<T>)
             {
@@ -120,7 +102,7 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Persist this RDD with the default storage level (C{MEMORY_ONLY_SER}).
+        /// Persist this RDD with the default storage level <see cref="StorageLevelType.MEMORY_ONLY_SER"/>.
         /// </summary>
         /// <returns></returns>
         public RDD<T> Cache()
@@ -134,7 +116,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Set this RDD's storage level to persist its values across operations
         /// after the first time it is computed. This can only be used to assign
         /// a new storage level if the RDD does not have a storage level set yet.
-        /// If no storage level is specified defaults to (C{MEMORY_ONLY_SER}).
+        /// If no storage level is specified defaults to <see cref="StorageLevelType.MEMORY_ONLY_SER"/>.
         /// 
         /// sc.Parallelize(new string[] {"b", "a", "c").Persist().isCached
         /// True
@@ -165,7 +147,7 @@ namespace Microsoft.Spark.CSharp.Core
 
         /// <summary>
         /// Mark this RDD for checkpointing. It will be saved to a file inside the
-        /// checkpoint directory set with L{SparkContext.setCheckpointDir()} and
+        /// checkpoint directory set with <see cref="SparkContext.SetCheckpointDir"/>) and
         /// all references to its parent RDDs will be removed. This function must
         /// be called before any job has been executed on this RDD. It is strongly
         /// recommended that this RDD is persisted in memory, otherwise saving it
@@ -185,7 +167,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Return a new RDD by applying a function to each element of this RDD.
         /// 
-        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new KeyValuePair&lt;string, int>(x, 1)).Collect()
+        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new <see cref="KeyValuePair{string, int}"/>(x, 1)).Collect()
         /// [('a', 1), ('b', 1), ('c', 1)]
         /// 
         /// </summary>
@@ -235,7 +217,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Return a new RDD by applying a function to each partition of this RDD,
         /// while tracking the index of the original partition.
         /// 
-        /// sc.Parallelize(new int[]{1, 2, 3, 4}, 4).MapPartitionsWithIndex&lt;double>((pid, iter) => (double)pid).Sum()
+        /// <see cref="sc.Parallelize(new int[]{1, 2, 3, 4}, 4).MapPartitionsWithIndex{double}"/>((pid, iter) => (double)pid).Sum()
         /// 6
         /// </summary>
         /// <typeparam name="U"></typeparam>
@@ -252,10 +234,10 @@ namespace Microsoft.Spark.CSharp.Core
                 previousRddProxy = rddProxy,
                 prevSerializedMode = serializedMode,
 
-                sparkContext = this.sparkContext,
+                sparkContext = sparkContext,
                 rddProxy = null,
                 serializedMode = SerializedMode.Byte,
-                partitioner = preservesPartitioningParam ? this.partitioner : null
+                partitioner = preservesPartitioningParam ? partitioner : null
             };
             return pipelinedRDD;
         }
@@ -435,7 +417,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Union(RDD<T> other)
         {
             var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
-            if (partitioner == other.partitioner && this.RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
+            if (partitioner == other.partitioner && RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
                 rdd.partitioner = partitioner;
             return rdd;
         }
@@ -498,7 +480,7 @@ namespace Microsoft.Spark.CSharp.Core
 
         /// <summary>
         /// Return the Cartesian product of this RDD and another one, that is, the
-        /// RDD of all pairs of elements C{(a, b)} where C{a} is in C{self} and C{b} is in C{other}.
+        /// RDD of all pairs of elements (a, b) where a is in self and b is in other.
         /// 
         /// rdd = sc.Parallelize(new int[] { 1, 2 }, 1)
         /// rdd.Cartesian(rdd).Collect()
@@ -648,9 +630,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// the partitions, using a given associative and commutative function and
         /// a neutral "zero value."
         /// 
-        /// The function C{op(t1, t2)} is allowed to modify C{t1} and return it
+        /// The function op(t1, t2) is allowed to modify t1 and return it
         /// as its result value to avoid object allocation; however, it should not
-        /// modify C{t2}.
+        /// modify t2.
         /// 
         /// This behaves somewhat differently from fold operations implemented
         /// for non-distributed collections in functional languages like Scala.
@@ -679,9 +661,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// the partitions, using a given combine functions and a neutral "zero
         /// value."
         /// 
-        /// The functions C{op(t1, t2)} is allowed to modify C{t1} and return it
+        /// The functions op(t1, t2) is allowed to modify t1 and return it
         /// as its result value to avoid object allocation; however, it should not
-        /// modify C{t2}.
+        /// modify t2.
         /// 
         /// The first function (seqOp) can return a different result type, U, than
         /// the type of this RDD. Thus, we need one operation for merging a T into
@@ -853,7 +835,7 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Return each value in C{self} that is not contained in C{other}.
+        /// Return each value in this RDD that is not contained in <paramref name="other"/>.
         /// 
         /// var x = sc.Parallelize(new int[] { 1, 2, 3, 4 }, 1)
         /// var y = sc.Parallelize(new int[] { 3 }, 1)
@@ -875,7 +857,7 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
-        /// Creates tuples of the elements in this RDD by applying C{f}.
+        /// Creates tuples of the elements in this RDD by applying <paramref name="f"/>.
         /// 
         /// sc.Parallelize(new int[] { 1, 2, 3, 4 }, 1).KeyBy(x => x * x).Collect())
         /// (1, 1), (4, 2), (9, 3), (16, 4)
@@ -983,7 +965,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// Items in the kth partition will get ids k, n+k, 2*n+k, ..., where
         /// n is the number of partitions. So there may exist gaps, but this
-        /// method won't trigger a spark job, which is different from L{zipWithIndex}
+        /// method won't trigger a spark job, which is different from <see cref="ZipWithIndex"/>
         /// 
         /// >>> sc.Parallelize(new string[] { "a", "b", "c", "d" }, 1).ZipWithIndex().Collect()
         /// [('a', 0), ('b', 1), ('c', 4), ('d', 2), ('e', 5)]
