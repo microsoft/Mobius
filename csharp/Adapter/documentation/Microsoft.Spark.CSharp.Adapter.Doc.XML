@@ -10,6 +10,21 @@
             to be used in SparkCLR runtime
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Configuration.IConfigurationService">
+            <summary>
+            Helps getting config settings to be used in SparkCLR runtime
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Configuration.IConfigurationService.GetCSharpWorkerExePath">
+            <summary>
+            The full path of the CSharp external backend worker process executable.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Configuration.IConfigurationService.BackendPortNumber">
+            <summary>
+            The port number used for communicating with the CSharp external backend worker process.
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Configuration.ConfigurationService.SparkCLRConfiguration">
             <summary>
             Default configuration for SparkCLR jobs.
@@ -39,21 +54,6 @@
         <member name="M:Microsoft.Spark.CSharp.Configuration.ConfigurationService.SparkCLRDebugConfiguration.GetCSharpWorkerExePath">
             <summary>
             The full path of the CSharp external backend worker process.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Configuration.IConfigurationService">
-            <summary>
-            Helps getting config settings to be used in SparkCLR runtime
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Configuration.IConfigurationService.BackendPortNumber">
-            <summary>
-            The port number used for communicating with the CSharp external backend worker process.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Configuration.IConfigurationService.GetCSharpWorkerExePath">
-            <summary>
-            The full path of the CSharp external backend worker process executable.
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Accumulator">
@@ -131,23 +131,16 @@
             
             </summary>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.Broadcast`1.Value">
-            <summary>
-            Return the broadcasted value
-            </summary>
-        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Broadcast`1.Unpersist(System.Boolean)">
             <summary>
             Delete cached copies of this broadcast on the executors.
             </summary>
             <param name="blocking"></param>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
+        <member name="P:Microsoft.Spark.CSharp.Core.Broadcast`1.Value">
             <summary>
-            Container for an optional value of type T. If the value of type T is present, the Option.IsDefined is TRUE and GetValue() return the value. 
-            If the value is absent, the Option.IsDefined is FALSE, exception will be thrown when calling GetValue().
+            Return the broadcasted value
             </summary>
-            <typeparam name="T"></typeparam>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
             <summary>
@@ -159,6 +152,11 @@
         <member name="T:Microsoft.Spark.CSharp.Core.RDDCollector">
             <summary>
             Used for collect operation on RDD
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.IRDDCollector">
+            <summary>
+            Interface for collect operation on RDD
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.DoubleRDDFunctions.Sum(Microsoft.Spark.CSharp.Core.RDD{System.Double})">
@@ -273,11 +271,6 @@
             <param name="self"></param>
             <returns></returns>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.IRDDCollector">
-            <summary>
-            Interface for collect operation on RDD
-            </summary>
-        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Boolean,System.Nullable{System.Int32})">
             <summary>
             Sort the RDD by key, so that each partition contains a sorted range of the elements. Calling
@@ -354,7 +347,7 @@
              <summary>
              Return an RDD with the keys of each tuple.
             
-             >>> m = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(1, 2), new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(3, 4) }, 1).Keys().Collect()
+             &gt;&gt;&gt; m = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(1, 2), new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(3, 4) }, 1).Keys().Collect()
              [1, 3]
              </summary>
              <typeparam name="K"></typeparam>
@@ -366,7 +359,7 @@
              <summary>
              Return an RDD with the values of each tuple.
             
-             >>> m = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(1, 2), new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(3, 4) }, 1).Values().Collect()
+             &gt;&gt;&gt; m = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(1, 2), new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(3, 4) }, 1).Values().Collect()
              [2, 4]
              
              </summary>
@@ -391,7 +384,7 @@
                 new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
                 new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
             }, 2)
-            .ReduceByKey((x, y) => x + y).Collect()
+            .ReduceByKey((x, y) =&gt; x + y).Collect()
                    
             [('a', 2), ('b', 1)]
             
@@ -417,7 +410,7 @@
                 new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
                 new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
             }, 2)
-            .ReduceByKeyLocally((x, y) => x + y).Collect()
+            .ReduceByKeyLocally((x, y) =&gt; x + y).Collect()
             
             [('a', 2), ('b', 1)]
             
@@ -438,7 +431,7 @@
                 new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
                 new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
             }, 2)
-            .CountByKey((x, y) => x + y).Collect()
+            .CountByKey((x, y) =&gt; x + y).Collect()
             
             [('a', 2), ('b', 1)]
             
@@ -562,7 +555,7 @@
             <summary>
             Return a copy of the RDD partitioned using the specified partitioner.
             
-            sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x => new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(x, x)).PartitionBy(3).Glom().Collect()
+            sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x =&gt; new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(x, x)).PartitionBy(3).Glom().Collect()
             </summary>
             <param name="self"></param>
             <param name="numPartitions"></param>
@@ -594,7 +587,7 @@
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
                     }, 2)
-                    .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
+                    .CombineByKey(() =&gt; string.Empty, (x, y) =&gt; x + y.ToString(), (x, y) =&gt; x + y).Collect()
                     
             [('a', '11'), ('b', '1')]
             </summary>
@@ -625,7 +618,7 @@
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
                     }, 2)
-                    .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
+                    .CombineByKey(() =&gt; string.Empty, (x, y) =&gt; x + y.ToString(), (x, y) =&gt; x + y).Collect()
                     
             [('a', 2), ('b', 1)]
             </summary>
@@ -653,7 +646,7 @@
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
                     }, 2)
-                    .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
+                    .CombineByKey(() =&gt; string.Empty, (x, y) =&gt; x + y.ToString(), (x, y) =&gt; x + y).Collect()
                     
             [('a', 2), ('b', 1)]
             </summary>
@@ -681,7 +674,7 @@
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
                         new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
                     }, 2)
-                    .GroupByKey().MapValues(l => string.Join(" ", l)).Collect()
+                    .GroupByKey().MapValues(l =&gt; string.Join(" ", l)).Collect()
                     
             [('a', [1, 1]), ('b', [1])]
             
@@ -703,7 +696,7 @@
                         new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("a", new[]{"apple", "banana", "lemon"}), 
                         new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("b", new[]{"grapes"})
                     }, 2)
-                    .MapValues(x => x.Length).Collect()
+                    .MapValues(x =&gt; x.Length).Collect()
                     
             [('a', 3), ('b', 1)]
             
@@ -726,7 +719,7 @@
                         new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("a", new[]{"x", "y", "z"}), 
                         new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("b", new[]{"p", "r"})
                     }, 2)
-                    .FlatMapValues(x => x).Collect()
+                    .FlatMapValues(x =&gt; x).Collect()
                     
             [('a', 'x'), ('a', 'y'), ('a', 'z'), ('b', 'p'), ('b', 'r')]
             
@@ -782,7 +775,7 @@
             var y = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 2);
             var z = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2) }, 1);
             var w = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 42) }, 1);
-            var m = x.GroupWith(y, z, w).MapValues(l => string.Join(" ", l.Item1) + " : " + string.Join(" ", l.Item2) + " : " + string.Join(" ", l.Item3) + " : " + string.Join(" ", l.Item4)).Collect();
+            var m = x.GroupWith(y, z, w).MapValues(l =&gt; string.Join(" ", l.Item1) + " : " + string.Join(" ", l.Item2) + " : " + string.Join(" ", l.Item3) + " : " + string.Join(" ", l.Item4)).Collect();
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>
@@ -821,9 +814,9 @@
             is done efficiently if the RDD has a known partitioner by only
             searching the partition that the key maps to.
             
-            >>> l = range(1000)
-            >>> rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) => new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(x, y)), 10)
-            >>> rdd.lookup(42)
+            &gt;&gt;&gt; l = range(1000)
+            &gt;&gt;&gt; rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) =&gt; new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(x, y)), 10)
+            &gt;&gt;&gt; rdd.lookup(42)
             [42]
             
             </summary>
@@ -914,14 +907,6 @@
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1" -->
-        <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndexHelper`2">
-            <summary>
-            This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
-            private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
-            for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
-            on the serializability of compiler generated types
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDD`1">
             <summary>
             Represents a Resilient Distributed Dataset (RDD), the basic abstraction in Spark. Represents an immutable, 
@@ -930,21 +915,6 @@
             See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.RDD
             </summary>
             <typeparam name="T">Type of the RDD</typeparam>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCached">
-            <summary>
-            Return whether this RDD has been cached or not
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCheckpointed">
-            <summary>
-            Return whether this RDD has been checkpointed or not
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.Name">
-            <summary>
-            Return the name of this RDD.
-            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.RDD`1.Cache">
             <summary>
@@ -987,7 +957,7 @@
             <summary>
             Return a new RDD by applying a function to each element of this RDD.
             
-            sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new <see cref="!:KeyValuePair&lt;string, int&gt;"/>(x, 1)).Collect()
+            sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x =&gt; new <see cref="!:KeyValuePair&lt;string, int&gt;"/>(x, 1)).Collect()
             [('a', 1), ('b', 1), ('c', 1)]
             
             </summary>
@@ -1028,7 +998,7 @@
             Return a new RDD by applying a function to each partition of this RDD,
             while tracking the index of the original partition.
             
-            <see cref="!:sc.Parallelize(new int[]&lt;1, 2, 3, 4&gt;, 4).MapPartitionsWithIndex&lt;double&gt;"/>((pid, iter) => (double)pid).Sum()
+            <see cref="!:sc.Parallelize(new int[]&lt;1, 2, 3, 4&gt;, 4).MapPartitionsWithIndex&lt;double&gt;"/>((pid, iter) =&gt; (double)pid).Sum()
             6
             </summary>
             <typeparam name="U"></typeparam>
@@ -1496,7 +1466,7 @@
             n is the number of partitions. So there may exist gaps, but this
             method won't trigger a spark job, which is different from <see cref="M:Microsoft.Spark.CSharp.Core.RDD`1.ZipWithIndex"/>
             
-            >>> sc.Parallelize(new string[] { "a", "b", "c", "d" }, 1).ZipWithIndex().Collect()
+            &gt;&gt;&gt; sc.Parallelize(new string[] { "a", "b", "c", "d" }, 1).ZipWithIndex().Collect()
             [('a', 0), ('b', 1), ('c', 4), ('d', 2), ('e', 5)]
             
             </summary>
@@ -1549,6 +1519,29 @@
             <param name="ub">upper bound to use for the Bernoulli sampler</param>
             <param name="seed">the seed for the Random number generator</param>
             <returns>A random sub-sample of the RDD without replacement.</returns>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCached">
+            <summary>
+            Return whether this RDD has been cached or not
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCheckpointed">
+            <summary>
+            Return whether this RDD has been checkpointed or not
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.Name">
+            <summary>
+            Return the name of this RDD.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndexHelper`2">
+            <summary>
+            This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
+            private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
+            for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
+            on the serializability of compiler generated types
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StringRDDFunctions">
             <summary>
@@ -1746,36 +1739,6 @@
             </summary>
             <param name="key">Key to use</param>
             <param name="defaultValue">Default value to use</param>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.Version">
-            <summary>
-            The version of Spark on which this application is running.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StartTime">
-            <summary>
-            Return the epoch time when the Spark Context was started.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultParallelism">
-            <summary>
-            Default level of parallelism to use when not given by user (e.g. for reduce tasks)
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultMinPartitions">
-            <summary>
-            Default min number of partitions for Hadoop RDDs when not given by user
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.SparkUser">
-            <summary>
-            Get SPARK_USER for user who is running SparkContext.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StatusTracker">
-            <summary>
-            Return :class:`StatusTracker` object
-            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(Microsoft.Spark.CSharp.Proxy.ISparkContextProxy,Microsoft.Spark.CSharp.Core.SparkConf)">
             <summary>
@@ -2090,6 +2053,36 @@
             Cancel all jobs that have been scheduled or are running.
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.Version">
+            <summary>
+            The version of Spark on which this application is running.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StartTime">
+            <summary>
+            Return the epoch time when the Spark Context was started.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultParallelism">
+            <summary>
+            Default level of parallelism to use when not given by user (e.g. for reduce tasks)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultMinPartitions">
+            <summary>
+            Default min number of partitions for Hadoop RDDs when not given by user
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.SparkUser">
+            <summary>
+            Get SPARK_USER for user who is running SparkContext.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StatusTracker">
+            <summary>
+            Return :class:`StatusTracker` object
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.Merge(System.Double)">
             <summary>
             Add a value into this StatCounter, updating the internal statistics.
@@ -2195,6 +2188,11 @@
             Extend method to sort items in a JSON array by keys.
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
+            <summary>
+            Contains everything needed to setup an environment for using C# with Spark
+            </summary>
+        </member>
         <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Interop.Ipc.IJvmBridge" -->
         <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Interop.Ipc.JvmBridge" -->
         <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.JvmObjectReference">
@@ -2213,11 +2211,6 @@
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Interop.Ipc.SerDe" -->
-        <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
-            <summary>
-            Contains everything needed to setup an environment for using C# with Spark
-            </summary>
-        </member>
         <member name="M:Microsoft.Spark.CSharp.Proxy.Ipc.DataFrameIpcProxy.Intersect(Microsoft.Spark.CSharp.Proxy.IDataFrameProxy)">
             <summary>
             Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, intersect(other: DataFrame): DataFrame
@@ -3462,7 +3455,7 @@
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``1(System.String,System.Func{``0})">
             <summary>
             Register UDF with no input argument, e.g:
-                <see cref="!:SqlContext.RegisterFunction&lt;bool&gt;"/>("MyFilter", () => true);
+                <see cref="!:SqlContext.RegisterFunction&lt;bool&gt;"/>("MyFilter", () =&gt; true);
                 sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");
             </summary>
             <typeparam name="RT"></typeparam>
@@ -3472,7 +3465,7 @@
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``2(System.String,System.Func{``1,``0})">
             <summary>
             Register UDF with 1 input argument, e.g:
-                <see cref="!:SqlContext.RegisterFunction&lt;bool, string&gt;"/>("MyFilter", (arg1) => arg1 != null);
+                <see cref="!:SqlContext.RegisterFunction&lt;bool, string&gt;"/>("MyFilter", (arg1) =&gt; arg1 != null);
                 sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");
             </summary>
             <typeparam name="RT"></typeparam>
@@ -3524,11 +3517,6 @@
              - A function that is used to generate an RDD after each time interval
             </summary>
             <typeparam name="T"></typeparam>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Streaming.DStream`1.SlideDuration">
-            <summary>
-            Return the slideDuration in seconds of this DStream
-            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.DStream`1.Count">
             <summary>
@@ -3786,6 +3774,11 @@
             </param>
             <param name="numPartitions">number of partitions of each RDD in the new DStream.</param>
             <returns></returns>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.DStream`1.SlideDuration">
+            <summary>
+            Return the slideDuration in seconds of this DStream
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.MapPartitionsWithIndexHelper`2">
             <summary>
@@ -4143,7 +4136,7 @@
             Wait for the execution to stop.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.AwaitTermination(System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.AwaitTerminationOrTimeout(System.Int32)">
             <summary>
             Wait for the execution to stop.
             </summary>

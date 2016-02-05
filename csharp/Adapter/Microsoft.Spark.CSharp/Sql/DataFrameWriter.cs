@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -14,6 +15,7 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class DataFrameWriter
     {
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(DataFrameWriter));
         internal IDataFrameWriterProxy DataFrameWriterProxy
         {
             get { return dataFrameWriterProxy; }
@@ -56,6 +58,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public DataFrameWriter Format(string source)
         {
+            logger.LogInfo("Output data storage format for the writer is '{0}'", source);
             dataFrameWriterProxy.Format(source);
             return this;
         }
@@ -66,6 +69,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrameWriter Option(string key, string value)
         {
             var options = new Dictionary<string, string>() { { key, value } };
+            logger.LogInfo("Output key-vaue option for the external data stroage is {0}={1}", key, value);
             return Options(options);
         }
 

@@ -33,9 +33,19 @@ namespace Microsoft.Spark.CSharp.Services
             logger.Debug(message);
         }
 
+        public void LogDebug(string messageFormat, params object[] messageParameters)
+        {
+            logger.DebugFormat(messageFormat, messageParameters);
+        }
+
         public void LogInfo(string message)
         {
             logger.Info(message);
+        }
+
+        public void LogInfo(string messageFormat, params object[] messageParameters)
+        {
+            logger.InfoFormat(messageFormat, messageParameters);
         }
 
         public void LogWarn(string message)
@@ -43,14 +53,29 @@ namespace Microsoft.Spark.CSharp.Services
             logger.Warn(message);
         }
 
+        public void LogWarn(string messageFormat, params object[] messageParameters)
+        {
+            logger.WarnFormat(messageFormat, messageParameters);
+        }
+
         public void LogFatal(string message)
         {
             logger.Fatal(message);
         }
 
+        public void LogFatal(string messageFormat, params object[] messageParameters)
+        {
+            logger.FatalFormat(messageFormat, messageParameters);
+        }
+
         public void LogError(string message)
         {
             logger.Error(message);
+        }
+
+        public void LogError(string messageFormat, params object[] messageParameters)
+        {
+            logger.ErrorFormat(messageFormat, messageParameters);
         }
 
         public void LogException(Exception e)

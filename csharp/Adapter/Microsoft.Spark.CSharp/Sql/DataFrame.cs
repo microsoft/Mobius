@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -18,6 +19,9 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     public class DataFrame
     {
+        [NonSerialized]
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(DataFrame));
+
         [NonSerialized]
         private readonly IDataFrameProxy dataFrameProxy;
         [NonSerialized]
@@ -119,6 +123,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns>row count</returns>
         public long Count()
         {
+            logger.LogInfo("Calculating the number of rows in the dataframe");
             return dataFrameProxy.Count();
         }
 
@@ -129,6 +134,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="truncate">Indicates if strings more than 20 characters long will be truncated</param>
         public void Show(int numberOfRows = 20, bool truncate = true)
         {
+            logger.LogInfo("Writing {0} rows in the DataFrame to Console output", numberOfRows);
             Console.WriteLine(dataFrameProxy.GetShowString(numberOfRows, truncate));
         }
 
@@ -138,6 +144,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public void ShowSchema()
         {
             var nameTypeList = Schema.Fields.Select(structField => structField.SimpleString);
+            logger.LogInfo("Writing Schema to Console output");
             Console.WriteLine(string.Join(", ", nameTypeList));
         }
 
@@ -954,6 +961,7 @@ namespace Microsoft.Spark.CSharp.Sql
         // write(self)
         public DataFrameWriter Write()
         {
+            logger.LogInfo("Using DataFrameWriter to write output data to external data storage");
             return new DataFrameWriter(dataFrameProxy.Write());
         }
 

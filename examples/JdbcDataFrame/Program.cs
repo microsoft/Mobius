@@ -20,16 +20,22 @@ namespace Microsoft.Spark.CSharp.Examples
             LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance); //this is optional - DefaultLoggerService will be used if not set
             var logger = LoggerServiceFactory.GetLogger(typeof(JdbcDataFrameExample));
 
+            //For SQL Server use the connection string formats below
+            //"jdbc:sqlserver://localhost:1433;databaseName=Temp;integratedSecurity=true;" or
+            //"jdbc:sqlserver://localhost;databaseName=Temp;user=MyUserName;password=myPassword;"
+            var connectionString = args[0];
+            var tableName = args[1];
+
             var sparkConf = new SparkConf();
             var sparkContext = new SparkContext(sparkConf);
             var sqlContext = new SqlContext(sparkContext);
-            var df = sqlContext.Read()
-                .Jdbc("jdbc:sqlserver://localhost:1433;databaseName=Temp;;integratedSecurity=true;", "xyz",
-                    new Dictionary<string, string>());
+            var df = sqlContext
+                        .Read()
+                        .Jdbc(connectionString, tableName, new Dictionary<string, string>());
             df.ShowSchema();
             var rowCount = df.Count();
             logger.LogInfo("Row count is " + rowCount);
-            
+            sparkContext.Stop();
         }
     }
 }

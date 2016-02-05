@@ -63,6 +63,7 @@ namespace Microsoft.Spark.CSharp.Core
         public SparkConf SetMaster(string master)
         {
             sparkConfProxy.SetMaster(master);
+            logger.LogInfo("Spark master set to {0}", master);
             return this;
         }
 
@@ -73,6 +74,7 @@ namespace Microsoft.Spark.CSharp.Core
         public SparkConf SetAppName(string appName)
         {
             sparkConfProxy.SetAppName(appName);
+            logger.LogInfo("Spark app name set to {0}", appName);
             return this;
         }
 
@@ -84,6 +86,7 @@ namespace Microsoft.Spark.CSharp.Core
         public SparkConf SetSparkHome(string sparkHome)
         {
             sparkConfProxy.SetSparkHome(sparkHome);
+            logger.LogInfo("Spark home set to {0}", sparkHome);
             return this;
         }
 
@@ -95,6 +98,7 @@ namespace Microsoft.Spark.CSharp.Core
         public SparkConf Set(string key, string value)
         {
             sparkConfProxy.Set(key, value);
+            logger.LogInfo("Spark configuration key-value set to {0}={1}", key, value);
             return this;
         }
 

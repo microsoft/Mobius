@@ -78,6 +78,14 @@ echo "SparkCLR Samples data"
 cp Samples/Microsoft.Spark.CSharp/data/* "$SPARKCLR_HOME/data/"
 popd
 
+echo "Assemble SparkCLR examples"
+pushd "$FWDIR/../examples"
+# clean any possible previous build first
+./clean.sh
+
+./build.sh
+popd
+
 echo "Assemble SparkCLR script components"
 pushd "$FWDIR/../scripts"
 cp *.sh  "$SPARKCLR_HOME/scripts/"
