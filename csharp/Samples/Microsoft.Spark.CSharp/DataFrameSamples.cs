@@ -783,6 +783,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.IsTrue(columnsNameAndType.Any(c => c.Item1 == "address" && c.Item2 == "struct<city:string,state:string>"));
             }
         }
+        
 
         /// <summary>
         /// Sample to perform Sort on DataFrame
@@ -815,6 +816,33 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.AreEqual("123", sortedDF2[1].GetAs<string>("id"));
                 Assert.AreEqual("531", sortedDF2[2].GetAs<string>("id"));
                 Assert.AreEqual("456", sortedDF2[3].GetAs<string>("id"));
+            }
+        }
+
+        /// <summary>
+        /// Sample to perform SortWithinPartitions on DataFrame
+        /// </summary>
+        [Sample]
+        internal static void DFSortWithinPartitionsSample()
+        {
+            var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame = peopleDataFrame.Repartition(2);
+            peopleDataFrame.Show();
+            
+            // sort by column 'age' descending
+            var sorted = peopleDataFrame.SortWithinPartitions(new[] { "age" }, new[] { false });
+            sorted.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var partitions = sorted.MapPartitions(iters => 
+                                    new List<List<int>> { new List<int> ( iters.Select(row => row.GetAs<int>("age")) ) }).Collect();
+
+                // within each partition, age should be sorted descending
+                foreach (var partition in partitions)
+                {
+                    CollectionAssert.AreEqual(partition.OrderByDescending(key => key), partition);
+                }
             }
         }
 
@@ -1554,6 +1582,36 @@ namespace Microsoft.Spark.CSharp.Samples
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
                 Assert.AreEqual(numPartitions + 1, newNumPartitions);
+            }
+        }
+
+        /// <summary>
+        /// Sample to repartition DataFrame.
+        /// </summary>
+        [Sample]
+        internal static void DFRepartitionSample2()
+        {
+            var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+
+            // partition by 'name' column
+            var newDataFrame = peopleDataFrame.Repartition(new[] { "name" }, 3);
+            Console.WriteLine("Force repartition, dataframe count: {0}", newDataFrame.Count());
+            newDataFrame.Show();
+
+            var dfPartitionedByName = newDataFrame.MapPartitions(iters => 
+                                                            new string[] { string.Join(";", iters.Select(row => row.GetAs<string>("name")))}).Collect();
+
+            Console.WriteLine("After repartition, partition index and names: {0}");
+            for (int i = 0; i < dfPartitionedByName.Length; i++)
+            {
+                Console.WriteLine(string.Format("Partition: {0}, Names: {1}", i, dfPartitionedByName[i]));
+            }
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(3, dfPartitionedByName.Length);
+                // Since we parititon the DataFrame by 'name', the two "Bill"s should be at the same partition
+                Assert.AreEqual(1, dfPartitionedByName.Count(partition => partition.Split(';').Count(name => name == "Bill") == 2));
             }
         }
 

@@ -329,5 +329,20 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public IDataFrameProxy Repartition(int numPartitions, IColumnProxy[] columns)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Repartition(IColumnProxy[] columns)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy SortWithinPartitions(IColumnProxy[] columns)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
