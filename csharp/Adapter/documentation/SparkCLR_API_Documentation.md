@@ -356,6 +356,20 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.EventHubsUtils</font>
+####Summary
+  
+            
+            Utility for creating streams from 
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateUnionStream</font></td><td>Create a unioned EventHubs stream that receives data from Microsoft Azure Eventhubs The unioned stream will receive message from all partitions of the EventHubs</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions</font>
 ####Summary
   
