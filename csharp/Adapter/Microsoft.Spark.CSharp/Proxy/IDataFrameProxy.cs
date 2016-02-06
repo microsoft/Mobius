@@ -42,6 +42,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Replace<T>(object subset, Dictionary<T, T> toReplaceAndValueDict);
         IEnumerable<IDataFrameProxy> RandomSplit(IEnumerable<double> weights, long? seed);
         IDataFrameProxy Sort(IColumnProxy[] columns);
+        IDataFrameProxy SortWithinPartitions(IColumnProxy[] columns);
         IDataFrameProxy Alias(string alias);
         double Corr(string column1, string column2, string method);
         double Cov(string column1, string column2);
@@ -55,6 +56,8 @@ namespace Microsoft.Spark.CSharp.Proxy
         void Persist(StorageLevelType storageLevelType);
         void Unpersist(bool blocking = true);
         IDataFrameProxy Repartition(int numPartitions);
+        IDataFrameProxy Repartition(int numPartitions, IColumnProxy[] columns);
+        IDataFrameProxy Repartition(IColumnProxy[] columns);
         IDataFrameProxy Sample(bool withReplacement, double fraction, long seed);
         IDataFrameWriterProxy Write();
     }
