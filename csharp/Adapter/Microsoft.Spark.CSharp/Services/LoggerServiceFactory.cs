@@ -12,9 +12,12 @@ namespace Microsoft.Spark.CSharp.Services
     public class LoggerServiceFactory
     {
         private static ILoggerService loggerService = DefaultLoggerService.Instance;
+        
         public static void SetLoggerService(ILoggerService loggerServiceOverride)
         {
             loggerService = loggerServiceOverride;
+            var logger = GetLogger(typeof(LoggerServiceFactory));
+            logger.LogInfo("Logger service configured to use {0}", logger.GetType().Name);
         }
 
         public static ILoggerService GetLogger(Type type)

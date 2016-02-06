@@ -81,8 +81,9 @@ Refer to the [docs folder](docs) for design overview and other info on SparkCLR
 |---|:------:|:----:|
 |Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-sparkclr) |[linux-instructions.md](notes/linux-instructions.md#building-sparkclr) |
 |Run samples (functional tests) in local mode |[windows-instructions.md](notes/windows-instructions.md#running-samples) |[linux-instructions.md](notes/linux-instructions.md#running-samples) |
-|Run standlone examples in Client mode |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#client-mode) |
-|Run standlone examples in Cluster mode |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |[Quick-start wiki](https://github.com/Microsoft/SparkCLR/wiki/Quick-Start#cluster-mode) |
+|Run examples in local mode |[running-sparkclr-app.md](notes/running-sparkclr-app.md#running-examples-in-local-mode) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
+|Run SparkCLR app in standalone cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#standalone-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
+|Run SparkCLR app in YARN cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#yarn-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
 
 Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using SparkCLR with Spark on Linux
 

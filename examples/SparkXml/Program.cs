@@ -18,13 +18,17 @@ namespace Microsoft.Spark.CSharp.Examples
             LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance); //this is optional - DefaultLoggerService will be used if not set
             var logger = LoggerServiceFactory.GetLogger(typeof(SparkXmlExample));
 
+            var inputXmlFilePath = args[0];
+            var outputXmlFilePath = args[1];
+
             var sparkConf = new SparkConf();
+            sparkConf.SetAppName("myapp");
             var sparkContext = new SparkContext(sparkConf);
             var sqlContext = new SqlContext(sparkContext);
             var df = sqlContext.Read()
-                .Format("com.databricks.spark.xml")
-                .Option("rowTag", "book")
-                .Load(@"D:\temp\spark-xml\books.xml");
+                                .Format("com.databricks.spark.xml")
+                                .Option("rowTag", "book")
+                                .Load(inputXmlFilePath); //"D:\temp\books.xml", "file:/D:/temp/books.xml" or "hdfs://temp/books.xml"
             df.ShowSchema();
             var rowCount = df.Count();
             logger.LogInfo("Row count is " + rowCount);
@@ -32,10 +36,12 @@ namespace Microsoft.Spark.CSharp.Examples
             var selectedData = df.Select("author", "@id");
 
             selectedData.Write()
-                .Format("com.databricks.spark.xml")
-                .Option("rootTag", "books")
-                .Option("rowTag", "book")
-                .Save(@"D:\temp\spark-xml\newbooks.xml");
+                        .Format("com.databricks.spark.xml")
+                        .Option("rootTag", "books")
+                        .Option("rowTag", "book")
+                        .Save(outputXmlFilePath); //"D:\temp\booksUpdated.xml", "file:/D:/temp/booksUpdated.xml" or "hdfs://temp/booksUpdated.xml"
+
+            sparkContext.Stop();
         }
     }
 }
