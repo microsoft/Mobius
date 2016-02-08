@@ -24,7 +24,7 @@ import scala.language.existentials
 
 object CSharpMapWithStateDStream {
 
-  def ToJavaDStream(stream: DStream[Array[Byte]]): JavaDStream[Array[Byte]] = {
+  def toJavaDStream(stream: DStream[Array[Byte]]): JavaDStream[Array[Byte]] = {
     JavaDStream.fromDStream(stream)
   }
 

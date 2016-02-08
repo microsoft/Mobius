@@ -96,7 +96,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             var stateSnapshotsJvmDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "stateSnapshots"));
             var stateSnapshotsJavaDStreamReference = new JvmObjectReference(
-                (string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream", "ToJavaDStream", new object[] { stateSnapshotsJvmDStreamReference }));
+                (string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream", "toJavaDStream", new object[] { stateSnapshotsJvmDStreamReference }));
 
             return new DStreamIpcProxy(stateSnapshotsJavaDStreamReference, stateSnapshotsJvmDStreamReference);
         }
