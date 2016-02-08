@@ -1,6 +1,6 @@
 package org.apache.spark.streaming.api.csharp
 
-import org.apache.spark.api.csharp.SerDe
+import org.apache.spark.api.csharp.{CSharpRDD, SerDe}
 import org.apache.spark.api.python.{PythonBroadcast, PythonRunner}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.streaming.api.java.JavaDStream
@@ -27,27 +27,87 @@ object CSharpMapWithStateDStream {
   def ToJavaDStream(stream: DStream[Array[Byte]]): JavaDStream[Array[Byte]] = {
     JavaDStream.fromDStream(stream)
   }
+
+  def create(parent: DStream[Array[Byte]],
+             func: Array[Byte],
+             timeoutIntervalInMillis: Long,
+             numPartitions: Int,
+             initialState: CSharpRDD,
+             cSharpWorkerExec: String,
+             broadcastVars: JList[Broadcast[PythonBroadcast]],
+             accumulator: Accumulator[JList[Array[Byte]]]): CSharpMapWithStateDStream = {
+
+    new CSharpMapWithStateDStream(parent, func, timeoutIntervalInMillis, numPartitions, initialState, cSharpWorkerExec,
+      broadcastVars, accumulator)
+  }
+
+  def createWithoutInitialStateAndAccumulator(parent: DStream[Array[Byte]],
+                                              func: Array[Byte],
+                                              timeoutIntervalInMillis: Long,
+                                              numPartitions: Int,
+                                              cSharpWorkerExec: String,
+                                              broadcastVars: JList[Broadcast[PythonBroadcast]]): CSharpMapWithStateDStream = {
+
+    new CSharpMapWithStateDStream(parent, func, timeoutIntervalInMillis, numPartitions, null, cSharpWorkerExec,
+      broadcastVars, null)
+  }
+
+  def createWithoutAccumulator(parent: DStream[Array[Byte]],
+                               func: Array[Byte],
+                               timeoutIntervalInMillis: Long,
+                               numPartitions: Int,
+                               initialState: CSharpRDD,
+                               cSharpWorkerExec: String,
+                               broadcastVars: JList[Broadcast[PythonBroadcast]]): CSharpMapWithStateDStream = {
+
+    new CSharpMapWithStateDStream(parent, func, timeoutIntervalInMillis, numPartitions, initialState, cSharpWorkerExec,
+      broadcastVars, null)
+  }
+
+  def createWithoutInitialState(parent: DStream[Array[Byte]],
+                                func: Array[Byte],
+                                timeoutIntervalInMillis: Long,
+                                numPartitions: Int,
+                                cSharpWorkerExec: String,
+                                broadcastVars: JList[Broadcast[PythonBroadcast]],
+                                accumulator: Accumulator[JList[Array[Byte]]]): CSharpMapWithStateDStream = {
+
+    new CSharpMapWithStateDStream(parent, func, timeoutIntervalInMillis, numPartitions, null, cSharpWorkerExec,
+      broadcastVars, accumulator)
+  }
 }
 
 private[streaming] class CSharpMapWithStateDStream(
                                                     parent: DStream[Array[Byte]],
                                                     func: Array[Byte],
                                                     timeoutIntervalInMillis: Long,
+                                                    numPartitions: Int,
+                                                    initialState: CSharpRDD,
                                                     cSharpWorkerExec: String,
                                                     broadcastVars: JList[Broadcast[PythonBroadcast]],
                                                     accumulator: Accumulator[JList[Array[Byte]]])
   extends DStream[Array[Byte]](parent.context) {
+
+
+  def this(
+    parent: DStream[Array[Byte]],
+    func: Array[Byte],
+    timeoutIntervalInMillis: Long,
+    cSharpWorkerExec: String,
+    broadcastVars: JList[Broadcast[PythonBroadcast]],
+    accumulator: Accumulator[JList[Array[Byte]]]) =
+    this(parent, func, timeoutIntervalInMillis,  -1, null, cSharpWorkerExec, broadcastVars, accumulator)
 
   def this(parent: DStream[Array[Byte]],
            func: Array[Byte],
            timeoutIntervalInMillis: Long,
            cSharpWorkerExec: String,
            broadcastVars: JList[Broadcast[PythonBroadcast]]) =
-    this(parent, func, timeoutIntervalInMillis, cSharpWorkerExec, broadcastVars, null)
+    this(parent, func, timeoutIntervalInMillis, -1, null, cSharpWorkerExec, broadcastVars, null)
 
   private val internalStream =
-    new InternalCSharpMapWithStateDStream(parent, func, timeoutIntervalInMillis, cSharpWorkerExec,
-      broadcastVars, accumulator)
+    new InternalCSharpMapWithStateDStream(parent, func, timeoutIntervalInMillis, numPartitions, initialState,
+      cSharpWorkerExec, broadcastVars, accumulator)
 
   def slideDuration: Duration = internalStream.slideDuration
 
@@ -96,6 +156,8 @@ private[streaming] class InternalCSharpMapWithStateDStream(
                                                             parent: DStream[Array[Byte]],
                                                             func: Array[Byte],
                                                             timeoutIntervalInMillis: Long,
+                                                            numPartitions: Int,
+                                                            initialState: CSharpRDD,
                                                             cSharpWorkerExec: String,
                                                             broadcastVars: JList[Broadcast[PythonBroadcast]],
                                                             accumulator: Accumulator[JList[Array[Byte]]])
@@ -103,7 +165,10 @@ private[streaming] class InternalCSharpMapWithStateDStream(
 
   persist(StorageLevel.MEMORY_ONLY)
 
-  private val partitioner = new HashPartitioner(ssc.sc.defaultParallelism)
+  private val partitioner = numPartitions match {
+    case n if n > 0 => new HashPartitioner(n)
+    case _ => new HashPartitioner(ssc.sc.defaultParallelism)
+  }
 
   override def dependencies: List[DStream[_]] = List(parent)
 
@@ -129,11 +194,33 @@ private[streaming] class InternalCSharpMapWithStateDStream(
         rdd
       }
       case None => {
-        // TODO use spec.getInitialStateRDD instead of EmptyRDD
-        val rdd = new EmptyRDD[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]](ssc.sparkContext)
-        CSharpMapWithStateRDD.createFromRDD(
-          rdd.flatMap { _.stateMap.getAll() },
-          partitioner, validTime, cSharpWorkerExec, broadcastVars, accumulator)
+        initialState match {
+          case null => {
+            val rdd = new EmptyRDD[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]](ssc.sparkContext)
+            CSharpMapWithStateRDD.createFromRDD(
+              rdd.flatMap {
+                _.stateMap.getAll()
+              },
+              partitioner, validTime, cSharpWorkerExec, broadcastVars, accumulator)
+          }
+
+          case _ => {
+            val rdd = initialState.map(e => {
+              if(e == null || e.length == 0){
+                ("", e)
+              }else {
+                val dis = new DataInputStream(new ByteArrayInputStream(e))
+                val mappedKeyBytes = Base64.getEncoder.encodeToString(SerDe.readBytes(dis))
+                val stateBytes = SerDe.readBytes(dis)
+                dis.close()
+                (mappedKeyBytes, stateBytes)
+              }
+            })
+
+            CSharpMapWithStateRDD.createFromPairRDD(rdd, partitioner , validTime, cSharpWorkerExec,
+              broadcastVars, accumulator)
+          }
+        }
       }
     }
 
@@ -165,19 +252,19 @@ private[streaming] class InternalCSharpMapWithStateDStream(
 }
 
 private[spark] class CSharpMapWithStateRDD (
-             var prevStateRDD: RDD[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]],
-             var partitionedDataRDD: RDD[(String, Array[Byte])],
-             command: Array[Byte],
-             batchTime: Time,
-             timeoutThresholdTime: Option[Long],
-             cSharpWorkerExec: String,
-             broadcastVars: JList[Broadcast[PythonBroadcast]],
-             accumulator: Accumulator[JList[Array[Byte]]])
+                                             var prevStateRDD: RDD[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]],
+                                             var partitionedDataRDD: RDD[(String, Array[Byte])],
+                                             command: Array[Byte],
+                                             batchTime: Time,
+                                             timeoutThresholdTime: Option[Long],
+                                             cSharpWorkerExec: String,
+                                             broadcastVars: JList[Broadcast[PythonBroadcast]],
+                                             accumulator: Accumulator[JList[Array[Byte]]])
   extends RDD[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]](
-            partitionedDataRDD.sparkContext,
-            List(
-              new OneToOneDependency[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]](prevStateRDD),
-              new OneToOneDependency(partitionedDataRDD))) {
+    partitionedDataRDD.sparkContext,
+    List(
+      new OneToOneDependency[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]](prevStateRDD),
+      new OneToOneDependency(partitionedDataRDD))) {
 
   val bufferSize = conf.getInt("spark.buffer.size", 65536)
   val reuse_worker = conf.getBoolean("spark.python.worker.reuse", true)
@@ -246,7 +333,7 @@ private[spark] class CSharpMapWithStateRDD (
               newStateMap.put(key, state, batchTime.milliseconds)
             }
           }
-      })
+        })
 
       // Get the timed out state records, call the mapping function on each and collect the
       // data returned. Remove timedout data only when full scan is enabled.
@@ -274,6 +361,35 @@ private[spark] class CSharpMapWithStateRDD (
 }
 
 private [streaming] object CSharpMapWithStateRDD {
+
+  def createFromPairRDD(
+                         pairRDD: RDD[(String, Array[Byte])],
+                         partitioner: Partitioner,
+                         updateTime: Time,
+                         cSharpWorkerExec: String,
+                         broadcastVars: JList[Broadcast[PythonBroadcast]],
+                         accumulator: Accumulator[JList[Array[Byte]]]): CSharpMapWithStateRDD = {
+
+    val stateRDD = pairRDD.partitionBy(partitioner).mapPartitions({ iterator =>
+      val stateMap = StateMap.create[String, Array[Byte]](SparkEnv.get.conf)
+      iterator.foreach { case (key, state) =>
+        stateMap.put(key, state, updateTime.milliseconds)
+      }
+      Iterator(MapWithStateRDDRecord(stateMap, Seq.empty[Array[Byte]]))
+    }, preservesPartitioning = true)
+
+    val emptyDataRDD = pairRDD.sparkContext.emptyRDD[(String, Array[Byte])].partitionBy(partitioner)
+
+    new CSharpMapWithStateRDD(
+      stateRDD,
+      emptyDataRDD,
+      new Array[Byte](0),
+      updateTime,
+      None,
+      cSharpWorkerExec,
+      broadcastVars,
+      accumulator)
+  }
 
   def createFromRDD(
                      rdd: RDD[(String, Array[Byte], Long)],
@@ -307,10 +423,10 @@ private [streaming] object CSharpMapWithStateRDD {
 }
 
 private[streaming] class MapWithStateDataIterator(
-                                                 partitionIndex: Int,
-                                                 dataIterator: Iterator[(String, Array[Byte])],
-                                                 stateMap: StateMap[String, Array[Byte]],
-                                                 batchTime: Time)
+                                                   partitionIndex: Int,
+                                                   dataIterator: Iterator[(String, Array[Byte])],
+                                                   stateMap: StateMap[String, Array[Byte]],
+                                                   batchTime: Time)
   extends Iterator[(Array[Byte])] {
 
   def hasNext = dataIterator.hasNext
@@ -331,8 +447,8 @@ private[streaming] class MapWithStateDataIterator(
 }
 
 private[streaming] class MapWithStateTimedoutDataIterator(
-                                                   dataIterator: Iterator[(String, Array[Byte], Long)],
-                                                   batchTime: Time)
+                                                           dataIterator: Iterator[(String, Array[Byte], Long)],
+                                                           batchTime: Time)
   extends Iterator[(Array[Byte])] {
 
   def hasNext = dataIterator.hasNext
@@ -353,9 +469,9 @@ private[streaming] class MapWithStateTimedoutDataIterator(
 }
 
 private[streaming] class CSharpMapWithStateRDDPartition(
-                                                 idx: Int,
-                                                 @transient var prevStateRDD: RDD[_],
-                                                 @transient var partitionedDataRDD: RDD[_])
+                                                         idx: Int,
+                                                         @transient var prevStateRDD: RDD[_],
+                                                         @transient var partitionedDataRDD: RDD[_])
   extends Partition {
 
   private[streaming] var previousSessionRDDPartition: Partition = null
