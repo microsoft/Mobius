@@ -19,7 +19,7 @@ popd
 powershell -Command Set-ExecutionPolicy -Scope CurrentUser Unrestricted
 
 @rem update SparkClr Nuget package version reference 
-powershell -f SetSparkClrPackageVersion.ps1 -targetDir ..\..\examples -version %ProjectVersion%
+powershell -f SetSparkClrPackageVersion.ps1 -targetDir ..\..\examples -version %ProjectVersion% -nuspecDir ..\..\csharp
 
 @rem update SparkClr jar version reference 
 powershell -f SetSparkClrJarVersion.ps1 -targetDir ..\..\scripts -version %ProjectVersion%
