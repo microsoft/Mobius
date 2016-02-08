@@ -142,13 +142,6 @@
             Return the broadcasted value
             </summary>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
-            <summary>
-            Container for an optional value of type T. If the value of type T is present, the Option.IsDefined is TRUE and GetValue() return the value. 
-            If the value is absent, the Option.IsDefined is FALSE, exception will be thrown when calling GetValue().
-            </summary>
-            <typeparam name="T"></typeparam>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDDCollector">
             <summary>
             Used for collect operation on RDD
@@ -2286,6 +2279,13 @@
             <param name="columns"></param>
             <returns></returns>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Proxy.Ipc.DataFrameIpcProxy.SortWithinPartitions(Microsoft.Spark.CSharp.Proxy.IColumnProxy[])">
+            <summary>
+            Call https://github.com/apache/spark/blob/branch-1.6/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, sortWithinPartitions(sortExprs: Column*): DataFrame
+            </summary>
+            <param name="columns"></param>
+            <returns></returns>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Proxy.Ipc.DataFrameIpcProxy.Alias(System.String)">
             <summary>
             Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, as(alias: String): DataFrame
@@ -2324,6 +2324,21 @@
             </summary>
             <param name="column1"></param>
             <param name="column2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Proxy.Ipc.DataFrameIpcProxy.Repartition(System.Int32,Microsoft.Spark.CSharp.Proxy.IColumnProxy[])">
+            <summary>
+            Call https://github.com/apache/spark/blob/branch-1.6/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, repartition(numPartitions: Int, partitionExprs: Column*): DataFrame
+            </summary>
+            <param name="numPartitions"></param>
+            <param name="columns"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Proxy.Ipc.DataFrameIpcProxy.Repartition(Microsoft.Spark.CSharp.Proxy.IColumnProxy[])">
+            <summary>
+            Call https://github.com/apache/spark/blob/branch-1.6/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, repartition(partitionExprs: Column*): DataFrame
+            </summary>
+            <param name="columns"></param>
             <returns></returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Proxy.Ipc.DStreamIpcProxy">
@@ -2727,6 +2742,26 @@
             if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
             <returns>A new DataFrame sorted by the specified column(s)</returns>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.SortWithinPartitions(System.String[],System.Boolean[])">
+            <summary>
+            Returns a new DataFrame sorted by the specified column(s).
+            Reference to https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py, sortWithinPartitions(self, *cols, **kwargs)
+            </summary>
+            <param name="columns">List of Columns to sort by</param>
+            <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending.
+            if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
+            <returns>A new DataFrame sorted by the specified column(s)</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.SortWithinPartition(Microsoft.Spark.CSharp.Sql.Column[],System.Boolean[])">
+            <summary>
+            Returns a new DataFrame sorted by the specified column(s).
+            Reference to https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py, sortWithinPartitions(self, *cols, **kwargs)
+            </summary>
+            <param name="columns">List of Columns to sort by</param>
+            <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending.
+            if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
+            <returns>A new DataFrame sorted by the specified column(s)</returns>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Alias(System.String)">
             <summary>
             Returns a new DataFrame with an alias set.
@@ -2859,6 +2894,20 @@
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Repartition(System.Int32)">
             <summary>
             Returns a new DataFrame that has exactly `numPartitions` partitions.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Repartition(System.String[],System.Int32)">
+            <summary>
+            Returns a new [[DataFrame]] partitioned by the given partitioning columns into <paramref name="numPartitions"/>. The resulting DataFrame is hash partitioned.
+            <param name="columns"></param>
+            <param name="numPartitions">optional. If not specified, keep current partitions.</param>
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Repartition(Microsoft.Spark.CSharp.Sql.Column[],System.Int32)">
+            <summary>
+            Returns a new [[DataFrame]] partitioned by the given partitioning columns into <paramref name="numPartitions"/>. The resulting DataFrame is hash partitioned.
+            <param name="columns"></param>
+            <param name="numPartitions">optional. If not specified, keep current partitions.</param>
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Sample(System.Boolean,System.Double,System.Nullable{System.Int64})">

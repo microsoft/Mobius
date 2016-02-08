@@ -648,17 +648,67 @@ namespace Microsoft.Spark.CSharp.Sql
             }
             if (ascending != null)
             {
-                if(columns.Length != ascending.Length)
-                    throw new ArgumentException("ascending should have the same length with columns");
-
-                var columnsWithOrder = new Column[columns.Length];
-                for (var i = 0; i < columns.Length; i++)
-                {
-                    columnsWithOrder[i] = ascending[i] ? columns[i].Asc() : columns[i].Desc();
-                }
-                return new DataFrame(dataFrameProxy.Sort(columnsWithOrder.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+                var sortedColumns = SortColumns(columns, ascending);
+                return new DataFrame(dataFrameProxy.Sort(sortedColumns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
             }
             return new DataFrame(dataFrameProxy.Sort(columns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame sorted by the specified column(s).
+        /// Reference to https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py, sortWithinPartitions(self, *cols, **kwargs)
+        /// </summary>
+        /// <param name="columns">List of Columns to sort by</param>
+        /// <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending.
+        /// if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
+        /// <returns>A new DataFrame sorted by the specified column(s)</returns>
+        public DataFrame SortWithinPartitions(string[] columns, bool[] ascending = null)
+        {
+            if (columns == null || columns.Length == 0)
+            {
+                throw new ArgumentException("should sort by at least one column.");
+            }
+            if (ascending != null)
+            {
+                var sortedColumns = SortColumns(columns.Select(c => this[c]).ToArray(), ascending);
+                return new DataFrame(dataFrameProxy.SortWithinPartitions(sortedColumns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+            }
+            return new DataFrame(dataFrameProxy.SortWithinPartitions(columns.Select(c => this[c].ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame sorted by the specified column(s).
+        /// Reference to https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py, sortWithinPartitions(self, *cols, **kwargs)
+        /// </summary>
+        /// <param name="columns">List of Columns to sort by</param>
+        /// <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending.
+        /// if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
+        /// <returns>A new DataFrame sorted by the specified column(s)</returns>
+        public DataFrame SortWithinPartition(Column[] columns, bool[] ascending = null)
+        {
+            if (columns == null || columns.Length == 0)
+            {
+                throw new ArgumentException("should sort by at least one column.");
+            }
+            if (ascending != null)
+            {
+                var sortedColumns = SortColumns(columns, ascending);
+                return new DataFrame(dataFrameProxy.SortWithinPartitions(sortedColumns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+            }
+            return new DataFrame(dataFrameProxy.SortWithinPartitions(columns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+        }
+
+        private Column[] SortColumns(Column[] columns, bool[] ascending)
+        {
+            if (columns.Length != ascending.Length)
+                throw new ArgumentException("ascending should have the same length with columns");
+
+            var columnsWithOrder = new Column[columns.Length];
+            for (var i = 0; i < columns.Length; i++)
+            {
+                columnsWithOrder[i] = ascending[i] ? columns[i].Asc() : columns[i].Desc();
+            }
+            return columnsWithOrder;
         }
 
         /// <summary>
@@ -882,6 +932,32 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrame Repartition(int numPartitions)
         {
             return new DataFrame(dataFrameProxy.Repartition(numPartitions), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new [[DataFrame]] partitioned by the given partitioning columns into <paramref name="numPartitions"/>. The resulting DataFrame is hash partitioned.
+        /// <param name="columns"></param>
+        /// <param name="numPartitions">optional. If not specified, keep current partitions.</param>
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py repartition(self, numPartitions)
+        public DataFrame Repartition(string[] columns, int numPartitions = 0)
+        {
+            return numPartitions == 0 ?
+                new DataFrame(dataFrameProxy.Repartition(columns.Select(c => this[c].ColumnProxy).ToArray()), sparkContext) :
+                new DataFrame(dataFrameProxy.Repartition(numPartitions, columns.Select(c => this[c].ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new [[DataFrame]] partitioned by the given partitioning columns into <paramref name="numPartitions"/>. The resulting DataFrame is hash partitioned.
+        /// <param name="columns"></param>
+        /// <param name="numPartitions">optional. If not specified, keep current partitions.</param>
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py repartition(self, numPartitions)
+        public DataFrame Repartition(Column[] columns, int numPartitions = 0)
+        {
+            return numPartitions == 0 ?
+                new DataFrame(dataFrameProxy.Repartition(columns.Select(c => c.ColumnProxy).ToArray()), sparkContext) :
+                new DataFrame(dataFrameProxy.Repartition(numPartitions, columns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
         }
 
         /// <summary>

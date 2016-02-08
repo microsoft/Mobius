@@ -352,7 +352,7 @@ namespace AdapterTest
         }
 
         [Test]
-        public void TestSort_ColumnNames()
+        public void TestSort()
         {
             // Arrange
             const string columnName = "column1";
@@ -371,6 +371,28 @@ namespace AdapterTest
 
             // Assert
             mockDataFrameProxy.Verify(m => m.Sort(It.Is<IColumnProxy[]>(cp => cp.Length == 1 && cp[0] == mockSoretedColumnProxy.Object)));
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrameProxy.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestSortWithinPartitions()
+        {
+            // Arrange
+            const string columnName = "column1";
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            var mockColumnProxy = new Mock<IColumnProxy>();
+            var mockSortedColumnProxy = new Mock<IColumnProxy>();
+            mockColumnProxy.Setup(m => m.UnaryOp(It.IsAny<string>())).Returns(mockSortedColumnProxy.Object);
+            mockDataFrameProxy.Setup(m => m.GetColumn(It.IsAny<string>())).Returns(mockColumnProxy.Object);
+            mockDataFrameProxy.Setup(m => m.SortWithinPartitions(It.IsAny<IColumnProxy[]>())).Returns(expectedResultDataFrameProxy);
+
+            var sc = new SparkContext(null);
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrameProxy = originalDataFrame.SortWithinPartitions(new[] { columnName });
+
+            // Assert
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrameProxy.DataFrameProxy);
         }
 
@@ -542,6 +564,30 @@ namespace AdapterTest
 
             // assert
             mockDataFrameProxy.Verify(m => m.Repartition(numPartitions), Times.Once());
+        }
+
+        [Test]
+        public void TestRepartition2()
+        {
+            // arrange
+            mockDataFrameProxy.Setup(m => m.Repartition(It.IsAny<int>(), It.IsAny<IColumnProxy[]>()));
+
+            var sc = new SparkContext(null);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+
+            const int numPartitions = 5;
+            IColumnProxy mockColumn1Proxy = new Mock<IColumnProxy>().Object;
+            Column mockColumn = new Column(mockColumn1Proxy);
+
+            // act
+            dataFrame.Repartition(new[] { mockColumn }, numPartitions);
+            // assert
+            mockDataFrameProxy.Verify(m => m.Repartition(numPartitions, new[] { mockColumn1Proxy }), Times.Once());
+
+            // act
+            dataFrame.Repartition(new[] { mockColumn });
+            // assert
+            mockDataFrameProxy.Verify(m => m.Repartition(new[] { mockColumn1Proxy }), Times.Once());
         }
 
         [Test]
