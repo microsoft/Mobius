@@ -2181,6 +2181,11 @@
             Extend method to sort items in a JSON array by keys.
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.JvmBridgeUtils">
+            <summary>
+            Utility methods for C#-JVM interaction
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
             <summary>
             Contains everything needed to setup an environment for using C# with Spark
@@ -3836,6 +3841,36 @@
             for execution, it is necessary to have the type marked [Serializable]. These classes are to work around the limitation
             on the serializability of compiler generated types
             </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Streaming.EventHubsUtils">
+            <summary>
+            Utility for creating streams from 
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.EventHubsUtils.CreateUnionStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.Dictionary{System.String,System.String},Microsoft.Spark.CSharp.Core.StorageLevelType)">
+             <summary>
+             Create a unioned EventHubs stream that receives data from Microsoft Azure Eventhubs
+             The unioned stream will receive message from all partitions of the EventHubs
+             </summary>
+             <param name="ssc">Streaming context</param>
+             <param name="eventhubsParams"> Parameters for EventHubs.
+              Required parameters are:
+              "eventhubs.policyname": EventHubs policy name
+              "eventhubs.policykey": EventHubs policy key
+              "eventhubs.namespace": EventHubs namespace
+              "eventhubs.name": EventHubs name
+              "eventhubs.partition.count": Number of partitions
+              "eventhubs.checkpoint.dir": checkpoint directory on HDFS
+            
+              Optional parameters are:
+              "eventhubs.consumergroup": EventHubs consumer group name, default to "\$default"
+              "eventhubs.filter.offset": Starting offset of EventHubs, default to "-1"
+              "eventhubs.filter.enqueuetime": Unix time, millisecond since epoch, default to "0"
+              "eventhubs.default.credits": default AMQP credits, default to -1 (which is 1024)
+              "eventhubs.checkpoint.interval": checkpoint interval in second, default to 10
+             </param>
+             <param name="storageLevelType">Storage level, by default it is MEMORY_ONLY</param>
+             <returns>DStream with byte[] representing events from EventHub</returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.Int32},System.Collections.Generic.Dictionary{System.String,System.String})">
             <summary>

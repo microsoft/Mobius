@@ -166,7 +166,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy SampleByKey(bool withReplacement, Dictionary<string, double> fractions, long seed)
         {
-            var jfractions = SparkContextIpcProxy.GetJavaMap(fractions) as JvmObjectReference;
+            var jfractions = JvmBridgeUtils.GetJavaMap(fractions) as JvmObjectReference;
             return new RDDIpcProxy(new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "sampleByKey", new object[] { withReplacement, jfractions, seed })));
         }
 
@@ -184,25 +184,25 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void SaveAsNewAPIHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
         {
-            var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaMap<string, string>(conf);
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopDataset", new object[] { jvmRddReference, false, jconf, null, null, true });
         }
 
         public void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf)
         {
-            var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaMap<string, string>(conf);
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsNewAPIHadoopFile", new object[] { jvmRddReference, false, path, outputFormatClass, keyClass, valueClass, null, null, jconf });
         }
 
         public void SaveAsHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
         {
-            var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaMap<string, string>(conf);
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopDataset", new object[] { jvmRddReference, false, jconf, null, null, false });
         }
 
         public void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
         {
-            var jconf = SparkContextIpcProxy.GetJavaMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaMap<string, string>(conf);
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "saveAsHadoopFile", new object[] { jvmRddReference, false, path, outputFormatClass, keyClass, valueClass, null, null, jconf, compressionCodecClass });
         }
 

@@ -153,8 +153,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDStreamProxy KafkaStream(Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, StorageLevelType storageLevelType)
         {
-            JvmObjectReference jtopics = SparkContextIpcProxy.GetJavaMap<string, int>(topics);
-            JvmObjectReference jkafkaParams = SparkContextIpcProxy.GetJavaMap<string, string>(kafkaParams);
+            JvmObjectReference jtopics = JvmBridgeUtils.GetJavaMap<string, int>(topics);
+            JvmObjectReference jkafkaParams = JvmBridgeUtils.GetJavaMap<string, string>(kafkaParams);
             JvmObjectReference jlevel = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
             // KafkaUtilsPythonHelper: external/kafka/src/main/scala/org/apache/spark/streaming/kafka/KafkaUtils.scala
             JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsPythonHelper", new object[] { });
@@ -164,8 +164,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         
         public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
         {
-            JvmObjectReference jtopics = SparkContextIpcProxy.GetJavaSet<string>(topics);
-            JvmObjectReference jkafkaParams = SparkContextIpcProxy.GetJavaMap<string, string>(kafkaParams);
+            JvmObjectReference jtopics = JvmBridgeUtils.GetJavaSet<string>(topics);
+            JvmObjectReference jkafkaParams = JvmBridgeUtils.GetJavaMap<string, string>(kafkaParams);
 
             var jTopicAndPartitions = fromOffsets.Select(x =>
                 new KeyValuePair<JvmObjectReference, long>
@@ -175,13 +175,26 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 )
             );
 
-            JvmObjectReference jfromOffsets = SparkContextIpcProxy.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
+            JvmObjectReference jfromOffsets = JvmBridgeUtils.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
             // KafkaUtilsPythonHelper: external/kafka/src/main/scala/org/apache/spark/streaming/kafka/KafkaUtils.scala
             JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsPythonHelper", new object[] { });
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createDirectStreamWithoutMessageHandler", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jfromOffsets }).ToString());
             return new DStreamIpcProxy(jstream);
         }
-        
+
+        public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
+        {
+            JvmObjectReference eventHubsParamsReference = JvmBridgeUtils.GetScalaMutableMap<string, string>(eventHubsParams);
+            JvmObjectReference storageLevelTypeReference = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
+            return
+                new DStreamIpcProxy(
+                    new JvmObjectReference(
+                        SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
+                            "org.apache.spark.streaming.api.csharp.EventHubsUtils", "createUnionStream",
+                            new object[] { jvmJavaStreamingReference, eventHubsParamsReference, storageLevelTypeReference })
+                            .ToString()));
+        }
+
         public IDStreamProxy Union(IDStreamProxy firstDStream, IDStreamProxy[] otherDStreams)
         {
             return new DStreamIpcProxy(
@@ -190,7 +203,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         new object[] 
                         { 
                             (firstDStream as DStreamIpcProxy).javaDStreamReference,
-                            SparkContextIpcProxy.GetJavaList<JvmObjectReference>(otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
+                            JvmBridgeUtils.GetJavaList<JvmObjectReference>(otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
                         }
                     )));
         }

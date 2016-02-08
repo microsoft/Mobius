@@ -18,20 +18,16 @@ namespace AdapterTest.Mocks
     {
         private IFormatter formatter = new BinaryFormatter();
         public void Start()
-        {
-        }
+        {}
 
         public void Stop()
-        {
-        }
+        {}
 
         public void Remember(long durationMs)
-        {
-        }
+        {}
 
         public void Checkpoint(string directory)
-        {
-        }
+        {}
 
         public IDStreamProxy TextFileStream(string directory)
         {
@@ -106,6 +102,10 @@ namespace AdapterTest.Mocks
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
             return new MockDStreamProxy(rdd.RddProxy);
         }
-
+        
+        public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
