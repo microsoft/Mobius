@@ -36,8 +36,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         // flag to denote whether the callback socket is shutdown explicitly
         private volatile bool callbackSocketShutdown = false;
 
-        public SparkContext SparkContext
-        {
+        public SparkContext SparkContext 
+        { 
             get
             {
                 return sparkContext;
@@ -54,7 +54,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             jvmStreamingContextReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.StreamingContext", new object[] { jvmSparkContextReference, jduration });
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { jvmStreamingContextReference });
         }
-
+        
         public StreamingContextIpcProxy(string checkpointPath)
         {
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { checkpointPath });
@@ -182,7 +182,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jlevel }).ToString());
             return new DStreamIpcProxy(jstream);
         }
-
+        
         public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
         {
             JvmObjectReference jtopics = SparkContextIpcProxy.GetJavaSet<string>(topics);
@@ -201,14 +201,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createDirectStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jfromOffsets }).ToString());
             return new DStreamIpcProxy(jstream);
         }
-
+        
         public IDStreamProxy Union(IDStreamProxy firstDStream, IDStreamProxy[] otherDStreams)
         {
             return new DStreamIpcProxy(
                 new JvmObjectReference(
-                    (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "union",
-                        new object[]
-                        {
+                    (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "union", 
+                        new object[] 
+                        { 
                             (firstDStream as DStreamIpcProxy).javaDStreamReference,
                             SparkContextIpcProxy.GetJavaList<JvmObjectReference>(otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
                         }

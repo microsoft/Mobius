@@ -33,7 +33,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             this.jvmSparkContextReference = jvmSparkContextReference;
             this.jvmJavaContextReference = jvmJavaContextReference;
         }
-
+        
         public ISqlContextProxy CreateSqlContext()
         {
             return new SqlContextIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createSQLContext", new object[] { jvmSparkContextReference })));
@@ -101,7 +101,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         }
         public void Accumulator(int port)
         {
-            jvmAccumulatorReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "accumulator",
+            jvmAccumulatorReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "accumulator", 
                 SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList"),
                 SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorParam", IPAddress.Loopback.ToString(), port)
             ));
@@ -274,7 +274,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var csRdd = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.csharp.CSharpRDD",
                 new object[]
                 {
-                    rdd, command, hashTableReference, arrayListReference, preservesPartitioning,
+                    rdd, command, hashTableReference, arrayListReference, preservesPartitioning, 
                     SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
                     jbroadcastVariables, jvmAccumulatorReference
@@ -283,7 +283,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(csRdd, "asJavaRDD")));
 
         }
-
+        
         public IUDFProxy CreateUserDefinedCSharpFunction(string name, byte[] command, string returnType = "string")
         {
             var jSqlContext = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.SQLContext", new object[] { jvmSparkContextReference });
@@ -296,14 +296,14 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new UDFIpcProxy(SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.UserDefinedPythonFunction",
                 new object[]
                 {
-                    name, command, hashTableReference, arrayListReference,
+                    name, command, hashTableReference, arrayListReference, 
                     SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
                     jbroadcastVariables, jvmAccumulatorReference, jDataType
                 }));
 
         }
-
+        
         public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
         {
             var jpartitions = GetJavaList<int>(partitions);
@@ -315,7 +315,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             JvmObjectReference jbroadcast = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "readBroadcastFromFile", new object[] { jvmJavaContextReference, path }));
             broadcastId = (long)(double)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jbroadcast, "id");
             jvmBroadcastReferences.Add(jbroadcast);
-            return new BroadcastIpcProxy(jbroadcast, this);
+            return new BroadcastIpcProxy(jbroadcast, this);        
         }
 
         public void UnpersistBroadcast(string broadcastObjId, bool blocking)
@@ -400,8 +400,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public static JvmObjectReference GetJavaStorageLevel(StorageLevelType storageLevelType)
         {
             return new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.java.StorageLevels", "create",
-                new object[]
-                {
+                new object[] 
+                { 
                     StorageLevel.storageLevel[storageLevelType].useDisk,
                     StorageLevel.storageLevel[storageLevelType].useMemory,
                     StorageLevel.storageLevel[storageLevelType].useOffHeap,
@@ -410,7 +410,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 }).ToString());
         }
     }
-
+    
     internal class BroadcastIpcProxy : IBroadcastProxy
     {
         private readonly JvmObjectReference jvmBroadcastReference;

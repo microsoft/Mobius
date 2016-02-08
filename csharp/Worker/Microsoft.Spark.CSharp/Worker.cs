@@ -230,7 +230,7 @@ namespace Microsoft.Spark.CSharp
                         SerDe.Write(s, ToUnixTime(initTime));
                         SerDe.Write(s, ToUnixTime(finish_time));
 
-                        SerDe.Write(s, 0L); //shuffle.MemoryBytesSpilled
+                        SerDe.Write(s, 0L); //shuffle.MemoryBytesSpilled  
                         SerDe.Write(s, 0L); //shuffle.DiskBytesSpilled
 
                         commandProcessWatch.Stop();
