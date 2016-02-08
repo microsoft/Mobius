@@ -8,15 +8,15 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Streaming;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NUnit.Framework;
 
 namespace AdapterTest
 {
-    [TestClass]
+    [TestFixture]
     public class EventHubsUtilsTest
     {
-        [TestMethod]
+        [Test]
         public void TestCreateUnionStream()
         {
             var streamingContextProxy = new Mock<IStreamingContextProxy>();
