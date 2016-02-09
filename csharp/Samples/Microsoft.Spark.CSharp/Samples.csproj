@@ -42,13 +42,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandlineArgumentProcessor.cs" />
@@ -103,10 +98,6 @@
     <ProjectReference Include="..\..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
       <Project>{ce999a96-f42b-4e80-b208-709d7f49a77c}</Project>
       <Name>Adapter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Worker\Microsoft.Spark.CSharp\Worker.csproj">
-      <Project>{82c9d3b2-e4fb-4713-b980-948c1e96a10a}</Project>
-      <Name>Worker</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
