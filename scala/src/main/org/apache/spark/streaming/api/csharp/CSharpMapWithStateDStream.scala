@@ -1,6 +1,8 @@
 package org.apache.spark.streaming.api.csharp
 
+import org.apache.commons.codec.binary.Hex
 import org.apache.spark.api.csharp.{CSharpRDD, SerDe}
+import org.apache.spark.api.java.JavaRDD
 import org.apache.spark.api.python.{PythonBroadcast, PythonRunner}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.streaming.api.java.JavaDStream
@@ -56,7 +58,7 @@ object CSharpMapWithStateDStream {
                                func: Array[Byte],
                                timeoutIntervalInMillis: Long,
                                numPartitions: Int,
-                               initialState: CSharpRDD,
+                               initialState: JavaRDD[Array[Byte]],
                                cSharpWorkerExec: String,
                                broadcastVars: JList[Broadcast[PythonBroadcast]]): CSharpMapWithStateDStream = {
 
@@ -82,7 +84,7 @@ private[streaming] class CSharpMapWithStateDStream(
                                                     func: Array[Byte],
                                                     timeoutIntervalInMillis: Long,
                                                     numPartitions: Int,
-                                                    initialState: CSharpRDD,
+                                                    initialState: JavaRDD[Array[Byte]],
                                                     cSharpWorkerExec: String,
                                                     broadcastVars: JList[Broadcast[PythonBroadcast]],
                                                     accumulator: Accumulator[JList[Array[Byte]]])
@@ -157,7 +159,7 @@ private[streaming] class InternalCSharpMapWithStateDStream(
                                                             func: Array[Byte],
                                                             timeoutIntervalInMillis: Long,
                                                             numPartitions: Int,
-                                                            initialState: CSharpRDD,
+                                                            initialState: JavaRDD[Array[Byte]],
                                                             cSharpWorkerExec: String,
                                                             broadcastVars: JList[Broadcast[PythonBroadcast]],
                                                             accumulator: Accumulator[JList[Array[Byte]]])
@@ -205,7 +207,7 @@ private[streaming] class InternalCSharpMapWithStateDStream(
           }
 
           case _ => {
-            val rdd = initialState.map(e => {
+            val rdd = JavaRDD.toRDD(initialState).map(e => {
               if(e == null || e.length == 0){
                 ("", e)
               }else {
@@ -434,7 +436,7 @@ private[streaming] class MapWithStateDataIterator(
   def next = {
     val (key, pairBytes) = dataIterator.next()
     val bos = new ByteArrayOutputStream()
-    val dos = new DataOutputStream(bos) // since it's backed by ByteArrayOutputStream, no need to close it explicitly.
+    val dos = new DataOutputStream(bos)
 
     stateMap.get(key) match {
       case Some(stateBytes) => SerDe.writeBytes(dos, stateBytes)
@@ -442,6 +444,8 @@ private[streaming] class MapWithStateDataIterator(
     }
 
     SerDe.writeLong(dos, batchTime.milliseconds)
+    dos.flush()
+    dos.close()
     pairBytes ++ bos.toByteArray
   }
 }

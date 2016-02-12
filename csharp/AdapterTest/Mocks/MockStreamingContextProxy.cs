@@ -107,7 +107,7 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy(rdd.RddProxy);
         }
 
-        public IDStreamProxy CreateCSharpMapStateDStream(IDStreamProxy jdstream, byte[] func, long timeoutIntervalInMillis)
+        public IDStreamProxy CreateCSharpMapStateDStream(IDStreamProxy jdstream, byte[] func, long timeoutIntervalInMillis, int numPartitions, IRDDProxy initialState)
         {
             throw new NotImplementedException();
         }

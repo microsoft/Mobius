@@ -130,21 +130,38 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
         }
 
-        public IDStreamProxy CreateCSharpMapStateDStream(IDStreamProxy jdstream, byte[] func, long timeoutIntervalInMillis)
+        public IDStreamProxy CreateCSharpMapStateDStream(IDStreamProxy jdstream, byte[] func, long timeoutIntervalInMillis, int numPartitions, IRDDProxy initialStateRDDproxy)
         {
             JvmObjectReference jvmDStreamReference = null;
             var sparkContextIpcProxy = sparkContextProxy as SparkContextIpcProxy;
             var jvmAccumulatorReference = sparkContextIpcProxy.jvmAccumulatorReference;
             var jbroadcastVariables = SparkContextIpcProxy.GetJavaList(sparkContextIpcProxy.jvmBroadcastReferences);
+            var initialStateReference = initialStateRDDproxy != null ? (initialStateRDDproxy as RDDIpcProxy).JvmRddReference : null;
             if (jvmAccumulatorReference == null)
             {
-            jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream",
-                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, timeoutIntervalInMillis, SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(), jbroadcastVariables});
+                if (initialStateReference != null)
+                {
+                    jvmDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream", "createWithoutAccumulator",
+                        new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, timeoutIntervalInMillis, numPartitions, initialStateReference, SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(), jbroadcastVariables }));
+                }
+                else
+                {
+                    jvmDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream", "createWithoutInitialStateAndAccumulator",
+                        new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, timeoutIntervalInMillis, numPartitions, SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(), jbroadcastVariables }));
+                }
             }
             else
             {
-                jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream",
-                new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, timeoutIntervalInMillis, SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(), jbroadcastVariables, jvmAccumulatorReference });
+                if (initialStateReference != null)
+                {
+                    jvmDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream", "create",
+                        new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, timeoutIntervalInMillis, numPartitions, initialStateReference, SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(), jbroadcastVariables, jvmAccumulatorReference }));
+                }
+                else
+                {
+                    jvmDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream", "createWithoutInitialState",
+                        new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, timeoutIntervalInMillis, numPartitions, SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(), jbroadcastVariables, jvmAccumulatorReference }));
+                }
             }
 
             var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));

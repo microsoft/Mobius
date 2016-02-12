@@ -388,15 +388,16 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         public static MapWithStateDStream<K, V, S, M> MapWithState<K, V, S, M>(this DStream<KeyValuePair<K, V>> self, StateSpec<K, V, S, M> stateSpec)
         {
-            DStream<byte[]> bDStream = self.Map(new KeyValuePair2BytesHelper<K, V>().Execute);
+            DStream<byte[]> bDStream = self.Map(new KeyValuePair2BytesHelper<K, V, S>().Execute);
             bDStream.serializedMode = SerializedMode.None;
 
             Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func = new MapWithStateHelper<K, V, S, M>(stateSpec.mappingFunction).Execute;
             var command = SparkContext.BuildCommand(new CSharpWorkerFunc(func), SerializedMode.None, SerializedMode.None);
 
+            var initialStateRDDProxy = stateSpec.initialState == null ? null : stateSpec.initialState.RddProxy;
             var dstream = new DStream<byte[]>(
                 SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpMapStateDStream(
-                    bDStream.DStreamProxy, command, stateSpec.idleDuration.Milliseconds),
+                    bDStream.DStreamProxy, command, stateSpec.idleDuration.Milliseconds, stateSpec.numPartitions, initialStateRDDProxy),
                 self.streamingContext, SerializedMode.None);
 
             var deserializedDStream = dstream.Map(new DeserializeHelper<M>().Execute);

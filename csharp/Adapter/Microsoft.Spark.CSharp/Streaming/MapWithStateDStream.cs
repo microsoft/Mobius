@@ -84,12 +84,35 @@ namespace Microsoft.Spark.CSharp.Streaming
 
 
     [Serializable]
-    internal class KeyValuePair2BytesHelper<K, V>
+    internal class KeyValuePair2BytesHelper<K, V, S>
     {
         [NonSerialized]
         private IFormatter formatter = new BinaryFormatter();
 
         internal byte[] Execute<K, V>(KeyValuePair<K, V> pair)
+        {
+            if (formatter == null)
+            {
+                formatter = new BinaryFormatter();
+            }
+            var ms = new MemoryStream();
+            formatter.Serialize(ms, pair.Key);
+            var keyBytes = ms.ToArray();
+
+            var buffer = new MemoryStream();
+            SerDe.WriteBytes(buffer, keyBytes);
+
+            var ms2 = new MemoryStream();
+            formatter.Serialize(ms2, pair.Value);
+            var valueBytes = ms2.ToArray();
+
+            SerDe.WriteBytes(buffer, valueBytes);
+
+            var bytes = buffer.ToArray();
+            return bytes;
+        }
+
+        internal byte[] Execute2<K, S>(KeyValuePair<K, S> pair)
         {
             if (formatter == null)
             {
@@ -209,6 +232,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         internal Func<DateTime, K, V, State<S>, M> mappingFunction;
         internal int numPartitions = -1;
         internal TimeSpan idleDuration = TimeSpan.FromTicks(0);
+        internal RDD<byte[]> initialState = null;
 
         /// <summary>
         /// Create a StateSpec for setting all the specifications of the `mapWithState` operation on a pair DStream.
@@ -242,6 +266,13 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.idleDuration = idleDuration;
             return this;
         }
+
+        public StateSpec<K, V, S, M> InitialState(RDD<KeyValuePair<K, S>> initialState)
+        {
+            this.initialState = initialState.Map(new KeyValuePair2BytesHelper<K, V, S>().Execute2);
+            this.initialState.serializedMode = SerializedMode.None;
+            return this;
+        }
     }
 
     /// <summary>
@@ -253,9 +284,13 @@ namespace Microsoft.Spark.CSharp.Streaming
     {
         internal S state = default(S);
 
+        [NonSerialized]
         internal bool defined = false;
-        internal bool timingOut = false; // TODO set timingOut to true for those timeouted keys
+        [NonSerialized]
+        internal bool timingOut = false; // FIXME: set timingOut to true for those timeouted keys
+        [NonSerialized]
         internal bool updated = false;
+        [NonSerialized]
         internal bool removed = false;
 
         internal State(S s)

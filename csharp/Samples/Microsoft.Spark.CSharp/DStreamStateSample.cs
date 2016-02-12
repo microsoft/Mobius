@@ -72,7 +72,9 @@ namespace Microsoft.Spark.CSharp.Samples
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
                     //var join = wordCounts.Join(wordCounts, 2);
                     //var state = join.UpdateStateByKey<string, Tuple<int, int>, int>((vs, s) => vs.Sum(x => x.Item1 + x.Item2) + s);
-                    StateSpec<string, int, int, int> stateSpec = new StateSpec<string, int, int, int>((time, word, count, state) => {
+                    var initialStateRDD = sc.Parallelize(new KeyValuePair<string, int>[] { new KeyValuePair<string,int>("the", 100) });
+                    StateSpec<string, int, int, int> stateSpec = new StateSpec<string, int, int, int>((time, word, count, state) =>
+                    {
 
                         var sum = 0;
                         try
