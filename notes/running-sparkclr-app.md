@@ -100,3 +100,19 @@ The schema and row count of the table name provided as the commandline argument 
 `sparkclr-submit.cmd --jars C:\SparkCLRDependencies\spark-xml_2.10-0.3.1.jar --exe SparkClrXml.exe C:\Git\SparkCLR\examples\SparkXml\bin\Debug C:\SparkCLRData\books.xml C:\SparkCLRData\booksModified.xml`
 
 Displays the number of XML elements in the input XML file provided as the first argument to SparkClrXml.exe and writes the modified XML to the file specified in the second commandline argument.
+
+
+### EventHubs Example
+* Get the following jar files
+  * qpid-amqp-1-0-client-0.32.jar
+  * qpid-amqp-1-0-common-0.32.jar
+  * eventhubs-client-0.9.1.jar
+  * spark-streaming-eventhubs_2.10-0.1.0.jar
+* Publish sample events to EventHubs to be used in this example using EventPublisher class (remember to update packages.config, connection parameters to EventHub and uncomment commented out statements to build and use EventPublisher)
+* Update EventHubs connection parameters in SparkCLREventHubsExample implementation and build
+* `sparkclr-submit.cmd --master local[4] --conf spark.local.dir=d:\temp --jars C:\SparkCLRDependencies\spark-streaming-eventhubs_2.10-0.1.0.jar,C:\SparkCLRDependencies\eventhubs-client-0.9.1.jar,C:\SparkCLRDependencies\qpid-amqp-1-0-client-0.32.jar,C:\SparkCLRDependencies\qpid-amqp-1-0-common-0.32.jar --exe SparkCLREventHub.exe C:\Git\SparkCLR\examples\EventHub\bin\Debug`
+
+This example aggregates events published to EventHub in the format [timestamp],[loglevel],[logmessage] by time and log-level and prints the count of events per window.
+
+Note that all the dependencies listed above are available in maven that can be downloaded. [spark-streaming-eventhubs*.jar](https://github.com/hdinsight/spark-eventhubs) is not yet updated to support Spark version beyond 1.3.1 or published to Maven. A fork of this repo is available with preview releases at https://github.com/SparkCLR/spark-eventhubs/releases and the jar file can be downloaded from this location. 
+ 
