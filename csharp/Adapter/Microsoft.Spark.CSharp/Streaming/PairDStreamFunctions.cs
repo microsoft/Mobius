@@ -267,7 +267,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             int numPartitions = 0,
             Func<KeyValuePair<K, V>, bool> filterFunc = null)
         {
-            self.ValidatWindowParam(windowSeconds, slideSeconds);
+            self.ValidateWindowParam(windowSeconds, slideSeconds);
 
             if (slideSeconds <= 0)
                 slideSeconds = self.SlideDuration;

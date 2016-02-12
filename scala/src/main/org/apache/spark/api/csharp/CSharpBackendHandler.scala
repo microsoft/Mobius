@@ -63,13 +63,13 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           assert(t == 'i')
           val port = readInt(dis)
           // scalastyle:off println
-          println("Connecting to a callback server at port " + port)
+          println("[CSharpBackendHandler] Connecting to a callback server at port " + port)
           CSharpBackend.callbackPort = port
           writeInt(dos, 0)
           writeType(dos, "void")
         case "closeCallback" =>
           // Send close to CSharp callback server.
-          println("Requesting to close all call back sockets.")
+          println("[CSharpBackendHandler] Requesting to close all call back sockets.")
           // scalastyle:on
           var socket: Socket = null
           do {
@@ -178,7 +178,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           case None => "NullObject"
         }
         // scalastyle:off println
-        println(s"$methodName on object of type $jvmObjName failed")
+        println(s"[CSharpBackendHandler] $methodName on object of type $jvmObjName failed")
         println(e.getMessage)
         println(e.printStackTrace())
         if (methods != null) {

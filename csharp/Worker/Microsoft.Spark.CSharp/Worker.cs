@@ -148,7 +148,9 @@ namespace Microsoft.Spark.CSharp
 
                         var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
                         var func = workerFunc.Func;
-                        logger.LogDebug(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
+                        logger.LogDebug("------------------------ Printing stack trace of workerFunc for ** debugging ** ------------------------------");
+                        logger.LogDebug(workerFunc.StackTrace);
+                        logger.LogDebug("--------------------------------------------------------------------------------------------------------------");
                         DateTime initTime = DateTime.UtcNow;
                         int count = 0;
 
@@ -203,7 +205,8 @@ namespace Microsoft.Spark.CSharp
                                 }
                                 catch (Exception)
                                 {
-                                    logger.LogError(string.Format("{0} : {1}", message.GetType().Name, message.GetType().FullName));
+                                    logger.LogError("Exception serializing output");
+                                    logger.LogError("{0} : {1}", message.GetType().Name, message.GetType().FullName);
                                     throw;
                                 }
                             }
@@ -214,8 +217,8 @@ namespace Microsoft.Spark.CSharp
                         }
 
                         //TODO - complete the impl
-                        logger.LogDebug("Count: " + count);
-
+                        logger.LogDebug("Output entries count: " + count);
+                        
                         //if profiler:
                         //    profiler.profile(process)
                         //else:
@@ -242,7 +245,7 @@ namespace Microsoft.Spark.CSharp
                     }
                     else
                     {
-                        logger.LogWarn("Nothing to execute :-(");
+                        logger.LogWarn("lengthOfCommandByteArray = 0. Nothing to execute :-(");
                     }
 
                     // Mark the beginning of the accumulators section of the output
@@ -457,6 +460,20 @@ namespace Microsoft.Spark.CSharp
 
                         result = new object[1];
                         result[0] = new KeyValuePair<byte[], byte[]>(pairKey, pairValue);
+                        break;
+                    }
+
+                case "Raw":
+                    {
+                        result = new object[1];
+                        if (messageLength > 0)
+                        {
+                            result[0] = SerDe.ReadBytes(inputStream, messageLength);
+                        }
+                        else
+                        {
+                            result[0] = null;
+                        }
                         break;
                     }
 
