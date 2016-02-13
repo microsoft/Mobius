@@ -155,8 +155,8 @@ class CSharpTransformed2DStream(
  */
 class CSharpReducedWindowedDStream(
                                     parent: DStream[Array[Byte]],
-                                    rreduceFunc: Array[Byte],
-                                    rinvReduceFunc: Array[Byte],
+                                    csharpReduceFunc: Array[Byte],
+                                    csharpInvReduceFunc: Array[Byte],
                                     _windowDuration: Duration,
                                     _slideDuration: Duration,
                                     serializationMode: String)
@@ -192,14 +192,14 @@ class CSharpReducedWindowedDStream(
     val previousRDD = getOrCompute(previous.endTime)
 
     // for small window, reduce once will be better than twice
-    if (rinvReduceFunc != null && previousRDD.isDefined
+    if (csharpInvReduceFunc != null && previousRDD.isDefined
       && windowDuration >= slideDuration * 5) {
 
       // subtract the values from old RDDs
       val oldRDDs = parent.slice(previous.beginTime + parent.slideDuration, current.beginTime)
       val subtracted = if (oldRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(previousRDD, Some(ssc.sc.union(oldRDDs))),
-          validTime, rinvReduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpInvReduceFunc, List(serializationMode, serializationMode))
       } else {
         previousRDD
       }
@@ -208,7 +208,7 @@ class CSharpReducedWindowedDStream(
       val newRDDs = parent.slice(previous.endTime + parent.slideDuration, current.endTime)
       if (newRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(subtracted, Some(ssc.sc.union(newRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         subtracted
       }
@@ -217,7 +217,7 @@ class CSharpReducedWindowedDStream(
       val currentRDDs = parent.slice(current.beginTime + parent.slideDuration, current.endTime)
       if (currentRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(None, Some(ssc.sc.union(currentRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         None
       }

@@ -373,7 +373,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             return DStreamProxy.Slice(fromUnixTime, toUnixTime).Select(r => new RDD<T>(r, streamingContext.SparkContext, serializedMode)).ToArray();
         }
 
-        internal void ValidatWindowParam(int windowSeconds, int slideSeconds)
+        internal void ValidateWindowParam(int windowSeconds, int slideSeconds)
         {
             int duration = SlideDuration;
 
@@ -403,7 +403,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<T> Window(int windowSeconds, int slideSeconds)
         {
-            ValidatWindowParam(windowSeconds, slideSeconds);
+            ValidateWindowParam(windowSeconds, slideSeconds);
             return new DStream<T>(DStreamProxy.Window(windowSeconds, slideSeconds), streamingContext, serializedMode);
         }
 
