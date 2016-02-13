@@ -1504,8 +1504,7 @@ namespace Microsoft.Spark.CSharp.Core
         String,
         Byte,
         Pair,
-        Row,
-        Raw //raw bytes (not seraialized like in "Byte" mode)
+        Row
     }
 
 }

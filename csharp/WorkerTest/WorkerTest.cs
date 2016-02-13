@@ -405,7 +405,7 @@ namespace WorkerTest
             using (var s = new NetworkStream(serverSocket))
             {
                 WritePayloadHeaderToWorker(s);
-                byte[] commandWithRawDeserializeMode = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.Raw, SerializedMode.None);
+                byte[] commandWithRawDeserializeMode = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.None, SerializedMode.None);
                 SerDe.Write(s, commandWithRawDeserializeMode.Length);
                 SerDe.Write(s, commandWithRawDeserializeMode);
 
