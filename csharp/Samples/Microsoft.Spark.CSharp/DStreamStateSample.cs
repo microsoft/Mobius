@@ -4,13 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 
 using Microsoft.Spark.CSharp.Streaming;
-using Microsoft.Spark.CSharp.Samples;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -66,31 +63,16 @@ namespace Microsoft.Spark.CSharp.Samples
                     var words = lines.FlatMap(l => l.Split(' '));
                     var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
 
-                    // since operations like ReduceByKey, Join and UpdateStateByKey are
-                    // separate dstream transformations defined in CSharpDStream.scala
-                    // an extra CSharpRDD is introduced in between these operations
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
-                    //var join = wordCounts.Join(wordCounts, 2);
-                    //var state = join.UpdateStateByKey<string, Tuple<int, int>, int>((vs, s) => vs.Sum(x => x.Item1 + x.Item2) + s);
-                    //var initialStateRDD = sc.Parallelize(new KeyValuePair<string, int>[] { new KeyValuePair<string,int>("the", 100) });
                     StateSpec<string, int, int, int> stateSpec = new StateSpec<string, int, int, int>((word, count, state) =>
                     {
-
                         var sum = 0;
-                        try
+                        if(state.Exists())
                         {
                             sum = state.Get();
                         }
-                        catch (Exception)
-                        {
-                            Console.WriteLine("Can't find state, key:" + word);
-                        }
-
                         state.Update(sum + count);
-                        Console.WriteLine(word + ": " + count);
-
                         return sum;
-
                     });
 
                     var snapshots = wordCounts.MapWithState(stateSpec).StateSnapshots();
