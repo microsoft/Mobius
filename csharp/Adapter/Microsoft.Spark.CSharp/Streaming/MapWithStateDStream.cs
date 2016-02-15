@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
@@ -84,7 +82,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
 
     [Serializable]
-    internal class KeyValuePair2BytesHelper<K, V, S>
+    internal class KeyValuePair2BytesHelper
     {
         [NonSerialized]
         private IFormatter formatter = new BinaryFormatter();
@@ -136,6 +134,16 @@ namespace Microsoft.Spark.CSharp.Streaming
         }
     }
 
+    /// <summary>
+    /// Enum type for the operations done to State instance.
+    /// </summary>
+    internal enum MapWithStateOperation
+    {
+        UPDATED = 1,
+        DEFINED = 2,
+        REMOVED = 3
+    }
+
     [Serializable]
     internal class MapWithStateHelper<K, V, S, M>
     {
@@ -161,10 +169,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             dynamic key = ReadObject(formatter, stream, out keyLen, out keyBytes);
 
             dynamic value = ReadObject(formatter, stream);
-
             var stateWrapper = new State<S>(ReadObject(formatter, stream));
-
-            // var batchTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(SerDe.ReadLong(stream));
 
             var ret = func(key, value, stateWrapper);
 
@@ -176,16 +181,16 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             if (stateWrapper.removed)
             {
-                SerDe.Write(outputStream, 3);
+                SerDe.Write(outputStream, (int)MapWithStateOperation.REMOVED);
             }
             else if (stateWrapper.updated)
             {
-                SerDe.Write(outputStream, 1);
+                SerDe.Write(outputStream, (int)MapWithStateOperation.UPDATED);
                 WriteObject(formatter, outputStream, stateWrapper.state);
             }
             else if (stateWrapper.defined)
             {
-                SerDe.Write(outputStream, 2);
+                SerDe.Write(outputStream, (int)MapWithStateOperation.DEFINED);
                 WriteObject(formatter, outputStream, stateWrapper.state);
             }
 
@@ -269,7 +274,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         public StateSpec<K, V, S, M> InitialState(RDD<KeyValuePair<K, S>> initialState)
         {
-            this.initialState = initialState.Map(new KeyValuePair2BytesHelper<K, V, S>().Execute2);
+            this.initialState = initialState.Map(new KeyValuePair2BytesHelper().Execute2);
             this.initialState.serializedMode = SerializedMode.None;
             return this;
         }

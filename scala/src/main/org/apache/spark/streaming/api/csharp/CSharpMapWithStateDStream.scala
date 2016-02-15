@@ -81,7 +81,7 @@ object CSharpMapWithStateDStream {
   }
 }
 
-private[streaming] class CSharpMapWithStateDStream(
+class CSharpMapWithStateDStream(
             parent: DStream[Array[Byte]],
             func: Array[Byte],
             timeoutIntervalInMillis: Long,
@@ -156,19 +156,19 @@ private[streaming] class CSharpMapWithStateDStream(
   }
 }
 
-private[streaming] object InternalCSharpMapWithStateDStream {
+object InternalCSharpMapWithStateDStream {
   private val DEFAULT_CHECKPOINT_DURATION_MULTIPLIER = 10
 }
 
-private[streaming] class InternalCSharpMapWithStateDStream(
-                                                  parent: DStream[Array[Byte]],
-                                                  func: Array[Byte],
-                                                  timeoutIntervalInMillis: Long,
-                                                  numPartitions: Int,
-                                                  initialState: JavaRDD[Array[Byte]],
-                                                  cSharpWorkerExec: String,
-                                                  broadcastVars: JList[Broadcast[PythonBroadcast]],
-                                                  accumulator: Accumulator[JList[Array[Byte]]])
+class InternalCSharpMapWithStateDStream(
+                                        parent: DStream[Array[Byte]],
+                                        func: Array[Byte],
+                                        timeoutIntervalInMillis: Long,
+                                        numPartitions: Int,
+                                        initialState: JavaRDD[Array[Byte]],
+                                        cSharpWorkerExec: String,
+                                        broadcastVars: JList[Broadcast[PythonBroadcast]],
+                                        accumulator: Accumulator[JList[Array[Byte]]])
   extends DStream[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]](parent.context) {
 
   persist(StorageLevel.MEMORY_ONLY)
@@ -264,7 +264,16 @@ private[streaming] class InternalCSharpMapWithStateDStream(
   }
 }
 
-private[spark] class CSharpMapWithStateRDD(
+// Enum type for the operations done to State instance.
+object CSharpMapWithStateOperation extends Enumeration {
+  val UPDATED = Value(1)
+  val DEFINED = Value(2)
+  val REMOVED = Value(3)
+}
+
+import CSharpMapWithStateOperation._
+
+class CSharpMapWithStateRDD(
                     var prevStateRDD: RDD[MapWithStateRDDRecord[String, Array[Byte], Array[Byte]]],
                     var partitionedDataRDD: RDD[(String, Array[Byte])],
                     command: Array[Byte],
@@ -343,9 +352,8 @@ private[spark] class CSharpMapWithStateRDD(
         val key = Base64.getEncoder().encodeToString(SerDe.readBytes(dis))
         mappedData ++= Some(SerDe.readBytes(dis))
 
-        // read state status, 1 - updated, 2 - defined, 3 - removed
-        dis.readInt() match {
-          case 3 => newStateMap.remove(key)
+        CSharpMapWithStateOperation(dis.readInt()) match {
+          case REMOVED => newStateMap.remove(key)
           case _ => {
             val state = SerDe.readBytes(dis)
             newStateMap.put(key, state, batchTime.milliseconds)
@@ -382,7 +390,7 @@ private[spark] class CSharpMapWithStateRDD(
   }
 }
 
-private[streaming] object CSharpMapWithStateRDD {
+object CSharpMapWithStateRDD {
 
   def createFromPairRDD(
                          pairRDD: RDD[(String, Array[Byte])],
@@ -444,11 +452,11 @@ private[streaming] object CSharpMapWithStateRDD {
   }
 }
 
-private[streaming] class MapWithStateDataIterator(
-                                                   partitionIndex: Int,
-                                                   dataIterator: Iterator[(String, Array[Byte])],
-                                                   stateMap: StateMap[String, Array[Byte]],
-                                                   batchTime: Time)
+class MapWithStateDataIterator(
+                               partitionIndex: Int,
+                               dataIterator: Iterator[(String, Array[Byte])],
+                               stateMap: StateMap[String, Array[Byte]],
+                               batchTime: Time)
   extends Iterator[(Array[Byte])] {
 
   def hasNext = dataIterator.hasNext
@@ -472,9 +480,9 @@ private[streaming] class MapWithStateDataIterator(
   }
 }
 
-private[streaming] class MapWithStateTimedoutDataIterator(
-                                               dataIterator: Iterator[(String, Array[Byte], Long)],
-                                               batchTime: Time)
+class MapWithStateTimedoutDataIterator(
+                                       dataIterator: Iterator[(String, Array[Byte], Long)],
+                                       batchTime: Time)
   extends Iterator[(Array[Byte])] {
 
   def hasNext = dataIterator.hasNext
@@ -494,10 +502,10 @@ private[streaming] class MapWithStateTimedoutDataIterator(
   }
 }
 
-private[streaming] class CSharpMapWithStateRDDPartition(
-                                                         idx: Int,
-                                                         @transient var prevStateRDD: RDD[_],
-                                                         @transient var partitionedDataRDD: RDD[_])
+class CSharpMapWithStateRDDPartition(
+                                     idx: Int,
+                                     @transient var prevStateRDD: RDD[_],
+                                     @transient var partitionedDataRDD: RDD[_])
   extends Partition {
 
   private[streaming] var previousSessionRDDPartition: Partition = null
