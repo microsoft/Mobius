@@ -79,7 +79,12 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         public static int ReadInt(Stream s)
         {
             return ToInt(ReadBytes(s, 4));
-        } 
+        }
+
+        public static bool ReadBool(Stream s)
+        {
+            return ReadBytes(s, 1)[0] == 1;
+        }
         
         public static long ReadLong(Stream s)
         {

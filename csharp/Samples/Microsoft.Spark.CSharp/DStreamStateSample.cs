@@ -64,8 +64,15 @@ namespace Microsoft.Spark.CSharp.Samples
                     var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
 
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
+                    var initialState = sc.Parallelize(new[] { new KeyValuePair<string, int>("NOT_A_WORD", 1024), }, 1);
                     StateSpec<string, int, int, int> stateSpec = new StateSpec<string, int, int, int>((word, count, state) =>
                     {
+                        if (state.IsTimingOut())
+                        {
+                            Console.WriteLine("Found timing out word: {0}", word);
+                            return count;
+                        }
+
                         var sum = 0;
                         if(state.Exists())
                         {
@@ -73,7 +80,7 @@ namespace Microsoft.Spark.CSharp.Samples
                         }
                         state.Update(sum + count);
                         return sum;
-                    });
+                    }).InitialState(initialState);
 
                     var snapshots = wordCounts.MapWithState(stateSpec).StateSnapshots();
 

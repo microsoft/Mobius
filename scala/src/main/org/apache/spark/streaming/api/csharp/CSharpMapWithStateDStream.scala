@@ -473,7 +473,8 @@ class MapWithStateDataIterator(
       case None => SerDe.writeBytes(dos, new Array[Byte](0))
     }
 
-    //SerDe.writeLong(dos, batchTime.milliseconds)
+    // flag to indicate whether state is timing out, false by default
+    SerDe.writeBoolean(dos, false)
     dos.flush()
     dos.close()
     bos.toByteArray
@@ -489,14 +490,15 @@ class MapWithStateTimedoutDataIterator(
 
   def next = {
     // [key bytes length] + [key bytes] + [0000](null value) + [state bytes length]
-    // + [state bytes] + [batch time length] + [batch time bytes]
+    // + [state bytes] + [timingout flag]
     val (key, stateBytes, _) = dataIterator.next()
     val bos = new ByteArrayOutputStream()
     val dos = new DataOutputStream(bos)
     SerDe.writeBytes(dos, Base64.getDecoder.decode(key))
     SerDe.writeInt(dos, 0)
     SerDe.writeBytes(dos, stateBytes)
-    SerDe.writeLong(dos, batchTime.milliseconds)
+    // flag to indicate whether state is timing out
+    SerDe.writeBoolean(dos, true)
     dos.flush()
     bos.toByteArray
   }

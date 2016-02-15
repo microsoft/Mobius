@@ -169,7 +169,9 @@ namespace Microsoft.Spark.CSharp.Streaming
             dynamic key = ReadObject(formatter, stream, out keyLen, out keyBytes);
 
             dynamic value = ReadObject(formatter, stream);
-            var stateWrapper = new State<S>(ReadObject(formatter, stream));
+            var state = ReadObject(formatter, stream);
+            bool timingout = SerDe.ReadBool(stream);
+            var stateWrapper = new State<S>(state, timingout);
 
             var ret = func(key, value, stateWrapper);
 
@@ -298,14 +300,21 @@ namespace Microsoft.Spark.CSharp.Streaming
         [NonSerialized]
         internal bool removed = false;
 
-        internal State(S s)
+        internal State(S state, bool timingOut = false)
         {
-            this.state = s;
-            defined = !ReferenceEquals(null, s);
-
-            timingOut = false;
+            this.state = state;
+            this.timingOut = timingOut;
             removed = false;
             updated = false;
+
+            if (!timingOut)
+            {
+                defined = !ReferenceEquals(null, state);
+            }
+            else
+            {
+                defined = true;
+            }
         }
 
         public bool Exists()
