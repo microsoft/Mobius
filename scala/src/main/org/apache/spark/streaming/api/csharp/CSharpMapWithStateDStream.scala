@@ -233,9 +233,9 @@ private[streaming] class InternalCSharpMapWithStateDStream(
         ("", e)
       }else {
         val dis = new DataInputStream(new ByteArrayInputStream(e))
-        val mappedKeyBytes = Base64.getEncoder.encodeToString(SerDe.readBytes(dis))
+        val (keyBytes, valueBytes) = (SerDe.readBytes(dis), SerDe.readBytes(dis))
         dis.close()
-        (mappedKeyBytes, e)
+        (Base64.getEncoder.encodeToString(keyBytes), valueBytes)
       }
     }).partitionBy(partitioner)
 
@@ -434,19 +434,21 @@ private[streaming] class MapWithStateDataIterator(
   def hasNext = dataIterator.hasNext
 
   def next = {
-    val (key, pairBytes) = dataIterator.next()
+    val (key, valueBytes) = dataIterator.next()
     val bos = new ByteArrayOutputStream()
     val dos = new DataOutputStream(bos)
+    SerDe.writeBytes(dos, Base64.getDecoder.decode(key))
+    SerDe.writeBytes(dos, valueBytes)
 
     stateMap.get(key) match {
       case Some(stateBytes) => SerDe.writeBytes(dos, stateBytes)
       case None => SerDe.writeBytes(dos, new Array[Byte](0))
     }
 
-    SerDe.writeLong(dos, batchTime.milliseconds)
+    //SerDe.writeLong(dos, batchTime.milliseconds)
     dos.flush()
     dos.close()
-    pairBytes ++ bos.toByteArray
+    bos.toByteArray
   }
 }
 

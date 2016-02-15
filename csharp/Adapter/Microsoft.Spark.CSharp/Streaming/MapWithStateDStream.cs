@@ -139,9 +139,9 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class MapWithStateHelper<K, V, S, M>
     {
-        private readonly Func<DateTime, K, V, State<S>, M> func;
+        private readonly Func<K, V, State<S>, M> func;
 
-        internal MapWithStateHelper(Func<DateTime, K, V, State<S>, M> f)
+        internal MapWithStateHelper(Func<K, V, State<S>, M> f)
         {
             func = f;
         }
@@ -164,9 +164,9 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             var stateWrapper = new State<S>(ReadObject(formatter, stream));
 
-            var batchTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(SerDe.ReadLong(stream));
+            // var batchTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(SerDe.ReadLong(stream));
 
-            var ret = func(batchTime, key, value, stateWrapper);
+            var ret = func(key, value, stateWrapper);
 
             var outputStream = new MemoryStream();
             SerDe.Write(outputStream, keyLen);
@@ -229,7 +229,7 @@ namespace Microsoft.Spark.CSharp.Streaming
     /// <typeparam name="M">Type of the mapped data</typeparam>
     public class StateSpec<K, V, S, M>
     {
-        internal Func<DateTime, K, V, State<S>, M> mappingFunction;
+        internal Func<K, V, State<S>, M> mappingFunction;
         internal int numPartitions = -1;
         internal TimeSpan idleDuration = TimeSpan.FromTicks(0);
         internal RDD<byte[]> initialState = null;
@@ -238,7 +238,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// Create a StateSpec for setting all the specifications of the `mapWithState` operation on a pair DStream.
         /// </summary>
         /// <param name="mappingFunction">The function applied on every data item to manage the associated state and generate the mapped data</param>
-        public StateSpec(Func<DateTime, K, V, State<S>, M> mappingFunction)
+        public StateSpec(Func<K, V, State<S>, M> mappingFunction)
         {
             this.mappingFunction = mappingFunction;
         }
