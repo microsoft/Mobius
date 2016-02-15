@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -18,6 +19,9 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     public class RDD<T>
     {
+        [NonSerialized]
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(RDD<T>));
+
         internal IRDDProxy rddProxy;
         internal IRDDProxy previousRddProxy;
         internal SparkContext sparkContext;
@@ -108,6 +112,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Cache()
         {
             isCached = true;
+            logger.LogInfo("Persisting RDD to default storage cache");
             RddProxy.Cache();
             return this;
         }
@@ -127,6 +132,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Persist(StorageLevelType storageLevelType)
         {
             isCached = true;
+            logger.LogInfo("Persisting RDD to storage level type {0}", storageLevelType);
             RddProxy.Persist(storageLevelType);
             return this;
         }
@@ -140,6 +146,7 @@ namespace Microsoft.Spark.CSharp.Core
             if (isCached)
             {
                 isCached = false;
+                logger.LogInfo("Unpersisting RDD from the cache");
                 RddProxy.Unpersist();
             }
             return this;
@@ -156,6 +163,7 @@ namespace Microsoft.Spark.CSharp.Core
         public void Checkpoint()
         {
             isCheckpointed = true;
+            logger.LogInfo("Checkpointing RDD to SparkContext.SetCheckpointDir");
             RddProxy.Checkpoint();
         }
 
@@ -177,6 +185,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<U> Map<U>(Func<T, U> f, bool preservesPartitioning = false)
         {
+            logger.LogInfo("Executing Map operation on RDD (preservesPartitioning={0})", preservesPartitioning);
             return MapPartitionsWithIndex(new MapHelper<T, U>(f).Execute, preservesPartitioning);
         }
 
@@ -579,6 +588,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public T Reduce(Func<T, T, T> f)
         {
+            logger.LogInfo("Executing Reduce operation on RDD");
             Func<int, IEnumerable<T>, IEnumerable<T>> func = new ReduceHelper<T>(f).Execute;
             var vals = MapPartitionsWithIndex(func, true).Collect();
 

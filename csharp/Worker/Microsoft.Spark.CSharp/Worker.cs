@@ -148,7 +148,9 @@ namespace Microsoft.Spark.CSharp
 
                         var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
                         var func = workerFunc.Func;
-                        logger.LogDebug(string.Format("stack trace of workerFunc (dont't panic, this is just for debug):\n{0}", workerFunc.StackTrace));
+                        logger.LogDebug("------------------------ Printing stack trace of workerFunc for ** debugging ** ------------------------------");
+                        logger.LogDebug(workerFunc.StackTrace);
+                        logger.LogDebug("--------------------------------------------------------------------------------------------------------------");
                         DateTime initTime = DateTime.UtcNow;
                         int count = 0;
 
@@ -180,32 +182,35 @@ namespace Microsoft.Spark.CSharp
 
                             byte[] buffer;
 
-                            if (serializerMode == "None")
+                            switch ((SerializedMode) Enum.Parse(typeof(SerializedMode), serializerMode))
                             {
-                                buffer = message as byte[];
-                            }
-                            else if (serializerMode == "String")
-                            {
-                                buffer = SerDe.ToBytes(message as string);
-                            }
-                            else if (serializerMode == "Row")
-                            {
-                                Pickler pickler = new Pickler();
-                                buffer = pickler.dumps(new ArrayList { message });
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    var ms = new MemoryStream();
-                                    formatter.Serialize(ms, message);
-                                    buffer = ms.ToArray();
-                                }
-                                catch (Exception)
-                                {
-                                    logger.LogError(string.Format("{0} : {1}", message.GetType().Name, message.GetType().FullName));
-                                    throw;
-                                }
+                                case SerializedMode.None:
+                                    buffer = message as byte[];
+                                    break;
+                                
+                                case SerializedMode.String:
+                                    buffer = SerDe.ToBytes(message as string);
+                                    break;
+
+                                case SerializedMode.Row:
+                                    Pickler pickler = new Pickler();
+                                    buffer = pickler.dumps(new ArrayList { message });
+                                    break;
+
+                                default:
+                                    try
+                                    {
+                                        var ms = new MemoryStream();
+                                        formatter.Serialize(ms, message);
+                                        buffer = ms.ToArray();
+                                    }
+                                    catch (Exception)
+                                    {
+                                        logger.LogError("Exception serializing output");
+                                        logger.LogError("{0} : {1}", message.GetType().Name, message.GetType().FullName);
+                                        throw;
+                                    }
+                                    break;
                             }
 
                             count++;
@@ -214,8 +219,8 @@ namespace Microsoft.Spark.CSharp
                         }
 
                         //TODO - complete the impl
-                        logger.LogDebug("Count: " + count);
-
+                        logger.LogDebug("Output entries count: " + count);
+                        
                         //if profiler:
                         //    profiler.profile(process)
                         //else:
@@ -242,7 +247,7 @@ namespace Microsoft.Spark.CSharp
                     }
                     else
                     {
-                        logger.LogWarn("Nothing to execute :-(");
+                        logger.LogWarn("lengthOfCommandByteArray = 0. Nothing to execute :-(");
                     }
 
                     // Mark the beginning of the accumulators section of the output
@@ -409,9 +414,9 @@ namespace Microsoft.Spark.CSharp
         private object[] GetNext(int messageLength)
         {
             object[] result = null;
-            switch (deserializedMode)
+            switch ((SerializedMode)Enum.Parse(typeof(SerializedMode), deserializedMode))
             {
-                case "String":
+                case SerializedMode.String:
                     {
                         result = new object[1];
                         if (messageLength > 0)
@@ -426,7 +431,7 @@ namespace Microsoft.Spark.CSharp
                         break;
                     }
 
-                case "Row":
+                case SerializedMode.Row:
                     {
                         Debug.Assert(messageLength > 0);
                         byte[] buffer = SerDe.ReadBytes(inputStream, messageLength);
@@ -436,7 +441,7 @@ namespace Microsoft.Spark.CSharp
                         break;
                     }
 
-                case "Pair":
+                case SerializedMode.Pair:
                     {
                         byte[] pairKey = (messageLength > 0) ? SerDe.ReadBytes(inputStream, messageLength) : null;
                         byte[] pairValue = null;
@@ -460,23 +465,21 @@ namespace Microsoft.Spark.CSharp
                         break;
                     }
 
-                case "None":
+                case SerializedMode.None: //just read raw bytes
                     {
                         result = new object[1];
                         if (messageLength > 0)
                         {
-                            byte[] buffer = SerDe.ReadBytes(inputStream, messageLength);
-                            result[0] = buffer;
+                            result[0] = SerDe.ReadBytes(inputStream, messageLength);
                         }
                         else
                         {
                             result[0] = null;
                         }
-
                         break;
                     }
 
-                case "Byte":
+                case SerializedMode.Byte:
                 default:
                     {
                         result = new object[1];

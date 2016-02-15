@@ -152,7 +152,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaHashMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "newAPIHadoopFile",
                 new object[] { jvmJavaContextReference, filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -160,7 +160,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaHashMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "newAPIHadoopRDD",
                 new object[] { jvmJavaContextReference, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -168,7 +168,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaHashMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "hadoopFile",
                 new object[] { jvmJavaContextReference, filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -176,7 +176,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IRDDProxy HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
         {
-            var jconf = GetJavaHashMap<string, string>(conf);
+            var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "hadoopRDD",
                 new object[] { jvmJavaContextReference, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, jconf, batchSize }));
             return new RDDIpcProxy(jvmRddReference);
@@ -191,7 +191,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IRDDProxy Union(IEnumerable<IRDDProxy> rdds)
         {
             var jfirst = (rdds.First() as RDDIpcProxy).JvmRddReference;
-            var jrest = GetJavaList<JvmObjectReference>(rdds.Skip(1).Select(r => (r as RDDIpcProxy).JvmRddReference));
+            var jrest = JvmBridgeUtils.GetJavaList<JvmObjectReference>(rdds.Skip(1).Select(r => (r as RDDIpcProxy).JvmRddReference));
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "union", new object[] { jfirst, jrest }));
             return new RDDIpcProxy(jvmRddReference);
         }
@@ -267,7 +267,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             var hashTableReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
             var arrayListReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
-            var jbroadcastVariables = GetJavaList<JvmObjectReference>(jvmBroadcastReferences);
+            var jbroadcastVariables = JvmBridgeUtils.GetJavaList<JvmObjectReference>(jvmBroadcastReferences);
 
             var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod((prevJvmRddReference as RDDIpcProxy).JvmRddReference, "rdd"));
 
@@ -288,7 +288,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             var jSqlContext = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.SQLContext", new object[] { jvmSparkContextReference });
             var jDataType = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jSqlContext, "parseDataType", new object[] { "\"" + returnType + "\"" }));
-            var jbroadcastVariables = GetJavaList<JvmObjectReference>(jvmBroadcastReferences);
+            var jbroadcastVariables = JvmBridgeUtils.GetJavaList<JvmObjectReference>(jvmBroadcastReferences);
 
             var hashTableReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
             var arrayListReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
@@ -306,7 +306,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         
         public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
         {
-            var jpartitions = GetJavaList<int>(partitions);
+            var jpartitions = JvmBridgeUtils.GetJavaList<int>(partitions);
             return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "runJob", new object[] { jvmSparkContextReference, (rdd as RDDIpcProxy).JvmRddReference, jpartitions }).ToString());
         }
 
@@ -333,7 +333,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             if (self is ColumnIpcProxy)
                 self = (self as ColumnIpcProxy).ScalaColumnReference;
             else if (self is IColumnProxy[])
-                self = GetJavaSeq<JvmObjectReference>((self as IColumnProxy[]).Select(x => (x as ColumnIpcProxy).ScalaColumnReference));
+                self = JvmBridgeUtils.GetJavaSeq<JvmObjectReference>((self as IColumnProxy[]).Select(x => (x as ColumnIpcProxy).ScalaColumnReference));
             return new ColumnIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.functions", name, self)));
         }
 
@@ -351,52 +351,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new ColumnIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.functions", name)));
         }
 
-        public static JvmObjectReference GetJavaMap<K, V>(IEnumerable<KeyValuePair<K, V>> enumerable)
-        {
-            var jmap = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
-            if (enumerable != null)
-            {
-                foreach (var item in enumerable)
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jmap, "put", new object[] { item.Key, item.Value });
-            }
-            return jmap;
-        }
-
-        public static JvmObjectReference GetJavaHashMap<K, V>(IEnumerable<KeyValuePair<K, V>> enumerable)
-        {
-            var jmap = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.HashMap", new object[] { });
-            if (enumerable != null)
-            {
-                foreach (var item in enumerable)
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jmap, "put", new object[] { item.Key, item.Value });
-            }
-            return jmap;
-        }
-
-        public static JvmObjectReference GetJavaSet<T>(IEnumerable<T> enumerable)
-        {
-            var jset = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.HashSet", new object[] { });
-            if (enumerable != null)
-            {
-                foreach (var item in enumerable)
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jset, "add", new object[] { item });
-            }
-            return jset;
-        }
-        public static JvmObjectReference GetJavaList<T>(IEnumerable<T> enumerable)
-        {
-            var jlist = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
-            if (enumerable != null)
-            {
-                foreach (var item in enumerable)
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jlist, "add", new object[] { item });
-            }
-            return jlist;
-        }
-        public static JvmObjectReference GetJavaSeq<T>(IEnumerable<T> enumerable)
-        {
-            return new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", GetJavaList<T>(enumerable)));
-        }
         public static JvmObjectReference GetJavaStorageLevel(StorageLevelType storageLevelType)
         {
             return new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.java.StorageLevels", "create",

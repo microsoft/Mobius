@@ -4,24 +4,7 @@
 #
 # "targetDir" parameter is default to current directory where this script is located, when not provided.
 #
-Param([string]$targetDir, [string]$version)
-
-function Get-ScriptDirectory
-{
-    $Invocation = (Get-Variable MyInvocation -Scope 1).Value;
-    if($Invocation.PSScriptRoot)
-    {
-        $Invocation.PSScriptRoot;
-    }
-    Elseif($Invocation.MyCommand.Path)
-    {
-        Split-Path $Invocation.MyCommand.Path
-    }
-    else
-    {
-        $Invocation.InvocationName.Substring(0,$Invocation.InvocationName.LastIndexOf("\"));
-    }
-}
+Param([string]$targetDir, [string]$version, [string]$nuspecDir)
 
 function Update-Csproj($targetDir, $version)
 {
@@ -67,6 +50,28 @@ function Update-PackageConfig($targetDir, $version)
     Write-Output "[SetSparkClrPackageVersion.Update-PackageConfig] Done setting *.csproj under $targetDir to version=$version"
 }
 
+function Update_NuSpec($nuspecDir, $version)
+{
+    if (!(test-path $nuspecDir))
+    {
+        Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] WARNING!!! $nuspecDir does not exist. Please provide a valid directory name !"
+        return
+    }
+
+    Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] Start setting SparkCLR.nuspec under $nuspecDir to version=$version"
+
+    # 
+    #  Update SparkCLR package version to this release. Example in SparkCLR.nuspec:  
+    #      <version>1.5.2-SNAPSHOT</version>
+    # 
+    Get-ChildItem $nuspecDir -filter "SparkCLR.nuspec" | % { 
+        Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] updating $($_.FullName)"
+        ((Get-Content $_.FullName) -replace "<version>\s*\S*</version>", "<version>`"$version`"</version>") | Set-Content -Encoding UTF8 -Path $_.FullName -force
+    }
+
+    Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] Done setting SparkCLR.nuspec under $nuspecDir to version=$version"
+}
+
 function Print-Usage
 {
     Write-Output '====================================================================================================='
@@ -93,9 +98,16 @@ if (!$PSBoundParameters.ContainsKey('version') -or [string]::IsNullOrEmpty($vers
 
 if (!$PSBoundParameters.ContainsKey('targetDir') -or [string]::IsNullOrEmpty($targetDir))
 {
-    $targetDir = Get-ScriptDirectory
-    Write-Output "[SetSparkClrPackageVersion] targetDir is set to $targetDir"
+    Print-Usage
+    return
+}
+
+if (!$PSBoundParameters.ContainsKey('nuspecDir') -or [string]::IsNullOrEmpty($nuspecDir))
+{
+    Print-Usage
+    return
 }
 
 Update-Csproj $targetDir $version
 Update-PackageConfig $targetDir $version
+Update_NuSpec $nuspecDir $version

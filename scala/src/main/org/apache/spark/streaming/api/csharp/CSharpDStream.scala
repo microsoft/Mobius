@@ -157,8 +157,8 @@ class CSharpTransformed2DStream(
  */
 class CSharpReducedWindowedDStream(
                                     parent: DStream[Array[Byte]],
-                                    rreduceFunc: Array[Byte],
-                                    rinvReduceFunc: Array[Byte],
+                                    csharpReduceFunc: Array[Byte],
+                                    csharpInvReduceFunc: Array[Byte],
                                     _windowDuration: Duration,
                                     _slideDuration: Duration,
                                     serializationMode: String)
@@ -194,14 +194,14 @@ class CSharpReducedWindowedDStream(
     val previousRDD = getOrCompute(previous.endTime)
 
     // for small window, reduce once will be better than twice
-    if (rinvReduceFunc != null && previousRDD.isDefined
+    if (csharpInvReduceFunc != null && previousRDD.isDefined
       && windowDuration >= slideDuration * 5) {
 
       // subtract the values from old RDDs
       val oldRDDs = parent.slice(previous.beginTime + parent.slideDuration, current.beginTime)
       val subtracted = if (oldRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(previousRDD, Some(ssc.sc.union(oldRDDs))),
-          validTime, rinvReduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpInvReduceFunc, List(serializationMode, serializationMode))
       } else {
         previousRDD
       }
@@ -210,7 +210,7 @@ class CSharpReducedWindowedDStream(
       val newRDDs = parent.slice(previous.endTime + parent.slideDuration, current.endTime)
       if (newRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(subtracted, Some(ssc.sc.union(newRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         subtracted
       }
@@ -219,7 +219,7 @@ class CSharpReducedWindowedDStream(
       val currentRDDs = parent.slice(current.beginTime + parent.slideDuration, current.endTime)
       if (currentRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(None, Some(ssc.sc.union(currentRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         None
       }
@@ -261,3 +261,55 @@ class CSharpStateDStream(
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
 }
 
+/**
+ * MapWithStateDStream API support follows 'internal' DStream idea from
+ * scala\org\apache\spark\streaming\dstream\MapWithStateDStream.scala
+ */
+
+class CSharpMapWithStateDStream(
+                           parent: DStream[Array[Byte]],
+                           mappingFunc: Array[Byte],
+                           deserializer: String,
+                           deserializer2: String)
+  extends DStream[Array[Byte]](parent.ssc) {
+
+  private val internalStream =
+    new InternalMapWithStateDStream(parent, mappingFunc, deserializer, deserializer2)
+
+  override def dependencies: List[DStream[_]] = List(internalStream)
+
+  override def slideDuration: Duration = internalStream.slideDuration
+
+  override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
+    internalStream.getOrCompute(validTime).map { _.mapPartitions(x => x.drop(1), true) }
+  }
+
+  val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
+}
+
+class InternalMapWithStateDStream(
+                                   parent: DStream[Array[Byte]],
+                                   mappingFunc: Array[Byte],
+                                   deserializer: String,
+                                   deserializer2: String)
+  extends DStream[Array[Byte]](parent.ssc) {
+
+  super.persist(StorageLevel.MEMORY_ONLY)
+
+  override def dependencies: List[DStream[_]] = List(parent)
+
+  override def slideDuration: Duration = parent.slideDuration
+
+  override val mustCheckpoint = true
+
+  override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
+    val lastState = getOrCompute(validTime - slideDuration).map { _.mapPartitions(x => x.take(1), true) }
+    val rdd = parent.getOrCompute(validTime)
+    if (rdd.isDefined) {
+      CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, mappingFunc,
+        List(deserializer, deserializer2))
+    } else {
+      lastState
+    }
+  }
+}

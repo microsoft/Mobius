@@ -53,12 +53,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\ConfigurationService.cs" />
@@ -80,6 +75,7 @@
     <Compile Include="Core\StatusTracker.cs" />
     <Compile Include="Core\StorageLevel.cs" />
     <Compile Include="Interop\Ipc\JsonSerDe.cs" />
+    <Compile Include="Interop\Ipc\JvmBridgeUtils.cs" />
     <Compile Include="Interop\SparkCLREnvironment.cs" />
     <Compile Include="Interop\Ipc\IJvmBridge.cs" />
     <Compile Include="Interop\Ipc\JvmBridge.cs" />
@@ -131,6 +127,7 @@
     <Compile Include="Sql\Types.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\DStream.cs" />
+    <Compile Include="Streaming\EventHubsUtils.cs" />
     <Compile Include="Streaming\Kafka.cs" />
     <Compile Include="Streaming\MapWithStateDStream.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />
@@ -158,13 +155,7 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <XslTransformation
-      XslInputPath="..\documentation\DocFormatter.xsl"
-      XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML"
-      OutputPaths="..\documentation\SparkCLR_API_Documentation.md"
-      Condition="'$(OS)' == 'Windows_NT'" />
-    <Exec 
-      Command="xsltproc -o ../documentation/SparkCLR_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML"
-      Condition="'$(OS)' != 'Windows_NT'" />
+    <XslTransformation XslInputPath="..\documentation\DocFormatter.xsl" XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML" OutputPaths="..\documentation\SparkCLR_API_Documentation.md" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="xsltproc -o ../documentation/SparkCLR_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML" Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
 </Project>

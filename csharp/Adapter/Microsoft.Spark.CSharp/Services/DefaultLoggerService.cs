@@ -29,9 +29,19 @@ namespace Microsoft.Spark.CSharp.Services
             Log("Debug", message);
         }
 
+        public void LogDebug(string messageFormat, params object[] messageParameters)
+        {
+            Log("Debug", string.Format(messageFormat, messageParameters));
+        }
+
         public void LogInfo(string message)
         {
             Log("Info", message);
+        }
+
+        public void LogInfo(string messageFormat, params object[] messageParameters)
+        {
+            Log("Info", string.Format(messageFormat, messageParameters));
         }
 
         public void LogWarn(string message)
@@ -39,14 +49,29 @@ namespace Microsoft.Spark.CSharp.Services
             Log("Warn", message);
         }
 
+        public void LogWarn(string messageFormat, params object[] messageParameters)
+        {
+            Log("Warn", string.Format(messageFormat, messageParameters));
+        }
+
         public void LogFatal(string message)
         {
             Log("Fatal", message);
         }
 
+        public void LogFatal(string messageFormat, params object[] messageParameters)
+        {
+            Log("Fatal", string.Format(messageFormat, messageParameters));
+        }
+
         public void LogError(string message)
         {
             Log("Error", message);
+        }
+
+        public void LogError(string messageFormat, params object[] messageParameters)
+        {
+            Log("Error", string.Format(messageFormat, messageParameters));
         }
 
         public void LogException(Exception e)

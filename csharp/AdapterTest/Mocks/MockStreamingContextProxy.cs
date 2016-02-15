@@ -18,20 +18,16 @@ namespace AdapterTest.Mocks
     {
         private IFormatter formatter = new BinaryFormatter();
         public void Start()
-        {
-        }
+        {}
 
         public void Stop()
-        {
-        }
+        {}
 
         public void Remember(long durationMs)
-        {
-        }
+        {}
 
         public void Checkpoint(string directory)
-        {
-        }
+        {}
 
         public IDStreamProxy TextFileStream(string directory)
         {
@@ -108,6 +104,11 @@ namespace AdapterTest.Mocks
         }
 
         public IDStreamProxy CreateCSharpMapStateDStream(IDStreamProxy jdstream, byte[] func, long timeoutIntervalInMillis, int numPartitions, IRDDProxy initialState)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
         {
             throw new NotImplementedException();
         }

@@ -129,6 +129,12 @@ copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
 popd
 
+@echo Assemble SparkCLR examples
+pushd "%CMDHOME%\..\examples"
+call Clean.cmd
+call Build.cmd
+popd
+
 @echo Assemble SparkCLR script components
 xcopy /e /y "%CMDHOME%\..\scripts"  "%SPARKCLR_HOME%\scripts\"
 

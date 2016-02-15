@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -14,6 +15,8 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public class SqlContext
     {
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SqlContext));
+
         private readonly ISqlContextProxy sqlContextProxy;
         private readonly SparkContext sparkContext;
         internal ISqlContextProxy SqlContextProxy { get { return sqlContextProxy; } }
@@ -28,6 +31,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public DataFrameReader Read()
         {
+            logger.LogInfo("Using DataFrameReader to read input data from external data source");
             return new DataFrameReader(sqlContextProxy.Read(), sparkContext);
         }
 
@@ -40,6 +44,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public DataFrame ReadDataFrame(string path, StructType schema, Dictionary<string, string> options)
         {
+            logger.LogInfo("Reading DataFrame from file {0}", path);
             return new DataFrame(sqlContextProxy.ReadDataFrame(path, schema, options), sparkContext);
         }
 
@@ -62,6 +67,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public DataFrame Sql(string sqlQuery)
         {
+            logger.LogInfo("SQL query to execute on the dataframe is {0}", sqlQuery);
             return new DataFrame(sqlContextProxy.Sql(sqlQuery), sparkContext);
         }
 

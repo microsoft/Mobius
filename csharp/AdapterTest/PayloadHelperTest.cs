@@ -13,7 +13,6 @@ using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Moq;
 using NUnit.Framework;
-using Razorvine.Serpent;
 
 namespace AdapterTest
 {

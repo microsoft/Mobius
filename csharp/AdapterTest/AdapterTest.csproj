@@ -72,6 +72,7 @@
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
+    <Compile Include="EventHubsUtilsTest.cs" />
     <Compile Include="JsonSerDeTest.cs" />
     <Compile Include="FunctionsTest.cs" />
     <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />
