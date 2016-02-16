@@ -121,7 +121,7 @@ namespace WorkerTest
             tcpListener.Start();
             int port = (tcpListener.LocalEndpoint as IPEndPoint).Port;
 
-            string exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
+            var exeLocation = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath) ?? ".";
 
             worker = new Process
             {
