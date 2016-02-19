@@ -129,6 +129,7 @@
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\EventHubsUtils.cs" />
     <Compile Include="Streaming\Kafka.cs" />
+    <Compile Include="Streaming\MapWithStateDStream.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />

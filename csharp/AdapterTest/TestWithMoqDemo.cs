@@ -46,13 +46,13 @@ namespace AdapterTest
             SparkCLREnvironment.SparkCLRProxy = _mockSparkCLRProxy.Object;
 
             // Mock method of T by Mock<T>.Setup(). For method with parameters, you can mock different method implementation for different method parameters.
-            // e.g., if you want to mock a method regardless of what values the method parameters are, you can use It.IsAny<T>() for each parameter; if you want 
-            // to mock the method for certain criteria, use It.Is<T>(Func<T, bool>) can. You can mock the same method multiple times for different criteria of 
+            // e.g., if you want to mock a method regardless of what values the method parameters are, you can use It.IsAny<T>() for each parameter; if you want
+            // to mock the method for certain criteria, use It.Is<T>(Func<T, bool>) can. You can mock the same method multiple times for different criteria of
             // method parameters.
 
             // If the method to mock has return value and you want to mock the return value only, Use Returns(TReturnValue); if you want to add logics and return,
             // use Returns<T1, T2, ...>(Func<T1, T2, ..., TReturnValue>). If method is void, use CallBack<T1, T2, ...>(Action<T1, T2, ...>)
-			
+            
 			// for more info please visit https://github.com/Moq/moq4/wiki/Quickstart
             _mockSparkCLRProxy.Setup(m => m.CreateSparkConf(It.IsAny<bool>())).Returns(new MockSparkConfProxy()); // some of mocks which rarely change can be kept
 
@@ -153,8 +153,8 @@ namespace AdapterTest
 
             mockDStreamProxy.Setup(m => m.AsJavaDStream()).Returns(mockDStreamProxy.Object);
 
-            _mockSparkCLRProxy.Setup(m => m.StreamingContextProxy.CreateCSharpDStream(It.IsAny<IDStreamProxy>(), It.IsAny<byte[]>(), It.IsAny<string>()))
-                .Returns<IDStreamProxy, byte[], string>((jdstream, func, deserializer) =>
+            _mockSparkCLRProxy.Setup(m => m.StreamingContextProxy.CreateCSharpDStream(It.IsAny<IDStreamProxy>(), It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<IDStreamProxy, byte[], string, string>((jdstream, func, deserializer, deserializer2) =>
                 {
                     Func<double, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>>)new BinaryFormatter().Deserialize(new MemoryStream(func));
                     RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,

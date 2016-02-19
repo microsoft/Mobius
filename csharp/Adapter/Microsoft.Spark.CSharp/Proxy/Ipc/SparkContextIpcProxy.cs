@@ -20,7 +20,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     {
         private JvmObjectReference jvmSparkContextReference;
         private JvmObjectReference jvmJavaContextReference;
-        private JvmObjectReference jvmAccumulatorReference;
+        internal JvmObjectReference jvmAccumulatorReference;
         internal List<JvmObjectReference> jvmBroadcastReferences = new List<JvmObjectReference>();
 
         internal JvmObjectReference JvmSparkContextReference

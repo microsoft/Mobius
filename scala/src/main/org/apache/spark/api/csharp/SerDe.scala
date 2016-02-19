@@ -267,6 +267,10 @@ object SerDe {
     out.writeInt(value)
   }
 
+  def writeLong(out: DataOutputStream, value: Long): Unit = {
+    out.writeLong(value)
+  }
+
   def writeDouble(out: DataOutputStream, value: Double): Unit = {
     out.writeDouble(value)
   }

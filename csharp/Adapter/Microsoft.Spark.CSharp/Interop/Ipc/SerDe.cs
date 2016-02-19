@@ -79,7 +79,12 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         public static int ReadInt(Stream s)
         {
             return ToInt(ReadBytes(s, 4));
-        } 
+        }
+
+        public static bool ReadBool(Stream s)
+        {
+            return ReadBytes(s, 1)[0] == 1;
+        }
         
         public static long ReadLong(Stream s)
         {
@@ -172,6 +177,20 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         {
             s.WriteByte(value);
             totalWriteNum += 1;
+        }
+
+        public static void WriteBytes(Stream s, byte[] value)
+        {
+            if (value == null || value.Length == 0)
+            {
+                Write(s, 0);
+            }
+            else
+            {
+                Write(s, value.Length);
+                Write(s, value);
+            }
+
         }
 
         public static void Write(Stream s, byte[] value)

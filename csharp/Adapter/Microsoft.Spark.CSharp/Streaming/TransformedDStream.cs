@@ -78,7 +78,7 @@ namespace Microsoft.Spark.CSharp.Streaming
                     var formatter = new BinaryFormatter();
                     var stream = new MemoryStream();
                     formatter.Serialize(stream, func);
-                    dstreamProxy = SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpDStream(prevDStreamProxy, stream.ToArray(), prevSerializedMode.ToString());
+                    dstreamProxy = SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpDStream(prevDStreamProxy, stream.ToArray(), prevSerializedMode.ToString(), serializedMode.ToString());
                 }
                 return dstreamProxy;
             }

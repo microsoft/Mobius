@@ -88,5 +88,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return ((List<JvmObjectReference>)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "slice", new object[] { fromUnixTime, toUnixTime }))
                 .Select(obj => new RDDIpcProxy(obj)).ToArray();
         }
+
+        /// <summary>
+        /// This methold is dedciated to MapWithStateDStream
+        /// </summary>
+        public IDStreamProxy StateSnapshots()
+        {
+            var stateSnapshotsJvmDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "stateSnapshots"));
+            var stateSnapshotsJavaDStreamReference = new JvmObjectReference(
+                (string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.streaming.api.csharp.CSharpMapWithStateDStream", "toJavaDStream", new object[] { stateSnapshotsJvmDStreamReference }));
+
+            return new DStreamIpcProxy(stateSnapshotsJavaDStreamReference, stateSnapshotsJvmDStreamReference);
+        }
     }
 }
