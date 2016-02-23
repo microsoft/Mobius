@@ -34,7 +34,12 @@ namespace Microsoft.Spark.CSharp.Samples
             else
             {
                 SparkContext = CreateSparkContext();
-                SparkContext.SetCheckpointDir(Path.GetTempPath());
+                if (string.IsNullOrEmpty(Configuration.CheckpointDir))
+                {
+                    Configuration.CheckpointDir = Path.GetTempPath();
+                }
+                ConsoleWriteLine("Set checkpoint directory to: " + Configuration.CheckpointDir);
+                SparkContext.SetCheckpointDir(Configuration.CheckpointDir);
 
                 status = SamplesRunner.RunSamples();
 
