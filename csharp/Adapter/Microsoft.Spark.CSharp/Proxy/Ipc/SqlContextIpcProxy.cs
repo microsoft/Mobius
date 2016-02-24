@@ -105,5 +105,92 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython", new object[] {name, udf});
         }
+
+        public ISqlContextProxy NewSession()
+        {
+            return new SqlContextIpcProxy(
+                new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "newSession")));
+        }
+
+        public string GetConf(string key, string defaultValue)
+        {
+            return (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "getConf", new object[] { key, defaultValue });
+        }
+
+        public void SetConf(string key, string value)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "setConf", new object[] { key, value });
+        }
+
+        public void RegisterDataFrameAsTable(IDataFrameProxy dataFrameProxy, string tableName)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                jvmSqlContextReference, "registerDataFrameAsTable", 
+                new object[] { (dataFrameProxy as DataFrameIpcProxy).JvmDataFrameReference, tableName });
+        }
+
+        public void DropTempTable(string tableName)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                jvmSqlContextReference, "dropTempTable", new object[] { tableName });
+        }
+
+        public IDataFrameProxy Table(string tableName)
+        {
+            return new DataFrameIpcProxy(
+                new JvmObjectReference(
+                    (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "table",
+                        new object[] { tableName })), this);
+        }
+
+        public IDataFrameProxy Tables()
+        {
+            return new DataFrameIpcProxy(
+                new JvmObjectReference(
+                    (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "tables")), this);
+        }
+
+        public IDataFrameProxy Tables(string databaseName)
+        {
+            return new DataFrameIpcProxy(
+                new JvmObjectReference(
+                    (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "tables",
+                        new object[] { databaseName })), this);
+        }
+
+        public IEnumerable<string> TableNames()
+        {
+            var tableNames = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "tableNames");
+            return (List<string>) tableNames;
+        }
+
+        public IEnumerable<string> TableNames(string databaseName)
+        {
+            return (List<string>)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "tableNames",
+                new object[] { databaseName });
+        }
+
+        public void CacheTable(string tableName)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "cacheTable",
+                new object[] { tableName });
+        }
+
+        public void UncacheTable(string tableName)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "uncacheTable",
+                new object[] { tableName });
+        }
+
+        public void ClearCache()
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "clearCache");
+        }
+
+        public bool IsCached(string tableName)
+        {
+            return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "isCached",
+                new object[] { tableName });
+        }
     }
 }
