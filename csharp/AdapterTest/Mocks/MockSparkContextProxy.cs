@@ -33,7 +33,7 @@ namespace AdapterTest.Mocks
         }
 
         public void AddFile(string filePath)
-        {}
+        { }
 
         public IRDDProxy TextFile(string filePath, int minPartitions)
         {
@@ -91,7 +91,7 @@ namespace AdapterTest.Mocks
 
 
         public void SetLogLevel(string logLevel)
-        {}
+        { }
 
         public string Version
         {

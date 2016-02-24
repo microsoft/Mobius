@@ -20,10 +20,72 @@ namespace Microsoft.Spark.CSharp.Sql
         private readonly ISqlContextProxy sqlContextProxy;
         private readonly SparkContext sparkContext;
         internal ISqlContextProxy SqlContextProxy { get { return sqlContextProxy; } }
+
+        private static SqlContext instance;
+
+        /// <summary>
+        /// Creates a SqlContext
+        /// </summary>
+        /// <param name="sparkContext"></param>
         public SqlContext(SparkContext sparkContext)
         {
             this.sparkContext = sparkContext;
-            sqlContextProxy = sparkContext.SparkContextProxy.CreateSqlContext();  
+            sqlContextProxy = sparkContext.SparkContextProxy.CreateSqlContext();
+            if (instance == null) instance = this;
+        }
+
+        internal SqlContext(SparkContext sparkContext, ISqlContextProxy sqlContextProxy)
+        {
+            this.sparkContext = sparkContext;
+            this.sqlContextProxy = sqlContextProxy;
+            if (instance == null) instance = this;
+        }
+
+        /// <summary>
+        /// Get the existing SQLContext or create a new one with given SparkContext.
+        /// </summary>
+        /// <param name="sparkContext"></param>
+        /// <returns></returns>
+        public static SqlContext GetOrCreate(SparkContext sparkContext)
+        {
+            if (instance == null)
+            {
+                return new SqlContext(sparkContext);
+            }
+            return instance;
+        }
+
+        /// <summary>
+        /// Returns a new SQLContext as new session, that has separate SQLConf, 
+        /// registered temporary tables and UDFs, but shared SparkContext and table cache.
+        /// </summary>
+        /// <returns></returns>
+        public SqlContext NewSession()
+        {
+            var newSessionProxy = sqlContextProxy.NewSession();
+            return new SqlContext(this.sparkContext, newSessionProxy);
+        }
+
+        /// <summary>
+        /// Returns the value of Spark SQL configuration property for the given key.
+        /// If the key is not set, returns defaultValue.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public string GetConf(string key, string defaultValue)
+        {
+            return sqlContextProxy.GetConf(key, defaultValue);
+        }
+
+        /// <summary>
+        /// Sets the given Spark SQL configuration property.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void SetConf(string key, string value)
+        {
+            sqlContextProxy.SetConf(key, value);
         }
 
         /// <summary>
@@ -48,6 +110,12 @@ namespace Microsoft.Spark.CSharp.Sql
             return new DataFrame(sqlContextProxy.ReadDataFrame(path, schema, options), sparkContext);
         }
 
+        /// <summary>
+        /// Creates a <see cref="DataFrame"/> from a RDD containing array of object using the given schema.
+        /// </summary>
+        /// <param name="rdd">RDD containing array of object. The array acts as a row and items within the array act as columns which the schema is specified in <paramref name="schema"/>. </param>
+        /// <param name="schema">The schema of DataFrame.</param>
+        /// <returns></returns>
         public DataFrame CreateDataFrame(RDD<object[]> rdd, StructType schema)
         {
             // Note: This is for pickling RDD, convert to RDD<byte[]> which happens in CSharpWorker. 
@@ -58,6 +126,100 @@ namespace Microsoft.Spark.CSharp.Sql
             rddRow.serializedMode = SerializedMode.Row;
 
             return new DataFrame(sqlContextProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext); 
+        }
+
+        /// <summary>
+        /// Registers the given <see cref="DataFrame"/> as a temporary table in the catalog.
+        /// Temporary tables exist only during the lifetime of this instance of SqlContext.
+        /// </summary>
+        /// <param name="dataFrame"></param>
+        /// <param name="tableName"></param>
+        public void RegisterDataFrameAsTable(DataFrame dataFrame, string tableName)
+        {
+            sqlContextProxy.RegisterDataFrameAsTable(dataFrame.DataFrameProxy, tableName);
+        }
+
+        /// <summary>
+        /// Remove the temp table from catalog.
+        /// </summary>
+        /// <param name="tableName"></param>
+        public void DropTempTable(string tableName)
+        {
+            sqlContextProxy.DropTempTable(tableName);
+        }
+
+        /// <summary>
+        /// Returns the specified table as a <see cref="DataFrame"/>
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public DataFrame Table(string tableName)
+        {
+            return new DataFrame(sqlContextProxy.Table(tableName), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="DataFrame"/> containing names of tables in the given database.
+        /// If <paramref name="databaseName"/> is not specified, the current database will be used.
+        /// The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool 
+        /// type indicating if a table is a temporary one or not).
+        /// </summary>
+        /// <param name="databaseName">Name of the database to use. Default to the current database. 
+        /// Note: This is only applicable to HiveContext.</param>
+        /// <returns></returns>
+        public DataFrame Tables(string databaseName = null)
+        {
+            return databaseName == null ?
+                new DataFrame(sqlContextProxy.Tables(), sparkContext) :
+                new DataFrame(sqlContextProxy.Tables(databaseName), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a list of names of tables in the database <paramref name="databaseName"/>
+        /// </summary>
+        /// <param name="databaseName">Name of the database to use. Default to the current database.
+        /// Note: This is only applicable to HiveContext.</param>
+        /// <returns></returns>
+        public IEnumerable<string> TableNames(string databaseName = null)
+        {
+            return databaseName == null ?
+                sqlContextProxy.TableNames() : SqlContextProxy.TableNames(databaseName);
+        }
+
+        /// <summary>
+        /// Caches the specified table in-memory.
+        /// </summary>
+        /// <param name="tableName"></param>
+        public void CacheTable(string tableName)
+        {
+            sqlContextProxy.CacheTable(tableName);
+        }
+
+        /// <summary>
+        /// Removes the specified table from the in-memory cache.
+        /// </summary>
+        /// <param name="tableName"></param>
+        public void UncacheTable(string tableName)
+        {
+            sqlContextProxy.UncacheTable(tableName);
+        }
+
+        /// <summary>
+        /// Removes all cached tables from the in-memory cache.
+        /// </summary>
+        public void ClearCache()
+        {
+            sqlContextProxy.ClearCache();
+        }
+
+        /// <summary>
+        /// Returns true if the table is currently cached in-memory.
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public bool IsCached(string tableName)
+        {
+            return sqlContextProxy.IsCached(tableName);
         }
 
         /// <summary>
