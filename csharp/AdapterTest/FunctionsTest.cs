@@ -565,25 +565,25 @@ namespace AdapterTest
         {
             mockSparkContextProxy.Setup(m => m.CreateWindowFunction(It.IsAny<string>()));
             Functions.RowNumber();
-            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("rowNumber"), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("row_number"), Times.Once);
 
             Functions.DenseRank();
-            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("denseRank"), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("dense_rank"), Times.Once);
 
             Functions.Rank();
             mockSparkContextProxy.Verify(m => m.CreateWindowFunction("rank"), Times.Once);
 
             Functions.CumeDist();
-            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("cumeDist"), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("cume_dist"), Times.Once);
 
             Functions.PercentRank();
-            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("percentRank"), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("percent_rank"), Times.Once);
 
             Functions.MonotonicallyIncreasingId();
-            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("monotonicallyIncreasingId"), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("monotonically_increasing_id"), Times.Once);
 
             Functions.SparkPartitionId();
-            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("sparkPartitionId"), Times.Once);
+            mockSparkContextProxy.Verify(m => m.CreateWindowFunction("spark_partition_id"), Times.Once);
 
             Functions.Rand();
             mockSparkContextProxy.Verify(m => m.CreateWindowFunction("rand"), Times.Once);
