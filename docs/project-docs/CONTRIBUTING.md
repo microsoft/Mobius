@@ -1,14 +1,14 @@
-Contributing Code Changes
+﻿Contributing Code Changes
 =========================
-This page documents the various steps required in order to contribute SparkCLR code changes. 
+This page documents the various steps required in order to contribute Mobius code changes. 
 
 ### Overview
-Generally, SparkCLR uses:
+Generally, Mobius uses:
 * [Github issues](https://github.com/Microsoft/SparkCLR/issues) to track logical issues, including bugs and improvements
 * [Github pull requests](https://github.com/Microsoft/SparkCLR/pulls) to manage the *code review* and merge of *code changes*.
 
 ### Github Issues
-[Issue Guide](issue-guide.md) explains Github labels used for managing SparkCLR *issues*. Even though Github allows only committers to apply labels, **Prefix titles with labels** section explains how to lable an *issue*. The steps below help you assess whether and how to file a *Github issue*, before a *pull request*:
+[Issue Guide](issue-guide.md) explains Github labels used for managing Mobius *issues*. Even though Github allows only committers to apply labels, **Prefix titles with labels** section explains how to lable an *issue*. The steps below help you assess whether and how to file a *Github issue*, before a *pull request*:
   
 1. Find the existing *Github issue* that the *code change* pertains to.
   1. Do not create a new *Github issue* for creating a *code change* to address an existing *issue*; reuse the existing *issue* instead.
@@ -40,7 +40,7 @@ Generally, SparkCLR uses:
 ### The Review Process
 1. Other reviewers, including committers, may comment on the changes and suggest modifications. Changes can be added by simply pushing more commits to the same branch.
 2. Lively, polite, rapid technical debate is encouraged from everyone in the community. The outcome may be a rejection of the entire change.
-3. Reviewers can indicate that a change looks suitable for merging with a comment such as: *"I think this patch looks good"*. SparkCLR uses the **LGTM** convention for indicating the strongest level of technical sign-off on a patch: simply comment with the word **LGTM**. It specifically means: *"I've looked at this thoroughly and take as much ownership as if I wrote the patch myself"*. If you comment **LGTM** you will be expected to help with bugs or follow-up issues on the patch. Consistent, judicious use of **LGTM** is a great way to gain credibility as a reviewer with the broader community.
+3. Reviewers can indicate that a change looks suitable for merging with a comment such as: *"I think this patch looks good"*. Mobius uses the **LGTM** convention for indicating the strongest level of technical sign-off on a patch: simply comment with the word **LGTM**. It specifically means: *"I've looked at this thoroughly and take as much ownership as if I wrote the patch myself"*. If you comment **LGTM** you will be expected to help with bugs or follow-up issues on the patch. Consistent, judicious use of **LGTM** is a great way to gain credibility as a reviewer with the broader community.
 4. The *Github issue* should be labelled as `In Progress` if the pull request needs more work.
 5. Sometimes, other changes will be merged which conflict with your pull request's changes. The PR can't be merged until the conflict is resolved. This can be resolved with `git fetch origin` followed by `git rebase origin/master` and resolving the conflicts by hand, then pushing the result to your branch.
 6. Try to be responsive to the discussion rather than let days pass between replies.
