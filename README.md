@@ -1,6 +1,6 @@
-<h1><img src='/logo/spark-clr-clear-500x200.png' width='200px' alt='SparkCLR logo' /></h1>
+# Mobius: C# API for Spark
 
-[SparkCLR](https://github.com/Microsoft/SparkCLR) (pronounced Sparkler) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
+[Mobius](https://github.com/Microsoft/SparkCLR) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
 
 For example, the word count sample in Apache Spark can be implemented in C# as follows :
 
@@ -53,21 +53,21 @@ Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory and [sample usage](
 
 ## API Documentation
 
-Refer to [SparkCLR C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in SparkCLR.
+Refer to [Mobius C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in SparkCLR.
 
 ## API Usage
 
-SparkCLR API usage samples are available at:
+Mobius API usage samples are available at:
 
-* [Samples project](csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of SparkCLR APIs to implement samples that are also used for functional validation of APIs
+* [Samples project](csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of Mobius APIs to implement samples that are also used for functional validation of APIs
 
-* [Examples folder](./examples) which contains standalone SparkCLR projects that can be used as templates to start developing SparkCLR applications
+* [Examples folder](./examples) which contains standalone C# projects that can be used as templates to start developing Mobius applications
 
 * Performance test scenarios implemented in [C#](csharp/Perf/Microsoft.Spark.CSharp) and [Scala](scala/perf) for side by side comparison of Spark driver code
 
 ## Documents
 
-Refer to the [docs folder](docs) for design overview and other info on SparkCLR
+Refer to the [docs folder](docs) for design overview and other info on Mobius
 
 ## Build Status
 
@@ -82,20 +82,20 @@ Refer to the [docs folder](docs) for design overview and other info on SparkCLR
 |Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-sparkclr) |[linux-instructions.md](notes/linux-instructions.md#building-sparkclr) |
 |Run samples (functional tests) in local mode |[windows-instructions.md](notes/windows-instructions.md#running-samples) |[linux-instructions.md](notes/linux-instructions.md#running-samples) |
 |Run examples in local mode |[running-sparkclr-app.md](notes/running-sparkclr-app.md#running-examples-in-local-mode) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
-|Run SparkCLR app in standalone cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#standalone-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
-|Run SparkCLR app in YARN cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#yarn-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
+|Run Mobius app in standalone cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#standalone-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
+|Run Mobius app in YARN cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#yarn-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
 
-Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using SparkCLR with Spark on Linux
+Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using Mobius with Spark on Linux
 
 ## Supported Spark Versions
 
-SparkCLR is built and tested with [Spark 1.4.1](https://github.com/Microsoft/SparkCLR/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/SparkCLR/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/SparkCLR/tree/master).
+Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/SparkCLR/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/SparkCLR/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/SparkCLR/tree/master).
 
 ## License
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/SparkCLR/blob/master/LICENSE)
 
-SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
+Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
 
 
 ## Community
@@ -104,10 +104,10 @@ SparkCLR is licensed under the MIT license. See [LICENSE](LICENSE) file for full
 [![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/issue)](http://issuestats.com/github/Microsoft/SparkCLR)
 [![Join the chat at https://gitter.im/Microsoft/SparkCLR](https://badges.gitter.im/Microsoft/SparkCLR.svg)](https://gitter.im/Microsoft/SparkCLR?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-* SparkCLR project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
+* Mobius project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
 
-* Options to ask your question to the SparkCLR community
+* Options to ask your question to the Mobius community
   * create issue on [GitHub](https://github.com/Microsoft/SparkCLR)
   * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
   * send email to sparkclr-user@googlegroups.com
-  * join chat at [SparkCLR room in Gitter](https://gitter.im/Microsoft/SparkCLR)
+  * join chat at [Mobius room in Gitter](https://gitter.im/Microsoft/SparkCLR)
