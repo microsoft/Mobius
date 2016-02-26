@@ -1,21 +1,21 @@
-Contributing to SparkCLR
+﻿Contributing to Mobius
 ========================
-This page outlines contribution to SparkCLR.
+This page outlines contribution to Mobius
   
 Ways to contribute
 ------------------
-If you would like to become involved in the development of SparkCLR, there are many different ways in which you can contribute. We strongly value your feedback, questions, bug reports, and feature requests. 
+If you would like to become involved in the development of Mobius, there are many different ways in which you can contribute. We strongly value your feedback, questions, bug reports, and feature requests. 
 
 Consider these options: 
-* Use SparkCLR bits
+* Use Mobius bits
 * Submit a GitHub issue (see [Issue Guide](docs/project-docs/issue-guide.md)). 
 * Verify fixes for bugs.
 * Submit a code fix for a bug.
 * Submit a new feature request (as a GitHub issue in [Issue Guide](docs/project-docs/issue-guide.md)).
-* Help answer questions on SparkCLR mailing lists (*[sparkclr-user](https://groups.google.com/d/forum/sparkclr-user)* or *[sparkclr-dev](https://groups.google.com/d/forum/sparkclr-dev)*).
+* Help answer questions on Mobius mailing lists (*[sparkclr-user](https://groups.google.com/d/forum/sparkclr-user)* or *[sparkclr-dev](https://groups.google.com/d/forum/sparkclr-dev)*).
 * Submit a unit test.
 * Code review pending pull requests and bug fixes.
-* Tell others about SparkCLR.
+* Tell others about Mobius.
 
 Contributing Code Changes
 -------------------------
