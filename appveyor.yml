@@ -42,7 +42,7 @@ deploy:
   - provider: NuGet                             # test-deploy to MyGet.org
     server: https://www.myget.org/F/sparkclr-test/api/v2/package
     api_key:                                    
-      secure: f57f518a-1694-4198-bd21-ad4660f6a536
+      secure: jOd8BzOgT0GHLX85JBU2o6WrvLpSHSkqQNy0e4naNWHyJNuYENXkON1flW+4whEW
     skip_symbols: false
     symbol_server: https://www.myget.org/F/sparkclr-test/api/v2/package
     artifact: /Microsoft.*\.nupkg/
