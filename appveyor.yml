@@ -62,3 +62,6 @@ deploy:
       secure: jOd8BzOgT0GHLX85JBU2o6WrvLpSHSkqQNy0e4naNWHyJNuYENXkON1flW+4whEW
     skip_symbols: false
     symbol_server: https://www.myget.org/F/mobiusforspark/api/v2/package
+    on:
+    APPVEYOR_PULL_REQUEST_NUMBER: /\d+/
+
