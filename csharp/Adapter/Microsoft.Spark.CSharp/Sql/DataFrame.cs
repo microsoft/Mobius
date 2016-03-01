@@ -36,7 +36,7 @@ namespace Microsoft.Spark.CSharp.Sql
         private bool? isLocal;
         [NonSerialized]
         private readonly Random random = new Random();
-
+        private const string testPushToMyget = "myget";
         public RDD<Row> Rdd
         {
             get
