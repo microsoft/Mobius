@@ -56,13 +56,6 @@ artifacts:
   - path: 'build\target\spark-clr*.zip'
 
 deploy:
-  - provider: GitHub                            # deploy to GitHub releases
-    auth_token:                                 
-      secure: 4JIzL2DO3OXXjdrso+VhA0RjMvUAg8BnZRHXojswaryXFe9mDJ3ExjssASWL1FZq 
-    artifact: /spark-clr.*\.zip/
-    on:
-      appveyor_repo_tag: true                   # deploy on tag push only
-
   - provider: NuGet                             # deploy to MyGet.org
     server: https://www.myget.org/F/mobiusforspark/api/v2/package
     api_key:                                    
@@ -70,3 +63,10 @@ deploy:
     skip_symbols: false
     symbol_server: https://www.myget.org/F/mobiusforspark/api/v2/package
     artifact: /Microsoft.*\.nupkg/
+
+  - provider: GitHub                            # deploy to GitHub releases
+    auth_token:                                 
+      secure: 4JIzL2DO3OXXjdrso+VhA0RjMvUAg8BnZRHXojswaryXFe9mDJ3ExjssASWL1FZq 
+    artifact: /spark-clr.*\.zip/
+    on:
+      appveyor_repo_tag: true                   # deploy on tag push only
