@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp.Sql
 {
     /// <summary>
     ///  A distributed collection of data organized into named columns.
-    /// test push to myget
+    /// 
     /// See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.DataFrame
     /// </summary>
     [Serializable]
@@ -36,7 +36,7 @@ namespace Microsoft.Spark.CSharp.Sql
         private bool? isLocal;
         [NonSerialized]
         private readonly Random random = new Random();
-
+        private const string testPushToMyget = "myget";
         public RDD<Row> Rdd
         {
             get
