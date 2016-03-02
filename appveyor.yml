@@ -31,6 +31,12 @@ build_script:
   - cmd: cd ..
   - cmd: dir .\build\target\*.zip
 
+# need test section below - otherwise auto discovery will run samples will fail build (since it has no text fixtures)
+test:
+  assemblies:
+    - csharp\AdapterTest\bin\Debug\AdapterTest.dll
+    - csharp\WorkerTest\bin\Debug\WorkerTest.dll
+
 artifacts:          
   - path: '**\Microsoft*.nupkg'                 # find all NuGet packages recursively
   - path: 'scala\target\spark-clr*.jar'
