@@ -37,19 +37,6 @@ test:
     - csharp\AdapterTest\bin\Debug\AdapterTest.dll
     - csharp\WorkerTest\bin\Debug\WorkerTest.dll
 
-# scripts to run after tests
-after_test:
-    - cmd: echo [after_test] ProjectVersion=%ProjectVersion%
-    - .\csharp\packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -target:.\csharp\packages\NUnit.Console.3.0.1\tools\nunit3-console.exe -register:user "-targetargs:"".\csharp\WorkerTest\bin\Debug\WorkerTest.dll"" "".\csharp\AdapterTest\bin\Debug\AdapterTest.dll"" " -filter:"+[CSharpWorker*|Microsoft.Spark.CSharp*]*" -excludebyattribute:*.ExcludeFromCodeCoverage* -hideskipped:All -output:.\SparkCLRCodeCoverage.xml
-    - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
-    - pip install codecov
-    - codecov -f "SparkCLRCodeCoverage.xml"
-    - cmd: cd .\build\localmode
-    - cmd: .\Runsamples.cmd --validate
-    - cmd: cd ..\..
-    - cmd: dir csharp\Microsoft*.nupkg
-    - cmd: dir scala\target\spark-clr*.jar
-
 artifacts:          
   - path: '**\Microsoft*.nupkg'                 # find all NuGet packages recursively
   - path: 'scala\target\spark-clr*.jar'
@@ -71,10 +58,13 @@ deploy:
     on:
       appveyor_repo_tag: true                   # deploy on tag push only
 
-  - provider: NuGet                             # deploy to MyGet.org, test
+  - provider: NuGet                             # deploy to MyGet.org, test2
     server: https://www.myget.org/F/mobiusforspark/api/v2/package
     api_key:                                    
       secure: 1c6+PZ3zOdIgIy2y8rf1g/NfbcfoxwNcymNBUr1591mD3Ull2X32Qvw2QyCXqFka
     skip_symbols: false
     symbol_server: https://www.myget.org/F/mobiusforspark/api/v2/package
     artifact: /Microsoft.*\.nupkg/
+    on:
+      APPVEYOR_PULL_REQUEST_NUMBER: /\d+/
+
