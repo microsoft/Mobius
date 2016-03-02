@@ -72,9 +72,9 @@ deploy:
       appveyor_repo_tag: true                   # deploy on tag push only
 
   - provider: NuGet                             # deploy to MyGet.org
-    server: https://www.myget.org/F/mobiusfordev/api/v2/package
+    server: https://www.myget.org/F/mobiusforspark/api/v2/package
     api_key:
-      secure: H9oeYP038u77aJtK47lcLegyHtJvxmmTHOi8BhN4AH1iL3JRqO/juuEXMVxg1KHy
+      secure: 1c6+PZ3zOdIgIy2y8rf1g/NfbcfoxwNcymNBUr1591mD3Ull2X32Qvw2QyCXqFka
     skip_symbols: false
-    symbol_server: https://www.myget.org/F/mobiusfordev/api/v2/package
+    symbol_server: https://www.myget.org/F/mobiusforspark/api/v2/package
     artifact: /Microsoft.*\.nupkg/
