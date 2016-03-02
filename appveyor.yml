@@ -61,7 +61,7 @@ deploy:
   - provider: NuGet                             # deploy to MyGet.org, test2
     server: https://www.myget.org/F/mobiusforspark/api/v2/package
     api_key:                                    
-      secure: jOd8BzOgT0GHLX85JBU2o6WrvLpSHSkqQNy0e4naNWHyJNuYENXkON1flW+4whEW
+      secure: Pjkosehmh6cxNem48hRCnH+geA5DGWGmWcftfbf/EPH+LI2MveyPKawQw0iNrY0J
     skip_symbols: false
     symbol_server: https://www.myget.org/F/mobiusforspark/api/v2/package
     artifact: /Microsoft.*\.nupkg/
