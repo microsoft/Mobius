@@ -66,4 +66,5 @@ deploy:
     symbol_server: https://www.myget.org/F/mobiusforspark/api/v2/package
     artifact: /Microsoft.*\.nupkg/
     on:
-    APPVEYOR_PULL_REQUEST_NUMBER: /\d+/
+      APPVEYOR_PULL_REQUEST_NUMBER: /\d+/
+
