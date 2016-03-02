@@ -71,7 +71,7 @@ deploy:
     on:
       appveyor_repo_tag: true                   # deploy on tag push only
 
-  - provider: NuGet                             # deploy to MyGet.org, test
+  - provider: NuGet                             # deploy to MyGet.org, test2
     server: https://www.myget.org/F/mobiusforspark/api/v2/package
     api_key:                                    
       secure: 1c6+PZ3zOdIgIy2y8rf1g/NfbcfoxwNcymNBUr1591mD3Ull2X32Qvw2QyCXqFka
