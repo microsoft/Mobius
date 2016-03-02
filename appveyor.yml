@@ -62,7 +62,7 @@ deploy:
     artifact: /spark-clr.*\.zip/
     on:
       appveyor_repo_tag: true                   # deploy on tag push only
-	  
+
   - provider: NuGet                             # deploy to NuGet.org
     api_key:                                    
       secure: TscZXMoOxrMfjR2TvGBns6b+IILWvo0WJpxikoGsMCqEcMj/x41Le1j8dHTCJMjI
