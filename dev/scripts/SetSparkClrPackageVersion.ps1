@@ -66,7 +66,7 @@ function Update_NuSpec($nuspecDir, $version)
     # 
     Get-ChildItem $nuspecDir -filter "SparkCLR.nuspec" | % { 
         Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] updating $($_.FullName)"
-        ((Get-Content $_.FullName) -replace "<version>\s*\S*</version>", "<version>`"$version`"</version>") | Set-Content -Encoding UTF8 -Path $_.FullName -force
+        ((Get-Content $_.FullName) -replace "<version>\s*\S*</version>", "<version>$version</version>") | Set-Content -Encoding UTF8 -Path $_.FullName -force
     }
 
     Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] Done setting SparkCLR.nuspec under $nuspecDir to version=$version"

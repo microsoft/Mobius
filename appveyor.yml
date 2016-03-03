@@ -26,6 +26,7 @@ build_script:
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET MVN_QUIET=--quiet
+  - ps: if($env:APPVEYOR_REPO_TAG -eq $FALSE) {.\dev\scripts\SetSparkClrNugetPackageVersion.ps1 -nuspecDir .\csharp -version $env:APPVEYOR_BUILD_VERSION}
   - cmd: cd .\build
   - cmd: .\Build.cmd
   - cmd: cd ..
