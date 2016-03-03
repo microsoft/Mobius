@@ -116,3 +116,9 @@ This example aggregates events published to EventHub in the format [timestamp],[
 
 Note that all the dependencies listed above are available in maven that can be downloaded. [spark-streaming-eventhubs*.jar](https://github.com/hdinsight/spark-eventhubs) is not yet updated to support Spark version beyond 1.3.1 or published to Maven. A fork of this repo is available with preview releases at https://github.com/SparkCLR/spark-eventhubs/releases and the jar file can be downloaded from this location. 
  
+
+### HdfsWordCount Example
+* Remove `<checkpoint directory>` (used in next step) if it already exists.
+* Run `sparkclr-submit.cmd --exe SparkClrHdfsWordCount.exe C:\Git\Mobius\examples\Streaming\HdfsWordCount\bin\Debug <checkpoint directory> <input directory>`
+
+Counts words in new text files created in the given directory using Mobius streaming.

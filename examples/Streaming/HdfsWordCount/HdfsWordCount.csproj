@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Spark.CSharp.Examples</RootNamespace>
-    <AssemblyName>HdfsWordCount</AssemblyName>
+    <AssemblyName>SparkClrHdfsWordCount</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -34,26 +34,26 @@
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="CSharpWorker">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe</HintPath>
     </Reference>
     <Reference Include="log4net">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <HintPath>..\..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Spark.CSharp.Adapter">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
     </Reference>
     <Reference Include="Razorvine.Pyrolite">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Razorvine.Pyrolite.4.10.0.0\lib\net40\Razorvine.Pyrolite.dll</HintPath>
+      <HintPath>..\..\packages\Razorvine.Pyrolite.4.10.0.0\lib\net40\Razorvine.Pyrolite.dll</HintPath>
     </Reference>
     <Reference Include="Razorvine.Serpent">
-      <HintPath>..\packages\Razorvine.Serpent.1.12.0.0\lib\net40\Razorvine.Serpent.dll</HintPath>
+      <HintPath>..\..\packages\Razorvine.Serpent.1.12.0.0\lib\net40\Razorvine.Serpent.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -64,7 +64,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe.config">
+    <None Include="..\..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
