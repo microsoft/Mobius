@@ -102,5 +102,38 @@ namespace Microsoft.Spark.CSharp
             ssc.AwaitTermination();
             ssc.Stop();
         }
+
+        /// <summary>
+        /// start a local kafka service and create a 'test' topic with some data before running this sample
+        /// e.g. create 2 partitions with 100 messages which will be repartitioned into 10 RDD partitions
+        /// </summary>
+        [Sample("experimental")]
+        internal static void DStreamDirectKafkaWithRepartitionSample()
+        {
+            string directory = SparkCLRSamples.Configuration.SampleDataLocation;
+            string checkpointPath = Path.Combine(directory, "checkpoint");
+
+            StreamingContext ssc = StreamingContext.GetOrCreate(checkpointPath,
+                () =>
+                {
+                    SparkContext sc = SparkCLRSamples.SparkContext;
+                    StreamingContext context = new StreamingContext(sc, 2000);
+                    context.Checkpoint(checkpointPath);
+
+                    var kafkaParams = new Dictionary<string, string> {
+                        {"metadata.broker.list", "127.0.0.1:9092"},
+                        {"auto.offset.reset", "smallest"}
+                    };
+
+                    var dstream = KafkaUtils.CreateDirectStreamWithRepartition(context, new List<string> { "test" }, kafkaParams, new Dictionary<string, long>(), 10);
+
+                    dstream.ForeachRDD(rdd => rdd.Count());
+
+                    return context;
+                });
+
+            ssc.Start();
+            ssc.AwaitTermination();
+        }
     }
 }
