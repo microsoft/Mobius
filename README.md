@@ -1,6 +1,6 @@
 # Mobius: C# API for Spark
 
-[Mobius](https://github.com/Microsoft/SparkCLR) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
+[Mobius](https://github.com/Microsoft/Mobius) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
 
 For example, the word count sample in Apache Spark can be implemented in C# as follows :
 
@@ -49,11 +49,11 @@ maxLatencyByDcDataFrame.ShowSchema();
 maxLatencyByDcDataFrame.Show();
 ```
 
-Refer to [SparkCLR\csharp\Samples](csharp/Samples) directory and [sample usage](csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
+Refer to [Mobius\csharp\Samples](csharp/Samples) directory and [sample usage](csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
 
 ## API Documentation
 
-Refer to [Mobius C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in SparkCLR.
+Refer to [Mobius C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in Mobius.
 
 ## API Usage
 
@@ -89,25 +89,25 @@ Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using 
 
 ## Supported Spark Versions
 
-Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/SparkCLR/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/SparkCLR/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/SparkCLR/tree/master).
+Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/Mobius/tree/master).
 
 ## License
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/SparkCLR/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/Mobius/blob/master/LICENSE)
 
 Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
 
 
 ## Community
 
-[![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/pr)](http://issuestats.com/github/Microsoft/SparkCLR)
-[![Issue Stats](http://issuestats.com/github/Microsoft/SparkCLR/badge/issue)](http://issuestats.com/github/Microsoft/SparkCLR)
-[![Join the chat at https://gitter.im/Microsoft/SparkCLR](https://badges.gitter.im/Microsoft/SparkCLR.svg)](https://gitter.im/Microsoft/SparkCLR?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/pr)](http://issuestats.com/github/Microsoft/Mobius)
+[![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/issue)](http://issuestats.com/github/Microsoft/Mobius)
+[![Join the chat at https://gitter.im/Microsoft/Mobius](https://badges.gitter.im/Microsoft/Mobius.svg)](https://gitter.im/Microsoft/Mobius?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 * Mobius project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
 
 * Options to ask your question to the Mobius community
-  * create issue on [GitHub](https://github.com/Microsoft/SparkCLR)
+  * create issue on [GitHub](https://github.com/Microsoft/Mobius)
   * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
   * send email to sparkclr-user@googlegroups.com
-  * join chat at [Mobius room in Gitter](https://gitter.im/Microsoft/SparkCLR)
+  * join chat at [Mobius room in Gitter](https://gitter.im/Microsoft/Mobius)

@@ -4,8 +4,8 @@ This page documents the various steps required in order to contribute Mobius cod
 
 ### Overview
 Generally, Mobius uses:
-* [Github issues](https://github.com/Microsoft/SparkCLR/issues) to track logical issues, including bugs and improvements
-* [Github pull requests](https://github.com/Microsoft/SparkCLR/pulls) to manage the *code review* and merge of *code changes*.
+* [Github issues](https://github.com/Microsoft/Mobius/issues) to track logical issues, including bugs and improvements
+* [Github pull requests](https://github.com/Microsoft/Mobius/pulls) to manage the *code review* and merge of *code changes*.
 
 ### Github Issues
 [Issue Guide](issue-guide.md) explains Github labels used for managing Mobius *issues*. Even though Github allows only committers to apply labels, **Prefix titles with labels** section explains how to lable an *issue*. The steps below help you assess whether and how to file a *Github issue*, before a *pull request*:
@@ -24,11 +24,11 @@ Generally, Mobius uses:
   6. If the change is a major one, consider inviting discussion on the issue at *[sparkclr-dev](https://groups.google.com/d/forum/sparkclr-dev)* mailing list first before proceeding to implement the change. Note that a design doc helps the discussion and the review of *major* changes.
 
 ### Pull Request
-1. Fork the Github repository at http://github.com/Microsoft/SparkCLR if you haven't already.
+1. Fork the Github repository at http://github.com/Microsoft/Mobius if you haven't already.
 2. Clone your fork, create a new dev branch, push commits to the dev branch.
 3. Consider whether documentation or tests need to be added or updated as part of the change, and add them as needed (doc changes should be submitted along with code change in the same PR).
 4. Run all tests and samples as described in the project's [README](../../README.md).
-5. Open a *pull request* against the master branch of Microsoft/SparkCLR. (Only in special cases would the PR be opened against other branches.)
+5. Open a *pull request* against the master branch of Microsoft/Mobius. (Only in special cases would the PR be opened against other branches.)
   1. Always associate the PR with corresponding *Github issues* execpt for trial changes when no *Github issue* is created.
   2. For trivial cases where an *Github issue* is not required, **MINOR:** or **HOTFIX:** can be used as the PR title prefix.
   3. If the *pull request* is still a work in progress, not ready to be merged, but needs to be pushed to Github to facilitate review, then prefix the PR title with **[WIP]**.

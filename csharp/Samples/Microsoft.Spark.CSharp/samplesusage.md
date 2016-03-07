@@ -22,7 +22,7 @@ SparkCLRSamples.exe supports following options:
    
    Example 1 - run default samples:
    
-     SparkCLRSamples.exe --temp C:\gitsrc\SparkCLR\run\Temp --data C:\gitsrc\SparkCLR\run\data 
+     SparkCLRSamples.exe --temp C:\gitsrc\Mobius\run\Temp --data C:\gitsrc\Mobius\run\data 
    
    Example 2 - dryrun default samples:
    
