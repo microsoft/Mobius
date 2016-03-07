@@ -17,37 +17,37 @@ Sometimes after debate, we'll decide an issue isn't a good fit for Mobius.  In t
 ### Labels
 We use GitHub labels to manage workflow on *issues*.  We have the following categories per issue:
 * **Area**: These labels call out the feature areas where the issue applies to. 
- * [RDD](https://github.com/Microsoft/SparkCLR/labels/RDD): Issues relating to RDD
- * [DataFrame/SQL](https://github.com/Microsoft/SparkCLR/labels/DataFrame%2FSQL): Issues relating to DataFrame/SQL.
- * [DataFrame UDF](https://github.com/Microsoft/SparkCLR/labels/DataFrame%20UDF): Issues relating to DataFrame UDF.
- * [Streaming](https://github.com/Microsoft/SparkCLR/labels/Streaming): Issues relating to Streaming.
- * [Job Submission](https://github.com/Microsoft/SparkCLR/labels/Job%20Submission): Issues relating to Job Submission.
- * [Packaging](https://github.com/Microsoft/SparkCLR/labels/Packaging): Issues relating to packaging.
- * [Deployment](https://github.com/Microsoft/SparkCLR/labels/Deployment): Issues relating to deployment.
- * [Spark Compatibility](https://github.com/Microsoft/SparkCLR/labels/Spark%20Compatibility): Issues relating to supporting different/newer Apache Spark releases.
+ * [RDD](https://github.com/Microsoft/Mobius/labels/RDD): Issues relating to RDD
+ * [DataFrame/SQL](https://github.com/Microsoft/Mobius/labels/DataFrame%2FSQL): Issues relating to DataFrame/SQL.
+ * [DataFrame UDF](https://github.com/Microsoft/Mobius/labels/DataFrame%20UDF): Issues relating to DataFrame UDF.
+ * [Streaming](https://github.com/Microsoft/Mobius/labels/Streaming): Issues relating to Streaming.
+ * [Job Submission](https://github.com/Microsoft/Mobius/labels/Job%20Submission): Issues relating to Job Submission.
+ * [Packaging](https://github.com/Microsoft/Mobius/labels/Packaging): Issues relating to packaging.
+ * [Deployment](https://github.com/Microsoft/Mobius/labels/Deployment): Issues relating to deployment.
+ * [Spark Compatibility](https://github.com/Microsoft/Mobius/labels/Spark%20Compatibility): Issues relating to supporting different/newer Apache Spark releases.
 * **Type**: These labels classify the type of issue.  We use the following types:
- * [documentation](https://github.com/Microsoft/SparkCLR/labels/documentation): Issues relating to documentation (e.g. incorrect documentation, enhancement requests)
- * [debuggability/supportability](https://github.com/Microsoft/SparkCLR/labels/debuggability%2Fsupportability): Issues relating to making debugging and support easy. For instance, throwing meaningful errors when things fail.
- * [user experience](https://github.com/Microsoft/SparkCLR/labels/user%20experience): Issues relating to making Mobius more user-friendly. For instance, improving the first time user experience, helping run Mobius on a single node or cluster mode etc.
- * [bug](https://github.com/Microsoft/SparkCLR/labels/bug).
- * [enhancement](https://github.com/Microsoft/SparkCLR/labels/enhancement): Issues related to improving existing implementations.
- * [test bug](https://github.com/Microsoft/SparkCLR/labels/test%20bug): Issues related to invalid or missing tests/unit tests.
- * [design change request](https://github.com/Microsoft/SparkCLR/labels/design%20change%20request): Alternative design change suggestions.
- * [suggestion](https://github.com/Microsoft/SparkCLR/labels/suggestion): Feature or API suggestions.
+ * [documentation](https://github.com/Microsoft/Mobius/labels/documentation): Issues relating to documentation (e.g. incorrect documentation, enhancement requests)
+ * [debuggability/supportability](https://github.com/Microsoft/Mobius/labels/debuggability%2Fsupportability): Issues relating to making debugging and support easy. For instance, throwing meaningful errors when things fail.
+ * [user experience](https://github.com/Microsoft/Mobius/labels/user%20experience): Issues relating to making Mobius more user-friendly. For instance, improving the first time user experience, helping run Mobius on a single node or cluster mode etc.
+ * [bug](https://github.com/Microsoft/Mobius/labels/bug).
+ * [enhancement](https://github.com/Microsoft/Mobius/labels/enhancement): Issues related to improving existing implementations.
+ * [test bug](https://github.com/Microsoft/Mobius/labels/test%20bug): Issues related to invalid or missing tests/unit tests.
+ * [design change request](https://github.com/Microsoft/Mobius/labels/design%20change%20request): Alternative design change suggestions.
+ * [suggestion](https://github.com/Microsoft/Mobius/labels/suggestion): Feature or API suggestions.
 * **Ownership**: These labels are used to specify who owns specific issue. Issues without an ownership tag are still considered "up for discussion" and haven't been approved yet. We have the following different types of ownership:
- * [up for grabs](https://github.com/Microsoft/SparkCLR/labels/up%20for%20grabs): Small sections of work which we believe are well scoped. These sorts of issues are a good place to start if you are new.  Anyone is free to work on these issues.
- * [feature approved](https://github.com/Microsoft/SparkCLR/labels/feature%20approved): Larger scale issues having priority and the design approved, anyone is free to work on these issues, but they may be trickier or require more work.
- * [grabbed by assignee](https://github.com/Microsoft/SparkCLR/labels/grabbed%20by%20assignee): the person the issue is assigned to is making a fix.
+ * [up for grabs](https://github.com/Microsoft/Mobius/labels/up%20for%20grabs): Small sections of work which we believe are well scoped. These sorts of issues are a good place to start if you are new.  Anyone is free to work on these issues.
+ * [feature approved](https://github.com/Microsoft/Mobius/labels/feature%20approved): Larger scale issues having priority and the design approved, anyone is free to work on these issues, but they may be trickier or require more work.
+ * [grabbed by assignee](https://github.com/Microsoft/Mobius/labels/grabbed%20by%20assignee): the person the issue is assigned to is making a fix.
 * **Project Management**: These labels are used to communicate task status. Issues/tasks without a Project Management tag are still considered as "pendig/under triage".
- * [0 - Backlog](https://github.com/Microsoft/SparkCLR/labels/0%20-%20Backlog): Tasks that are not yet ready for development or are not yet prioritized for the current milestone.
- * [1 - Up Next](https://github.com/Microsoft/SparkCLR/labels/1%20-%20Up%20Next): Tasks that are ready for development and prioritized above the rest of the backlog.
- * [2 - In Progress](https://github.com/Microsoft/SparkCLR/labels/2%20-%20In%20Progress): Tasks that are under active development.
- * [3 - Done](https://github.com/Microsoft/SparkCLR/labels/3%20-%20Done): Tasks that are finished.  There should be no open issues in the Done stage.
+ * [0 - Backlog](https://github.com/Microsoft/Mobius/labels/0%20-%20Backlog): Tasks that are not yet ready for development or are not yet prioritized for the current milestone.
+ * [1 - Up Next](https://github.com/Microsoft/Mobius/labels/1%20-%20Up%20Next): Tasks that are ready for development and prioritized above the rest of the backlog.
+ * [2 - In Progress](https://github.com/Microsoft/Mobius/labels/2%20-%20In%20Progress): Tasks that are under active development.
+ * [3 - Done](https://github.com/Microsoft/Mobius/labels/3%20-%20Done): Tasks that are finished.  There should be no open issues in the Done stage.
 * **Review Status**: These labels are used to indicate that the issue/bug cannot be worked on after review. Issues without Review Status, Project Management or Ownership tags are ones pending reviews.
- * [duplicate](https://github.com/Microsoft/SparkCLR/labels/duplicate): Issues/bugs are duplicates of ones submitted already.
- * [invalid](https://github.com/Microsoft/SparkCLR/labels/invalid): Issues/bugs are unrelated to Mobius.
- * [wontfix](https://github.com/Microsoft/SparkCLR/labels/wontfix): Issues/bugs are considered as limitations that will not be fixed.
- * [needs more info](https://github.com/Microsoft/SparkCLR/labels/needs%20more%20info): Issues/bugs need more information. Usually this indicates we can't reproduce a reported bug.  We'll close these issues after a little while if we haven't gotten actionable information, but we welcome folks who have acquired more information to reopen the issue.
+ * [duplicate](https://github.com/Microsoft/Mobius/labels/duplicate): Issues/bugs are duplicates of ones submitted already.
+ * [invalid](https://github.com/Microsoft/Mobius/labels/invalid): Issues/bugs are unrelated to Mobius.
+ * [wontfix](https://github.com/Microsoft/Mobius/labels/wontfix): Issues/bugs are considered as limitations that will not be fixed.
+ * [needs more info](https://github.com/Microsoft/Mobius/labels/needs%20more%20info): Issues/bugs need more information. Usually this indicates we can't reproduce a reported bug.  We'll close these issues after a little while if we haven't gotten actionable information, but we welcome folks who have acquired more information to reopen the issue.
 
 In addition to the above, we may introduce new labels to help classify our issues.  Some of these tag may cross cutting concerns (e.g. *performance*, *serialization impact*), where as others are used to help us track additional work needed before closing an issue (e.g. *needs design review*). 
 

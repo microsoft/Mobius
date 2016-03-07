@@ -154,7 +154,7 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <XslTransformation XslInputPath="..\documentation\DocFormatter.xsl" XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML" OutputPaths="..\documentation\SparkCLR_API_Documentation.md" Condition="'$(OS)' == 'Windows_NT'" />
-    <Exec Command="xsltproc -o ../documentation/SparkCLR_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML" Condition="'$(OS)' != 'Windows_NT'" />
+    <XslTransformation XslInputPath="..\documentation\DocFormatter.xsl" XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML" OutputPaths="..\documentation\Mobius_API_Documentation.md" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="xsltproc -o ../documentation/Mobius_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML" Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
 </Project>
