@@ -73,17 +73,17 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 
 |Ubuntu 14.04.3 LTS |Windows |Unit test coverage |
 |-------------------|:------:|:-----------------:|
-|[![Build status](https://travis-ci.org/Microsoft/SparkCLR.svg?branch=master)](https://travis-ci.org/Microsoft/SparkCLR) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |[![codecov.io](https://codecov.io/github/Microsoft/SparkCLR/coverage.svg?branch=master)](https://codecov.io/github/Microsoft/SparkCLR?branch=master) |
+|[![Build status](https://travis-ci.org/Microsoft/Mobius.svg?branch=master)](https://travis-ci.org/Microsoft/Mobius) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |[![codecov.io](https://codecov.io/github/Microsoft/Mobius/coverage.svg?branch=master)](https://codecov.io/github/Microsoft/Mobius?branch=master) |
 
 ## Getting Started
 
 | |Windows |Linux |
 |---|:------:|:----:|
-|Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-sparkclr) |[linux-instructions.md](notes/linux-instructions.md#building-sparkclr) |
+|Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-mobius) |[linux-instructions.md](notes/linux-instructions.md#building-mobius) |
 |Run samples (functional tests) in local mode |[windows-instructions.md](notes/windows-instructions.md#running-samples) |[linux-instructions.md](notes/linux-instructions.md#running-samples) |
-|Run examples in local mode |[running-sparkclr-app.md](notes/running-sparkclr-app.md#running-examples-in-local-mode) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
-|Run Mobius app in standalone cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#standalone-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
-|Run Mobius app in YARN cluster |[running-sparkclr-app.md](notes/running-sparkclr-app.md#yarn-cluster) |[running-sparkclr-app.md](notes/running-sparkclr-app.md#linux-instructions) |
+|Run examples in local mode |[running-mobius-app.md](notes/running-mobius-app.md#running-examples-in-local-mode) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
+|Run Mobius app in standalone cluster |[running-mobius-app.md](notes/running-mobius-app.md#standalone-cluster) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
+|Run Mobius app in YARN cluster |[running-mobius-app.md](notes/running-mobius-app.md#yarn-cluster) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
 
 Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using Mobius with Spark on Linux
 
