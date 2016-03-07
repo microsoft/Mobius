@@ -53,7 +53,7 @@ Refer to [Mobius\csharp\Samples](csharp/Samples) directory and [sample usage](cs
 
 ## API Documentation
 
-Refer to [Mobius C# API documentation](csharp/Adapter/documentation/SparkCLR_API_Documentation.md) for the list of Spark's data processing operations supported in Mobius.
+Refer to [Mobius C# API documentation](csharp/Adapter/documentation/Mobius_API_Documentation.md) for the list of Spark's data processing operations supported in Mobius.
 
 ## API Usage
 
