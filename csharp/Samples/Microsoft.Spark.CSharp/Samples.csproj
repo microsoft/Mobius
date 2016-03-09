@@ -50,6 +50,7 @@
     <Compile Include="Configuration.cs" />
     <Compile Include="DataFrameSamples.cs" />
     <Compile Include="DStreamSamples.cs" />
+    <Compile Include="DStreamStateSample.cs" />
     <Compile Include="MiscSamples.cs" />
     <Compile Include="DoubleRDDSamples.cs" />
     <Compile Include="Program.cs" />

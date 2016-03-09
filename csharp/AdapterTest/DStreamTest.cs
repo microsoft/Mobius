@@ -6,7 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Interop;
+using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Streaming;
+using Moq;
 using NUnit.Framework;
 
 namespace AdapterTest
@@ -279,6 +282,128 @@ namespace AdapterTest
                     Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 24 : 23);
                 }
             });
+        }
+
+        [Test]
+        public void TestDStreamMapWithState()
+        {
+            var mapwithStateDStreamProxy = new Mock<IDStreamProxy>();
+            var streamingContextProxy = new Mock<IStreamingContextProxy>();
+            streamingContextProxy.Setup(p =>
+                p.CreateCSharpStateDStream(It.IsAny<IDStreamProxy>(), It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mapwithStateDStreamProxy.Object);
+
+            var sparkContextProxy = new Mock<ISparkContextProxy>();
+
+            var sparkConfProxy = new Mock<ISparkConfProxy>();
+
+            var sparkClrProxy = new Mock<ISparkCLRProxy>();
+            sparkClrProxy.Setup(p => p.StreamingContextProxy).Returns(streamingContextProxy.Object);
+            sparkClrProxy.Setup(p => p.SparkContextProxy).Returns(sparkContextProxy.Object);
+            sparkClrProxy.Setup(p => p.CreateSparkContext(It.IsAny<ISparkConfProxy>())).Returns(sparkContextProxy.Object);
+            sparkClrProxy.Setup(p => p.CreateSparkConf(It.IsAny<bool>())).Returns(sparkConfProxy.Object);
+
+            // reset sparkCLRProxy for after test completes
+            var originalSparkCLRProxy = SparkCLREnvironment.SparkCLRProxy;
+            try
+            {
+                SparkCLREnvironment.SparkCLRProxy = sparkClrProxy.Object;
+
+                var sparkConf = new SparkConf(false);
+                var ssc = new StreamingContext(new SparkContext(sparkContextProxy.Object, sparkConf), 10000);
+
+                var dstreamProxy = new Mock<IDStreamProxy>();
+                var pairDStream = new DStream<KeyValuePair<string, int>>(dstreamProxy.Object, ssc);
+
+                var stateSpec = new StateSpec<string, int, int, int>((k, v, s) => v);
+                var stateDStream = pairDStream.MapWithState(stateSpec);
+                var snapshotDStream = stateDStream.StateSnapshots();
+
+                Assert.IsNotNull(stateDStream);
+                Assert.IsNotNull(snapshotDStream);
+            }
+            finally
+            {
+                SparkCLREnvironment.SparkCLRProxy = originalSparkCLRProxy;
+            }
+        }
+
+        [Test]
+        public void TestDStreamMapWithStateMapWithStateHelper()
+        {
+            // test when initialStateRdd is null
+            var stateSpec = new StateSpec<string, int, int, int>((k, v, s) => v).NumPartitions(2).Timeout(TimeSpan.FromSeconds(100));
+            var helper = new MapWithStateHelper<string, int, int, int>((t, rdd) => rdd, stateSpec);
+
+            var sparkContextProxy = new Mock<ISparkContextProxy>();
+            var sc = new SparkContext(sparkContextProxy.Object, null);
+
+            var pairwiseRddProxy = new Mock<IRDDProxy>();
+            sparkContextProxy.Setup(p => p.CreatePairwiseRDD(It.IsAny<IRDDProxy>(), It.IsAny<int>())).Returns(pairwiseRddProxy.Object);
+
+            var pipelinedRddProxy = new Mock<IRDDProxy>();
+            pipelinedRddProxy.Setup(p => p.Union(It.IsAny<IRDDProxy>())).Returns(new Mock<IRDDProxy>().Object);
+
+            sparkContextProxy.Setup(p => 
+                p.CreateCSharpRdd(It.IsAny<IRDDProxy>(), It.IsAny<byte[]>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<List<string>>(), It.IsAny<bool>(), It.IsAny<List<Broadcast>>(), It.IsAny<List<byte[]>>()))
+                .Returns(pipelinedRddProxy.Object);
+
+            var valueRddProxy = new Mock<IRDDProxy>();
+            var valuesRdd = new RDD<dynamic>(valueRddProxy.Object, sc);
+
+            var resultRdd = helper.Execute(DateTime.UtcNow.Millisecond, null, valuesRdd);
+
+            Assert.IsNotNull(resultRdd);
+
+            // test when initialStateRdd is not null
+            var initialStateRdd = new RDD<KeyValuePair<string, int>>(new Mock<IRDDProxy>().Object, null);
+            var stateSpec2 = new StateSpec<string, int, int, int>((k, v, s) => v).InitialState(initialStateRdd).NumPartitions(2);
+            var helper2 = new MapWithStateHelper<string, int, int, int>((t, rdd) => rdd, stateSpec2);
+
+            var resultRdd2 = helper2.Execute(DateTime.UtcNow.Millisecond, null, valuesRdd);
+
+            Assert.IsNotNull(resultRdd2);
+        }
+
+        [Test]
+        public void TestDStreamMapWithStateUpdateStateHelper()
+        {
+            var ticks = DateTime.UtcNow.Ticks;
+            var helper = new UpdateStateHelper<string, int, int, int>(
+                (k, v, state) =>
+                {
+                    if (v < 0 && state.Exists())
+                    {
+                        state.Remove();
+                    }
+                    else if(!state.IsTimingOut())
+                    {
+                        state.Update(v + state.Get());
+                    }
+                    
+                    return v;
+                },
+                ticks, true, TimeSpan.FromSeconds(10));
+
+            var input = new dynamic[4];
+
+            var preStateRddRecord = new MapWithStateRDDRecord<string, int, int>(ticks - TimeSpan.FromSeconds(2).Ticks, new [] { new KeyValuePair<string, int>("1", 1), new KeyValuePair<string, int>("2", 2)});
+            preStateRddRecord.stateMap.Add("expired", new KeyedState<int>(0, ticks - TimeSpan.FromSeconds(60).Ticks));
+
+            input[0] = preStateRddRecord;
+            input[1] = new KeyValuePair<string, int>("1", -1);
+            input[2] = new KeyValuePair<string, int>("2", 2);
+            input[3] = new KeyValuePair<string, int>("3", 3);
+
+            var result = helper.Execute(1, input).GetEnumerator();
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.MoveNext());
+
+            MapWithStateRDDRecord<string, int, int> stateRddRecord = result.Current;
+
+            Assert.IsNotNull(stateRddRecord);
+            Assert.AreEqual(stateRddRecord.mappedData.Count, 4); // timedout record also appears in return results
+            Assert.AreEqual(stateRddRecord.stateMap.Count, 2);
         }
     }
 }
