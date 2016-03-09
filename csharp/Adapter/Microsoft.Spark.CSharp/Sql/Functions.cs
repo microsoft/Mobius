@@ -280,11 +280,11 @@ namespace Microsoft.Spark.CSharp.Sql
         #region window functions
         public static Column RowNumber()
         {
-            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("rowNumber"));
+            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("row_number"));
         }
         public static Column DenseRank()
         {
-            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("denseRank"));
+            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("dense_rank"));
         }
         public static Column Rank()
         {
@@ -292,19 +292,19 @@ namespace Microsoft.Spark.CSharp.Sql
         }
         public static Column CumeDist()
         {
-            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("cumeDist"));
+            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("cume_dist"));
         }
         public static Column PercentRank()
         {
-            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("percentRank"));
+            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("percent_rank"));
         }
         public static Column MonotonicallyIncreasingId()
         {
-            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("monotonicallyIncreasingId"));
+            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("monotonically_increasing_id"));
         }
         public static Column SparkPartitionId()
         {
-            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("sparkPartitionId"));
+            return new Column(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateWindowFunction("spark_partition_id"));
         }
         public static Column Rand()
         {

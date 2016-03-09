@@ -79,5 +79,39 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStream(topics, kafkaParams, fromOffsets), ssc, SerializedMode.Pair);
         }
+
+        /// <summary>
+        /// Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
+        /// 
+        /// This is not a receiver based Kafka input stream, it directly pulls the message from Kafka
+        /// in each batch duration and processed without storing.
+        /// 
+        /// This does not use Zookeeper to store offsets. The consumed offsets are tracked
+        /// by the stream itself. For interoperability with Kafka monitoring tools that depend on
+        /// Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application.
+        /// You can access the offsets used in each batch from the generated RDDs (see
+        /// [[org.apache.spark.streaming.kafka.HasOffsetRanges]]).
+        /// To recover from driver failures, you have to enable checkpointing in the StreamingContext.
+        /// The information on consumed offset can be recovered from the checkpoint.
+        /// See the programming guide for details (constraints, etc.).
+        /// 
+        /// </summary>
+        /// <param name="ssc">Spark Streaming Context</param>
+        /// <param name="topics">list of topic_name to consume.</param>
+        /// <param name="kafkaParams">
+        ///     Additional params for Kafka. Requires "metadata.broker.list" or "bootstrap.servers" to be set
+        ///     with Kafka broker(s) (NOT zookeeper servers), specified in host1:port1,host2:port2 form.        
+        /// </param>
+        /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
+        /// <param name="numPartitions">
+        ///     user hint on how many kafka RDD partitions to create instead of aligning with kafka partitions,
+        ///     unbalanced kafka partitions and/or under-distributed data will be redistributed evenly across 
+        ///     a probably larger number of RDD partitions
+        /// </param>
+        /// <returns>A DStream object</returns>
+        public static DStream<KeyValuePair<byte[], byte[]>> CreateDirectStreamWithRepartition(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, uint numPartitions)
+        {
+            return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions), ssc, SerializedMode.Pair);
+        }
     }
 }

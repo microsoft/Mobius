@@ -115,7 +115,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                             break;
 
                         case 'l':
-                            returnValue = ReadJvmObjectReferenceCollection(s);
+                            returnValue = ReadCollection(s);
 
                             break;
 
@@ -207,15 +207,56 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             return paramsString.ToString();
         }
 
-        private object ReadJvmObjectReferenceCollection(NetworkStream s)
+        private object ReadCollection(NetworkStream s)
         {
             object returnValue;
             var listItemTypeAsChar = Convert.ToChar(s.ReadByte());
+            int numOfItemsInList = SerDe.ReadInt(s);
             switch (listItemTypeAsChar)
             {
+                case 'c':
+                    var strList = new List<string>();
+                    for (int itemIndex = 0; itemIndex < numOfItemsInList; itemIndex++)
+                    {
+                        strList.Add(SerDe.ReadString(s));
+                    }
+                    returnValue = strList;
+                    break;
+                case 'i':
+                    var intList = new List<int>();
+                    for (int itemIndex = 0; itemIndex < numOfItemsInList; itemIndex++)
+                    {
+                        intList.Add(SerDe.ReadInt(s));
+                    }
+                    returnValue = intList;
+                    break;
+                case 'd':
+                    var doubleList = new List<double>();
+                    for (int itemIndex = 0; itemIndex < numOfItemsInList; itemIndex++)
+                    {
+                        doubleList.Add(SerDe.ReadDouble(s));
+                    }
+                    returnValue = doubleList;
+                    break;
+                case 'b':
+                    var boolList = new List<bool>();
+                    for (int itemIndex = 0; itemIndex < numOfItemsInList; itemIndex++)
+                    {
+                        boolList.Add(Convert.ToBoolean(s.ReadByte()));
+                    }
+                    returnValue = boolList;
+                    break;
+                case 'r':
+                    var byteArrayList = new List<byte[]>();
+                    for (int itemIndex = 0; itemIndex < numOfItemsInList; itemIndex++)
+                    {
+                        var byteArrayLen = SerDe.ReadInt(s);
+                        byteArrayList.Add(SerDe.ReadBytes(s, byteArrayLen));
+                    }
+                    returnValue = byteArrayList;
+                    break;
                 case 'j':
                     var jvmObjectReferenceList = new List<JvmObjectReference>();
-                    var numOfItemsInList = SerDe.ReadInt(s);
                     for (int itemIndex = 0; itemIndex < numOfItemsInList; itemIndex++)
                     {
                         var itemIdentifier = SerDe.ReadString(s);
@@ -223,7 +264,6 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                     }
                     returnValue = jvmObjectReferenceList;
                     break;
-
                 default:
                     // convert listItemTypeAsChar to UInt32 because the char may be non-printable
                     throw new NotSupportedException(

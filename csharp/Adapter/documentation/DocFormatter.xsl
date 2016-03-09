@@ -2,7 +2,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template match="/">
-##<center><H1><font color="darkorchid4">SparkCLR API Documentation<!--xsl:value-of select="$AssemblyName"/--></font></H1></center>
+##<center><H1><font color="darkorchid4">Mobius API Documentation<!--xsl:value-of select="$AssemblyName"/--></font></H1></center>
 <xsl:apply-templates select="//member[contains(@name,'T:') and not(contains(@name,'Helper')) and not(contains(@name,'Wrapper')) and not(contains(@name,'Configuration')) and not(contains(@name,'Proxy')) and not(contains(@name,'Interop')) and not(contains(@name,'Services'))]"/>
 </xsl:template>
 

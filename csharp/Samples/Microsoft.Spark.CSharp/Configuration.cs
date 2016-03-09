@@ -62,6 +62,12 @@ namespace Microsoft.Spark.CSharp.Samples
             set;
         }
 
+        public string CheckpointDir
+        {
+            get; 
+            set;
+        }
+
         public string GetInputDataPath(string fileName)
         {
             if (SampleDataLocation.StartsWith("hdfs://"))
