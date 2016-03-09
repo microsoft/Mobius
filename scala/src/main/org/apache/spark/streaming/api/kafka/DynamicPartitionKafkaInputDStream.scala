@@ -70,7 +70,7 @@ class DynamicPartitionKafkaInputDStream[
 
   @transient private var refreshOffsetsScheduler =
     ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets")
-  private var refreshOffsetsInterval = slideDuration.milliseconds / 5
+  private var refreshOffsetsInterval = Math.max(slideDuration.milliseconds / 2, 50)
 
   // fromOffsets and untilOffsets for next batch
   @volatile var offsetsRangeForNextBatch:

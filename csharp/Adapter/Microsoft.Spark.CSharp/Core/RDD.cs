@@ -167,7 +167,7 @@ namespace Microsoft.Spark.CSharp.Core
             RddProxy.Checkpoint();
         }
 
-        internal int GetNumPartitions()
+        public int GetNumPartitions()
         {
             return RddProxy.GetNumPartitions();
         }

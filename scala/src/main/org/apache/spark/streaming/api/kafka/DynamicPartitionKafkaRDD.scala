@@ -39,7 +39,7 @@ class DynamicPartitionKafkaRDD[
   U <: Decoder[_]: ClassTag,
   T <: Decoder[_]: ClassTag,
   R: ClassTag] private[spark] (
-    sc: SparkContext,
+    @transient sc: SparkContext,
     kafkaParams: Map[String, String],
     override val offsetRanges: Array[OffsetRange],
     leaders: Map[TopicAndPartition, (String, Int)],
@@ -51,7 +51,8 @@ class DynamicPartitionKafkaRDD[
       super.getPartitions
     } else {
       val steps = offsetRanges.groupBy(o => o.topic).map { case (topic, offRanges) =>
-        (topic, offRanges.map(o => o.untilOffset - o.fromOffset + 1).sum / numPartitions)
+        // step can't be zero, use Math.max(..., 1) to ensure that step >= 1
+        (topic, Math.max(offRanges.map(o => o.untilOffset - o.fromOffset + 1).sum / numPartitions, 1))
       }
       offsetRanges.flatMap { case o =>
         (o.fromOffset until o.untilOffset by steps(o.topic)).map(s =>
@@ -80,6 +81,7 @@ class DynamicPartitionKafkaRDD[
       " This should not happen, and indicates a message may have been skipped"
 
   private val metadata: Boolean = sc.getConf.getBoolean("spark.streaming.kafka.metadata", false)
+  private val maxRetries: Int = sc.getConf.getInt("spark.streaming.kafka.maxRetries", 1)
 
   override def compute(thePart: Partition, context: TaskContext): Iterator[R] = {
     val part = thePart.asInstanceOf[KafkaRDDPartition]
@@ -91,13 +93,14 @@ class DynamicPartitionKafkaRDD[
     } else if (metadata) {
         Iterator((part.topic.getBytes(), ByteBuffer.allocate(4).putInt(part.partition).array()).asInstanceOf[R], (ByteBuffer.allocate(8).putLong(part.fromOffset).array(), ByteBuffer.allocate(8).putLong(part.untilOffset).array()).asInstanceOf[R])
     } else {
-      new DynamicPartitionKafkaRDDIterator(part, context)
+      new DynamicPartitionKafkaRDDIterator(part, context, maxRetries)
     }
   }
 
   private class DynamicPartitionKafkaRDDIterator(
                                   part: KafkaRDDPartition,
-                                  context: TaskContext) extends NextIterator[R] {
+                                  context: TaskContext,
+                                  maxRetries: Int) extends NextIterator[R] {
 
     context.addTaskCompletionListener{ context => closeIfNeeded() }
 
@@ -143,8 +146,6 @@ class DynamicPartitionKafkaRDD[
         //throw ErrorMapping.exceptionFor(err)
       }
     }
-
-    private val maxRetries: Int = sc.getConf.getInt("spark.streaming.kafka.maxRetries", 1)
 
     private def doFetch(req: FetchRequest, retries: Int): Option[FetchResponse] = {
       val resp = consumer.fetch(req)

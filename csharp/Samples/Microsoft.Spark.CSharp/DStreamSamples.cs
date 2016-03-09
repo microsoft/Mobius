@@ -12,6 +12,8 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Streaming;
 using Microsoft.Spark.CSharp.Samples;
 
+using NUnit.Framework;
+
 namespace Microsoft.Spark.CSharp
 {
     class DStreamSamples
@@ -105,7 +107,7 @@ namespace Microsoft.Spark.CSharp
 
         /// <summary>
         /// start a local kafka service and create a 'test' topic with some data before running this sample
-        /// e.g. create 2 partitions with 100 messages which will be repartitioned into 10 RDD partitions
+        /// e.g. create 2 partition with 100 messages which will be repartitioned into 10 RDD partitions
         /// </summary>
         [Sample("experimental")]
         internal static void DStreamDirectKafkaWithRepartitionSample()
@@ -127,7 +129,29 @@ namespace Microsoft.Spark.CSharp
 
                     var dstream = KafkaUtils.CreateDirectStreamWithRepartition(context, new List<string> { "test" }, kafkaParams, new Dictionary<string, long>(), 10);
 
-                    dstream.ForeachRDD(rdd => rdd.Count());
+                    dstream.ForeachRDD((time, rdd) => 
+                        {
+                            long batchCount = rdd.Count();
+                            int partitions = rdd.GetNumPartitions();
+
+                            Console.WriteLine("-------------------------------------------");
+                            Console.WriteLine("Time: {0}", time);
+                            Console.WriteLine("-------------------------------------------");
+                            Console.WriteLine("Count: " + batchCount);
+                            Console.WriteLine("Partitions: " + partitions);
+                            
+                            // only first batch has data and is repartitioned into 10 partitions
+                            if (count++ == 0)
+                            {
+                                Assert.AreEqual(100, batchCount);
+                                Assert.IsTrue(partitions >= 10);
+                            }
+                            else
+                            {
+                                Assert.AreEqual(0, batchCount);
+                                Assert.IsTrue(partitions == 0);
+                            }
+                        });
 
                     return context;
                 });
