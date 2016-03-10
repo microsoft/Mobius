@@ -70,6 +70,14 @@ class DynamicPartitionKafkaInputDStream[
 
   @transient private var refreshOffsetsScheduler =
     ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets")
+
+  // reading metadata of mutilple topics from across multiple data centers takes long time to complete,
+  // which impacts DStream performance and causes UI steaming tab not responsive due to mutex held by DStream
+  // so a separate thread is introduced to refresh metadata (current offsets) asynchronously at below interval
+  // this unblocks DStream in above described situation but not quite in sync with batch timestamp,
+  // which is OK since batches are still generated at the same interval
+  // the interval is set to half of the batch interval to make sure they're not in sync to block each other
+  // TODO: configurable as performance tuning option
   private var refreshOffsetsInterval = Math.max(slideDuration.milliseconds / 2, 50)
 
   // fromOffsets and untilOffsets for next batch
