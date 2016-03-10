@@ -39,7 +39,7 @@ class DynamicPartitionKafkaRDD[
   U <: Decoder[_]: ClassTag,
   T <: Decoder[_]: ClassTag,
   R: ClassTag] private[spark] (
-    sc: SparkContext,
+    @transient sc: SparkContext,
     kafkaParams: Map[String, String],
     override val offsetRanges: Array[OffsetRange],
     leaders: Map[TopicAndPartition, (String, Int)],
@@ -51,7 +51,8 @@ class DynamicPartitionKafkaRDD[
       super.getPartitions
     } else {
       val steps = offsetRanges.groupBy(o => o.topic).map { case (topic, offRanges) =>
-        (topic, offRanges.map(o => o.untilOffset - o.fromOffset + 1).sum / numPartitions)
+        // step can't be zero, use Math.max(..., 1) to ensure that step >= 1
+        (topic, Math.max(offRanges.map(o => o.untilOffset - o.fromOffset + 1).sum / numPartitions, 1))
       }
       offsetRanges.flatMap { case o =>
         (o.fromOffset until o.untilOffset by steps(o.topic)).map(s =>
@@ -101,8 +102,10 @@ class DynamicPartitionKafkaRDD[
 
     context.addTaskCompletionListener{ context => closeIfNeeded() }
 
-    log.info(s"Computing topic ${part.topic}, partition ${part.partition} " +
-      s"offsets ${part.fromOffset} -> ${part.untilOffset}")
+    log.info(s"Task index ${part.index} " +
+      s"Computing topic ${part.topic}, partition ${part.partition} " +
+      s"offsets ${part.fromOffset} -> ${part.untilOffset} count ${part.untilOffset - part.fromOffset} " +
+      s"from ${part.host}:${part.port}")
 
     val kc = new KafkaCluster(kafkaParams)
     val keyDecoder = classTag[U].runtimeClass.getConstructor(classOf[VerifiableProperties])
@@ -140,24 +143,7 @@ class DynamicPartitionKafkaRDD[
           Thread.sleep(kc.config.refreshLeaderBackoffMs)
         }
         // Let normal rdd retry sort out reconnect attempts
-        //throw ErrorMapping.exceptionFor(err)
-      }
-    }
-
-    private val maxRetries: Int = sc.getConf.getInt("spark.streaming.kafka.maxRetries", 1)
-
-    private def doFetch(req: FetchRequest, retries: Int): Option[FetchResponse] = {
-      val resp = consumer.fetch(req)
-      handleFetchErr(resp)
-      if (resp.hasError) {
-        if (retries == 0) {
-          None
-        }
-        else {
-          doFetch(req, retries - 1)
-        }
-      } else {
-        Some(resp)
+        throw ErrorMapping.exceptionFor(err)
       }
     }
 
@@ -165,17 +151,12 @@ class DynamicPartitionKafkaRDD[
       val req = new FetchRequestBuilder()
         .addFetch(part.topic, part.partition, requestOffset, kc.config.fetchMessageMaxBytes)
         .build()
-
-      //val resp = consumer.fetch(req)
-      //handleFetchErr(resp)
-      doFetch(req, maxRetries) match {
-        case None => Iterator.empty
-        case Some(resp) =>
-          // kafka may return a batch that starts before the requested offset
-          resp.messageSet(part.topic, part.partition)
-            .iterator
-            .dropWhile(_.offset < requestOffset)
-      }
+      val resp = consumer.fetch(req)
+      handleFetchErr(resp)
+      // kafka may return a batch that starts before the requested offset
+      resp.messageSet(part.topic, part.partition)
+        .iterator
+        .dropWhile(_.offset < requestOffset)
     }
 
     override def close(): Unit = {
@@ -190,14 +171,16 @@ class DynamicPartitionKafkaRDD[
       }
       if (!iter.hasNext) {
         //assert(requestOffset == part.untilOffset, errRanOutBeforeEnd(part))
-        log.error(errRanOutBeforeEnd(part))
+        if (requestOffset < part.untilOffset)
+          log.error(errRanOutBeforeEnd(part))
         finished = true
         null.asInstanceOf[R]
       } else {
         val item = iter.next()
         if (item.offset >= part.untilOffset) {
           //assert(item.offset == part.untilOffset, errOvershotEnd(item.offset, part))
-          log.error(errOvershotEnd(item.offset, part))
+          if (item.offset > part.untilOffset)
+            log.error(errOvershotEnd(item.offset, part))
           finished = true
           null.asInstanceOf[R]
         } else {
