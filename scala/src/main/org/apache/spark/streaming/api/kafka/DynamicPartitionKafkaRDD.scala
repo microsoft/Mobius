@@ -81,7 +81,6 @@ class DynamicPartitionKafkaRDD[
       " This should not happen, and indicates a message may have been skipped"
 
   private val metadata: Boolean = sc.getConf.getBoolean("spark.streaming.kafka.metadata", false)
-  private val maxRetries: Int = sc.getConf.getInt("spark.streaming.kafka.maxRetries", 1)
 
   override def compute(thePart: Partition, context: TaskContext): Iterator[R] = {
     val part = thePart.asInstanceOf[KafkaRDDPartition]
@@ -93,14 +92,13 @@ class DynamicPartitionKafkaRDD[
     } else if (metadata) {
         Iterator((part.topic.getBytes(), ByteBuffer.allocate(4).putInt(part.partition).array()).asInstanceOf[R], (ByteBuffer.allocate(8).putLong(part.fromOffset).array(), ByteBuffer.allocate(8).putLong(part.untilOffset).array()).asInstanceOf[R])
     } else {
-      new DynamicPartitionKafkaRDDIterator(part, context, maxRetries)
+      new DynamicPartitionKafkaRDDIterator(part, context)
     }
   }
 
   private class DynamicPartitionKafkaRDDIterator(
                                   part: KafkaRDDPartition,
-                                  context: TaskContext,
-                                  maxRetries: Int) extends NextIterator[R] {
+                                  context: TaskContext) extends NextIterator[R] {
 
     context.addTaskCompletionListener{ context => closeIfNeeded() }
 
