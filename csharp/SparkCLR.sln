@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfBenchmark", "Perf\Micro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerTest", "WorkerTest\WorkerTest.csproj", "{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Microsoft.Spark.CSharp\Utils.csproj", "{6A118B6B-42F2-4017-B0F5-2FA15007B159}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3B0E475-BCBB-49B5-9B77-0A5A4AD1FFDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A118B6B-42F2-4017-B0F5-2FA15007B159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A118B6B-42F2-4017-B0F5-2FA15007B159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A118B6B-42F2-4017-B0F5-2FA15007B159}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A118B6B-42F2-4017-B0F5-2FA15007B159}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
