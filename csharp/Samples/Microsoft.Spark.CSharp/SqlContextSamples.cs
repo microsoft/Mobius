@@ -332,7 +332,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var expectedCount = peopleDataFrame.Count();
 
-            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var parquetPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Coalesce(1).Write().Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
@@ -350,7 +350,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.AreEqual(expectedCount, count);
             }
 
-            Directory.Delete(parquetPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(parquetPath, true);
             Console.WriteLine("Remove parquet directory: {0}", parquetPath);
         }
     }
