@@ -68,5 +68,75 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public ISqlContextProxy NewSession()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetConf(string key, string defaultValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetConf(string key, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RegisterDataFrameAsTable(IDataFrameProxy dataFrameProxy, string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DropTempTable(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Table(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Tables()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Tables(string databaseName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<string> TableNames()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CacheTable(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UncacheTable(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ClearCache()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<string> TableNames(string databaseName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsCached(string tableName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

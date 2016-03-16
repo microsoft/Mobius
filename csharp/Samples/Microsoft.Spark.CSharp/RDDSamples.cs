@@ -18,8 +18,13 @@ namespace Microsoft.Spark.CSharp.Samples
             var rdd = SparkCLRSamples.SparkContext.Parallelize(Enumerable.Range(0, 100), 4);
             rdd.Cache();
             rdd.Unpersist();
+            Assert.AreEqual(false, rdd.IsCheckpointed);
             rdd.Checkpoint();
+            Assert.AreEqual(false, rdd.IsCheckpointed);
+            rdd.Count();
             Console.WriteLine(rdd.IsCheckpointed);
+            // rdd.IsCheckpointed is set to true immediately first action invoked on this RDD has completed
+            Assert.AreEqual(true, rdd.IsCheckpointed);
         }
 
         [Sample]
@@ -413,13 +418,13 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void RDDSaveAsTextFileSample()
         {
             var rdd = SparkCLRSamples.SparkContext.Parallelize(new string[] { "a", "b", "c", "d", "e" }, 2);
-            var path = Path.GetTempFileName();
-            File.Delete(path);
+            var path = SparkCLRSamples.FileSystemHelper.GetTempFileName();
+            SparkCLRSamples.FileSystemHelper.DeleteFile(path);
             rdd.SaveAsTextFile(path);
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(path));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(path));
             }
         }
 

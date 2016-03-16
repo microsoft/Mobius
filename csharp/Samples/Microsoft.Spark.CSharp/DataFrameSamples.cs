@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Sql;
 using NUnit.Framework;
 
@@ -26,116 +27,6 @@ namespace Microsoft.Spark.CSharp.Samples
         private static SqlContext GetSqlContext()
         {
             return sqlContext ?? (sqlContext = new SqlContext(SparkCLRSamples.SparkContext));
-        }
-
-        /// <summary>
-        /// Sample to create DataFrame. The RDD is generated from SparkContext Parallelize; the schema is created via object creating.
-        /// </summary>
-        [Sample]
-        internal static void DFCreateDataFrameSample()
-        {
-            var schemaPeople = new StructType(new List<StructField>
-                                        {
-                                            new StructField("id", new StringType()), 
-                                            new StructField("name", new StringType()),
-                                            new StructField("age", new IntegerType()),
-                                            new StructField("address", new StructType(new List<StructField>
-                                                                                      {
-                                                                                          new StructField("city", new StringType()),
-                                                                                          new StructField("state", new StringType())
-                                                                                      })),
-                                            new StructField("phone numbers", new ArrayType(new StringType()))
-                                        });
-
-            var rddPeople = SparkCLRSamples.SparkContext.Parallelize(
-                                    new List<object[]>
-                                    {
-                                        new object[] { "123", "Bill", 43, new object[]{ "Columbus", "Ohio" }, new string[]{ "Tel1", "Tel2" } },
-                                        new object[] { "456", "Steve", 34,  new object[]{ "Seattle", "Washington" }, new string[]{ "Tel3", "Tel4" } }
-                                    });
-
-            var dataFramePeople = GetSqlContext().CreateDataFrame(rddPeople, schemaPeople);
-            Console.WriteLine("------ Schema of People Data Frame:\r\n");
-            dataFramePeople.ShowSchema();
-            Console.WriteLine();
-            var collected = dataFramePeople.Collect().ToArray();
-            foreach (var people in collected)
-            {
-                string id = people.Get("id");
-                string name = people.Get("name");
-                int age = people.Get("age");
-                Row address = people.Get("address");
-                string city = address.Get("city");
-                string state = address.Get("state");
-                object[] phoneNumbers = people.Get("phone numbers");
-                Console.WriteLine("id:{0}, name:{1}, age:{2}, address:(city:{3},state:{4}), phoneNumbers:[{5},{6}]\r\n", id, name, age, city, state, phoneNumbers[0], phoneNumbers[1]);
-            }
-
-            if (SparkCLRSamples.Configuration.IsValidationEnabled)
-            {
-                Assert.AreEqual(2, dataFramePeople.Rdd.Count());
-                Assert.AreEqual(schemaPeople.Json, dataFramePeople.Schema.Json);
-            }
-        }
-
-        /// <summary>
-        /// Sample to create DataFrame. The RDD is generated from SparkContext TextFile; the schema is created from Json.
-        /// </summary>
-        [Sample]
-        internal static void DFCreateDataFrameSample2()
-        {
-            var rddRequestsLog = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath(RequestsLog), 1).Map(r => r.Split(',').Select(s => (object)s).ToArray());
-
-            const string schemaRequestsLogJson = @"{
-	                                            ""fields"": [{
-		                                            ""metadata"": {},
-		                                            ""name"": ""guid"",
-		                                            ""nullable"": false,
-		                                            ""type"": ""string""
-	                                            },
-	                                            {
-		                                            ""metadata"": {},
-		                                            ""name"": ""datacenter"",
-		                                            ""nullable"": false,
-		                                            ""type"": ""string""
-	                                            },
-	                                            {
-		                                            ""metadata"": {},
-		                                            ""name"": ""abtestid"",
-		                                            ""nullable"": false,
-		                                            ""type"": ""string""
-	                                            },
-	                                            {
-		                                            ""metadata"": {},
-		                                            ""name"": ""traffictype"",
-		                                            ""nullable"": false,
-		                                            ""type"": ""string""
-	                                            }],
-	                                            ""type"": ""struct""
-                                              }";
-
-            // create schema from parsing Json
-            StructType requestsLogSchema = DataType.ParseDataTypeFromJson(schemaRequestsLogJson) as StructType;
-            var dataFrameRequestsLog = GetSqlContext().CreateDataFrame(rddRequestsLog, requestsLogSchema);
-
-            Console.WriteLine("------ Schema of RequestsLog Data Frame:");
-            dataFrameRequestsLog.ShowSchema();
-            Console.WriteLine();
-            var collected = dataFrameRequestsLog.Collect().ToArray();
-            foreach (var request in collected)
-            {
-                string guid = request.Get("guid");
-                string datacenter = request.Get("datacenter");
-                string abtestid = request.Get("abtestid");
-                string traffictype = request.Get("traffictype");
-                Console.WriteLine("guid:{0}, datacenter:{1}, abtestid:{2}, traffictype:{3}\r\n", guid, datacenter, abtestid, traffictype);
-            }
-
-            if (SparkCLRSamples.Configuration.IsValidationEnabled)
-            {
-                Assert.AreEqual(10, collected.Length);
-                Assert.AreEqual(Regex.Replace(schemaRequestsLogJson, @"\s", string.Empty), Regex.Replace(dataFrameRequestsLog.Schema.Json, @"\s", string.Empty));
-            }
         }
 
         /// <summary>
@@ -1155,7 +1046,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame2 = peopleDataFrame.Sort(new string[] { "id" }, new bool[] { true }).Limit(num);
 
             PrintAndVerifyPeopleDataFrameRows(peopleDataFrame2.Head(num), num);
-        }
+       }
 
         /// <summary>
         /// Sample to run head for DataFrame
@@ -1832,23 +1723,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFWriteToParquetSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var parquetPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Coalesce(1).Write().Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
-            Directory.Delete(parquetPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(parquetPath, true);
             Console.WriteLine("Remove parquet directory: {0}", parquetPath);
         }
 
@@ -1859,20 +1750,20 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFWriteToParquetSampleWithAppendMode()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var parquetPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Coalesce(1).Write().Mode(SaveMode.ErrorIfExists).Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
             peopleDataFrame.Write().Mode(SaveMode.Append).Parquet(parquetPath);
@@ -1880,17 +1771,17 @@ namespace Microsoft.Spark.CSharp.Samples
             Console.WriteLine("Append dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
-            Directory.Delete(parquetPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(parquetPath, true);
             Console.WriteLine("Remove parquet directory: {0}", parquetPath);
         }
 
@@ -1901,23 +1792,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFWriteToJsonSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var jsonPath = Path.GetTempPath() + "DF_Json_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var jsonPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Json_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Write().Mode(SaveMode.Overwrite).Json(jsonPath);
 
             Console.WriteLine("Save dataframe to: {0}", jsonPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(jsonPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(jsonPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(jsonPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(jsonPath));
             }
 
-            Directory.Delete(jsonPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(jsonPath, true);
             Console.WriteLine("Remove parquet directory: {0}", jsonPath);
         }
 
@@ -1928,23 +1819,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFSaveAsParquetFileSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var parquetPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Coalesce(1).Write().Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
-            Directory.Delete(parquetPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(parquetPath, true);
             Console.WriteLine("Remove parquet directory: {0}", parquetPath);
         }
 
@@ -1955,23 +1846,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFSaveSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var path = Path.GetTempPath() + "DF_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var path = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Write().Format("json").Mode(SaveMode.ErrorIfExists).Options(new Dictionary<string, string>() { { "option1", "option_value1" } }).Save(path);
 
             Console.WriteLine("Save dataframe to: {0}", path);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(path))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(path))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(path));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(path));
             }
 
-            Directory.Delete(path, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(path, true);
             Console.WriteLine("Remove directory: {0}", path);
         }
     }

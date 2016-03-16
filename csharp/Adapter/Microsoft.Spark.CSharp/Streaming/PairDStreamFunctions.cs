@@ -267,7 +267,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             int numPartitions = 0,
             Func<KeyValuePair<K, V>, bool> filterFunc = null)
         {
-            self.ValidatWindowParam(windowSeconds, slideSeconds);
+            self.ValidateWindowParam(windowSeconds, slideSeconds);
 
             if (slideSeconds <= 0)
                 slideSeconds = self.SlideDuration;
@@ -379,6 +379,40 @@ namespace Microsoft.Spark.CSharp.Streaming
                     self.serializedMode.ToString(),
                     (self.Piplinable ? self.prevSerializedMode : self.serializedMode).ToString()),
                 self.streamingContext);
+        }
+
+        /// <summary>
+        /// Return a new "state" DStream where the state for each key is updated by applying
+        /// the given function on the previous state of the key and the new values of the key.
+        /// </summary>
+        public static MapWithStateDStream<K, V, S, M> MapWithState<K, V, S, M>(this DStream<KeyValuePair<K, V>> self, StateSpec<K, V, S, M> stateSpec)
+        {
+            if (stateSpec.numPartitions <= 0)
+            {
+                stateSpec = stateSpec.NumPartitions(self.streamingContext.SparkContext.DefaultParallelism);
+            }
+
+            Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc = self.Piplinable ? (self as TransformedDStream<KeyValuePair<K, V>>).func : null;
+
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new MapWithStateHelper<K, V, S, M>(prevFunc, stateSpec).Execute;
+
+            var formatter = new BinaryFormatter();
+            var stream = new MemoryStream();
+            formatter.Serialize(stream, func);
+
+            var mapWithStateDStream = new DStream<MapWithStateRDDRecord<K, S, M>>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpStateDStream(
+                    self.Piplinable ? self.prevDStreamProxy : self.DStreamProxy,
+                    stream.ToArray(),
+                    "CSharpStateDStream",
+                    self.serializedMode.ToString(),
+                    (self.Piplinable ? self.prevSerializedMode : self.serializedMode).ToString()),
+                self.streamingContext);
+
+            DStream<M> mappedDataDStream = mapWithStateDStream.FlatMap(r => r.mappedData);
+            DStream<KeyValuePair<K, S>> snapshotsDStream = mapWithStateDStream.FlatMap(
+                r => r.stateMap.Select(entry => new KeyValuePair<K, S>(entry.Key, entry.Value.state)));
+
+            return new MapWithStateDStream<K, V, S, M>(mappedDataDStream, snapshotsDStream);
         }
     }
 

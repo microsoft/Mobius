@@ -43,7 +43,21 @@ function Update-SparkClrSubmit($targetDir, $version)
         ((Get-Content $_.FullName) -replace "\(set SPARKCLR_JAR=.*\)", "(set SPARKCLR_JAR=spark-clr_2.10-$version.jar)") | Set-Content $_.FullName -force
     }
 
-    Write-Output "[SetSparkClrJarVersion.Update-SparkClrSubmit] Done setting sparkclr-submit under $targetDir to version=$version"
+    Write-Output "[SetSparkClrJarVersion.Update-SparkClrSubmit] Done setting sparkclr-submit.cmd under $targetDir to version=$version"
+
+    Write-Output "[SetSparkClrJarVersion.Update-SparkClrSubmit] Start setting sparkclr-submit.sh under $targetDir to version=$version"
+
+    # 
+    #  Update SparkCLR package version to this release. The version string in sparkclr-submit.sh - 
+    #
+    #      export SPARKCLR_JAR=spark-clr_2.10-1.6.0-SNAPSHOT.jar
+    # 
+    Get-ChildItem $targetDir -filter "sparkclr-submit.sh" -recurs | % { 
+        Write-Output "[SetSparkClrJarVersion.Update-SparkClrSubmit] updating $($_.FullName)"
+        ((Get-Content $_.FullName) -replace "export SPARKCLR_JAR=.*", "export SPARKCLR_JAR=spark-clr_2.10-$version.jar") | Set-Content $_.FullName -force
+    }
+
+    Write-Output "[SetSparkClrJarVersion.Update-SparkClrSubmit] Done setting sparkclr-submit.sh under $targetDir to version=$version"
 }
 
 function Print-Usage

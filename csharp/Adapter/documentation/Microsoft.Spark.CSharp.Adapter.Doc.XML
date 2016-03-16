@@ -142,6 +142,13 @@
             Return the broadcasted value
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
+            <summary>
+            Container for an optional value of type T. If the value of type T is present, the Option.IsDefined is TRUE and GetValue() return the value. 
+            If the value is absent, the Option.IsDefined is FALSE, exception will be thrown when calling GetValue().
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDDCollector">
             <summary>
             Used for collect operation on RDD
@@ -3450,6 +3457,42 @@
             Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext)">
+            <summary>
+            Creates a SqlContext
+            </summary>
+            <param name="sparkContext"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.GetOrCreate(Microsoft.Spark.CSharp.Core.SparkContext)">
+            <summary>
+            Get the existing SQLContext or create a new one with given SparkContext.
+            </summary>
+            <param name="sparkContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.NewSession">
+            <summary>
+            Returns a new SQLContext as new session, that has separate SQLConf, 
+            registered temporary tables and UDFs, but shared SparkContext and table cache.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.GetConf(System.String,System.String)">
+            <summary>
+            Returns the value of Spark SQL configuration property for the given key.
+            If the key is not set, returns defaultValue.
+            </summary>
+            <param name="key"></param>
+            <param name="defaultValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.SetConf(System.String,System.String)">
+            <summary>
+            Sets the given Spark SQL configuration property.
+            </summary>
+            <param name="key"></param>
+            <param name="value"></param>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Read">
             <summary>
             Returns a DataFrameReader that can be used to read data in as a DataFrame.
@@ -3462,6 +3505,78 @@
             <param name="path"></param>
             <param name="schema"></param>
             <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.CreateDataFrame(Microsoft.Spark.CSharp.Core.RDD{System.Object[]},Microsoft.Spark.CSharp.Sql.StructType)">
+            <summary>
+            Creates a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> from a RDD containing array of object using the given schema.
+            </summary>
+            <param name="rdd">RDD containing array of object. The array acts as a row and items within the array act as columns which the schema is specified in <paramref name="schema"/>. </param>
+            <param name="schema">The schema of DataFrame.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterDataFrameAsTable(Microsoft.Spark.CSharp.Sql.DataFrame,System.String)">
+            <summary>
+            Registers the given <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> as a temporary table in the catalog.
+            Temporary tables exist only during the lifetime of this instance of SqlContext.
+            </summary>
+            <param name="dataFrame"></param>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.DropTempTable(System.String)">
+            <summary>
+            Remove the temp table from catalog.
+            </summary>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Table(System.String)">
+            <summary>
+            Returns the specified table as a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/>
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Tables(System.String)">
+            <summary>
+            Returns a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> containing names of tables in the given database.
+            If <paramref name="databaseName"/> is not specified, the current database will be used.
+            The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool 
+            type indicating if a table is a temporary one or not).
+            </summary>
+            <param name="databaseName">Name of the database to use. Default to the current database. 
+            Note: This is only applicable to HiveContext.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.TableNames(System.String)">
+            <summary>
+            Returns a list of names of tables in the database <paramref name="databaseName"/>
+            </summary>
+            <param name="databaseName">Name of the database to use. Default to the current database.
+            Note: This is only applicable to HiveContext.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.CacheTable(System.String)">
+            <summary>
+            Caches the specified table in-memory.
+            </summary>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.UncacheTable(System.String)">
+            <summary>
+            Removes the specified table from the in-memory cache.
+            </summary>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.ClearCache">
+            <summary>
+            Removes all cached tables from the in-memory cache.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.IsCached(System.String)">
+            <summary>
+            Returns true if the table is currently cached in-memory.
+            </summary>
+            <param name="tableName"></param>
             <returns></returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Sql(System.String)">
@@ -3918,6 +4033,37 @@
                 with Kafka broker(s) (NOT zookeeper servers), specified in host1:port1,host2:port2 form.        
             </param>
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
+            <returns>A DStream object</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.UInt32)">
+            <summary>
+            Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
+            
+            This is not a receiver based Kafka input stream, it directly pulls the message from Kafka
+            in each batch duration and processed without storing.
+            
+            This does not use Zookeeper to store offsets. The consumed offsets are tracked
+            by the stream itself. For interoperability with Kafka monitoring tools that depend on
+            Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application.
+            You can access the offsets used in each batch from the generated RDDs (see
+            [[org.apache.spark.streaming.kafka.HasOffsetRanges]]).
+            To recover from driver failures, you have to enable checkpointing in the StreamingContext.
+            The information on consumed offset can be recovered from the checkpoint.
+            See the programming guide for details (constraints, etc.).
+            
+            </summary>
+            <param name="ssc">Spark Streaming Context</param>
+            <param name="topics">list of topic_name to consume.</param>
+            <param name="kafkaParams">
+                Additional params for Kafka. Requires "metadata.broker.list" or "bootstrap.servers" to be set
+                with Kafka broker(s) (NOT zookeeper servers), specified in host1:port1,host2:port2 form.        
+            </param>
+            <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
+            <param name="numPartitions">
+                user hint on how many kafka RDD partitions to create instead of aligning with kafka partitions,
+                unbalanced kafka partitions and/or under-distributed data will be redistributed evenly across 
+                a probably larger number of RDD partitions
+            </param>
             <returns>A DStream object</returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions">

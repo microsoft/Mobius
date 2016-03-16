@@ -16,6 +16,7 @@ using Microsoft.Spark.CSharp.Interop.Ipc;
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
     [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
+    [Serializable]
     internal class RDDIpcProxy : IRDDProxy
     {
         private readonly JvmObjectReference jvmRddReference;
@@ -211,17 +212,18 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "SaveAsSequenceFile", new object[] { jvmRddReference, false, path, compressionCodecClass });
         }
 
+        //this method is called by RDD<string> (implementation is at StringRDDFunctions.SaveAsTextFile)
+        //calling saveAsTextFile() on CSharpRDDs result in bytes written to text file - so calling saveStringRddAsTextFile() which converts bytes to string before writing to file
         public void SaveAsTextFile(string path, string compressionCodecClass)
         {
-            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
             if (!string.IsNullOrEmpty(compressionCodecClass))
             {
                 var codec = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("java.lang.Class", "forName", new object[] { compressionCodecClass }));
-                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "saveAsTextFile", new object[] { path, codec });
+                SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.csharp.CSharpRDD", "saveStringRddAsTextFile", new object[] { jvmRddReference, path, codec });
             }
             else
             {
-                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "saveAsTextFile", new object[] { path });
+                SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.csharp.CSharpRDD", "saveStringRddAsTextFile", new object[] { jvmRddReference, path });
             }
         }
         public StorageLevel GetStorageLevel()

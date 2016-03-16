@@ -1,18 +1,6 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
  */
 
 package org.apache.spark.streaming.api.csharp
@@ -155,8 +143,8 @@ class CSharpTransformed2DStream(
  */
 class CSharpReducedWindowedDStream(
                                     parent: DStream[Array[Byte]],
-                                    rreduceFunc: Array[Byte],
-                                    rinvReduceFunc: Array[Byte],
+                                    csharpReduceFunc: Array[Byte],
+                                    csharpInvReduceFunc: Array[Byte],
                                     _windowDuration: Duration,
                                     _slideDuration: Duration,
                                     serializationMode: String)
@@ -192,14 +180,14 @@ class CSharpReducedWindowedDStream(
     val previousRDD = getOrCompute(previous.endTime)
 
     // for small window, reduce once will be better than twice
-    if (rinvReduceFunc != null && previousRDD.isDefined
+    if (csharpInvReduceFunc != null && previousRDD.isDefined
       && windowDuration >= slideDuration * 5) {
 
       // subtract the values from old RDDs
       val oldRDDs = parent.slice(previous.beginTime + parent.slideDuration, current.beginTime)
       val subtracted = if (oldRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(previousRDD, Some(ssc.sc.union(oldRDDs))),
-          validTime, rinvReduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpInvReduceFunc, List(serializationMode, serializationMode))
       } else {
         previousRDD
       }
@@ -208,7 +196,7 @@ class CSharpReducedWindowedDStream(
       val newRDDs = parent.slice(previous.endTime + parent.slideDuration, current.endTime)
       if (newRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(subtracted, Some(ssc.sc.union(newRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         subtracted
       }
@@ -217,7 +205,7 @@ class CSharpReducedWindowedDStream(
       val currentRDDs = parent.slice(current.beginTime + parent.slideDuration, current.endTime)
       if (currentRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(None, Some(ssc.sc.union(currentRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         None
       }

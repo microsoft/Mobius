@@ -11,6 +11,7 @@ import java.util.{List => JList, Map => JMap}
 import java.io._
 import java.util.{ArrayList => JArrayList, List => JList, Map => JMap}
 
+import org.apache.hadoop.io.compress.CompressionCodec
 import org.apache.spark.api.python.{PythonBroadcast, PythonRDD}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -185,5 +186,19 @@ object CSharpRDD {
       arr: Array[Array[Byte]],
       numSlices: Int): JavaRDD[Array[Byte]] = {
     JavaRDD.fromRDD(sc.parallelize(arr, numSlices))
+  }
+  
+  //this method is called when saveAsTextFile is called on RDD<string>
+  //calling saveAsTextFile() on CSharpRDDs result in bytes written to text file - this method converts bytes to string before writing to file
+  def saveStringRddAsTextFile(javaRdd: JavaRDD[Array[Byte]], path: String) = {
+    var stringRdd = JavaRDD.toRDD(javaRdd).map(s => new String(s, "UTF-8"))
+    stringRdd.saveAsTextFile(path)
+  }
+
+  //this method is called when saveAsTextFile is called on RDD<string>
+  //calling saveAsTextFile() on CSharpRDDs result in bytes written to text file - this method converts bytes to string before writing to file
+  def saveStringRddAsTextFile(javaRdd: JavaRDD[Array[Byte]], path: String, codec: Class[_ <: CompressionCodec]) = {
+    var stringRdd = JavaRDD.toRDD(javaRdd).map(s => new String(s, "UTF-8"))
+    stringRdd.saveAsTextFile(path, codec)
   }
 }

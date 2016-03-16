@@ -121,7 +121,7 @@ namespace WorkerTest
             tcpListener.Start();
             int port = (tcpListener.LocalEndpoint as IPEndPoint).Port;
 
-            string exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
+            var exeLocation = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath) ?? ".";
 
             worker = new Process
             {
@@ -153,7 +153,7 @@ namespace WorkerTest
         /// write common header to worker
         /// </summary>
         /// <param name="s"></param>
-        private void WriteWorker(Stream s)
+        private void WritePayloadHeaderToWorker(Stream s)
         {
             SerDe.Write(s, splitIndex);
             SerDe.Write(s, ver);
@@ -228,7 +228,7 @@ namespace WorkerTest
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
             {
-                WriteWorker(s);
+                WritePayloadHeaderToWorker(s);
 
                 SerDe.Write(s, command.Length);
                 SerDe.Write(s, command);
@@ -267,7 +267,7 @@ namespace WorkerTest
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
             {
-                WriteWorker(s);
+                WritePayloadHeaderToWorker(s);
 
                 SerDe.Write(s, command.Length);
                 s.Write(command, 0, command.Length / 2);
@@ -291,7 +291,7 @@ namespace WorkerTest
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
             {
-                WriteWorker(s);
+                WritePayloadHeaderToWorker(s);
 
                 SerDe.Write(s, command.Length);
                 s.Write(command, 0, command.Length);
@@ -354,7 +354,7 @@ namespace WorkerTest
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
             {
-                WriteWorker(s);
+                WritePayloadHeaderToWorker(s);
                 byte[] commandWithRowDeserializeMode =
                     SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.Row);
                 SerDe.Write(s, commandWithRowDeserializeMode.Length);
@@ -394,6 +394,48 @@ namespace WorkerTest
             CSharpRDD_SocketServer.Stop();
         }
 
+        [Test]
+        public void TestWorkerWithRawDeserializedModeAndBytesSerializedMode()
+        {
+            StringBuilder output = new StringBuilder();
+            Process worker;
+            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+
+            using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
+            using (var s = new NetworkStream(serverSocket))
+            {
+                WritePayloadHeaderToWorker(s);
+                byte[] commandWithRawDeserializeMode = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.None, SerializedMode.None);
+                SerDe.Write(s, commandWithRawDeserializeMode.Length);
+                SerDe.Write(s, commandWithRawDeserializeMode);
+
+                var payloadCollection = new string[] {"A", "B", "C", "D", "E"};
+                foreach (var payloadElement in payloadCollection)
+                {
+                    var payload = Encoding.UTF8.GetBytes(payloadElement);
+                    SerDe.Write(s, payload.Length);
+                    SerDe.Write(s, payload);
+                }
+
+                SerDe.Write(s, (int)SpecialLengths.END_OF_DATA_SECTION);
+                SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
+                s.Flush();
+
+                Console.WriteLine(output);
+
+                int receivedElementIndex = 0;
+                foreach (var bytes in ReadWorker(s))
+                {
+                    var receivedPayload = SerDe.ToString(bytes);
+                    Assert.AreEqual(payloadCollection[receivedElementIndex++], receivedPayload);
+                }
+
+                Assert.AreEqual(payloadCollection.Length, receivedElementIndex);
+
+            }
+        }
+
+
         /// <summary>
         /// test when deserializedMode is set to Byte, and serializedMode is set to Row.
         /// </summary>
@@ -408,7 +450,7 @@ namespace WorkerTest
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
             {
-                WriteWorker(s);
+                WritePayloadHeaderToWorker(s);
                 byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.Byte, SerializedMode.Row);
                 SerDe.Write(s, command.Length);
                 SerDe.Write(s, command);
@@ -460,7 +502,7 @@ namespace WorkerTest
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
             {
-                WriteWorker(s);
+                WritePayloadHeaderToWorker(s);
                 byte[] command = SparkContext.BuildCommand(
                     new CSharpWorkerFunc((pid, iter) => iter.Cast<KeyValuePair<byte[], byte[]>>().Select(pair => pair.Key)),
                     SerializedMode.Pair, SerializedMode.None);
@@ -635,7 +677,7 @@ namespace WorkerTest
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
             {
-                WriteWorker(s);
+                WritePayloadHeaderToWorker(s);
                 const int accumulatorId = 1001;
                 var accumulator = new Accumulator<int>(accumulatorId, 0);
                 byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc(new AccumulatorHelper(accumulator).Execute),

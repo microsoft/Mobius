@@ -14,6 +14,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     internal class DataFrameIpcProxy : IDataFrameProxy
     {
         private readonly JvmObjectReference jvmDataFrameReference;
+
+        internal JvmObjectReference JvmDataFrameReference
+        {
+            get { return jvmDataFrameReference; }
+        }
+
         private readonly ISqlContextProxy sqlContextProxy;
 
         private readonly DataFrameNaFunctions na;

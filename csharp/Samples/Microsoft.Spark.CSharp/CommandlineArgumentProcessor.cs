@@ -59,6 +59,11 @@ namespace Microsoft.Spark.CSharp.Samples
                 {
                     configuration.IsValidationEnabled = true;
                 }
+                else if (args[i].Equals("sparkclr.samples.checkpointdir", StringComparison.InvariantCultureIgnoreCase)
+                    || args[i].Equals("--checkpointdir", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    configuration.CheckpointDir = args[i + 1];
+                }
                 else if (args[i].Equals("sparkclr.dryrun", StringComparison.InvariantCultureIgnoreCase)
                     || args[i].Equals("--dryrun", StringComparison.InvariantCultureIgnoreCase))
                 {

@@ -24,6 +24,9 @@ namespace Microsoft.Spark.CSharp.Core
 
         internal IRDDProxy rddProxy;
         internal IRDDProxy previousRddProxy;
+        // There should be only one SparkContext instance per application, mark it as NonSerialized to avoid more than one SparkContext instances created.
+        // Need to set this field with a valid SparkContext instance after deserialization.
+        [NonSerialized]
         internal SparkContext sparkContext;
         internal SerializedMode serializedMode; //used for deserializing data before processing in C# worker
         internal SerializedMode prevSerializedMode;
@@ -167,7 +170,7 @@ namespace Microsoft.Spark.CSharp.Core
             RddProxy.Checkpoint();
         }
 
-        internal int GetNumPartitions()
+        public int GetNumPartitions()
         {
             return RddProxy.GetNumPartitions();
         }

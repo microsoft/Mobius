@@ -9,6 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdbcDataFrame", "JdbcDataFr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SparkXml", "SparkXml\SparkXml.csproj", "{3A3F5B6F-6BA7-4BD7-BFA6-9E7A36987041}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventHub", "EventHub\EventHub.csproj", "{DF840BFB-B3A3-493D-B667-4CF21ADBFCAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HdfsWordCount", "Streaming\HdfsWordCount\HdfsWordCount.csproj", "{6A2C7CF9-D64E-490D-9841-269EE14F7932}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Streaming", "Streaming", "{6F90310A-2DA2-4E81-A062-8D8A9F47C25B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +33,19 @@ Global
 		{3A3F5B6F-6BA7-4BD7-BFA6-9E7A36987041}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A3F5B6F-6BA7-4BD7-BFA6-9E7A36987041}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A3F5B6F-6BA7-4BD7-BFA6-9E7A36987041}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF840BFB-B3A3-493D-B667-4CF21ADBFCAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF840BFB-B3A3-493D-B667-4CF21ADBFCAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF840BFB-B3A3-493D-B667-4CF21ADBFCAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF840BFB-B3A3-493D-B667-4CF21ADBFCAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A2C7CF9-D64E-490D-9841-269EE14F7932}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A2C7CF9-D64E-490D-9841-269EE14F7932}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A2C7CF9-D64E-490D-9841-269EE14F7932}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A2C7CF9-D64E-490D-9841-269EE14F7932}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6A2C7CF9-D64E-490D-9841-269EE14F7932} = {6F90310A-2DA2-4E81-A062-8D8A9F47C25B}
 	EndGlobalSection
 EndGlobal

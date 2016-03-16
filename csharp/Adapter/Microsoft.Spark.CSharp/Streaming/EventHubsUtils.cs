@@ -37,7 +37,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns>DStream with byte[] representing events from EventHub</returns>
         public static DStream<byte[]> CreateUnionStream(StreamingContext ssc, Dictionary<string, string> eventhubsParams, StorageLevelType storageLevelType = StorageLevelType.MEMORY_ONLY)
         {
-            return new DStream<byte[]>(ssc.streamingContextProxy.EventHubsUnionStream(eventhubsParams, storageLevelType), ssc);
+            return new DStream<byte[]>(ssc.streamingContextProxy.EventHubsUnionStream(eventhubsParams, storageLevelType), ssc, SerializedMode.None);
         }
     }
 }
