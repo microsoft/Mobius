@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.sparkclr</groupId>
   <artifactId>spark-clr_2.10</artifactId>
-  <version>1.6.000-PREVIEW-1</version>
+  <version>1.6.000-PREVIEW-2</version>
   <name>SparkCLR Project</name>
   <description>C# language binding and extensions to Apache Spark</description>
   <url>https://github.com/Microsoft/sparkclr</url>
