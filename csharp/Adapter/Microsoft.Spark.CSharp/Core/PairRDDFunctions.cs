@@ -920,9 +920,14 @@ namespace Microsoft.Spark.CSharp.Core
         private class AddShuffleKeyHelper<K1, V1>
         {
             [NonSerialized]
-            private static MD5 md5 = MD5.Create();
+            private MD5 md5 = MD5.Create();
             public IEnumerable<byte[]> Execute(int split, IEnumerable<KeyValuePair<K1, V1>> input)
             {
+                // make sure that md5 is not null even if it is deseriazed in C# worker
+                if (md5 == null)
+                {
+                    md5 = MD5.Create();
+                }
                 IFormatter formatter = new BinaryFormatter();
                 foreach (var kvp in input)
                 {

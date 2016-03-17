@@ -108,7 +108,8 @@ namespace AdapterTest
 
             // worker side operations            
             Broadcast<int> broadcastVarInWorker = CreateBroadcastVarInWorker(expectedValue, out bid, out dumpPath);
-            Broadcast.broadcastRegistry.Remove(bid);
+            Broadcast bc;
+            Broadcast.broadcastRegistry.TryRemove(bid, out bc);
 
             // assert
             Assert.Throws<ArgumentException>(() => { var broadcastValueInWorker = broadcastVarInWorker.Value; });
