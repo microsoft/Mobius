@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Threading;
+
 using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
     /// <summary>
     /// Used by Unpickler to unpickle pickled objects. It is also used to construct a Row (C# representation of pickled objects).
-    /// Note this implementation is not ThreadSafe. Collect or RDD conversion where unpickling is done is not expected to be multithreaded.
     /// </summary>
     public class RowConstructor : IObjectConstructor
     {
@@ -16,11 +18,13 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// Schema of the DataFrame currently being processed
         /// </summary>
+        [ThreadStatic] // thread safe is need when running in C# worker process
         private static string currentSchema; 
 
         /// <summary>
         /// Indicates if Schema is already set during construction of this type
         /// </summary>
+        [ThreadStatic] // thread safe is need when running in C# worker process
         private static bool isCurrentSchemaSet;
 
         /// <summary>
