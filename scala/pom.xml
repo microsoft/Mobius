@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.sparkclr</groupId>
   <artifactId>spark-clr_2.10</artifactId>
-  <version>1.6.0-SNAPSHOT</version>
+  <version>1.6.1-SNAPSHOT</version>
   <name>SparkCLR Project</name>
   <description>C# language binding and extensions to Apache Spark</description>
   <url>https://github.com/Microsoft/sparkclr</url>
@@ -35,7 +35,7 @@
     <maven.compiler.target>1.5</maven.compiler.target>
     <encoding>UTF-8</encoding>
     <scala.version>2.10.4</scala.version>
-    <spark.version>1.6.0</spark.version>
+    <spark.version>1.6.1</spark.version>
     <scala.binary.version>2.10</scala.binary.version>
   </properties>
 
