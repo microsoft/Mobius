@@ -166,7 +166,15 @@ namespace AdapterTest
         public void TestPairRddSortByKey()
         {
             var expectedSortedRdd = pairs.Collect().OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase).ToArray();
-            var rddSortByKey = pairs.SortByKey(true, 2, key => key.ToLowerInvariant()).Collect();
+            var rddSortByKey = pairs.SortByKey(true, null, key => key.ToLowerInvariant()).Collect();
+            CollectionAssert.AreEqual(expectedSortedRdd, rddSortByKey);
+        }
+
+        [Test]
+        public void TestPairRddSortByKey2()
+        {
+            var expectedSortedRdd = pairs.Collect().OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase).ToArray();
+            var rddSortByKey = pairs.SortByKey(true, 1, key => key.ToLowerInvariant()).Collect();
             CollectionAssert.AreEqual(expectedSortedRdd, rddSortByKey);
         }
 
