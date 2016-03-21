@@ -339,7 +339,7 @@ namespace AdapterTest
             var sc = new SparkContext(sparkContextProxy.Object, null);
 
             var pairwiseRddProxy = new Mock<IRDDProxy>();
-            sparkContextProxy.Setup(p => p.CreatePairwiseRDD(It.IsAny<IRDDProxy>(), It.IsAny<int>())).Returns(pairwiseRddProxy.Object);
+            sparkContextProxy.Setup(p => p.CreatePairwiseRDD(It.IsAny<IRDDProxy>(), It.IsAny<int>(), It.IsAny<long>())).Returns(pairwiseRddProxy.Object);
 
             var pipelinedRddProxy = new Mock<IRDDProxy>();
             pipelinedRddProxy.Setup(p => p.Union(It.IsAny<IRDDProxy>())).Returns(new Mock<IRDDProxy>().Object);
