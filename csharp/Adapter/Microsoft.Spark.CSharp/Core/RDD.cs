@@ -34,7 +34,7 @@ namespace Microsoft.Spark.CSharp.Core
         protected bool isCached;
         protected bool isCheckpointed;
         internal bool bypassSerializer;
-        internal int? partitioner;
+        internal Partitioner partitioner;
 
         internal virtual IRDDProxy RddProxy
         {
@@ -429,7 +429,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Union(RDD<T> other)
         {
             var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
-            if (partitioner == other.partitioner && RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
+            if (partitioner == other.partitioner && RddProxy.GetNumPartitions() == rdd.RddProxy.GetNumPartitions())
                 rdd.partitioner = partitioner;
             return rdd;
         }
@@ -1059,6 +1059,14 @@ namespace Microsoft.Spark.CSharp.Core
         internal RDD<T> RandomSampleWithRange(double lb, double ub, long seed)
         {
             return new RDD<T>(RddProxy.RandomSampleWithRange(lb, ub, seed), sparkContext);
+        }
+
+        internal int GetDefaultPartitionNum()
+        {
+            var numPartitions = sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
+            if (numPartitions == 0 && previousRddProxy != null)
+                numPartitions = previousRddProxy.GetNumPartitions();
+            return numPartitions;
         }
     }
 

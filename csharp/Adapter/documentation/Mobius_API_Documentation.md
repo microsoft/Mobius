@@ -83,6 +83,21 @@
             
             
         
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.Partitioner</font>
+####Summary
+  
+            
+            An object that defines how the elements in a key-value pair RDD are partitioned by key.
+            Maps each key to a partition ID, from 0 to "numPartitions - 1".
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.RDDCollector</font>
 ####Summary
   
