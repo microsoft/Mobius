@@ -335,5 +335,16 @@ namespace AdapterTest
             Assert.IsNotNull(sampledRdd);
             Assert.AreEqual(sampledRddProxy.Object, sampledRdd.RddProxy);
         }
+
+        [Test]
+        public void TestGetDefaultPartitionNum()
+        {
+            var sparkContext = new SparkContext(null);
+            var lines = sparkContext.TextFile(Path.GetTempFileName(), 5);
+            words = lines.FlatMap(l => l.Split(' '));
+
+            var defaultNumPartitions = words.GetDefaultPartitionNum();
+            Assert.AreEqual(2, defaultNumPartitions);
+        }
     }
 }
