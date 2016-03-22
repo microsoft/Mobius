@@ -109,7 +109,7 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
 [![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/pr)](http://issuestats.com/github/Microsoft/Mobius)
 [![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/issue)](http://issuestats.com/github/Microsoft/Mobius)
 [![Join the chat at https://gitter.im/Microsoft/Mobius](https://badges.gitter.im/Microsoft/Mobius.svg)](https://gitter.im/Microsoft/Mobius?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Twitter](https://img.shields.io/twitter/url/http/twitter.com/MobiusForSpark.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=%5Bobject%20Object%5D)
+[![Twitter](https://img.shields.io/twitter/url/http/twitter.com/MobiusForSpark.svg?style=social)](https://twitter.com/intent/tweet?text=@MobiusForSpark [your tweet] via @GitHub)
 
 * Mobius project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
 
