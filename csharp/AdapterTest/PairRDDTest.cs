@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using AdapterTest.Mocks;
+using System.Linq;
 using Microsoft.Spark.CSharp.Core;
-using Microsoft.Spark.CSharp.Interop.Ipc;
 using NUnit.Framework;
 
 namespace AdapterTest
@@ -153,6 +152,30 @@ namespace AdapterTest
         {
             var records = pairs.ReduceByKey((x, y) => x + y).Values().Collect();
             Assert.AreEqual(9, records.Length);
+        }
+
+        [Test]
+        public void TestPairRddPartitionBy()
+        {
+            Func<dynamic, int> partitionFunc = key => 1;
+            var rddPartitionBy = pairs.PartitionBy(3, partitionFunc);
+            Assert.AreEqual(new Partitioner(3, partitionFunc), rddPartitionBy.partitioner);
+        }
+
+        [Test]
+        public void TestPairRddSortByKey()
+        {
+            var expectedSortedRdd = pairs.Collect().OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase).ToArray();
+            var rddSortByKey = pairs.SortByKey(true, null, key => key.ToLowerInvariant()).Collect();
+            CollectionAssert.AreEqual(expectedSortedRdd, rddSortByKey);
+        }
+
+        [Test]
+        public void TestPairRddSortByKey2()
+        {
+            var expectedSortedRdd = pairs.Collect().OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase).ToArray();
+            var rddSortByKey = pairs.SortByKey(true, 1, key => key.ToLowerInvariant()).Collect();
+            CollectionAssert.AreEqual(expectedSortedRdd, rddSortByKey);
         }
 
         [Test]

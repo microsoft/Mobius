@@ -244,13 +244,20 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void PairRDDPartitionBySample()
         {
-            var partitionBy = SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1)
-                .Map(x => new KeyValuePair<int, int>(x, x))
-                .PartitionBy(3)
+            Func<dynamic, int> partitionFunc = key =>
+            {
+                if (key < 3) return 1;
+                if (key >= 3 && key < 6) return 2;
+                else return 3;
+            };
+
+            var partitioned = SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4, 5, 6, 1 }, 3)
+                .Map(x => new KeyValuePair<int, int>(x, x + 100))
+                .PartitionBy(3, partitionFunc)
                 .Glom()
                 .Collect();
 
-            foreach (var partition in partitionBy)
+            foreach (var partition in partitioned)
             {
                 foreach (var kv in partition)
                 {
@@ -261,7 +268,11 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.AreEqual(3, partitionBy.Length);
+                Assert.AreEqual(3, partitioned.Length);
+                // Assert that the partition distribution is correct with partitionFunc
+                Assert.IsTrue(partitioned.Count(p => p.All(key => key.Key < 3)) == 1);
+                Assert.IsTrue(partitioned.Count(p => p.All(key => key.Key >= 3 && key.Key < 6)) == 1);
+                Assert.IsTrue(partitioned.Count(p => p.All(key => key.Key >= 6)) == 1);
             }
         }
 
@@ -478,6 +489,36 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 CollectionAssert.AreEqual(new[] { 42 }, lookup42);
                 Assert.AreEqual(0, lookup1024.Length);
+            }
+        }
+
+        [Sample]
+        internal static void PairRDDSortByKeySample()
+        {
+            var rdd = SparkCLRSamples.SparkContext.Parallelize(new[] { new KeyValuePair<string, int>("B", 2),
+                new KeyValuePair<string, int>("a", 1), new KeyValuePair<string, int>("c", 3),
+                new KeyValuePair<string, int>("E", 5), new KeyValuePair<string, int>("D", 4)}, 3);
+
+            var sortedRdd = rdd.SortByKey(true, 2);
+            var sortedInTotal = sortedRdd.Collect();
+            var sortedPartitions = sortedRdd.Glom().Collect();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(2, sortedPartitions.Length);
+                // by default SortByKey is case sensitive
+                CollectionAssert.AreEqual(new[] { "B", "D", "E", "a", "c" }, sortedInTotal.Select(kv => kv.Key).ToArray());
+            }
+
+            // convert the keys to lower case in order to sort with case insensitive
+            sortedRdd = rdd.SortByKey(true, 2, key => key.ToLowerInvariant());
+            sortedInTotal = sortedRdd.Collect();
+            sortedPartitions = sortedRdd.Glom().Collect();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(2, sortedPartitions.Length);
+                CollectionAssert.AreEqual(new[] { "a", "B", "c", "D", "E" }, sortedInTotal.Select(kv => kv.Key).ToArray());
             }
         }
     }

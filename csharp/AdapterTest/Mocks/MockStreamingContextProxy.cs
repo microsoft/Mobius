@@ -112,5 +112,10 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public IDStreamProxy KafkaMetaStream(byte[] metaParams, uint numPartitions)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
