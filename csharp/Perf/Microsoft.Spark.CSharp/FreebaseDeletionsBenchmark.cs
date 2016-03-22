@@ -101,10 +101,10 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
             var filtered = rows.Filter("C1 = C3");
             var aggregated = filtered.GroupBy("C1").Agg(new Dictionary<string, string> { { "C1", "count" } });
             aggregated.RegisterTempTable("freebasedeletions");
-            var max = PerfBenchmark.SqlContext.Sql("select max(`COUNT(C1)`) from freebasedeletions");
+            var max = PerfBenchmark.SqlContext.Sql("select max(`count(C1)`) from freebasedeletions");
             var maxArray = max.Collect();
             var maxValue = maxArray.First();
-            var maxDeletions = PerfBenchmark.SqlContext.Sql("select * from freebasedeletions where `COUNT(C1)` = " + maxValue.Get(0));
+            var maxDeletions = PerfBenchmark.SqlContext.Sql("select * from freebasedeletions where `count(C1)` = " + maxValue.Get(0));
             maxDeletions.Show();
             //TODO - add perf suite for subquery
 

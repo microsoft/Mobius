@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Collections.Concurrent;
 
 using Microsoft.Spark.CSharp.Proxy;
 
@@ -31,7 +32,7 @@ namespace Microsoft.Spark.CSharp.Core
     public class Broadcast
     {
         [NonSerialized]
-        public static Dictionary<long, Broadcast> broadcastRegistry = new Dictionary<long, Broadcast>();
+        public static ConcurrentDictionary<long, Broadcast> broadcastRegistry = new ConcurrentDictionary<long, Broadcast>();
         [NonSerialized]
         internal string path;
 

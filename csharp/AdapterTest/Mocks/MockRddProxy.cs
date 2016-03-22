@@ -64,11 +64,6 @@ namespace AdapterTest.Mocks
             return MockSparkContextProxy.RunJob(this);
         }
 
-        public int PartitionLength()
-        {
-            return 1;
-        }
-
         public void Cache()
         { }
 

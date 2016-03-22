@@ -61,6 +61,7 @@
     <Compile Include="Core\Accumulator.cs" />
     <Compile Include="Core\Broadcast.cs" />
     <Compile Include="Core\Option.cs" />
+    <Compile Include="Core\Partitioner.cs" />
     <Compile Include="Core\RDDCollector.cs" />
     <Compile Include="Core\DoubleRDDFunctions.cs" />
     <Compile Include="Core\IRDDCollector.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\EventHubsUtils.cs" />
     <Compile Include="Streaming\Kafka.cs" />
+    <Compile Include="Streaming\MapWithStateDStream.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />

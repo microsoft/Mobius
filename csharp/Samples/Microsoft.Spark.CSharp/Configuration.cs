@@ -70,7 +70,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
         public string GetInputDataPath(string fileName)
         {
-            if (SampleDataLocation.StartsWith("hdfs://"))
+            if (SampleDataLocation.ToLower().StartsWith("hdfs://") || SampleDataLocation.ToLower().StartsWith("webhdfs://"))
             {
                 var clusterPath = SampleDataLocation + "/" + fileName;
                 SparkCLRSamples.Logger.LogInfo("Cluster path " + clusterPath);

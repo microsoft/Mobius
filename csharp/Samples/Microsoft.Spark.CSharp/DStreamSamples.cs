@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ using Microsoft.Spark.CSharp.Core;
 
 using Microsoft.Spark.CSharp.Streaming;
 using Microsoft.Spark.CSharp.Samples;
+
+using NUnit.Framework;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -51,6 +54,8 @@ namespace Microsoft.Spark.CSharp
         [Sample("experimental")]
         internal static void DStreamTextFileSamples()
         {
+            count = 0;
+
             string directory = SparkCLRSamples.Configuration.SampleDataLocation;
             string checkpointPath = Path.Combine(directory, "checkpoint");
 
@@ -101,6 +106,71 @@ namespace Microsoft.Spark.CSharp
 
             ssc.AwaitTermination();
             ssc.Stop();
+        }
+
+        private static string brokers = ConfigurationManager.AppSettings["KafkaTestBrokers"] ?? "127.0.0.1:9092";
+        private static string topic = ConfigurationManager.AppSettings["KafkaTestTopic"] ?? "test";
+        // expected partitions
+        private static uint partitions = uint.Parse(ConfigurationManager.AppSettings["KafkaTestPartitions"] ?? "10");
+        // total message count
+        private static uint  messages = uint.Parse(ConfigurationManager.AppSettings["KafkaMessageCount"] ?? "100");
+
+        /// <summary>
+        /// start a local kafka service and create a 'test' topic with some data before running this sample
+        /// e.g. create 2 partitions with 100 messages which will be repartitioned into 10 RDD partitions
+        /// TODO: automate kafka service
+        /// </summary>
+        [Sample("experimental")]
+        internal static void DStreamDirectKafkaWithRepartitionSample()
+        {
+            count = 0;
+
+            string directory = SparkCLRSamples.Configuration.SampleDataLocation;
+            string checkpointPath = Path.Combine(directory, "checkpoint");
+
+            StreamingContext ssc = StreamingContext.GetOrCreate(checkpointPath,
+                () =>
+                {
+                    SparkContext sc = SparkCLRSamples.SparkContext;
+                    StreamingContext context = new StreamingContext(sc, 2000);
+                    context.Checkpoint(checkpointPath);
+
+                    var kafkaParams = new Dictionary<string, string> {
+                        {"metadata.broker.list", brokers},
+                        {"auto.offset.reset", "smallest"}
+                    };
+
+                    var dstream = KafkaUtils.CreateDirectStreamWithRepartition(context, new List<string> { topic }, kafkaParams, new Dictionary<string, long>(), partitions);
+
+                    dstream.ForeachRDD((time, rdd) => 
+                        {
+                            long batchCount = rdd.Count();
+                            int numPartitions = rdd.GetNumPartitions();
+
+                            Console.WriteLine("-------------------------------------------");
+                            Console.WriteLine("Time: {0}", time);
+                            Console.WriteLine("-------------------------------------------");
+                            Console.WriteLine("Count: " + batchCount);
+                            Console.WriteLine("Partitions: " + numPartitions);
+                            
+                            // only first batch has data and is repartitioned into 10 partitions
+                            if (count++ == 0)
+                            {
+                                Assert.AreEqual(messages, batchCount);
+                                Assert.IsTrue(numPartitions >= partitions);
+                            }
+                            else
+                            {
+                                Assert.AreEqual(0, batchCount);
+                                Assert.IsTrue(numPartitions == 0);
+                            }
+                        });
+
+                    return context;
+                });
+
+            ssc.Start();
+            ssc.AwaitTermination();
         }
     }
 }

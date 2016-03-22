@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Sql;
 using NUnit.Framework;
 
@@ -1045,7 +1046,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame2 = peopleDataFrame.Sort(new string[] { "id" }, new bool[] { true }).Limit(num);
 
             PrintAndVerifyPeopleDataFrameRows(peopleDataFrame2.Head(num), num);
-        }
+       }
 
         /// <summary>
         /// Sample to run head for DataFrame
@@ -1722,23 +1723,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFWriteToParquetSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var parquetPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Coalesce(1).Write().Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
-            Directory.Delete(parquetPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(parquetPath, true);
             Console.WriteLine("Remove parquet directory: {0}", parquetPath);
         }
 
@@ -1749,20 +1750,20 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFWriteToParquetSampleWithAppendMode()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var parquetPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Coalesce(1).Write().Mode(SaveMode.ErrorIfExists).Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
             peopleDataFrame.Write().Mode(SaveMode.Append).Parquet(parquetPath);
@@ -1770,17 +1771,17 @@ namespace Microsoft.Spark.CSharp.Samples
             Console.WriteLine("Append dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
-            Directory.Delete(parquetPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(parquetPath, true);
             Console.WriteLine("Remove parquet directory: {0}", parquetPath);
         }
 
@@ -1791,23 +1792,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFWriteToJsonSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var jsonPath = Path.GetTempPath() + "DF_Json_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var jsonPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Json_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Write().Mode(SaveMode.Overwrite).Json(jsonPath);
 
             Console.WriteLine("Save dataframe to: {0}", jsonPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(jsonPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(jsonPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(jsonPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(jsonPath));
             }
 
-            Directory.Delete(jsonPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(jsonPath, true);
             Console.WriteLine("Remove parquet directory: {0}", jsonPath);
         }
 
@@ -1818,23 +1819,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFSaveAsParquetFileSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var parquetPath = Path.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var parquetPath = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Parquet_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Coalesce(1).Write().Parquet(parquetPath);
 
             Console.WriteLine("Save dataframe to parquet: {0}", parquetPath);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(parquetPath))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(parquetPath))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(parquetPath));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(parquetPath));
             }
 
-            Directory.Delete(parquetPath, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(parquetPath, true);
             Console.WriteLine("Remove parquet directory: {0}", parquetPath);
         }
 
@@ -1845,23 +1846,23 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFSaveSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var path = Path.GetTempPath() + "DF_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            var path = SparkCLRSamples.FileSystemHelper.GetTempPath() + "DF_Samples_" + (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
             peopleDataFrame.Write().Format("json").Mode(SaveMode.ErrorIfExists).Options(new Dictionary<string, string>() { { "option1", "option_value1" } }).Save(path);
 
             Console.WriteLine("Save dataframe to: {0}", path);
             Console.WriteLine("Files:");
 
-            foreach (var f in Directory.EnumerateFiles(path))
+            foreach (var f in SparkCLRSamples.FileSystemHelper.EnumerateFiles(path))
             {
                 Console.WriteLine(f);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(path));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(path));
             }
 
-            Directory.Delete(path, true);
+            SparkCLRSamples.FileSystemHelper.DeleteDirectory(path, true);
             Console.WriteLine("Remove directory: {0}", path);
         }
     }

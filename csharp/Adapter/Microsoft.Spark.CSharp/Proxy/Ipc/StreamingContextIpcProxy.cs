@@ -189,6 +189,26 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(jstream);
         }
 
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, uint numPartitions)
+        {
+            JvmObjectReference jtopics = JvmBridgeUtils.GetJavaSet<string>(topics);
+            JvmObjectReference jkafkaParams = JvmBridgeUtils.GetJavaMap<string, string>(kafkaParams);
+
+            var jTopicAndPartitions = fromOffsets.Select(x =>
+                new KeyValuePair<JvmObjectReference, long>
+                (
+                    SparkCLRIpcProxy.JvmBridge.CallConstructor("kafka.common.TopicAndPartition", new object[] { x.Key.Split(':')[0], int.Parse(x.Key.Split(':')[1]) }),
+                    x.Value
+                )
+            );
+
+            JvmObjectReference jfromOffsets = JvmBridgeUtils.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
+            // SparkCLR\scala\src\main\org\apache\spark\streaming\api\kafka\KafkaUtilsCSharpHelper.scala
+            JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsCSharpHelper", new object[] { });
+            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createDirectStreamWithoutMessageHandler", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jfromOffsets, (int)numPartitions }).ToString());
+            return new DStreamIpcProxy(jstream);
+        }
+
         public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
         {
             JvmObjectReference eventHubsParamsReference = JvmBridgeUtils.GetScalaMutableMap<string, string>(eventHubsParams);

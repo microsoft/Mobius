@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Security.Cryptography;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -298,26 +299,27 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         /// <param name="self"></param>
         /// <param name="numPartitions"></param>
+        /// <param name="partitionFunc"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, V>> PartitionBy<K, V>(this RDD<KeyValuePair<K, V>> self, int numPartitions = 0)
+        public static RDD<KeyValuePair<K, V>> PartitionBy<K, V>(this RDD<KeyValuePair<K, V>> self, int numPartitions = 0, 
+            Func<dynamic, int> partitionFunc = null)
         {
             if (numPartitions == 0)
             {
-                numPartitions = self.sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
-                if (numPartitions == 0 && self.previousRddProxy != null)
-                    numPartitions = self.previousRddProxy.PartitionLength();
+                numPartitions = self.GetDefaultPartitionNum();
             }
-
-            int? partitioner = numPartitions;
+            
+            var partitioner = new Partitioner(numPartitions, partitionFunc);
             if (self.partitioner == partitioner)
                 return self;
 
-            var keyed = self.MapPartitionsWithIndex(new AddShuffleKeyHelper<K, V>().Execute, true);
+            var keyed = self.MapPartitionsWithIndex(new AddShuffleKeyHelper<K, V>(numPartitions, partitionFunc).Execute, true);
             keyed.bypassSerializer = true;
             // convert shuffling version of RDD[(Long, Array[Byte])] back to normal RDD[Array[Byte]]
             // invoking property keyed.RddProxy marks the end of current pipeline RDD after shuffling
             // and potentially starts next pipeline RDD with defult SerializedMode.Byte
-            var rdd = new RDD<KeyValuePair<K, V>>(self.sparkContext.SparkContextProxy.CreatePairwiseRDD(keyed.RddProxy, numPartitions), self.sparkContext);
+            var rdd = new RDD<KeyValuePair<K, V>>(self.sparkContext.SparkContextProxy.CreatePairwiseRDD(keyed.RddProxy, numPartitions,
+                GenerateObjectId(partitionFunc)), self.sparkContext);
             rdd.partitioner = partitioner;
 
             return rdd;
@@ -917,20 +919,42 @@ namespace Microsoft.Spark.CSharp.Core
         }
         
         [Serializable]
-        private class AddShuffleKeyHelper<K1, V1>
+        private class AddShuffleKeyHelper<K, V>
         {
             [NonSerialized]
-            private static MD5 md5 = MD5.Create();
-            public IEnumerable<byte[]> Execute(int split, IEnumerable<KeyValuePair<K1, V1>> input)
+            private MD5 md5 = MD5.Create();
+            private readonly int numPartitions;
+            private readonly Func<dynamic, int> partitionFunc = null;
+
+            public AddShuffleKeyHelper(int numPartitions, Func<dynamic, int> partitionFunc = null)
             {
+                this.numPartitions = numPartitions;
+                this.partitionFunc = partitionFunc;
+            }
+
+            public IEnumerable<byte[]> Execute(int split, IEnumerable<KeyValuePair<K, V>> input)
+            {
+                // make sure that md5 is not null even if it is deseriazed in C# worker
+                if (md5 == null)
+                {
+                    md5 = MD5.Create();
+                }
                 IFormatter formatter = new BinaryFormatter();
-                foreach (var kvp in input)
+                foreach (var kv in input)
                 {
                     var ms = new MemoryStream();
-                    formatter.Serialize(ms, kvp.Key);
-                    yield return md5.ComputeHash(ms.ToArray()).Take(8).ToArray();
+                    if (partitionFunc == null)
+                    {
+                        formatter.Serialize(ms, kv.Key);
+                        yield return md5.ComputeHash(ms.ToArray()).Take(8).ToArray();
+                    }
+                    else
+                    {
+                        long pid = (long)(partitionFunc(kv.Key) % numPartitions);
+                        yield return SerDe.ToBytes(pid);
+                    }
                     ms = new MemoryStream();
-                    formatter.Serialize(ms, kvp);
+                    formatter.Serialize(ms, kv);
                     yield return ms.ToArray();
                 }
             }
@@ -983,9 +1007,36 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
 
+        [Serializable]
+        internal class PartitionFuncDynamicTypeHelper<K>
+        {
+            private readonly Func<K, int> func;
+            internal PartitionFuncDynamicTypeHelper(Func<K, int> f)
+            {
+                this.func = f;
+            }
+            internal int Execute(dynamic input)
+            {
+                return func((K)input);
+            }
+        }
+
         public static List<Option<T>> NullIfEmpty<T>(this IEnumerable<T> list)
         {
             return list.Any() ? list.Select(v => new Option<T>(v)).ToList() : new List<Option<T>>() { new Option<T>() };
+        }
+
+        private static long GenerateObjectId(object obj)
+        {
+            if (obj == null)
+                return 0;
+
+            MD5 md5 = MD5.Create();
+            IFormatter formatter = new BinaryFormatter();
+            var ms = new MemoryStream();
+            formatter.Serialize(ms, obj);
+            var hash = md5.ComputeHash(ms.ToArray());
+            return BitConverter.ToInt64(hash.Take(8).ToArray(), 0);
         }
     }
 }

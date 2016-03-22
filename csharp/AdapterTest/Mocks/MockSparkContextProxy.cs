@@ -84,7 +84,7 @@ namespace AdapterTest.Mocks
             }
         }
 
-        public IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions)
+        public IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions, long partitionFuncId)
         {
             return javaReferenceInByteArrayRdd;
         }

@@ -105,7 +105,7 @@ namespace Microsoft.Spark.CSharp.Samples
             //File.WriteAllText(file, "Sample");
             //SparkCLRSamples.SparkContext.AddFile(file);
 
-            var dir = Path.GetTempPath();
+            var dir = SparkCLRSamples.FileSystemHelper.GetTempPath();
             SparkCLRSamples.SparkContext.SetCheckpointDir(dir);
 
             SparkCLRSamples.SparkContext.SetLogLevel("DEBUG");

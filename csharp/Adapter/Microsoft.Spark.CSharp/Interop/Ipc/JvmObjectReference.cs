@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 
+[assembly: InternalsVisibleTo("Microsoft.Spark.CSharp.Utils")]
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
     /// <summary>

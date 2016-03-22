@@ -24,6 +24,9 @@ namespace Microsoft.Spark.CSharp.Core
 
         internal IRDDProxy rddProxy;
         internal IRDDProxy previousRddProxy;
+        // There should be only one SparkContext instance per application, mark it as NonSerialized to avoid more than one SparkContext instances created.
+        // Need to set this field with a valid SparkContext instance after deserialization.
+        [NonSerialized]
         internal SparkContext sparkContext;
         internal SerializedMode serializedMode; //used for deserializing data before processing in C# worker
         internal SerializedMode prevSerializedMode;
@@ -31,7 +34,7 @@ namespace Microsoft.Spark.CSharp.Core
         protected bool isCached;
         protected bool isCheckpointed;
         internal bool bypassSerializer;
-        internal int? partitioner;
+        internal Partitioner partitioner;
 
         internal virtual IRDDProxy RddProxy
         {
@@ -167,7 +170,7 @@ namespace Microsoft.Spark.CSharp.Core
             RddProxy.Checkpoint();
         }
 
-        internal int GetNumPartitions()
+        public int GetNumPartitions()
         {
             return RddProxy.GetNumPartitions();
         }
@@ -426,7 +429,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Union(RDD<T> other)
         {
             var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
-            if (partitioner == other.partitioner && RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
+            if (partitioner == other.partitioner && RddProxy.GetNumPartitions() == rdd.RddProxy.GetNumPartitions())
                 rdd.partitioner = partitioner;
             return rdd;
         }
@@ -1056,6 +1059,14 @@ namespace Microsoft.Spark.CSharp.Core
         internal RDD<T> RandomSampleWithRange(double lb, double ub, long seed)
         {
             return new RDD<T>(RddProxy.RandomSampleWithRange(lb, ub, seed), sparkContext);
+        }
+
+        internal int GetDefaultPartitionNum()
+        {
+            var numPartitions = sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
+            if (numPartitions == 0 && previousRddProxy != null)
+                numPartitions = previousRddProxy.GetNumPartitions();
+            return numPartitions;
         }
     }
 

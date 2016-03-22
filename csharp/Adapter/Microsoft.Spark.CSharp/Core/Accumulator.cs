@@ -35,9 +35,12 @@ namespace Microsoft.Spark.CSharp.Core
     {
         internal static Dictionary<int, Accumulator> accumulatorRegistry = new Dictionary<int, Accumulator>();
 
+        [ThreadStatic] // Thread safe is needed when running in C# worker
+        internal static Dictionary<int, Accumulator> threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
+
         protected int accumulatorId;
-        [NonSerialized]
-        protected bool deserialized = true;
+        [NonSerialized] // When deserialized in C# worker, isDriver is false.
+        protected bool isDriver = false;
     }
     [Serializable]
     public class Accumulator<T> : Accumulator
@@ -50,7 +53,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.accumulatorId = accumulatorId;
             this.value = value;
-            deserialized = false;
+            isDriver = true;
             accumulatorRegistry[accumulatorId] = this;
         }
 
@@ -59,7 +62,7 @@ namespace Microsoft.Spark.CSharp.Core
             // Get the accumulator's value; only usable in driver program
             get
             {
-                if (deserialized)
+                if (!isDriver)
                 {
                     throw new ArgumentException("Accumulator.value cannot be accessed inside tasks");
                 }
@@ -68,7 +71,7 @@ namespace Microsoft.Spark.CSharp.Core
             // Sets the accumulator's value; only usable in driver program
             set
             {
-                if (deserialized)
+                if (!isDriver)
                 {
                     throw new ArgumentException("Accumulator.value cannot be accessed inside tasks");
                 }
@@ -94,9 +97,19 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static Accumulator<T> operator +(Accumulator<T> self, T term)
         {
-            if (!accumulatorRegistry.ContainsKey(self.accumulatorId))
+            if (self.isDriver) // this is in driver
             {
-                accumulatorRegistry[self.accumulatorId] = self;
+                if (!accumulatorRegistry.ContainsKey(self.accumulatorId))
+                {
+                    accumulatorRegistry[self.accumulatorId] = self;
+                }
+            }
+            else // this is in executor
+            {
+                if (!threadLocalAccumulatorRegistry.ContainsKey(self.accumulatorId))
+                {
+                    threadLocalAccumulatorRegistry[self.accumulatorId] = self;
+                }
             }
             self.Add(term);
             return self;
