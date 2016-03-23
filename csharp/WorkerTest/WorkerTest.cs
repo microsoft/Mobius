@@ -455,7 +455,6 @@ namespace WorkerTest
         [Test]
         public void TestWorkerWithRawDeserializedModeAndBytesSerializedMode()
         {
-            StringBuilder output = new StringBuilder();
             Process worker;
             TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
