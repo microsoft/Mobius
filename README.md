@@ -73,7 +73,7 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 
 |Ubuntu 14.04.3 LTS |Windows |Unit test coverage |
 |-------------------|:------:|:-----------------:|
-|[![Build status](https://travis-ci.org/Microsoft/Mobius.svg?branch=master)](https://travis-ci.org/Microsoft/Mobius) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |[![codecov.io](https://codecov.io/github/Microsoft/Mobius/coverage.svg?branch=master)](https://codecov.io/github/Microsoft/Mobius?branch=master) |
+|[![Build status](https://travis-ci.org/Microsoft/Mobius.svg?branch=master)](https://travis-ci.org/Microsoft/Mobius) |[![Build status](https://ci.appveyor.com/api/projects/status/lflkua81gg0swv6i/branch/master?svg=true)](https://ci.appveyor.com/project/SparkCLR/sparkclr/branch/master) |[![codecov.io](https://codecov.io/github/Microsoft/Mobius/coverage.svg?branch=master)](https://codecov.io/github/Microsoft/Mobius?branch=master)
 
 ## Getting Started
 
@@ -91,6 +91,12 @@ Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using 
 
 Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/Mobius/tree/master).
 
+## Releases
+
+https://github.com/Microsoft/Mobius/releases
+
+[![Nuget](https://img.shields.io/badge/nuget-package-00BFFF.svg)](https://www.nuget.org/packages/Microsoft.SparkCLR)
+
 ## License
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/Mobius/blob/master/LICENSE)
@@ -103,6 +109,7 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
 [![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/pr)](http://issuestats.com/github/Microsoft/Mobius)
 [![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/issue)](http://issuestats.com/github/Microsoft/Mobius)
 [![Join the chat at https://gitter.im/Microsoft/Mobius](https://badges.gitter.im/Microsoft/Mobius.svg)](https://gitter.im/Microsoft/Mobius?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Twitter](https://img.shields.io/twitter/url/http/twitter.com/MobiusForSpark.svg?style=social)](https://twitter.com/intent/tweet?text=@MobiusForSpark [your tweet] via @GitHub)
 
 * Mobius project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
 
@@ -111,3 +118,4 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
   * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
   * send email to sparkclr-user@googlegroups.com
   * join chat at [Mobius room in Gitter](https://gitter.im/Microsoft/Mobius)
+  * tweet [@MobiusForSpark](http://twitter.com/MobiusForSpark)
