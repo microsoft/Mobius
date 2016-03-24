@@ -649,10 +649,19 @@ namespace WorkerTest
                 Assert.AreEqual(100, count);
 
                 // TODO verification should not depends on the output of worker
+                string workerOutput;
                 lock (syncLock)
                 {
-                    Assert.IsTrue(output.ToString().Contains("num_broadcast_variables: " + (broadcastVariablesToAdd.Length + broadcastVariablesToDelete.Length)));
+                    workerOutput = output.ToString();
                 }
+
+                const string broadcastLogVerificationPrefix = "num_broadcast_variables: "; //this is log entry is from the worker
+                var expectedOutput = broadcastLogVerificationPrefix + (broadcastVariablesToAdd.Length + broadcastVariablesToDelete.Length);
+                var broadcastLogToValidate = //parse log entry for validation
+                    workerOutput.Substring(
+                        workerOutput.IndexOf(broadcastLogVerificationPrefix, StringComparison.InvariantCultureIgnoreCase),
+                        broadcastLogVerificationPrefix.Length + 1); //adding 1 to include count of broadcast variables
+                Assert.AreEqual(expectedOutput, broadcastLogToValidate);
             }
            
             AssertWorker(worker);
