@@ -333,7 +333,7 @@ namespace WorkerTest
                 s.Write(command, 0, command.Length / 2);
             }
 
-            AssertWorker(worker, -1, "System.ArgumentException: Incomplete bytes read: ");
+            AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
 
             CSharpRDD_SocketServer.Stop();
         }
@@ -367,7 +367,7 @@ namespace WorkerTest
                 Assert.AreEqual(100, count);
             }
 
-            AssertWorker(worker, -1, "System.NullReferenceException: Object reference not set to an instance of an object.");
+            AssertWorker(worker, 0, "System.NullReferenceException: Object reference not set to an instance of an object.");
 
             CSharpRDD_SocketServer.Stop();
         }
