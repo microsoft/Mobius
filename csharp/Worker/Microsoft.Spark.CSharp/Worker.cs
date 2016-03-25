@@ -249,7 +249,7 @@ namespace Microsoft.Spark.CSharp
                 var funcProcessWatch = new Stopwatch();
                 commandProcessWatch.Start();
 
-                ReadDiagnosticsInfo(networkStream);
+                int stageId = ReadDiagnosticsInfo(networkStream);
 
                 string deserializerMode = SerDe.ReadString(networkStream);
                 logger.LogDebug("Deserializer mode: " + deserializerMode);
@@ -322,7 +322,7 @@ namespace Microsoft.Spark.CSharp
                 // log statistics
                 inputEnumerator.LogStatistic();
                 logger.LogInfo(string.Format("func process time: {0}", funcProcessWatch.ElapsedMilliseconds));
-                logger.LogInfo(string.Format("command process time: {0}", commandProcessWatch.ElapsedMilliseconds));
+                logger.LogInfo(string.Format("stage {0}, command process time: {1}", stageId, commandProcessWatch.ElapsedMilliseconds));
             }
             else
             {
@@ -390,12 +390,13 @@ namespace Microsoft.Spark.CSharp
         }
 
 
-        private static void ReadDiagnosticsInfo(NetworkStream networkStream)
+        private static int ReadDiagnosticsInfo(NetworkStream networkStream)
         {
             int rddId = SerDe.ReadInt(networkStream);
             int stageId = SerDe.ReadInt(networkStream);
             int partitionId = SerDe.ReadInt(networkStream);
             logger.LogInfo(string.Format("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId));
+            return stageId;
         }
 
         private static void WriteDiagnosticsInfo(NetworkStream networkStream, DateTime bootTime, DateTime initTime)

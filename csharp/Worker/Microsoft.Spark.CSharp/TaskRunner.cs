@@ -92,9 +92,9 @@ namespace Microsoft.Spark.CSharp
             }
             catch (Exception e)
             {
-                logger.LogError(string.Format("TaskRunner [{0}] exeption, will exit", trId));
+                stop = true;
+                logger.LogError(string.Format("TaskRunner [{0}] exeption, will dispose this TaskRunner", trId));
                 logger.LogException(e);
-                Environment.Exit(-1);
             }
             finally
             {
