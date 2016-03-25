@@ -222,7 +222,7 @@ namespace WorkerTest
         /// test worker has exited and with expected exit code
         /// </summary>
         /// <param name="exitCode"></param>
-        private void AssertWorker(Process worker, int exitCode = 0, string errorMessage = null)
+        private void AssertWorker(Process worker, int exitCode = 0, string assertMessage = null)
         {
             worker.WaitForExit(3000);
             Assert.IsTrue(worker.HasExited);
@@ -232,7 +232,7 @@ namespace WorkerTest
             {
                 str = output.ToString();
             }
-            Assert.IsTrue(errorMessage == null || str.Contains(errorMessage));
+            Assert.IsTrue(assertMessage == null || str.Contains(assertMessage));
         }
 
         /// <summary>
@@ -608,6 +608,7 @@ namespace WorkerTest
         {
             Process worker;
             TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
+            string assertMessage;
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -649,13 +650,11 @@ namespace WorkerTest
                 Assert.AreEqual(100, count);
 
                 // TODO verification should not depends on the output of worker
-                lock (syncLock)
-                {
-                    Assert.IsTrue(output.ToString().Contains("num_broadcast_variables: " + (broadcastVariablesToAdd.Length + broadcastVariablesToDelete.Length)));
-                }
+                // we postpone the test of assertMessage after worker exit
+                assertMessage = "num_broadcast_variables: " + (broadcastVariablesToAdd.Length + broadcastVariablesToDelete.Length);
             }
            
-            AssertWorker(worker);
+            AssertWorker(worker, 0, assertMessage);
             CSharpRDD_SocketServer.Stop();
         }
 
