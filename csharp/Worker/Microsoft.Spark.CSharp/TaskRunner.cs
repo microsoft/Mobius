@@ -32,7 +32,18 @@ namespace Microsoft.Spark.CSharp
     /// </summary>
     public class TaskRunner
     {
-        private static ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(TaskRunner));
+        private static ILoggerService logger = null;
+        private ILoggerService Logger
+        {
+            get
+            {
+                if (logger == null)
+                {
+                    logger = LoggerServiceFactory.GetLogger(typeof(TaskRunner));
+                }
+                return logger;
+            }
+        }
 
         public int trId;  // task runner Id
         private Socket socket;  // socket to communicate with JVM
@@ -51,7 +62,7 @@ namespace Microsoft.Spark.CSharp
 
         public void Run()
         {
-            logger.LogInfo(string.Format("TaskRunner [{0}] is running ...", trId));
+            Logger.LogInfo(string.Format("TaskRunner [{0}] is running ...", trId));
 
             try
             {
@@ -68,7 +79,7 @@ namespace Microsoft.Spark.CSharp
                             {
                                 stop = true;
                                 // wait for server to complete, otherwise server may get 'connection reset' exception
-                                logger.LogInfo("Sleep 500 millisecond to close socket ...");
+                                Logger.LogInfo("Sleep 500 millisecond to close socket ...");
                                 Thread.Sleep(500);
                             }
                             else if (!socketReuse)
@@ -77,15 +88,15 @@ namespace Microsoft.Spark.CSharp
                                 // wait for server to complete, otherwise server gets 'connection reset' exception
                                 // Use SerDe.ReadBytes() to detect java side has closed socket properly
                                 // ReadBytes() will block until the socket is closed
-                                logger.LogInfo("waiting JVM side to close socket...");
+                                Logger.LogInfo("waiting JVM side to close socket...");
                                 SerDe.ReadBytes(networkStream);
-                                logger.LogInfo("JVM side has closed socket");
+                                Logger.LogInfo("JVM side has closed socket");
                             }
                         }
                         else
                         {
                             stop = true;
-                            logger.LogWarn("read null splitIndex, socket is closed by JVM");
+                            Logger.LogWarn("read null splitIndex, socket is closed by JVM");
                         }
                     }
                 }
@@ -93,8 +104,8 @@ namespace Microsoft.Spark.CSharp
             catch (Exception e)
             {
                 stop = true;
-                logger.LogError(string.Format("TaskRunner [{0}] exeption, will dispose this TaskRunner", trId));
-                logger.LogException(e);
+                Logger.LogError(string.Format("TaskRunner [{0}] exeption, will dispose this TaskRunner", trId));
+                Logger.LogException(e);
             }
             finally
             {
@@ -104,15 +115,15 @@ namespace Microsoft.Spark.CSharp
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarn(string.Format("close socket exception: ex", ex));
+                    Logger.LogWarn(string.Format("close socket exception: ex", ex));
                 }
-                logger.LogInfo(string.Format("TaskRunner [{0}] finished", trId));
+                Logger.LogInfo(string.Format("TaskRunner [{0}] finished", trId));
             }
         }
 
         public void Stop()
         {
-            logger.LogInfo(string.Format("try to stop TaskRunner [{0}]", trId));
+            Logger.LogInfo(string.Format("try to stop TaskRunner [{0}]", trId));
             stop = true;
         }
     }
