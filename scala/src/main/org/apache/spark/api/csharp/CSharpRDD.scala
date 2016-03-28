@@ -15,7 +15,7 @@ import org.apache.hadoop.io.compress.CompressionCodec
 import org.apache.spark.api.python.{PythonBroadcast, PythonRDD}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{TaskContext, Partition, Accumulator, SparkContext}
+import org.apache.spark._
 import org.apache.spark.api.java.{JavaPairRDD, JavaRDD, JavaSparkContext}
 import org.apache.spark.util.csharp.{Utils => CSharpUtils}
 
@@ -58,6 +58,13 @@ class CSharpRDD(
     val bytes = bb.array()
     for (i <- 0 until bytes.size) {
       command(i) = bytes(i)
+    }
+
+    if (CSharpRDD.maxCSharpWorkerNum >= 0) {
+      var workerFactoryId = CSharpRDD.getWorkerFactoryId(context.stageId())
+      // change envVars to use different PythonWorkerFactory
+      envVars.put("WORKER_FACTORY_ID", workerFactoryId.toString)
+      logInfo(s"workerFactoryId: $workerFactoryId")
     }
 
     super.compute(split, context)
@@ -181,6 +188,12 @@ class CSharpRDD(
 }
 
 object CSharpRDD {
+  var currentStageId: Int = 0
+  var nextSeqNum: Int = 0
+
+  // long runing multi-process CSharpWorker mode is enabled only when configurated explicitly
+  var maxCSharpWorkerNum: Int = SparkEnv.get.conf.getInt("spark.csharp.worker.maxNum", -1)
+
   def createRDDFromArray(
       sc: SparkContext,
       arr: Array[Array[Byte]],
@@ -200,5 +213,26 @@ object CSharpRDD {
   def saveStringRddAsTextFile(javaRdd: JavaRDD[Array[Byte]], path: String, codec: Class[_ <: CompressionCodec]) = {
     var stringRdd = JavaRDD.toRDD(javaRdd).map(s => new String(s, "UTF-8"))
     stringRdd.saveAsTextFile(path, codec)
+  }
+
+  //In long runing multi-process CSharpWorker mode, multiple WorkerFactory is created, with each
+  //WorkerFactory launching one long running CSharpWorker process.
+  private def getWorkerFactoryId(stageId: Int): Int = {
+    synchronized {
+      if (stageId != currentStageId) {
+        // new stage is started
+        currentStageId = stageId
+        nextSeqNum = 0
+      }
+      val workerFactoryId = {
+        if (maxCSharpWorkerNum != 0) {
+          nextSeqNum % maxCSharpWorkerNum
+        } else {
+          nextSeqNum
+        }
+      }
+      nextSeqNum += 1
+      workerFactoryId
+    }
   }
 }
