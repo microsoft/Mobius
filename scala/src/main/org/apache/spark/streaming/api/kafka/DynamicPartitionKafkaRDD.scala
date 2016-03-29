@@ -47,22 +47,32 @@ class DynamicPartitionKafkaRDD[
     val numPartitions: Int
   ) extends KafkaRDD[K, V, U, T, R](sc, kafkaParams, offsetRanges, leaders, messageHandler) {
   override def getPartitions: Array[Partition] = {
-    if (numPartitions == 0) {
-      super.getPartitions
-    } else {
-      val steps = offsetRanges.groupBy(o => o.topic).map { case (topic, offRanges) =>
+    val steps = offsetRanges.groupBy(o => o.topic).map { case (topic, offRanges) =>
+      if (numPartitions < 0) {
+        // If numPartitions = -1, either repartition based on spark.streaming.kafka.maxRatePerTask.*
+        // or do nothing if config not defined
+        (topic, sparkContext.getConf.getInt("spark.streaming.kafka.maxRatePerTask." + topic,
+          Int.MaxValue).asInstanceOf[Long])
+      } else {
+        val partitions = {
+          // If numPartitions = 0, repartition using original kafka partition count
+          // If numPartitions > 0, repartition using this parameter
+          if (numPartitions == 0) {
+            Math.max(offRanges.length, 1)  // use Math.max(..,1) to ensure numPartitions >= 1
+          } else numPartitions
+        }
         // step can't be zero, use Math.max(..., 1) to ensure that step >= 1
-        (topic, Math.max(offRanges.map(o => o.untilOffset - o.fromOffset + 1).sum / numPartitions, 1))
+        (topic, Math.max(offRanges.map(o => o.untilOffset - o.fromOffset).sum / partitions, 1))
       }
-      offsetRanges.flatMap { case o =>
-        (o.fromOffset until o.untilOffset by steps(o.topic)).map(s =>
-          (o.topic, o.partition, s, math.min(o.untilOffset, s + steps(o.topic)))
-        )
-      }.zipWithIndex.map { case ((topic, partition, start, until), i) =>
-        val (host, port) = leaders(TopicAndPartition(topic, partition))
-        new KafkaRDDPartition(i, topic, partition, start, until, host, port)
-      }.toArray
     }
+    offsetRanges.flatMap { case o =>
+      (o.fromOffset until o.untilOffset by steps(o.topic)).map(s =>
+        (o.topic, o.partition, s, math.min(o.untilOffset, s + steps(o.topic)))
+      )
+    }.zipWithIndex.map { case ((topic, partition, start, until), i) =>
+      val (host, port) = leaders(TopicAndPartition(topic, partition))
+      new KafkaRDDPartition(i, topic, partition, start, until, host, port)
+    }.toArray
   }
 
   private def errBeginAfterEnd(part: KafkaRDDPartition): String =
