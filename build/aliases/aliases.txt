@@ -1,5 +1,5 @@
 root	= pushd $Root\
-build	= $Root\build\build.cmd
+build	= & $Root\build\build.cmd
 
 ..	= cd ..
 n	= notepad.exe

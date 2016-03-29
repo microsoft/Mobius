@@ -35,7 +35,7 @@ process
         }
     }
 
-    $Root = Get-ScriptDirectory
+    $Global:Root = Get-ScriptDirectory
 
     function Create-ShortCut {
         try
