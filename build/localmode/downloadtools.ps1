@@ -20,7 +20,7 @@ if ($stage.ToLower() -eq "run")
 function Get-ScriptDirectory
 {
     $Invocation = (Get-Variable MyInvocation -Scope 1).Value;
-    if($Invocation.PSScriptRoot)
+    if($Invocation.PSScriptRoot -and $Invocation.CommandOrigin -eq "Runspace")
     {
         $Invocation.PSScriptRoot;
     }

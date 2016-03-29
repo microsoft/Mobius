@@ -1,0 +1,28 @@
+root	= pushd $Root\
+build	= $Root\build\build.cmd
+
+..	= cd ..
+n	= notepad.exe
+n++	= notepad++.exe
+
+ga	= git add
+gco	= git checkout
+gb	= git branch
+gba	= git branch -a
+gbr	= git branch --remote
+gtc	= git commit
+gcp	= git cherry-pick
+gd	= git diff
+gdt	= git difftool
+gpll	= git pull
+gpsh	= git push
+gk	= gitk
+glg	= git log
+gtm	= git merge
+gmt	= git mergetool
+gr	= git remote
+grb	= git rebase
+grbi	= git rebase -i
+gs	= git status
+gsta	= git stash
+gstd	= git stash drop
