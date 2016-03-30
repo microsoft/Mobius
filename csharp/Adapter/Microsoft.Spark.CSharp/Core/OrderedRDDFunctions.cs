@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp.Core
 {
+    /// <summary>
+    /// Extra functions available on RDDs of (key, value) pairs where the key is sortable through
+    /// a function to sort the key.
+    /// </summary>
     public static class OrderedRDDFunctions
     {
 
