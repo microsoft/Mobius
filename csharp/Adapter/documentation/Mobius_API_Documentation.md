@@ -19,7 +19,22 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue"></font></td><td>Adds a term to this accumulator's value</td></tr><tr><td><font color="blue"></font></td><td>The += operator; adds a term to this accumulator's value</td></tr><tr><td><font color="blue"></font></td><td>Provide a "zero value" for the type</td></tr><tr><td><font color="blue"></font></td><td>Add two values of the accumulator's data type, returning a new value;</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue"></font></td><td>Adds a term to this accumulator's value</td></tr><tr><td><font color="blue"></font></td><td>The += operator; adds a term to this accumulator's value</td></tr><tr><td><font color="blue"></font></td><td>Creates and returns a string representation of the current accumulator</td></tr><tr><td><font color="blue"></font></td><td>Provide a "zero value" for the type</td></tr><tr><td><font color="blue"></font></td><td>Add two values of the accumulator's data type, returning a new value;</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.Accumulator`1</font>
+####Summary
+  
+            
+            A generic version of  where the element type is specified by the driver program.
+            
+            The type of element in the accumulator.
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Add</font></td><td>Adds a term to this accumulator's value</td></tr><tr><td><font color="blue">op_Addition</font></td><td>The += operator; adds a term to this accumulator's value</td></tr><tr><td><font color="blue">ToString</font></td><td>Creates and returns a string representation of the current accumulator</td></tr></table>
 
 ---
   
@@ -74,6 +89,21 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.Broadcast`1</font>
+####Summary
+  
+            
+            A generic version of  where the element can be specified.
+            
+            The type of element in Broadcast
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Unpersist</font></td><td>Delete cached copies of this broadcast on the executors.</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.Option`1</font>
 ####Summary
   
@@ -83,6 +113,13 @@
             
             
         
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetValue</font></td><td>Returns the value of the option if Option.IsDefined is TRUE; otherwise, throws an .</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.Partitioner</font>
 ####Summary
   
@@ -112,6 +149,35 @@
             Interface for collect operation on RDD
             
         
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.DoubleRDDFunctions</font>
+####Summary
+  
+            
+            Extra functions available on RDDs of Doubles through an implicit conversion. 
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Sum</font></td><td>Add up the elements in this RDD. sc.Parallelize(new double[] {1.0, 2.0, 3.0}).Sum() 6.0</td></tr><tr><td><font color="blue">Stats</font></td><td>Return a object that captures the mean, variance and count of the RDD's elements in one operation.</td></tr><tr><td><font color="blue">Histogram</font></td><td>Compute a histogram using the provided buckets. The buckets are all open to the right except for the last which is closed. e.g. [1,10,20,50] means the buckets are [1,10) [10,20) [20,50], which means 1&lt;=x&lt;10, 10&lt;=x&lt;20, 20&lt;=x&lt;=50. And on the input of 1 and 50 we would have a histogram of 1,0,1. If your histogram is evenly spaced (e.g. [0, 10, 20, 30]), this can be switched from an O(log n) inseration to O(1) per element(where n = # buckets). Buckets must be sorted and not contain any duplicates, must be at least two elements. If `buckets` is a number, it will generates buckets which are evenly spaced between the minimum and maximum of the RDD. For example, if the min value is 0 and the max is 100, given buckets as 2, the resulting buckets will be [0,50) [50,100]. buckets must be at least 1 If the RDD contains infinity, NaN throws an exception If the elements in RDD do not vary (max == min) always returns a single bucket. It will return an tuple of buckets and histogram. &gt;&gt;&gt; rdd = sc.parallelize(range(51)) &gt;&gt;&gt; rdd.histogram(2) ([0, 25, 50], [25, 26]) &gt;&gt;&gt; rdd.histogram([0, 5, 25, 50]) ([0, 5, 25, 50], [5, 20, 26]) &gt;&gt;&gt; rdd.histogram([0, 15, 30, 45, 60]) # evenly spaced buckets ([0, 15, 30, 45, 60], [15, 15, 15, 6]) &gt;&gt;&gt; rdd = sc.parallelize(["ab", "ac", "b", "bd", "ef"]) &gt;&gt;&gt; rdd.histogram(("a", "b", "c")) (('a', 'b', 'c'), [2, 2])</td></tr><tr><td><font color="blue">Mean</font></td><td>Compute the mean of this RDD's elements. sc.Parallelize(new double[]{1, 2, 3}).Mean() 2.0</td></tr><tr><td><font color="blue">Variance</font></td><td>Compute the variance of this RDD's elements. sc.Parallelize(new double[]{1, 2, 3}).Variance() 0.666...</td></tr><tr><td><font color="blue">Stdev</font></td><td>Compute the standard deviation of this RDD's elements. sc.Parallelize(new double[]{1, 2, 3}).Stdev() 0.816...</td></tr><tr><td><font color="blue">SampleStdev</font></td><td>Compute the sample standard deviation of this RDD's elements (which corrects for bias in estimating the standard deviation by dividing by N-1 instead of N). sc.Parallelize(new double[]{1, 2, 3}).SampleStdev() 1.0</td></tr><tr><td><font color="blue">SampleVariance</font></td><td>Compute the sample variance of this RDD's elements (which corrects for bias in estimating the variance by dividing by N-1 instead of N). sc.Parallelize(new double[]{1, 2, 3}).SampleVariance() 1.0</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.OrderedRDDFunctions</font>
+####Summary
+  
+            
+            Extra functions available on RDDs of (key, value) pairs where the key is sortable through
+            a function to sort the key.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">SortByKey``2</font></td><td>Sorts this RDD, which is assumed to consist of KeyValuePair pairs.</td></tr><tr><td><font color="blue">SortByKey``3</font></td><td>Sorts this RDD, which is assumed to consist of KeyValuePairs. If key is type of string, case is sensitive.</td></tr><tr><td><font color="blue">repartitionAndSortWithinPartitions``2</font></td><td>Repartition the RDD according to the given partitioner and, within each resulting partition, sort records by their keys. This is more efficient than calling `repartition` and then sorting within each partition because it can push the sorting down into the shuffle machinery.</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.PairRDDFunctions</font>
 ####Summary
   
