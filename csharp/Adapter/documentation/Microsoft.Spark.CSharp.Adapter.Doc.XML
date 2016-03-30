@@ -458,7 +458,7 @@
              <summary>
              Return the key-value pairs in this RDD to the master as a dictionary.
             
-             var m = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(1, 2), new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(3, 4) }, 1).CollectAsMap()
+             var m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).CollectAsMap()
              m[1]
              2
              m[3]
@@ -474,7 +474,7 @@
              <summary>
              Return an RDD with the keys of each tuple.
             
-             &gt;&gt;&gt; m = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(1, 2), new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(3, 4) }, 1).Keys().Collect()
+             >>> m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).Keys().Collect()
              [1, 3]
              </summary>
              <typeparam name="K"></typeparam>
@@ -486,7 +486,7 @@
              <summary>
              Return an RDD with the values of each tuple.
             
-             &gt;&gt;&gt; m = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(1, 2), new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(3, 4) }, 1).Values().Collect()
+             >>> m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).Values().Collect()
              [2, 4]
              
              </summary>
@@ -507,11 +507,11 @@
             
             sc.Parallelize(new[] 
             { 
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), 
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
+                new KeyValuePair&lt;string, int>("a", 1), 
+                new KeyValuePair&lt;string, int>("b", 1),
+                new KeyValuePair&lt;string, int>("a", 1)
             }, 2)
-            .ReduceByKey((x, y) =&gt; x + y).Collect()
+            .ReduceByKey((x, y) => x + y).Collect()
                    
             [('a', 2), ('b', 1)]
             
@@ -533,11 +533,11 @@
             
             sc.Parallelize(new[] 
             { 
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), 
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
+                new KeyValuePair&lt;string, int>("a", 1), 
+                new KeyValuePair&lt;string, int>("b", 1),
+                new KeyValuePair&lt;string, int>("a", 1)
             }, 2)
-            .ReduceByKeyLocally((x, y) =&gt; x + y).Collect()
+            .ReduceByKeyLocally((x, y) => x + y).Collect()
             
             [('a', 2), ('b', 1)]
             
@@ -554,11 +554,11 @@
             
             sc.Parallelize(new[] 
             { 
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), 
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
-                new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
+                new KeyValuePair&lt;string, int>("a", 1), 
+                new KeyValuePair&lt;string, int>("b", 1),
+                new KeyValuePair&lt;string, int>("a", 1)
             }, 2)
-            .CountByKey((x, y) =&gt; x + y).Collect()
+            .CountByKey((x, y) => x + y).Collect()
             
             [('a', 2), ('b', 1)]
             
@@ -577,9 +577,9 @@
             Performs a hash join across the cluster.
             
             var l = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
             var r = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 3) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 2), new KeyValuePair&lt;string, int>("a", 3) }, 1);
             var m = l.Join(r, 2).Collect();
             
             [('a', (1, 2)), ('a', (1, 3))]
@@ -604,9 +604,9 @@
             Hash-partitions the resulting RDD into the given number of partitions.
             
             var l = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
             var r = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
             var m = l.LeftOuterJoin(r).Collect();
             
             [('a', (1, 2)), ('b', (4, Option))]
@@ -631,9 +631,9 @@
             Hash-partitions the resulting RDD into the given number of partitions.
             
             var l = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
             var r = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
             var m = l.RightOuterJoin(r).Collect();
             
             [('a', (2, 1)), ('b', (Option, 4))]
@@ -662,9 +662,9 @@
             Hash-partitions the resulting RDD into the given number of partitions.
             
             var l = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 1), KeyValuePair&lt;string, int>("b", 4) }, 1);
             var r = sc.Parallelize(
-                new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("c", 8) }, 1);
+                new[] { new KeyValuePair&lt;string, int>("a", 2), new KeyValuePair&lt;string, int>("c", 8) }, 1);
             var m = l.FullOuterJoin(r).Collect();
             
             [('a', (1, 2)), ('b', (4, None)), ('c', (None, 8))]
@@ -682,7 +682,7 @@
             <summary>
             Return a copy of the RDD partitioned using the specified partitioner.
             
-            sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x =&gt; new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(x, x)).PartitionBy(3).Glom().Collect()
+            sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x => new KeyValuePair&lt;int, int>(x, x)).PartitionBy(3).Glom().Collect()
             </summary>
             <param name="self"></param>
             <param name="numPartitions"></param>
@@ -711,11 +711,11 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
+                        new KeyValuePair&lt;string, int>("a", 1), 
+                        new KeyValuePair&lt;string, int>("b", 1),
+                        new KeyValuePair&lt;string, int>("a", 1)
                     }, 2)
-                    .CombineByKey(() =&gt; string.Empty, (x, y) =&gt; x + y.ToString(), (x, y) =&gt; x + y).Collect()
+                    .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
                     
             [('a', '11'), ('b', '1')]
             </summary>
@@ -742,11 +742,11 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
+                        new KeyValuePair&lt;string, int>("a", 1), 
+                        new KeyValuePair&lt;string, int>("b", 1),
+                        new KeyValuePair&lt;string, int>("a", 1)
                     }, 2)
-                    .CombineByKey(() =&gt; string.Empty, (x, y) =&gt; x + y.ToString(), (x, y) =&gt; x + y).Collect()
+                    .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
                     
             [('a', 2), ('b', 1)]
             </summary>
@@ -770,11 +770,11 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
+                        new KeyValuePair&lt;string, int>("a", 1), 
+                        new KeyValuePair&lt;string, int>("b", 1),
+                        new KeyValuePair&lt;string, int>("a", 1)
                     }, 2)
-                    .CombineByKey(() =&gt; string.Empty, (x, y) =&gt; x + y.ToString(), (x, y) =&gt; x + y).Collect()
+                    .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
                     
             [('a', 2), ('b', 1)]
             </summary>
@@ -798,11 +798,11 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), 
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 1),
-                        new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1)
+                        new KeyValuePair&lt;string, int>("a", 1), 
+                        new KeyValuePair&lt;string, int>("b", 1),
+                        new KeyValuePair&lt;string, int>("a", 1)
                     }, 2)
-                    .GroupByKey().MapValues(l =&gt; string.Join(" ", l)).Collect()
+                    .GroupByKey().MapValues(l => string.Join(" ", l)).Collect()
                     
             [('a', [1, 1]), ('b', [1])]
             
@@ -821,10 +821,10 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("a", new[]{"apple", "banana", "lemon"}), 
-                        new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("b", new[]{"grapes"})
+                        new KeyValuePair&lt;string, string[]>("a", new[]{"apple", "banana", "lemon"}), 
+                        new KeyValuePair&lt;string, string[]>("b", new[]{"grapes"})
                     }, 2)
-                    .MapValues(x =&gt; x.Length).Collect()
+                    .MapValues(x => x.Length).Collect()
                     
             [('a', 3), ('b', 1)]
             
@@ -844,10 +844,10 @@
             x = sc.Parallelize(
                     new[] 
                     { 
-                        new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("a", new[]{"x", "y", "z"}), 
-                        new <see cref="!:KeyValuePair&lt;string, string[]&gt;"/>("b", new[]{"p", "r"})
+                        new KeyValuePair&lt;string, string[]>("a", new[]{"x", "y", "z"}), 
+                        new KeyValuePair&lt;string, string[]>("b", new[]{"p", "r"})
                     }, 2)
-                    .FlatMapValues(x =&gt; x).Collect()
+                    .FlatMapValues(x => x).Collect()
                     
             [('a', 'x'), ('a', 'y'), ('a', 'z'), ('b', 'p'), ('b', 'r')]
             
@@ -859,14 +859,26 @@
             <param name="func"></param>
             <returns></returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.MapPartitionsWithIndex``5(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,System.Object}})" -->
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.MapPartitionsWithIndex``5(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,System.Object}})">
+            <summary>
+            explicitly convert KeyValuePair&lt;K, V> to KeyValuePair&lt;K, dynamic>
+            since they are incompatibles types unlike V to dynamic
+            </summary>
+            <typeparam name="K"></typeparam>
+            <typeparam name="V"></typeparam>
+            <typeparam name="W1"></typeparam>
+            <typeparam name="W2"></typeparam>
+            <typeparam name="W3"></typeparam>
+            <param name="self"></param>
+            <returns></returns>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
             <summary>
             For each key k in this RDD or <paramref name="other"/>, return a resulting RDD that
             contains a tuple with the list of values for that key in this RDD as well as <paramref name="other"/>.
             
-            var x = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 2);
-            var y = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2) }, 1);
+            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
+            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
             x.GroupWith(y).Collect();
             
             [('a', ([1], [2])), ('b', ([4], []))]
@@ -882,9 +894,9 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``4(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``3}},System.Int32)">
             <summary>
-            var x = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 5), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 6) }, 2);
-            var y = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 2);
-            var z = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2) }, 1);
+            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 5), new KeyValuePair&lt;string, int>("b", 6) }, 2);
+            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
+            var z = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
             x.GroupWith(y, z).Collect();
             </summary>
             <typeparam name="K"></typeparam>
@@ -899,11 +911,11 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``5(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``3}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``4}},System.Int32)">
             <summary>
-            var x = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 5), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 6) }, 2);
-            var y = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 4) }, 2);
-            var z = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("a", 2) }, 1);
-            var w = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int&gt;"/>("b", 42) }, 1);
-            var m = x.GroupWith(y, z, w).MapValues(l =&gt; string.Join(" ", l.Item1) + " : " + string.Join(" ", l.Item2) + " : " + string.Join(" ", l.Item3) + " : " + string.Join(" ", l.Item4)).Collect();
+            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 5), new KeyValuePair&lt;string, int>("b", 6) }, 2);
+            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
+            var z = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+            var w = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("b", 42) }, 1);
+            var m = x.GroupWith(y, z, w).MapValues(l => string.Join(" ", l.Item1) + " : " + string.Join(" ", l.Item2) + " : " + string.Join(" ", l.Item3) + " : " + string.Join(" ", l.Item4)).Collect();
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>
@@ -921,8 +933,8 @@
             <summary>
             Return each (key, value) pair in this RDD that has no pair with matching key in <paramref name="other"/>.
             
-            var x = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int?&gt;"/>("a", 1), new <see cref="!:KeyValuePair&lt;string, int?&gt;"/>("b", 4), new <see cref="!:KeyValuePair&lt;string, int?&gt;"/>("b", 5), new <see cref="!:KeyValuePair&lt;string, int?&gt;"/>("a", 2) }, 2);
-            var y = sc.Parallelize(new[] { new <see cref="!:KeyValuePair&lt;string, int?&gt;"/>("a", 3), new <see cref="!:KeyValuePair&lt;string, int?&gt;"/>("c", null) }, 2);
+            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int?>("a", 1), new KeyValuePair&lt;string, int?>("b", 4), new KeyValuePair&lt;string, int?>("b", 5), new KeyValuePair&lt;string, int?>("a", 2) }, 2);
+            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int?>("a", 3), new KeyValuePair&lt;string, int?>("c", null) }, 2);
             x.SubtractByKey(y).Collect();
             
             [('b', 4), ('b', 5)]
@@ -942,9 +954,9 @@
             is done efficiently if the RDD has a known partitioner by only
             searching the partition that the key maps to.
             
-            &gt;&gt;&gt; l = range(1000)
-            &gt;&gt;&gt; rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) =&gt; new <see cref="!:KeyValuePair&lt;int, int&gt;"/>(x, y)), 10)
-            &gt;&gt;&gt; rdd.lookup(42)
+            >>> l = range(1000)
+            >>> rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) => new KeyValuePair&lt;int, int>(x, y)), 10)
+            >>> rdd.lookup(42)
             [42]
             
             </summary>
@@ -1026,6 +1038,15 @@
             <param name="path">path to sequence file</param>
             <param name="compressionCodecClass">(None by default)</param>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.NullIfEmpty``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Converts a collection to a list where the element type is Option(T) type.
+            If the collection is empty, just returns the empty list.
+            </summary>
+            <param name="list">The collection that be inputted to convert</param>
+            <typeparam name="T">The element type in the collection</typeparam>
+            <returns>A list that use Option(T) as element type</returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupByMergeHelper`2">
             <summary>
             These classes are defined explicitly and marked as [Serializable]instead of using anonymous method as delegate to 
@@ -1043,6 +1064,16 @@
             See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.RDD
             </summary>
             <typeparam name="T">Type of the RDD</typeparam>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.RDD`1.isCached">
+            <summary>
+            Indicates whether the RDD is cached.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.RDD`1.isCheckpointed">
+            <summary>
+            Indicates whether the RDD is checkpointed.
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.RDD`1.Cache">
             <summary>
@@ -1081,11 +1112,17 @@
             on a file will require recomputation.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.RDD`1.GetNumPartitions">
+            <summary>
+            Returns the number of partitions of this RDD.
+            </summary>
+            <returns>The number of partitions of this RDD</returns>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.RDD`1.Map``1(System.Func{`0,``0},System.Boolean)">
             <summary>
             Return a new RDD by applying a function to each element of this RDD.
             
-            sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x =&gt; new <see cref="!:KeyValuePair&lt;string, int&gt;"/>(x, 1)).Collect()
+            sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new KeyValuePair&lt;string, int>(x, 1)).Collect()
             [('a', 1), ('b', 1), ('c', 1)]
             
             </summary>
@@ -1126,7 +1163,7 @@
             Return a new RDD by applying a function to each partition of this RDD,
             while tracking the index of the original partition.
             
-            <see cref="!:sc.Parallelize(new int[]&lt;1, 2, 3, 4&gt;, 4).MapPartitionsWithIndex&lt;double&gt;"/>((pid, iter) =&gt; (double)pid).Sum()
+            sc.Parallelize(new int[]{1, 2, 3, 4}, 4).MapPartitionsWithIndex&lt;double>((pid, iter) => (double)pid).Sum()
             6
             </summary>
             <typeparam name="U"></typeparam>
@@ -1868,12 +1905,48 @@
             <param name="key">Key to use</param>
             <param name="defaultValue">Default value to use</param>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.SparkContext">
+            <summary>
+            Main entry point for Spark functionality. A SparkContext represents the 
+            connection to a Spark cluster, and can be used to create RDDs, accumulators 
+            and broadcast variables on that cluster.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Initializes a SparkContext instance with a specific master, application name, and spark home 
+            </summary>
+            <param name="master">Cluster URL to connect to (e.g. mesos://host:port, spark://host:port, local)</param>
+            <param name="appName">A name for your application, to display on the cluster web UI</param>
+            <param name="sparkHome">the path that holds spark bits</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a SparkContext instance with a specific master and application name.
+            </summary>
+            <param name="master"></param>
+            <param name="appName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(Microsoft.Spark.CSharp.Core.SparkConf)">
+            <summary>
+            Initializes a SparkContext instance with a specific spark config.
+            </summary>
+            <param name="conf">A SparkConf object that represents the settings for spark</param>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(Microsoft.Spark.CSharp.Proxy.ISparkContextProxy,Microsoft.Spark.CSharp.Core.SparkConf)">
             <summary>
             when created from checkpoint
             </summary>
             <param name="sparkContextProxy"></param>
             <param name="conf"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.TextFile(System.String,System.Int32)">
+            <summary>
+            Read a text file from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI, and return it as an RDD of Strings.
+            </summary>
+            <param name="filePath">The path of file to be read</param>
+            <param name="minPartitions">A suggestion value of the minimal splitting number for input data</param>
+            <returns>an RDD of Strings</returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.Parallelize``1(System.Collections.Generic.IEnumerable{``0},System.Int32)">
              <summary>
@@ -1911,7 +1984,7 @@
             
              Do
              {{{
-               <see cref="!:RDD&lt;KeyValuePair&lt;string, string&gt;&gt;"/> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
+               RDD&lt;KeyValuePair&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
              }}}
             
              then `rdd` contains
@@ -1946,7 +2019,7 @@
              }}}
             
              Do
-             <see cref="!:RDD&lt;KeyValuePair&lt;string, byte[]&gt;&gt;"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+             RDD&lt;KeyValuePair&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
             
              then `rdd` contains
              {{{
@@ -3760,7 +3833,7 @@
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``1(System.String,System.Func{``0})">
             <summary>
             Register UDF with no input argument, e.g:
-                <see cref="!:SqlContext.RegisterFunction&lt;bool&gt;"/>("MyFilter", () =&gt; true);
+                SqlContext.RegisterFunction&lt;bool>("MyFilter", () => true);
                 sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");
             </summary>
             <typeparam name="RT"></typeparam>
@@ -3770,7 +3843,7 @@
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``2(System.String,System.Func{``1,``0})">
             <summary>
             Register UDF with 1 input argument, e.g:
-                <see cref="!:SqlContext.RegisterFunction&lt;bool, string&gt;"/>("MyFilter", (arg1) =&gt; arg1 != null);
+                SqlContext.RegisterFunction&lt;bool, string>("MyFilter", (arg1) => arg1 != null);
                 sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");
             </summary>
             <typeparam name="RT"></typeparam>
@@ -3778,15 +3851,150 @@
             <param name="name"></param>
             <param name="f"></param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``3(System.String,System.Func{``1,``2,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``4(System.String,System.Func{``1,``2,``3,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``5(System.String,System.Func{``1,``2,``3,``4,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``6(System.String,System.Func{``1,``2,``3,``4,``5,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``7(System.String,System.Func{``1,``2,``3,``4,``5,``6,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``8(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``9(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``10(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``11(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``0})" -->
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``3(System.String,System.Func{``1,``2,``0})">
+            <summary>
+            Register UDF with 2 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string>("MyFilter", (arg1, arg2) => arg1 != null &amp;&amp; arg2 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``4(System.String,System.Func{``1,``2,``3,``0})">
+            <summary>
+            Register UDF with 3 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, string>("MyFilter", (arg1, arg2, arg3) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``5(System.String,System.Func{``1,``2,``3,``4,``0})">
+            <summary>
+            Register UDF with 4 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg4) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``6(System.String,System.Func{``1,``2,``3,``4,``5,``0})">
+            <summary>
+            Register UDF with 5 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg5) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``7(System.String,System.Func{``1,``2,``3,``4,``5,``6,``0})">
+            <summary>
+            Register UDF with 6 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg6) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``8(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``0})">
+            <summary>
+            Register UDF with 7 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg7) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``9(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``0})">
+            <summary>
+            Register UDF with 8 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg8) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``10(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``0})">
+            <summary>
+            Register UDF with 9 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg9) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <typeparam name="A9"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``11(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``0})">
+            <summary>
+            Register UDF with 10 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg10) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <typeparam name="A9"></typeparam>
+            <typeparam name="A10"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.DataType.TypeName">
             <summary>
             Trim "Type" in the end from class name, ToLower() to align with Scala.
