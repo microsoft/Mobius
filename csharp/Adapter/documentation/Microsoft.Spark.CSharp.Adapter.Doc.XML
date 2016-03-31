@@ -50,10 +50,45 @@
             overridden here
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Configuration.ConfigurationService.SparkCLRDebugConfiguration" -->
+        <member name="T:Microsoft.Spark.CSharp.Configuration.ConfigurationService.SparkCLRDebugConfiguration">
+            <summary>
+            Configuration mode for debug mode
+            This configuration exists only to make SparkCLR development and debugging easier
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Configuration.ConfigurationService.SparkCLRDebugConfiguration.GetCSharpWorkerExePath">
             <summary>
             The full path of the CSharp external backend worker process.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Configuration.RunMode">
+            <summary>
+            The running mode used by Configuration Service
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Configuration.RunMode.UNKNOWN">
+            <summary>
+            Unknown running mode
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Configuration.RunMode.DEBUG">
+            <summary>
+            Debug mode, not a Spark mode but exists for develop debugging purpose
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Configuration.RunMode.LOCAL">
+            <summary>
+            Indicates service is running in local
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Configuration.RunMode.CLUSTER">
+            <summary>
+            Indicates service is running in cluster
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Configuration.RunMode.YARN">
+            <summary>
+            Indicates service is running in Yarn
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Accumulator">
@@ -71,6 +106,30 @@
             
             </summary>
         </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.Accumulator.accumulatorId">
+            <summary>
+            The identity of the accumulator 
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.Accumulator.isDriver">
+            <summary>
+            Indicates whether the accumulator is on driver side.
+            When deserialized on worker side, isDriver is false by default.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.Accumulator`1">
+            <summary>
+            A generic version of <see cref="T:Microsoft.Spark.CSharp.Core.Accumulator"/> where the element type is specified by the driver program.
+            </summary>
+            <typeparam name="T">The type of element in the accumulator.</typeparam>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Accumulator`1.#ctor(System.Int32,`0)">
+            <summary>
+            Initializes a new instance of the Accumulator class with a specified identity and a value.
+            </summary>
+            <param name="accumulatorId">The Identity of the accumulator</param>
+            <param name="value">The value of the accumulator</param>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Accumulator`1.Add(`0)">
             <summary>
             Adds a term to this accumulator's value
@@ -85,6 +144,18 @@
             <param name="self"></param>
             <param name="term"></param>
             <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Accumulator`1.ToString">
+            <summary>
+            Creates and returns a string representation of the current accumulator
+            </summary>
+            <returns>A string representation of the current accumulator</returns>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Accumulator`1.Value">
+            <summary>
+            Gets or sets the value of the accumulator; only usable in driver program
+            </summary>
+            <exception cref="T:System.ArgumentException"></exception>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.AccumulatorParam`1">
             <summary>
@@ -131,6 +202,23 @@
             
             </summary>
         </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.Broadcast.broadcastRegistry">
+            <summary>
+            A thread-safe static collection that is used to store registered broadcast objects.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Broadcast.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of Broadcast class with a specified path.
+            </summary>
+            <param name="path">The path that to be set.</param>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.Broadcast`1">
+            <summary>
+            A generic version of <see cref="T:Microsoft.Spark.CSharp.Core.Broadcast"/> where the element can be specified.
+            </summary>
+            <typeparam name="T">The type of element in Broadcast</typeparam>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Broadcast`1.Unpersist(System.Boolean)">
             <summary>
             Delete cached copies of this broadcast on the executors.
@@ -148,6 +236,29 @@
             If the value is absent, the Option.IsDefined is FALSE, exception will be thrown when calling GetValue().
             </summary>
             <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Option`1.#ctor">
+            <summary>
+            Initialize a instance of Option class without any value.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Option`1.#ctor(`0)">
+            <summary>
+            Initializes a instance of Option class with a specific value. 
+            </summary>
+            <param name="value">The value to be associated with the new instance.</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Option`1.GetValue">
+            <summary>
+            Returns the value of the option if Option.IsDefined is TRUE;
+            otherwise, throws an <see cref="T:System.ArgumentException"/>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Option`1.IsDefined">
+            <summary>
+            Indicates whether the option value is defined.
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Partitioner">
             <summary>
@@ -171,6 +282,11 @@
         <member name="T:Microsoft.Spark.CSharp.Core.IRDDCollector">
             <summary>
             Interface for collect operation on RDD
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.DoubleRDDFunctions">
+            <summary>
+            Extra functions available on RDDs of Doubles through an implicit conversion. 
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.DoubleRDDFunctions.Sum(Microsoft.Spark.CSharp.Core.RDD{System.Double})">
@@ -284,6 +400,12 @@
             </summary>
             <param name="self"></param>
             <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions">
+            <summary>
+            Extra functions available on RDDs of (key, value) pairs where the key is sortable through
+            a function to sort the key.
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Boolean,System.Nullable{System.Int32})">
             <summary>
@@ -4049,7 +4171,7 @@
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.UInt32)">
             <summary>
             Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
             
@@ -4077,9 +4199,6 @@
                 user hint on how many kafka RDD partitions to create instead of aligning with kafka partitions,
                 unbalanced kafka partitions and/or under-distributed data will be redistributed evenly across 
                 a probably larger number of RDD partitions
-                if numPartitions > 0, then it will try to rebalance kafkaRDD based on this user hint.
-                if numPartitions == 0, then will fall back to the default behavior of KafkaRDD
-                else, then will try to reblance KafkaRDD according to spark.streaming.kafka.maxRatePerTask.* conf
             </param>
             <returns>A DStream object</returns>
         </member>
