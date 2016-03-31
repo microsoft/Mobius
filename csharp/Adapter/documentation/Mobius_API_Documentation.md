@@ -194,6 +194,22 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.PipelinedRDD`1</font>
+####Summary
+  
+            
+            Wraps C#-based transformations that can be executed within a stage. It helps avoid unnecessary Ser/De of data between
+            JVM and CLR to execute C# transformations and pipelines them
+            
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">MapPartitionsWithIndex``1</font></td><td>Return a new RDD by applying a function to each partition of this RDD, while tracking the index of the original partition.</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.RDD`1</font>
 ####Summary
   
@@ -212,6 +228,13 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.Profiler</font>
+####Summary
+  
+            
+            A class represents a profiler
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.StringRDDFunctions</font>
 ####Summary
   
@@ -422,6 +445,196 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.DataType</font>
+####Summary
+  
+            
+            The base type of all Spark SQL data types.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ParseDataTypeFromJson</font></td><td>Parses a Json string to construct a DataType.</td></tr><tr><td><font color="blue">ParseDataTypeFromJson</font></td><td>Parse a JToken object to construct a DataType.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.AtomicType</font>
+####Summary
+  
+            
+            An internal type used to represent a simple type. 
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.ComplexType</font>
+####Summary
+  
+            
+            An internal type used to represent a complex type (such as arrays, structs, and maps).
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">FromJson</font></td><td>Abstract method that constructs a complex type from a Json object</td></tr><tr><td><font color="blue">FromJson</font></td><td>Constructs a complex type from a Json string</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.NullType</font>
+####Summary
+  
+            
+            The data type representing NULL values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.StringType</font>
+####Summary
+  
+            
+            The data type representing String values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.BinaryType</font>
+####Summary
+  
+            
+            The data type representing binary values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.BooleanType</font>
+####Summary
+  
+            
+            The data type representing Boolean values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.DateType</font>
+####Summary
+  
+            
+            The data type representing Date values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.TimestampType</font>
+####Summary
+  
+            
+            The data type representing Timestamp values. 
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.DoubleType</font>
+####Summary
+  
+            
+            The data type representing Double values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.FloatType</font>
+####Summary
+  
+            
+            
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.ByteType</font>
+####Summary
+  
+            
+            The data type representing Float values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.IntegerType</font>
+####Summary
+  
+            
+            
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.LongType</font>
+####Summary
+  
+            
+            The data type representing Int values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.ShortType</font>
+####Summary
+  
+            
+            The data type representing Short values.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.DecimalType</font>
+####Summary
+  
+            
+            The data type representing Decimal values.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">FromJson</font></td><td>Constructs a DecimalType from a Json object</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.ArrayType</font>
+####Summary
+  
+            
+            The data type for collections of multiple values. 
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">FromJson</font></td><td>Constructs a ArrayType from a Json object</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.MapType</font>
+####Summary
+  
+            
+            The data type for Maps. Not implemented yet.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">FromJson</font></td><td>Constructs a StructField from a Json object. Not implemented yet.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.StructField</font>
+####Summary
+  
+            
+            A field inside a StructType.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">FromJson</font></td><td>Constructs a StructField from a Json object</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.StructType</font>
+####Summary
+  
+            
+            Struct type, consisting of a list of StructField
+            This is the data type representing a Row
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">FromJson</font></td><td>Constructs a StructType from a Json object</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.DStream`1</font>
 ####Summary
   
@@ -561,7 +774,7 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetOrCreate</font></td><td>Either recreate a StreamingContext from checkpoint data or create a new StreamingContext. If checkpoint data exists in the provided `checkpointPath`, then StreamingContext will be recreated from the checkpoint data. If the data does not exist, then the provided setupFunc will be used to create a JavaStreamingContext.</td></tr><tr><td><font color="blue">Remember</font></td><td>Set each DStreams in this context to remember RDDs it generated in the last given duration. DStreams remember RDDs only for a limited duration of time and releases them for garbage collection. This method allows the developer to specify how long to remember the RDDs ( if the developer wishes to query old data outside the DStream computation).</td></tr><tr><td><font color="blue">Checkpoint</font></td><td>Set the context to periodically checkpoint the DStream operations for driver fault-tolerance.</td></tr><tr><td><font color="blue">SocketTextStream</font></td><td>Create an input from TCP source hostname:port. Data is received using a TCP socket and receive byte is interpreted as UTF8 encoded ``\\n`` delimited lines.</td></tr><tr><td><font color="blue">TextFileStream</font></td><td>Create an input stream that monitors a Hadoop-compatible file system for new files and reads them as text files. Files must be wrriten to the monitored directory by "moving" them from another location within the same file system. File names starting with . are ignored.</td></tr><tr><td><font color="blue">AwaitTermination</font></td><td>Wait for the execution to stop.</td></tr><tr><td><font color="blue">AwaitTerminationOrTimeout</font></td><td>Wait for the execution to stop.</td></tr><tr><td><font color="blue">Transform``1</font></td><td>Create a new DStream in which each RDD is generated by applying a function on RDDs of the DStreams. The order of the JavaRDDs in the transform function parameter will be the same as the order of corresponding DStreams in the list.</td></tr><tr><td><font color="blue">Union``1</font></td><td>Create a unified DStream from multiple DStreams of the same type and same slide duration.</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetOrCreate</font></td><td>Either recreate a StreamingContext from checkpoint data or create a new StreamingContext. If checkpoint data exists in the provided `checkpointPath`, then StreamingContext will be recreated from the checkpoint data. If the data does not exist, then the provided setupFunc will be used to create a JavaStreamingContext.</td></tr><tr><td><font color="blue">Start</font></td><td>Start the execution of the streams.</td></tr><tr><td><font color="blue">Stop</font></td><td>Stop the execution of the streams.</td></tr><tr><td><font color="blue">Remember</font></td><td>Set each DStreams in this context to remember RDDs it generated in the last given duration. DStreams remember RDDs only for a limited duration of time and releases them for garbage collection. This method allows the developer to specify how long to remember the RDDs ( if the developer wishes to query old data outside the DStream computation).</td></tr><tr><td><font color="blue">Checkpoint</font></td><td>Set the context to periodically checkpoint the DStream operations for driver fault-tolerance.</td></tr><tr><td><font color="blue">SocketTextStream</font></td><td>Create an input from TCP source hostname:port. Data is received using a TCP socket and receive byte is interpreted as UTF8 encoded ``\\n`` delimited lines.</td></tr><tr><td><font color="blue">TextFileStream</font></td><td>Create an input stream that monitors a Hadoop-compatible file system for new files and reads them as text files. Files must be wrriten to the monitored directory by "moving" them from another location within the same file system. File names starting with . are ignored.</td></tr><tr><td><font color="blue">AwaitTermination</font></td><td>Wait for the execution to stop.</td></tr><tr><td><font color="blue">AwaitTerminationOrTimeout</font></td><td>Wait for the execution to stop.</td></tr><tr><td><font color="blue">Transform``1</font></td><td>Create a new DStream in which each RDD is generated by applying a function on RDDs of the DStreams. The order of the JavaRDDs in the transform function parameter will be the same as the order of corresponding DStreams in the list.</td></tr><tr><td><font color="blue">Union``1</font></td><td>Create a unified DStream from multiple DStreams of the same type and same slide duration.</td></tr></table>
 
 ---
   

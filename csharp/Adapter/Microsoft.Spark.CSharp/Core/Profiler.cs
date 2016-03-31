@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 namespace Microsoft.Spark.CSharp.Core
 {
     //TODO - complete the impl
+    /// <summary>
+    /// A class represents a profiler
+    /// </summary>
     public class Profiler
     {
     }

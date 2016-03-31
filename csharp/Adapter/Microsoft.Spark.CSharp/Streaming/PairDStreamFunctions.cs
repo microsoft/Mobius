@@ -543,7 +543,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.numPartitions = numPartitions;
         }
 
-        internal RDD<KeyValuePair<K, Tuple<V, Option<W>>>> Execute<K,V,W>(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
+        internal RDD<KeyValuePair<K, Tuple<V, Option<W>>>> Execute(RDD<KeyValuePair<K, V>> l, RDD<KeyValuePair<K, W>> r)
         {
             return l.LeftOuterJoin<K, V, W>(r, numPartitions);
         }
