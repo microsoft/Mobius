@@ -11,6 +11,9 @@ using Microsoft.Spark.CSharp.Core;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
+    /// <summary>
+    /// Utils for Kafka input stream.
+    /// </summary>
     public class KafkaUtils
     {
         /// <summary>
@@ -30,6 +33,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <summary>
         /// Create an input stream that pulls messages from a Kafka Broker.
         /// </summary>
+        /// <param name="ssc">Spark Streaming Context</param>
         /// <param name="zkQuorum">Zookeeper quorum (hostname:port,hostname:port,..).</param>
         /// <param name="groupId">The group id for this consumer.</param>
         /// <param name="topics">Dict of (topic_name -> numPartitions) to consume. Each partition is consumed in its own thread.</param>

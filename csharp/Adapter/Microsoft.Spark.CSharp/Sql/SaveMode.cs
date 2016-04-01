@@ -40,6 +40,11 @@ namespace Microsoft.Spark.CSharp.Sql
     /// </summary>
     public static class SaveModeExtensions
     {
+        /// <summary>
+        /// Gets the string for the value of SaveMode
+        /// </summary>
+        /// <param name="mode">The given SaveMode</param>
+        /// <returns>The string that represents the given SaveMode</returns>
         public static string GetStringValue(this SaveMode mode)
         {
             switch (mode)
