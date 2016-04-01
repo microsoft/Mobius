@@ -298,6 +298,44 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.StorageLevelType</font>
+####Summary
+  
+            
+            Defines the type of storage levels
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.StorageLevel</font>
+####Summary
+  
+            
+            Flags for controlling the storage of an RDD. Each StorageLevel records whether to use 
+            memory, whether to drop the RDD to disk if it falls out of memory, whether to keep the 
+            data in memory in a serialized format, and whether to replicate the RDD partitions 
+            on multiple nodes.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ToString</font></td><td>Returns a readable string that represents the type</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.Column</font>
+####Summary
+  
+            
+            A column that will be computed based on the data in a DataFrame.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">op_LogicalNot</font></td><td>The logical negation operator that negates its operand.</td></tr><tr><td><font color="blue">op_UnaryNegation</font></td><td>Negation of itself.</td></tr><tr><td><font color="blue">op_Addition</font></td><td>Sum of this expression and another expression.</td></tr><tr><td><font color="blue">op_Subtraction</font></td><td>Subtraction</td></tr><tr><td><font color="blue">op_Multiply</font></td><td>Multiplication of this expression and another expression.</td></tr><tr><td><font color="blue">op_Division</font></td><td>Division this expression by another expression.</td></tr><tr><td><font color="blue">op_Modulus</font></td><td>Modulo (a.k.a. remainder) expression.</td></tr><tr><td><font color="blue">op_Equality</font></td><td>The equality operator returns true if the values of its operands are equal, false otherwise.</td></tr><tr><td><font color="blue">op_Inequality</font></td><td>The inequality operator returns false if its operands are equal, true otherwise.</td></tr><tr><td><font color="blue">op_LessThan</font></td><td>The "less than" relational operator that returns true if the first operand is less than the second, false otherwise.</td></tr><tr><td><font color="blue">op_LessThanOrEqual</font></td><td>The "less than or equal" relational operator that returns true if the first operand is less than or equal to the second, false otherwise.</td></tr><tr><td><font color="blue">op_GreaterThanOrEqual</font></td><td>The "greater than or equal" relational operator that returns true if the first operand is greater than or equal to the second, false otherwise.</td></tr><tr><td><font color="blue">op_GreaterThan</font></td><td>The "greater than" relational operator that returns true if the first operand is greater than the second, false otherwise.</td></tr><tr><td><font color="blue">op_BitwiseOr</font></td><td>Compute bitwise OR of this expression with another expression.</td></tr><tr><td><font color="blue">op_BitwiseAnd</font></td><td>Compute bitwise AND of this expression with another expression.</td></tr><tr><td><font color="blue">op_ExclusiveOr</font></td><td>Compute bitwise XOR of this expression with another expression.</td></tr><tr><td><font color="blue">GetHashCode</font></td><td>Required when operator == or operator != is defined</td></tr><tr><td><font color="blue">Equals</font></td><td>Required when operator == or operator != is defined</td></tr><tr><td><font color="blue">Like</font></td><td>SQL like expression.</td></tr><tr><td><font color="blue">RLike</font></td><td>SQL RLIKE expression (LIKE with Regex).</td></tr><tr><td><font color="blue">StartsWith</font></td><td>String starts with another string literal.</td></tr><tr><td><font color="blue">EndsWith</font></td><td>String ends with another string literal.</td></tr><tr><td><font color="blue">Asc</font></td><td>Returns a sort expression based on the ascending order.</td></tr><tr><td><font color="blue">Desc</font></td><td>Returns a sort expression based on the descending order.</td></tr><tr><td><font color="blue">Alias</font></td><td>Returns this column aliased with a new name.</td></tr><tr><td><font color="blue">Alias</font></td><td>Returns this column aliased with new names</td></tr><tr><td><font color="blue">Cast</font></td><td>Casts the column to a different data type, using the canonical string representation of the type. The supported types are: `string`, `boolean`, `byte`, `short`, `int`, `long`, `float`, `double`, `decimal`, `date`, `timestamp`. E.g. // Casts colA to integer. df.select(df("colA").cast("int"))</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Sql.DataFrame</font>
 ####Summary
   
@@ -383,7 +421,7 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">construct</font></td><td>Used by Unpickler - do not use to construct Row. Use GetRow() method</td></tr><tr><td><font color="blue">GetRow</font></td><td>Used to construct a Row</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ToString</font></td><td>Returns a string that represents the current object.</td></tr><tr><td><font color="blue">construct</font></td><td>Used by Unpickler - do not use to construct Row. Use GetRow() method</td></tr><tr><td><font color="blue">GetRow</font></td><td>Used to construct a Row</td></tr></table>
 
 ---
   
@@ -397,7 +435,7 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue"></font></td><td>Used by Unpickler - do not use to construct Row. Use GetRow() method</td></tr><tr><td><font color="blue"></font></td><td>Used to construct a Row</td></tr><tr><td><font color="blue">Size</font></td><td>Number of elements in the Row.</td></tr><tr><td><font color="blue">GetSchema</font></td><td>Schema for the row.</td></tr><tr><td><font color="blue">Get</font></td><td>Returns the value at position i.</td></tr><tr><td><font color="blue">Get</font></td><td>Returns the value of a given columnName.</td></tr><tr><td><font color="blue">GetAs``1</font></td><td>Returns the value at position i, the return value will be cast to type T.</td></tr><tr><td><font color="blue">GetAs``1</font></td><td>Returns the value of a given columnName, the return value will be cast to type T.</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue"></font></td><td>Returns a string that represents the current object.</td></tr><tr><td><font color="blue"></font></td><td>Used by Unpickler - do not use to construct Row. Use GetRow() method</td></tr><tr><td><font color="blue"></font></td><td>Used to construct a Row</td></tr><tr><td><font color="blue">Size</font></td><td>Number of elements in the Row.</td></tr><tr><td><font color="blue">GetSchema</font></td><td>Schema for the row.</td></tr><tr><td><font color="blue">Get</font></td><td>Returns the value at position i.</td></tr><tr><td><font color="blue">Get</font></td><td>Returns the value of a given columnName.</td></tr><tr><td><font color="blue">GetAs``1</font></td><td>Returns the value at position i, the return value will be cast to type T.</td></tr><tr><td><font color="blue">GetAs``1</font></td><td>Returns the value of a given columnName, the return value will be cast to type T.</td></tr></table>
 
 ---
   
@@ -423,6 +461,13 @@
             SaveMode is used to specify the expected behavior of saving a DataFrame to a data source.
             
         
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue"></font></td><td>Gets the string for the value of SaveMode</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Sql.SaveModeExtensions</font>
 ####Summary
   
@@ -430,6 +475,13 @@
             For SaveMode.ErrorIfExists, the corresponding literal string in spark is "error" or "default".
             
         
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetStringValue</font></td><td>Gets the string for the value of SaveMode</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Sql.SqlContext</font>
 ####Summary
   
@@ -675,6 +727,20 @@
 ####Methods
 
 <table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateUnionStream</font></td><td>Create a unioned EventHubs stream that receives data from Microsoft Azure Eventhubs The unioned stream will receive message from all partitions of the EventHubs</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.KafkaUtils</font>
+####Summary
+  
+            
+            Utils for Kafka input stream.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateDirectStream</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStreamWithRepartition</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr></table>
 
 ---
   
