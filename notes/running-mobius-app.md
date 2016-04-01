@@ -115,7 +115,9 @@ Displays the number of XML elements in the input XML file provided as the first 
 This example aggregates events published to EventHub in the format [timestamp],[loglevel],[logmessage] by time and log-level and prints the count of events per window.
 
 Note that all the dependencies listed above are available in maven that can be downloaded. [spark-streaming-eventhubs*.jar](https://github.com/hdinsight/spark-eventhubs) is not yet updated to support Spark version beyond 1.3.1 or published to Maven. A fork of this repo is available with preview releases at https://github.com/SparkCLR/spark-eventhubs/releases and the jar file can be downloaded from this location. 
- 
+
+### WordCount Example
+* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\WordCount\bin\Debug <inputFile>`
 
 ### HdfsWordCount Example
 * Remove `<checkpoint directory>` (used in next step) if it already exists.
