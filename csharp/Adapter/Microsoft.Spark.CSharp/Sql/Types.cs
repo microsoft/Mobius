@@ -14,6 +14,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
+    /// <summary>
+    /// The base type of all Spark SQL data types.
+    /// </summary>
     [Serializable]
     public abstract class DataType
     {
@@ -38,6 +41,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         internal virtual object JsonValue { get { return TypeName; } }
 
+        /// <summary>
+        /// The compact JSON representation of this data type.
+        /// </summary>
         public string Json
         {
             get
@@ -47,11 +53,23 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Parses a Json string to construct a DataType.
+        /// </summary>
+        /// <param name="json">The Json string to be parsed</param>
+        /// <returns>The new DataType instance from the Json string</returns>
         public static DataType ParseDataTypeFromJson(string json)
         {
             return ParseDataTypeFromJson(JToken.Parse(json));
         }
 
+        /// <summary>
+        /// Parse a JToken object to construct a DataType.
+        /// </summary>
+        /// <param name="json">The JToken object to be parsed</param>
+        /// <returns>The new DataType instance from the Json string</returns>
+        /// <exception cref="NotImplementedException">Not implemented for "udt" type</exception>
+        /// <exception cref="ArgumentException"></exception>
         protected static DataType ParseDataTypeFromJson(JToken json)
         {
             if (json.Type == JTokenType.Object) // {name: address, type: {type: struct,...},...}
@@ -112,63 +130,125 @@ namespace Microsoft.Spark.CSharp.Sql
 
     }
 
+    /// <summary>
+    /// An internal type used to represent a simple type. 
+    /// </summary>
     [Serializable]
     public class AtomicType : DataType
     {
     }
 
+    /// <summary>
+    /// An internal type used to represent a complex type (such as arrays, structs, and maps).
+    /// </summary>
     [Serializable]
     public abstract class ComplexType : DataType
     {
+        /// <summary>
+        /// Abstract method that constructs a complex type from a Json object
+        /// </summary>
+        /// <param name="json">The Json object to construct a complex type</param>
+        /// <returns>A new constructed complex type</returns>
         public abstract DataType FromJson(JObject json);
+        /// <summary>
+        /// Constructs a complex type from a Json string
+        /// </summary>
+        /// <param name="json">The string that represents a Json.</param>
+        /// <returns>A new constructed complex type</returns>
         public DataType FromJson(string json)
         {
             return FromJson(JObject.Parse(json));
         }
     }
 
-
+    /// <summary>
+    /// The data type representing NULL values.
+    /// </summary>
     [Serializable]
     public class NullType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing String values.
+    /// </summary>
     [Serializable]
     public class StringType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing binary values.
+    /// </summary>
     [Serializable]
     public class BinaryType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Boolean values.
+    /// </summary>
     [Serializable]
     public class BooleanType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Date values.
+    /// </summary>
     [Serializable]
     public class DateType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Timestamp values. 
+    /// </summary>
     [Serializable]
     public class TimestampType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Double values.
+    /// </summary>
     [Serializable]
     public class DoubleType : AtomicType { }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     public class FloatType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Float values.
+    /// </summary>
     [Serializable]
     public class ByteType : AtomicType { }
 
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     public class IntegerType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Int values.
+    /// </summary>
     [Serializable]
     public class LongType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Short values.
+    /// </summary>
     [Serializable]
     public class ShortType : AtomicType { }
 
+    /// <summary>
+    /// The data type representing Decimal values.
+    /// </summary>
     [Serializable]
     public class DecimalType : AtomicType
     {
+        /// <summary>
+        /// Gets the regular expression that represents a fixed decimal. 
+        /// </summary>
         public static Regex FixedDecimal = new Regex(@"decimal\((\d+),\s(\d+)\)");
         private int? precision, scale;
+        /// <summary>
+        /// Initializes a new instance of DecimalType from parameters specifying its precision and scale.
+        /// </summary>
+        /// <param name="precision">The precision of the type</param>
+        /// <param name="scale">The scale of the type</param>
         public DecimalType(int? precision = null, int? scale = null)
         {
             this.precision = precision;
@@ -180,18 +260,38 @@ namespace Microsoft.Spark.CSharp.Sql
             get { throw new NotImplementedException(); }
         }
 
+        /// <summary>
+        /// Constructs a DecimalType from a Json object
+        /// </summary>
+        /// <param name="json">The Json object used to construct a DecimalType</param>
+        /// <returns>A new DecimalType instance</returns>
+        /// <exception cref="NotImplementedException">Not implemented yet.</exception>
         public DataType FromJson(JObject json)
         {
             throw new NotImplementedException();
         }
     }
 
+    /// <summary>
+    /// The data type for collections of multiple values. 
+    /// </summary>
     [Serializable]
     public class ArrayType : ComplexType
     {
+        /// <summary>
+        /// Gets the DataType of each element in the array
+        /// </summary>
         public DataType ElementType { get { return elementType; } }
+        /// <summary>
+        /// Returns whether the array can contain null (None) values
+        /// </summary>
         public bool ContainsNull { get { return containsNull; } }
 
+        /// <summary>
+        /// Initializes a ArrayType instance with a specific DataType and specifying if the array has null values.
+        /// </summary>
+        /// <param name="elementType">The data type of values</param>
+        /// <param name="containsNull">Indicates if values have null values</param>
         public ArrayType(DataType elementType, bool containsNull = true)
         {
             this.elementType = elementType;
@@ -203,6 +303,9 @@ namespace Microsoft.Spark.CSharp.Sql
             FromJson(json);
         }
 
+        /// <summary>
+        /// Readable string representation for the type.
+        /// </summary>
         public override string SimpleString
         {
             get { return string.Format("array<{0}>", elementType.SimpleString); }
@@ -219,6 +322,11 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Constructs a ArrayType from a Json object
+        /// </summary>
+        /// <param name="json">The Json object used to construct a ArrayType</param>
+        /// <returns>A new ArrayType instance</returns>
         public override sealed DataType FromJson(JObject json)
         {
             elementType = ParseDataTypeFromJson(json["elementType"]);
@@ -230,6 +338,9 @@ namespace Microsoft.Spark.CSharp.Sql
         private bool containsNull;
     }
 
+    /// <summary>
+    /// The data type for Maps. Not implemented yet.
+    /// </summary>
     [Serializable]
     public class MapType : ComplexType
     {
@@ -238,20 +349,48 @@ namespace Microsoft.Spark.CSharp.Sql
             get { throw new NotImplementedException(); }
         }
 
+        /// <summary>
+        /// Constructs a StructField from a Json object. Not implemented yet.
+        /// </summary>
+        /// <param name="json">The Json object used to construct a MapType</param>
+        /// <returns>A new MapType instance</returns>
+        /// <exception cref="NotImplementedException"></exception>
         public override DataType FromJson(JObject json)
         {
             throw new NotImplementedException();
         }
     }
 
+    /// <summary>
+    /// A field inside a StructType.
+    /// </summary>
     [Serializable]
     public class StructField : ComplexType
     {
+        /// <summary>
+        /// The name of this field.
+        /// </summary>
         public string Name { get { return name; } }
+        /// <summary>
+        /// The data type of this field.
+        /// </summary>
         public DataType DataType { get { return dataType; } }
+        /// <summary>
+        /// Indicates if values of this field can be null values.
+        /// </summary>
         public bool IsNullable { get { return isNullable; } }
+        /// <summary>
+        /// The metadata of this field. The metadata should be preserved during transformation if the content of the column is not modified, e.g, in selection. 
+        /// </summary>
         public JObject Metadata { get { return metadata; } }
 
+        /// <summary>
+        /// Initializes a StructField instance with a specific name, data type, nullable, and metadata
+        /// </summary>
+        /// <param name="name">The name of this field</param>
+        /// <param name="dataType">The data type of this field</param>
+        /// <param name="isNullable">Indicates if values of this field can be null values</param>
+        /// <param name="metadata">The metadata of this field</param>
         public StructField(string name, DataType dataType, bool isNullable = true, JObject metadata = null)
         {
             this.name = name;
@@ -265,6 +404,9 @@ namespace Microsoft.Spark.CSharp.Sql
             FromJson(json);
         }
 
+        /// <summary>
+        /// Returns a readable string that represents the type.
+        /// </summary>
         public override string SimpleString { get { return string.Format(@"{0}:{1}", name, dataType.SimpleString); } }
 
         internal override object JsonValue
@@ -279,6 +421,11 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Constructs a StructField from a Json object
+        /// </summary>
+        /// <param name="json">The Json object used to construct a StructField</param>
+        /// <returns>A new StructField instance</returns>
         public override sealed DataType FromJson(JObject json)
         {
             name = json["name"].ToString();
@@ -295,9 +442,16 @@ namespace Microsoft.Spark.CSharp.Sql
         private JObject metadata;
     }
 
+    /// <summary>
+    /// Struct type, consisting of a list of StructField
+    /// This is the data type representing a Row
+    /// </summary>
     [Serializable]
     public class StructType : ComplexType
     {
+        /// <summary>
+        /// Gets a list of StructField.
+        /// </summary>
         public List<StructField> Fields { get { return fields; } }
 
         internal IStructTypeProxy StructTypeProxy
@@ -311,6 +465,10 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Initializes a StructType instance with a specific collection of SructField object.
+        /// </summary>
+        /// <param name="fields">The collection that holds StructField objects</param>
         public StructType(IEnumerable<StructField> fields)
         {
             this.fields = fields.ToList();
@@ -328,6 +486,9 @@ namespace Microsoft.Spark.CSharp.Sql
             FromJson(jsonSchema);
         }
 
+        /// <summary>
+        /// Returns a readable string that joins all <see cref="StructField"/>s together.
+        /// </summary>
         public override string SimpleString
         {
             get { return string.Format(@"struct<{0}>", string.Join(",", fields.Select(f => f.SimpleString))); }
@@ -343,6 +504,11 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Constructs a StructType from a Json object
+        /// </summary>
+        /// <param name="json">The Json object used to construct a StructType</param>
+        /// <returns>A new StructType instance</returns>
         public override sealed DataType FromJson(JObject json)
         {
             var fieldsJObjects = json["fields"].Select(f => (JObject)f);

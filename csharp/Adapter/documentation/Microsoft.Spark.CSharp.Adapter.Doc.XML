@@ -1055,7 +1055,13 @@
             These classes are to work around the limitation on the serializability of compiler generated types
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1" -->
+        <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1">
+            <summary>
+            Wraps C#-based transformations that can be executed within a stage. It helps avoid unnecessary Ser/De of data between
+            JVM and CLR to execute C# transformations and pipelines them
+            </summary>
+            <typeparam name="U"></typeparam>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDD`1">
             <summary>
             Represents a Resilient Distributed Dataset (RDD), the basic abstraction in Spark. Represents an immutable, 
@@ -1700,12 +1706,27 @@
             Return the name of this RDD.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndex``1(System.Func{System.Int32,System.Collections.Generic.IEnumerable{`0},System.Collections.Generic.IEnumerable{``0}},System.Boolean)">
+            <summary>
+            Return a new RDD by applying a function to each partition of this RDD,
+            while tracking the index of the original partition.
+            </summary>
+            <typeparam name="U1">The element type</typeparam>
+            <param name="newFunc">The function to be applied to each partition</param>
+            <param name="preservesPartitioningParam">Indicates if it preserves partition parameters</param>
+            <returns>A new RDD</returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndexHelper`2">
             <summary>
             This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
             private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
             for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
             on the serializability of compiler generated types
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.Profiler">
+            <summary>
+            A class represents a profiler
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StringRDDFunctions">
@@ -2399,8 +2420,18 @@
             Contains everything needed to setup an environment for using C# with Spark
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Interop.Ipc.IJvmBridge" -->
-        <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Interop.Ipc.JvmBridge" -->
+        <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.IJvmBridge">
+            <summary>
+            Behavior of the bridge used for the IPC interop between JVM and CLR
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.JvmBridge">
+            <summary>
+            Implementation of thread safe IPC bridge between JVM and CLR
+            throught a concourrent socket connection queue (lightweight synchronisation mechanism)
+            supporting async JVM calls like StreamingContext.AwaitTermination()
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.JvmObjectReference">
             <summary>
             Reference to object created in JVM
@@ -3995,6 +4026,27 @@
             <param name="name"></param>
             <param name="f"></param>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.DataType">
+            <summary>
+            The base type of all Spark SQL data types.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(System.String)">
+            <summary>
+            Parses a Json string to construct a DataType.
+            </summary>
+            <param name="json">The Json string to be parsed</param>
+            <returns>The new DataType instance from the Json string</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(Newtonsoft.Json.Linq.JToken)">
+            <summary>
+            Parse a JToken object to construct a DataType.
+            </summary>
+            <param name="json">The JToken object to be parsed</param>
+            <returns>The new DataType instance from the Json string</returns>
+            <exception cref="T:System.NotImplementedException">Not implemented for "udt" type</exception>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.DataType.TypeName">
             <summary>
             Trim "Type" in the end from class name, ToLower() to align with Scala.
@@ -4008,6 +4060,242 @@
         <member name="P:Microsoft.Spark.CSharp.Sql.DataType.JsonValue">
             <summary>
             return only type: TypeName by default, subclass can override it
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataType.Json">
+            <summary>
+            The compact JSON representation of this data type.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.AtomicType">
+            <summary>
+            An internal type used to represent a simple type. 
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.ComplexType">
+            <summary>
+            An internal type used to represent a complex type (such as arrays, structs, and maps).
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ComplexType.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Abstract method that constructs a complex type from a Json object
+            </summary>
+            <param name="json">The Json object to construct a complex type</param>
+            <returns>A new constructed complex type</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ComplexType.FromJson(System.String)">
+            <summary>
+            Constructs a complex type from a Json string
+            </summary>
+            <param name="json">The string that represents a Json.</param>
+            <returns>A new constructed complex type</returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.NullType">
+            <summary>
+            The data type representing NULL values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.StringType">
+            <summary>
+            The data type representing String values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.BinaryType">
+            <summary>
+            The data type representing binary values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.BooleanType">
+            <summary>
+            The data type representing Boolean values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.DateType">
+            <summary>
+            The data type representing Date values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.TimestampType">
+            <summary>
+            The data type representing Timestamp values. 
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.DoubleType">
+            <summary>
+            The data type representing Double values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.FloatType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.ByteType">
+            <summary>
+            The data type representing Float values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.IntegerType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.LongType">
+            <summary>
+            The data type representing Int values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.ShortType">
+            <summary>
+            The data type representing Short values.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.DecimalType">
+            <summary>
+            The data type representing Decimal values.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Sql.DecimalType.FixedDecimal">
+            <summary>
+            Gets the regular expression that represents a fixed decimal. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DecimalType.#ctor(System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            Initializes a new instance of DecimalType from parameters specifying its precision and scale.
+            </summary>
+            <param name="precision">The precision of the type</param>
+            <param name="scale">The scale of the type</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DecimalType.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a DecimalType from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a DecimalType</param>
+            <returns>A new DecimalType instance</returns>
+            <exception cref="T:System.NotImplementedException">Not implemented yet.</exception>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.ArrayType">
+            <summary>
+            The data type for collections of multiple values. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.#ctor(Microsoft.Spark.CSharp.Sql.DataType,System.Boolean)">
+            <summary>
+            Initializes a ArrayType instance with a specific DataType and specifying if the array has null values.
+            </summary>
+            <param name="elementType">The data type of values</param>
+            <param name="containsNull">Indicates if values have null values</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a ArrayType from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a ArrayType</param>
+            <returns>A new ArrayType instance</returns>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.ArrayType.ElementType">
+            <summary>
+            Gets the DataType of each element in the array
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.ArrayType.ContainsNull">
+            <summary>
+            Returns whether the array can contain null (None) values
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.ArrayType.SimpleString">
+            <summary>
+            Readable string representation for the type.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.MapType">
+            <summary>
+            The data type for Maps. Not implemented yet.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.MapType.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a StructField from a Json object. Not implemented yet.
+            </summary>
+            <param name="json">The Json object used to construct a MapType</param>
+            <returns>A new MapType instance</returns>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.StructField">
+            <summary>
+            A field inside a StructType.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.#ctor(System.String,Microsoft.Spark.CSharp.Sql.DataType,System.Boolean,Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Initializes a StructField instance with a specific name, data type, nullable, and metadata
+            </summary>
+            <param name="name">The name of this field</param>
+            <param name="dataType">The data type of this field</param>
+            <param name="isNullable">Indicates if values of this field can be null values</param>
+            <param name="metadata">The metadata of this field</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a StructField from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a StructField</param>
+            <returns>A new StructField instance</returns>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructField.Name">
+            <summary>
+            The name of this field.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructField.DataType">
+            <summary>
+            The data type of this field.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructField.IsNullable">
+            <summary>
+            Indicates if values of this field can be null values.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructField.Metadata">
+            <summary>
+            The metadata of this field. The metadata should be preserved during transformation if the content of the column is not modified, e.g, in selection. 
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructField.SimpleString">
+            <summary>
+            Returns a readable string that represents the type.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.StructType">
+            <summary>
+            Struct type, consisting of a list of StructField
+            This is the data type representing a Row
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructType.#ctor(System.Collections.Generic.IEnumerable{Microsoft.Spark.CSharp.Sql.StructField})">
+            <summary>
+            Initializes a StructType instance with a specific collection of SructField object.
+            </summary>
+            <param name="fields">The collection that holds StructField objects</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructType.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a StructType from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a StructType</param>
+            <returns>A new StructType instance</returns>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.Fields">
+            <summary>
+            Gets a list of StructField.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.SimpleString">
+            <summary>
+            Returns a readable string that joins all <see cref="T:Microsoft.Spark.CSharp.Sql.StructField"/>s together.
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.DStream`1">
@@ -4379,7 +4667,7 @@
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.UInt32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32)">
             <summary>
             Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
             
@@ -4407,6 +4695,9 @@
                 user hint on how many kafka RDD partitions to create instead of aligning with kafka partitions,
                 unbalanced kafka partitions and/or under-distributed data will be redistributed evenly across 
                 a probably larger number of RDD partitions
+                If numPartitions = -1, either repartition based on spark.streaming.kafka.maxRatePerTask or do nothing if config not defined
+                If numPartitions = 0, repartition using original kafka partition count
+                If numPartitions > 0, repartition using this parameter
             </param>
             <returns>A DStream object</returns>
         </member>
@@ -4739,6 +5030,13 @@
             </summary>
             <param name="streamingContextProxy"></param>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext,System.Int64)">
+            <summary>
+            Initializes a new instance of StreamingContext with a existing SparkContext 
+            </summary>
+            <param name="sparkContext">An existing SparkContext</param>
+            <param name="durationMs">the time interval at which streaming data will be divided into batches</param>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.GetOrCreate(System.String,System.Func{Microsoft.Spark.CSharp.Streaming.StreamingContext})">
             <summary>
             Either recreate a StreamingContext from checkpoint data or create a new StreamingContext.
@@ -4749,6 +5047,16 @@
             <param name="checkpointPath">Checkpoint directory used in an earlier JavaStreamingContext program</param>
             <param name="creatingFunc">Function to create a new JavaStreamingContext and setup DStreams</param>
             <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.Start">
+            <summary>
+            Start the execution of the streams. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.Stop">
+            <summary>
+            Stop the execution of the streams.
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.Remember(System.Int64)">
             <summary>
