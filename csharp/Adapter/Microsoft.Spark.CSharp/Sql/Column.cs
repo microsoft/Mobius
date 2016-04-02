@@ -62,7 +62,7 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
-        /// Subtraction of this expresion and another expression.
+        /// Subtraction of this expression and another expression.
         /// </summary>
         /// <param name="self">The column self to compute</param>
         /// <param name="other">The other object to compute</param>

@@ -2689,10 +2689,278 @@
             Right now it just prints out the messages to Console
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Services.ILoggerService">
+            <summary>
+            Defines a logger what be used in service
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.GetLoggerInstance(System.Type)">
+            <summary>
+            Get an instance of ILoggerService by a given type of logger
+            </summary>
+            <param name="type">The type of a logger to return</param>
+            <returns>An instance of ILoggerService</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogDebug(System.String)">
+            <summary>
+            Logs a message at debug level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogDebug(System.String,System.Object[])">
+            <summary>
+            Logs a message at debug level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogInfo(System.String)">
+            <summary>
+            Logs a message at info level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogInfo(System.String,System.Object[])">
+            <summary>
+            Logs a message at info level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogWarn(System.String)">
+            <summary>
+            Logs a message at warning level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogWarn(System.String,System.Object[])">
+            <summary>
+            Logs a message at warning level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogFatal(System.String)">
+            <summary>
+            Logs a fatal message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogFatal(System.String,System.Object[])">
+            <summary>
+            Logs a fatal message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogError(System.String)">
+            <summary>
+            Logs a error message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogError(System.String,System.Object[])">
+            <summary>
+            Logs a error message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogException(System.Exception)">
+            <summary>
+            Logs an exception
+            </summary>
+            <param name="e">The exception to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.GetLoggerInstance(System.Type)">
+            <summary>
+            Get an instance of ILoggerService by a given type of logger
+            </summary>
+            <param name="type">The type of a logger to return</param>
+            <returns>An instance of ILoggerService</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String)">
+            <summary>
+            Logs a message at debug level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String,System.Object[])">
+            <summary>
+            Logs a message at debug level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String)">
+            <summary>
+            Logs a message at info level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String,System.Object[])">
+            <summary>
+            Logs a message at info level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String)">
+            <summary>
+            Logs a message at warning level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String,System.Object[])">
+            <summary>
+            Logs a message at warning level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String)">
+            <summary>
+            Logs a fatal message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String,System.Object[])">
+            <summary>
+            Logs a fatal message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String)">
+            <summary>
+            Logs a error message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String,System.Object[])">
+            <summary>
+            Logs a error message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogException(System.Exception)">
+            <summary>
+            Logs an exception
+            </summary>
+            <param name="e">The exception to be logged</param>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Services.Log4NetLoggerService">
+            <summary>
+            Represents a Log4Net logger.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.Instance">
+            <summary>
+            Gets a instance of Log4Net logger
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.#ctor(System.Type)">
+            <summary>
+            Initializes a instance of Log4NetLoggerService with a specific type.
+            </summary>
+            <param name="type">The type of the logger</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogDebug(System.String)">
+            <summary>
+            Logs a message at debug level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogDebug(System.String,System.Object[])">
+            <summary>
+            Logs a message at debug level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogInfo(System.String)">
+            <summary>
+            Logs a message at info level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogInfo(System.String,System.Object[])">
+            <summary>
+            Logs a message at info level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogWarn(System.String)">
+            <summary>
+            Logs a message at warning level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogWarn(System.String,System.Object[])">
+            <summary>
+            Logs a message at warning level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogFatal(System.String)">
+            <summary>
+            Logs a fatal message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogFatal(System.String,System.Object[])">
+            <summary>
+            Logs a fatal message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogError(System.String)">
+            <summary>
+            Logs a error message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogError(System.String,System.Object[])">
+            <summary>
+            Logs a error message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogException(System.Exception)">
+            <summary>
+            Logs an exception
+            </summary>
+            <param name="e">The exception to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.GetLoggerInstance(System.Type)">
+            <summary>
+            Get an instance of ILoggerService by a given type of logger
+            </summary>
+            <param name="type">The type of a logger to return</param>
+            <returns>An instance of ILoggerService</returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Services.LoggerServiceFactory">
             <summary>
             Used to get logger service instances for different types
             </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.LoggerServiceFactory.SetLoggerService(Microsoft.Spark.CSharp.Services.ILoggerService)">
+            <summary>
+            Overrides an existing logger by a given logger service instance
+            </summary>
+            <param name="loggerServiceOverride">The logger service instance used to overrides</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.LoggerServiceFactory.GetLogger(System.Type)">
+            <summary>
+            Gets an instance of logger service for a given type.
+            </summary>
+            <param name="type">The type of logger service to get</param>
+            <returns>An instance of logger service</returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.Column">
             <summary>
@@ -2723,7 +2991,7 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.Column.op_Subtraction(Microsoft.Spark.CSharp.Sql.Column,System.Object)">
             <summary>
-            Subtraction
+            Subtraction of this expression and another expression.
             </summary>
             <param name="self">The column self to compute</param>
             <param name="other">The other object to compute</param>
