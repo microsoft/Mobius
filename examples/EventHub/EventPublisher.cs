@@ -16,11 +16,21 @@ namespace Microsoft.Spark.CSharp.Examples
          * Following connection parameters to EventHub need to 
          * be set appropriately before publishing
          *****************************************************/
+/*
         private static readonly string EventHubName = "<name>";
+*/
+/*
         private static readonly string Namespace = "<namespace>";
+*/
+/*
         private static readonly string KeyName = "<keyname>";
+*/
+/*
         private static readonly string Key = "<key>";
+*/
+/*
         private static readonly string ConnectionStringFormat = "Endpoint=sb://{0}.servicebus.windows.net/;SharedAccessKeyName={1};SharedAccessKey={2}";
+*/
 
         private static readonly string[] LogLevels = { "Info", "Debug", "Error", "Fatal" };
         private static readonly Random RandomLogLevel = new Random();
