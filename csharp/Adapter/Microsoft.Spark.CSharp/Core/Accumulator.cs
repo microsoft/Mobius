@@ -75,6 +75,19 @@ namespace Microsoft.Spark.CSharp.Core
             accumulatorRegistry[accumulatorId] = this;
         }
 
+        [OnDeserialized()]
+        internal void OnDeserializedMethod(System.Runtime.Serialization.StreamingContext context)
+        {
+            if (threadLocalAccumulatorRegistry == null)
+            {
+                threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
+            }
+            if (!threadLocalAccumulatorRegistry.ContainsKey(accumulatorId))
+            {
+                threadLocalAccumulatorRegistry[accumulatorId] = this;
+            }
+        }
+
         /// <summary>
         /// Gets or sets the value of the accumulator; only usable in driver program
         /// </summary>
@@ -119,20 +132,6 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static Accumulator<T> operator +(Accumulator<T> self, T term)
         {
-            if (self.isDriver) // this is in driver
-            {
-                if (!accumulatorRegistry.ContainsKey(self.accumulatorId))
-                {
-                    accumulatorRegistry[self.accumulatorId] = self;
-                }
-            }
-            else // this is in executor
-            {
-                if (!threadLocalAccumulatorRegistry.ContainsKey(self.accumulatorId))
-                {
-                    threadLocalAccumulatorRegistry[self.accumulatorId] = self;
-                }
-            }
             self.Add(term);
             return self;
         }
