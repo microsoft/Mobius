@@ -111,7 +111,7 @@ namespace Microsoft.Spark.CSharp
         private static string brokers = ConfigurationManager.AppSettings["KafkaTestBrokers"] ?? "127.0.0.1:9092";
         private static string topic = ConfigurationManager.AppSettings["KafkaTestTopic"] ?? "test";
         // expected partitions
-        private static uint partitions = uint.Parse(ConfigurationManager.AppSettings["KafkaTestPartitions"] ?? "10");
+        private static int partitions = int.Parse(ConfigurationManager.AppSettings["KafkaTestPartitions"] ?? "10");
         // total message count
         private static uint  messages = uint.Parse(ConfigurationManager.AppSettings["KafkaMessageCount"] ?? "100");
 

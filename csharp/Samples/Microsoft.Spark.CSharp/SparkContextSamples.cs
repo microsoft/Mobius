@@ -64,14 +64,30 @@ namespace Microsoft.Spark.CSharp.Samples
         internal class AccumulatorHelper
         {
             private Accumulator<int> accumulator;
-            internal AccumulatorHelper(Accumulator<int> accumulator)
+            private bool async;
+            internal AccumulatorHelper(Accumulator<int> accumulator, bool async = false)
             {
                 this.accumulator = accumulator;
+                this.async = async;
             }
 
             internal void Execute(int input)
             {
-                accumulator += input;
+                if (async)
+                {
+                    // start new task
+                    var task = new Task(() =>
+                    {
+                        accumulator += input;
+                    });
+                    task.Start();
+                    task.Wait();
+                }
+                else
+                {
+                    accumulator += input;
+                }
+
             }
         }
 
@@ -79,14 +95,17 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void SparkContextAccumulatorSample()
         {
             var a = SparkCLRSamples.SparkContext.Accumulator<int>(100);
-            SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4 }, 3).Foreach(new AccumulatorHelper(a).Execute);
+            var b = SparkCLRSamples.SparkContext.Accumulator<int>(100);
 
-            Console.WriteLine("accumulator value: " + a.Value);
+            SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4 }, 3).Foreach(new AccumulatorHelper(a).Execute);
+            SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4 }, 3).Foreach(new AccumulatorHelper(b, true).Execute);
+            Console.WriteLine("accumulator value, a: {0}, b: {1}", a.Value, b.Value);
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
                 // The value is accumulated on the initial value of the Accumulator which is 100. 110 = 100 + 1 + 2 + 3 + 4
                 Assert.AreEqual(110, a.Value);
+                Assert.AreEqual(110, b.Value);
             }
         }
 

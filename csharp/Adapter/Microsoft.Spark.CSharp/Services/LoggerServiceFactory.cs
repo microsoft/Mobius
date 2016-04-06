@@ -13,6 +13,10 @@ namespace Microsoft.Spark.CSharp.Services
     {
         private static ILoggerService loggerService = DefaultLoggerService.Instance;
         
+        /// <summary>
+        /// Overrides an existing logger by a given logger service instance
+        /// </summary>
+        /// <param name="loggerServiceOverride">The logger service instance used to overrides</param>
         public static void SetLoggerService(ILoggerService loggerServiceOverride)
         {
             loggerService = loggerServiceOverride;
@@ -20,6 +24,11 @@ namespace Microsoft.Spark.CSharp.Services
             logger.LogInfo("Logger service configured to use {0}", logger.GetType().Name);
         }
 
+        /// <summary>
+        /// Gets an instance of logger service for a given type.
+        /// </summary>
+        /// <param name="type">The type of logger service to get</param>
+        /// <returns>An instance of logger service</returns>
         public static ILoggerService GetLogger(Type type)
         {
             return  loggerService.GetLoggerInstance(type);

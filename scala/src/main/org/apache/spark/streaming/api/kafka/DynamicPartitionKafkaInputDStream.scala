@@ -5,6 +5,8 @@
 
 package org.apache.spark.streaming.kafka
 
+import java.util.UUID
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -69,7 +71,7 @@ class DynamicPartitionKafkaInputDStream[
   private var topicAndPartitions: Set[TopicAndPartition] = Set()
 
   @transient private var refreshOffsetsScheduler =
-    ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets")
+    ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets-" + UUID.randomUUID().toString().substring(0,8))
 
   // reading metadata of mutilple topics from across multiple data centers takes long time to complete,
   // which impacts DStream performance and causes UI steaming tab not responsive due to mutex held by DStream
@@ -236,7 +238,7 @@ class DynamicPartitionKafkaInputDStream[
   // start a new thread to refresh offsets range asynchronously
   if (refreshOffsetsScheduler == null) {
     refreshOffsetsScheduler =
-      ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets")
+      ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets-" + UUID.randomUUID().toString().substring(0,8))
   }
   refreshOffsetsScheduler.scheduleAtFixedRate(new Runnable {
     override def run(): Unit = {

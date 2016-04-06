@@ -161,7 +161,7 @@ namespace Microsoft.Spark.CSharp.Configuration
 
         /// <summary>
         /// Configuration mode for debug mode
-        /// This configuration exists only to make SparkCLR development & debugging easier
+        /// This configuration exists only to make SparkCLR development and debugging easier
         /// </summary>
         private class SparkCLRDebugConfiguration : SparkCLRLocalConfiguration
         {
@@ -212,12 +212,30 @@ namespace Microsoft.Spark.CSharp.Configuration
         }
     }
 
+    /// <summary>
+    /// The running mode used by Configuration Service
+    /// </summary>
     public enum RunMode
     {
+        /// <summary>
+        /// Unknown running mode
+        /// </summary>
         UNKNOWN,
-        DEBUG, //not a Spark mode but exists for dev debugging purpose
+        /// <summary>
+        /// Debug mode, not a Spark mode but exists for develop debugging purpose
+        /// </summary>
+        DEBUG,
+        /// <summary>
+        /// Indicates service is running in local
+        /// </summary>
         LOCAL,
+        /// <summary>
+        /// Indicates service is running in cluster
+        /// </summary>
         CLUSTER,
+        /// <summary>
+        /// Indicates service is running in Yarn
+        /// </summary>
         YARN
         //MESOS //not currently supported
     }

@@ -57,7 +57,7 @@ namespace Microsoft.Spark.CSharp
 
                 // can not initialize logger earlier to avoid unwanted stdout ouput 
                 InitializeLogger();
-                logger.LogInfo("RunDaemonWorker ...");
+                logger.LogInfo("Run MultiThreadWorker ...");
                 logger.LogDebug("Port number used to pipe in/out data between JVM and CLR {0}", localPort);
                 Worker.PrintFiles();
 
