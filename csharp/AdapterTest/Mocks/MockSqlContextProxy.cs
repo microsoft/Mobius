@@ -138,5 +138,10 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public void RefreshTable(string tableName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
