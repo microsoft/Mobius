@@ -83,26 +83,28 @@ The instructions above cover running Mobius applications in Windows. With the fo
 ## Running Examples in Local Mode
 The following sample commands show how to run Mobius examples in local mode. Using the instruction above, the following sample commands can be tweaked to run in other modes
 
-### Pi Example
-* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Pi\bin\Debug`
+### Pi Example (Batch)
+* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Batch\Pi\bin\Debug`
 
 Computes the _approximate_ value of Pi using two appropaches and displays the value.
 
-### JDBC Example
+### WordCount Example (Batch)
+* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Batch\WordCount\bin\Debug <inputFile>`
+
+### JDBC Example (Sql)
 * Download a JDBC driver for the SQL Database you want to use
-* `sparkclr-submit.cmd --jars C:\MobiusDependencies\sqljdbc4.jar --exe SparkClrJdbc.exe C:\Git\Mobius\examples\JdbcDataFrame\bin\Debug <jdbc connection string> <table name>`
+* `sparkclr-submit.cmd --jars C:\MobiusDependencies\sqljdbc4.jar --exe SparkClrJdbc.exe C:\Git\Mobius\examples\Sql\JdbcDataFrame\bin\Debug <jdbc connection string> <table name>`
 
 The schema and row count of the table name provided as the commandline argument to SparkClrJdbc.exe is displayed.
 
-### Spark-XML Example
+### Spark-XML Example (Sql)
 * Download [books.xml](https://github.com/databricks/spark-xml/blob/master/src/test/resources/books.xml) and the location of this file is the first argument to SparkClrXml.exe below
 * 
-`sparkclr-submit.cmd --jars C:\MobiusDependencies\spark-xml_2.10-0.3.1.jar --exe SparkClrXml.exe C:\Git\Mobius\examples\SparkXml\bin\Debug C:\MobiusData\books.xml C:\MobiusData\booksModified.xml`
+`sparkclr-submit.cmd --jars C:\MobiusDependencies\spark-xml_2.10-0.3.1.jar --exe SparkClrXml.exe C:\Git\Mobius\examples\Sql\SparkXml\bin\Debug C:\MobiusData\books.xml C:\MobiusData\booksModified.xml`
 
 Displays the number of XML elements in the input XML file provided as the first argument to SparkClrXml.exe and writes the modified XML to the file specified in the second commandline argument.
 
-
-### EventHubs Example
+### EventHubs Example (Streaming)
 * Get the following jar files
   * qpid-amqp-1-0-client-0.32.jar
   * qpid-amqp-1-0-common-0.32.jar
@@ -110,16 +112,13 @@ Displays the number of XML elements in the input XML file provided as the first 
   * spark-streaming-eventhubs_2.10-0.1.0.jar
 * Publish sample events to EventHubs to be used in this example using EventPublisher class (remember to update packages.config, connection parameters to EventHub and uncomment commented out statements to build and use EventPublisher)
 * Update EventHubs connection parameters in SparkCLREventHubsExample implementation and build
-* `sparkclr-submit.cmd --master local[4] --conf spark.local.dir=d:\temp --jars C:\MobiusDependencies\spark-streaming-eventhubs_2.10-0.1.0.jar,C:\MobiusDependencies\eventhubs-client-0.9.1.jar,C:\MobiusDependencies\qpid-amqp-1-0-client-0.32.jar,C:\MobiusDependencies\qpid-amqp-1-0-common-0.32.jar --exe SparkCLREventHub.exe C:\Git\Mobius\examples\EventHub\bin\Debug`
+* `sparkclr-submit.cmd --master local[4] --conf spark.local.dir=d:\temp --jars C:\MobiusDependencies\spark-streaming-eventhubs_2.10-0.1.0.jar,C:\MobiusDependencies\eventhubs-client-0.9.1.jar,C:\MobiusDependencies\qpid-amqp-1-0-client-0.32.jar,C:\MobiusDependencies\qpid-amqp-1-0-common-0.32.jar --exe SparkCLREventHub.exe C:\Git\Mobius\examples\Streaming\EventHub\bin\Debug`
 
 This example aggregates events published to EventHub in the format [timestamp],[loglevel],[logmessage] by time and log-level and prints the count of events per window.
 
 Note that all the dependencies listed above are available in maven that can be downloaded. [spark-streaming-eventhubs*.jar](https://github.com/hdinsight/spark-eventhubs) is not yet updated to support Spark version beyond 1.3.1 or published to Maven. A fork of this repo is available with preview releases at https://github.com/SparkCLR/spark-eventhubs/releases and the jar file can be downloaded from this location. 
 
-### WordCount Example
-* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\WordCount\bin\Debug <inputFile>`
-
-### HdfsWordCount Example
+### HdfsWordCount Example (Streaming)
 * Remove `<checkpoint directory>` (used in next step) if it already exists.
 * Run `sparkclr-submit.cmd --exe SparkClrHdfsWordCount.exe C:\Git\Mobius\examples\Streaming\HdfsWordCount\bin\Debug <checkpoint directory> <input directory>`
 
