@@ -119,6 +119,7 @@
     <Compile Include="Sql\DataFrameNaFunctions.cs" />
     <Compile Include="Sql\DataFrameReader.cs" />
     <Compile Include="Sql\DataFrameWriter.cs" />
+    <Compile Include="Sql\HiveContext.cs" />
     <Compile Include="Sql\PythonSerDe.cs" />
     <Compile Include="Sql\RowConstructor.cs" />
     <Compile Include="Sql\Row.cs" />

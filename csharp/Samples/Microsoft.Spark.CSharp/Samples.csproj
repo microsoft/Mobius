@@ -61,6 +61,7 @@
     <Compile Include="SamplesRunner.cs" />
     <Compile Include="SparkContextSamples.cs" />
     <Compile Include="RDDSamples.cs" />
+    <Compile Include="HiveContextSamples.cs" />
     <Compile Include="SqlContextSamples.cs" />
   </ItemGroup>
   <ItemGroup>

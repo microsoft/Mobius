@@ -12,6 +12,7 @@ import org.apache.spark.api.csharp.SerDe
 import org.apache.spark.api.java.{JavaRDD, JavaSparkContext}
 import org.apache.spark.api.python.SerDeUtil
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.{DataType, FloatType, StructType}
 import org.apache.spark.sql._
 import java.util.{ArrayList => JArrayList}
@@ -24,7 +25,11 @@ import java.util.{ArrayList => JArrayList}
  */
 object SQLUtils {
   def createSQLContext(sc: SparkContext): SQLContext = {
-    new SQLContext(sc)
+      new SQLContext(sc)
+  }
+
+  def createHiveContext(sc: SparkContext): SQLContext = {
+      new HiveContext(sc)
   }
 
   def getJavaSparkContext(sqlCtx: SQLContext): JavaSparkContext = {
