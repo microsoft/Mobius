@@ -8,6 +8,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -32,15 +33,16 @@ namespace Microsoft.Spark.CSharp.Samples
             var hiveContext = GetHiveContext();
             var peopleDataFrame = hiveContext.Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
 
-            const string dbName = "SampleDataBase";
+            const string dbName = "SampleHiveDataBaseForMobius";
             const string tableName = "people";
 
             // create database and delete table 'people' if exists
             hiveContext.Sql(string.Format("CREATE DATABASE IF NOT EXISTS {0}", dbName));
+            hiveContext.Sql(string.Format("USE {0}", dbName));
             hiveContext.Sql(string.Format("DROP TABLE {0}", tableName));
 
             // SaveAsTable
-            peopleDataFrame.Write().SaveAsTable("people");
+            peopleDataFrame.Write().Mode(SaveMode.Overwrite).SaveAsTable("people");
             var tablesDataFrame = hiveContext.Tables(dbName);
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
