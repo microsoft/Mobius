@@ -183,7 +183,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public IEnumerable<string> TableNames(string databaseName = null)
         {
             return databaseName == null ?
-                sqlContextProxy.TableNames() : SqlContextProxy.TableNames(databaseName);
+                sqlContextProxy.TableNames() : sqlContextProxy.TableNames(databaseName);
         }
 
         /// <summary>

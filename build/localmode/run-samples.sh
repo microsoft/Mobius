@@ -73,6 +73,10 @@ export SPARKCSV_JARS=
 export HADOOP_CONF_DIR=
 export YARN_CONF_DIR=
 
+#rem set permission for samples run on Hive
+mkdir /user/hive/warehouse
+chmod -R 777 /user/hive/warehouse
+
 export TEMP_DIR=$SPARKCLR_HOME/Temp
 [ ! -d "$TEMP_DIR" ] && mkdir "$TEMP_DIR"
 export SAMPLES_DIR=$SPARKCLR_HOME/samples

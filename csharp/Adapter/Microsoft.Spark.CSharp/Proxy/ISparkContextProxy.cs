@@ -15,6 +15,7 @@ namespace Microsoft.Spark.CSharp.Proxy
     internal interface ISparkContextProxy
     {
         ISqlContextProxy CreateSqlContext();
+        ISqlContextProxy CreateHiveContext();
         IColumnProxy CreateColumnFromName(string name);
         IColumnProxy CreateFunction(string name, object self);
         IColumnProxy CreateBinaryMathFunction(string name, object self, object other);
