@@ -68,9 +68,8 @@ set HADOOP_CONF_DIR=
 set YARN_CONF_DIR=
 
 @rem set permission for samples run on Hive
-%HADOOP_HOME%\bin\hdfs dfs -mkdir /tmp
-%HADOOP_HOME%\bin\hdfs dfs -mkdir /tmp/hive
-%HADOOP_HOME%\bin\hdfs dfs -chmod 777 /tmp/hive
+%HADOOP_HOME%\bin\winutils.exe mkdir \tmp\hive
+%HADOOP_HOME%\bin\winutils.exe chmod -R 777 \tmp\hive
 
 set TEMP_DIR=%SPARKCLR_HOME%\Temp
 if NOT EXIST "%TEMP_DIR%" mkdir "%TEMP_DIR%"
