@@ -63,9 +63,9 @@ if defined ProjectVersion (
 set SPARKCLR_HOME=%CMDHOME%\..\runtime
 set SPARKCSV_JARS=
 
-@rem RunSamples.cmd is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
-set HADOOP_CONF_DIR=
-set YARN_CONF_DIR=
+REM @rem RunSamples.cmd is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
+REM set HADOOP_CONF_DIR=
+REM set YARN_CONF_DIR=
 
 set TEMP_DIR=%SPARKCLR_HOME%\Temp
 if NOT EXIST "%TEMP_DIR%" mkdir "%TEMP_DIR%"

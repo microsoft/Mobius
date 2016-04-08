@@ -69,9 +69,9 @@ fi
 export SPARKCLR_HOME="$FWDIR/../runtime"
 export SPARKCSV_JARS=
 
-# run-samples.sh is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
-export HADOOP_CONF_DIR=
-export YARN_CONF_DIR=
+# # run-samples.sh is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
+# export HADOOP_CONF_DIR=
+# export YARN_CONF_DIR=
 
 export TEMP_DIR=$SPARKCLR_HOME/Temp
 [ ! -d "$TEMP_DIR" ] && mkdir "$TEMP_DIR"

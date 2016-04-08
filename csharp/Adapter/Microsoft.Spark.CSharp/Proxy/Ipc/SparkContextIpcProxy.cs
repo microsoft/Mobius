@@ -39,6 +39,13 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new SqlContextIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createSQLContext", new object[] { jvmSparkContextReference })));
         }
 
+        public ISqlContextProxy CreateHiveContext()
+        {
+            return new SqlContextIpcProxy(new JvmObjectReference(
+                (string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
+                    "org.apache.spark.sql.api.csharp.SQLUtils", "createHiveContext", new object[] { jvmSparkContextReference })));
+        }
+
         public void CreateSparkContext(string master, string appName, string sparkHome, ISparkConfProxy conf)
         {
             object[] args = (new object[] { master, appName, sparkHome, (conf == null ? null : (conf as SparkConfIpcProxy).JvmSparkConfReference) }).Where(x => x != null).ToArray();
