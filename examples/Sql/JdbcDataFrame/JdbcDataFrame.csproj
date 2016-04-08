@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{913E6A56-9839-4379-8B3C-855BA9341663}</ProjectGuid>
+    <ProjectGuid>{4DAFC0A4-0619-4D6C-BF8E-9EC84C9DE9FC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Spark.CSharp.Examples</RootNamespace>
-    <AssemblyName>SparkClrPi</AssemblyName>
+    <AssemblyName>SparkClrJdbc</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
@@ -23,7 +23,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,28 +34,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="CSharpWorker">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\..\..\..\..\streaming\SparkCLR\examples\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe</HintPath>
     </Reference>
     <Reference Include="log4net">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <HintPath>..\..\..\..\..\streaming\SparkCLR\examples\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Spark.CSharp.Adapter">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
-    </Reference>
-    <Reference Include="Razorvine.Pyrolite">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Razorvine.Pyrolite.4.10.0.0\lib\net40\Razorvine.Pyrolite.dll</HintPath>
-    </Reference>
-    <Reference Include="Razorvine.Serpent">
-      <HintPath>..\packages\Razorvine.Serpent.1.12.0.0\lib\net40\Razorvine.Serpent.dll</HintPath>
+      <HintPath>..\..\..\..\..\streaming\SparkCLR\examples\packages\Microsoft.SparkCLR.1.5.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -67,15 +52,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
+    <None Include="..\..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe.config">
+      <Link>CSharpWorker.exe.config</Link>
     </None>
+    <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="..\packages\Microsoft.SparkCLR.1.5.200\lib\net45\CSharpWorker.exe.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
