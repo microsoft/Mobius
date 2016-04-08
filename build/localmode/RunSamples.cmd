@@ -63,9 +63,14 @@ if defined ProjectVersion (
 set SPARKCLR_HOME=%CMDHOME%\..\runtime
 set SPARKCSV_JARS=
 
-REM @rem RunSamples.cmd is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
-REM set HADOOP_CONF_DIR=
-REM set YARN_CONF_DIR=
+@rem RunSamples.cmd is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
+set HADOOP_CONF_DIR=
+set YARN_CONF_DIR=
+
+@rem set permission for samples run on Hive
+%HADOOP_HOME%\bin\hdfs dfs -mkdir /tmp
+%HADOOP_HOME%\bin\hdfs dfs -mkdir /tmp/hive
+%HADOOP_HOME%\bin\hdfs dfs -chmod 777 /tmp/hive
 
 set TEMP_DIR=%SPARKCLR_HOME%\Temp
 if NOT EXIST "%TEMP_DIR%" mkdir "%TEMP_DIR%"
