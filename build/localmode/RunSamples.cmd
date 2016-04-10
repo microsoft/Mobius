@@ -67,10 +67,6 @@ set SPARKCSV_JARS=
 set HADOOP_CONF_DIR=
 set YARN_CONF_DIR=
 
-@rem set permission for samples run on Hive
-%HADOOP_HOME%\bin\winutils.exe mkdir \tmp\hive
-%HADOOP_HOME%\bin\winutils.exe chmod -R 777 \tmp\hive
-
 set TEMP_DIR=%SPARKCLR_HOME%\Temp
 if NOT EXIST "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 set SAMPLES_DIR=%SPARKCLR_HOME%\samples
