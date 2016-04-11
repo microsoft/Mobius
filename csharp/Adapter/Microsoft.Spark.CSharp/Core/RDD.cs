@@ -1147,10 +1147,12 @@ namespace Microsoft.Spark.CSharp.Core
         /// <typeparam name="T"></typeparam>
         /// <param name="self"></param>
         /// <param name="num"></param>
+        /// <param name="keyFunc"></param>
         /// <returns></returns>
-        public static T[] TakeOrdered<T>(this RDD<T> self, int num) where T : IComparable<T>
+        public static T[] TakeOrdered<T>(this RDD<T> self, int num, Func<T, dynamic> keyFunc = null) where T : IComparable<T>
         {
-            return self.MapPartitionsWithIndex<T>(new TakeOrderedHelper<T>(num).Execute).Collect().OrderBy(x => x).Take(num).ToArray();
+            return self.MapPartitionsWithIndex<T>(new TakeOrderedHelper<T>(num, keyFunc).Execute).Collect()
+                .OrderBy(x => keyFunc == null ? x : keyFunc(x)).Take(num).ToArray();
         }
 
         /// <summary>
@@ -1464,13 +1466,15 @@ namespace Microsoft.Spark.CSharp.Core
     internal class TakeOrderedHelper<T>
     {
         private readonly int num;
-        internal TakeOrderedHelper(int num)
+        private readonly Func<T, dynamic> keyFunc;
+        internal TakeOrderedHelper(int num, Func<T, dynamic> keyFunc)
         {
             this.num = num;
+            this.keyFunc = keyFunc;
         }
         internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
-            return input.OrderBy(x => x).Take(num);
+            return input.OrderBy(x => keyFunc == null ? x : keyFunc(x)).Take(num);
         }
     }
     [Serializable]

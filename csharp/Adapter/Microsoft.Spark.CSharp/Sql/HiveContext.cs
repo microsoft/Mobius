@@ -1,4 +1,7 @@
-﻿using Microsoft.Spark.CSharp.Core;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 
 namespace Microsoft.Spark.CSharp.Sql
