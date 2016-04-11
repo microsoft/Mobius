@@ -142,13 +142,6 @@
             Used for collect operation on RDD
             
         
-###<font color="#68228B">Microsoft.Spark.CSharp.Core.IRDDCollector</font>
-####Summary
-  
-            
-            Interface for collect operation on RDD
-            
-        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.DoubleRDDFunctions</font>
 ####Summary
   
@@ -163,6 +156,13 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.IRDDCollector</font>
+####Summary
+  
+            
+            Interface for collect operation on RDD
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.OrderedRDDFunctions</font>
 ####Summary
   
@@ -210,6 +210,13 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.Profiler</font>
+####Summary
+  
+            
+            A class represents a profiler
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.RDD`1</font>
 ####Summary
   
@@ -228,13 +235,6 @@
 ---
   
   
-###<font color="#68228B">Microsoft.Spark.CSharp.Core.Profiler</font>
-####Summary
-  
-            
-            A class represents a profiler
-            
-        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.StringRDDFunctions</font>
 ####Summary
   
@@ -394,6 +394,22 @@
 ####Methods
 
 <table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Mode</font></td><td>Specifies the behavior when data or table already exists. Options include: - `SaveMode.Overwrite`: overwrite the existing data. - `SaveMode.Append`: append the data. - `SaveMode.Ignore`: ignore the operation (i.e. no-op). - `SaveMode.ErrorIfExists`: default option, throw an exception at runtime.</td></tr><tr><td><font color="blue">Mode</font></td><td>Specifies the behavior when data or table already exists. Options include: - `SaveMode.Overwrite`: overwrite the existing data. - `SaveMode.Append`: append the data. - `SaveMode.Ignore`: ignore the operation (i.e. no-op). - `SaveMode.ErrorIfExists`: default option, throw an exception at runtime.</td></tr><tr><td><font color="blue">Format</font></td><td>Specifies the underlying output data source. Built-in options include "parquet", "json", etc.</td></tr><tr><td><font color="blue">Option</font></td><td>Adds an output option for the underlying data source.</td></tr><tr><td><font color="blue">Options</font></td><td>Adds output options for the underlying data source.</td></tr><tr><td><font color="blue">PartitionBy</font></td><td>Partitions the output by the given columns on the file system. If specified, the output is laid out on the file system similar to Hive's partitioning scheme. This is only applicable for Parquet at the moment.</td></tr><tr><td><font color="blue">Save</font></td><td>Saves the content of the DataFrame at the specified path.</td></tr><tr><td><font color="blue">Save</font></td><td>Saves the content of the DataFrame as the specified table.</td></tr><tr><td><font color="blue">InsertInto</font></td><td>Inserts the content of the DataFrame to the specified table. It requires that the schema of the DataFrame is the same as the schema of the table. Because it inserts data to an existing table, format or options will be ignored.</td></tr><tr><td><font color="blue">SaveAsTable</font></td><td>Saves the content of the DataFrame as the specified table. In the case the table already exists, behavior of this function depends on the save mode, specified by the `mode` function (default to throwing an exception). When `mode` is `Overwrite`, the schema of the DataFrame does not need to be the same as that of the existing table. When `mode` is `Append`, the schema of the DataFrame need to be the same as that of the existing table, and format or options will be ignored.</td></tr><tr><td><font color="blue">Jdbc</font></td><td>Saves the content of the DataFrame to a external database table via JDBC. In the case the table already exists in the external database, behavior of this function depends on the save mode, specified by the `mode` function (default to throwing an exception). Don't create too many partitions in parallel on a large cluster; otherwise Spark might crash your external database systems.</td></tr><tr><td><font color="blue">Json</font></td><td>Saves the content of the DataFrame in JSON format at the specified path. This is equivalent to: Format("json").Save(path)</td></tr><tr><td><font color="blue">Parquet</font></td><td>Saves the content of the DataFrame in JSON format at the specified path. This is equivalent to: Format("parquet").Save(path)</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.HiveContext</font>
+####Summary
+  
+            
+            A variant of Spark SQL that integrates with data stored in Hive. 
+            Configuration for Hive is read from hive-site.xml on the classpath.
+            It supports running both SQL and HiveQL commands.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">RefreshTable</font></td><td>Invalidate and refresh all the cached the metadata of the given table. For performance reasons, Spark SQL or the external data source library it uses might cache certain metadata about a table, such as the location of blocks. When those change outside of Spark SQL, users should call this function to invalidate the cache.</td></tr></table>
 
 ---
   

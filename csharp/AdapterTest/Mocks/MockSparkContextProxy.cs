@@ -282,6 +282,11 @@ namespace AdapterTest.Mocks
             return new MockSqlContextProxy(this);
         }
 
+        public ISqlContextProxy CreateHiveContext()
+        {
+            return new MockSqlContextProxy(this);
+        }
+
         public IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices)
         {
             return new MockRddProxy(null);
