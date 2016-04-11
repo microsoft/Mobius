@@ -192,5 +192,13 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "isCached",
                 new object[] { tableName });
         }
+
+        #region HiveContext
+        public void RefreshTable(string tableName)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "refreshTable",
+                new object[] { tableName });
+        }
+        #endregion
     }
 }

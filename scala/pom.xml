@@ -104,6 +104,13 @@
 	      <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-hive_2.10</artifactId>
+          <version>1.6.0</version>
+          <!--the following is placeholder for building uber package. Please keep as-is-->
+          <!--<scope>provided</scope>-->
+      </dependency>
+      <dependency>
           <groupId>com.databricks</groupId>
           <artifactId>spark-csv_2.10</artifactId>
           <version>1.3.0</version>

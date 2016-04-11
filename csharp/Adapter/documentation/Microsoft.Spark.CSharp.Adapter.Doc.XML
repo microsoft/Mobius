@@ -10,21 +10,6 @@
             to be used in SparkCLR runtime
             </summary>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Configuration.IConfigurationService">
-            <summary>
-            Helps getting config settings to be used in SparkCLR runtime
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Configuration.IConfigurationService.GetCSharpWorkerExePath">
-            <summary>
-            The full path of the CSharp external backend worker process executable.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Configuration.IConfigurationService.BackendPortNumber">
-            <summary>
-            The port number used for communicating with the CSharp external backend worker process.
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Configuration.ConfigurationService.SparkCLRConfiguration">
             <summary>
             Default configuration for SparkCLR jobs.
@@ -91,6 +76,21 @@
             Indicates service is running in Yarn
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Configuration.IConfigurationService">
+            <summary>
+            Helps getting config settings to be used in SparkCLR runtime
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Configuration.IConfigurationService.BackendPortNumber">
+            <summary>
+            The port number used for communicating with the CSharp external backend worker process.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Configuration.IConfigurationService.GetCSharpWorkerExePath">
+            <summary>
+            The full path of the CSharp external backend worker process executable.
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Accumulator">
             <summary>
             A shared variable that can be accumulated, i.e., has a commutative and associative "add"
@@ -130,6 +130,12 @@
             <param name="accumulatorId">The Identity of the accumulator</param>
             <param name="value">The value of the accumulator</param>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Accumulator`1.Value">
+            <summary>
+            Gets or sets the value of the accumulator; only usable in driver program
+            </summary>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Accumulator`1.Add(`0)">
             <summary>
             Adds a term to this accumulator's value
@@ -150,12 +156,6 @@
             Creates and returns a string representation of the current accumulator
             </summary>
             <returns>A string representation of the current accumulator</returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.Accumulator`1.Value">
-            <summary>
-            Gets or sets the value of the accumulator; only usable in driver program
-            </summary>
-            <exception cref="T:System.ArgumentException"></exception>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.AccumulatorParam`1">
             <summary>
@@ -219,16 +219,16 @@
             </summary>
             <typeparam name="T">The type of element in Broadcast</typeparam>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Broadcast`1.Value">
+            <summary>
+            Return the broadcasted value
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Broadcast`1.Unpersist(System.Boolean)">
             <summary>
             Delete cached copies of this broadcast on the executors.
             </summary>
             <param name="blocking"></param>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.Broadcast`1.Value">
-            <summary>
-            Return the broadcasted value
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
             <summary>
@@ -248,17 +248,17 @@
             </summary>
             <param name="value">The value to be associated with the new instance.</param>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Option`1.IsDefined">
+            <summary>
+            Indicates whether the option value is defined.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Option`1.GetValue">
             <summary>
             Returns the value of the option if Option.IsDefined is TRUE;
             otherwise, throws an <see cref="T:System.ArgumentException"/>.
             </summary>
             <returns></returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.Option`1.IsDefined">
-            <summary>
-            Indicates whether the option value is defined.
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Partitioner">
             <summary>
@@ -277,11 +277,6 @@
         <member name="T:Microsoft.Spark.CSharp.Core.RDDCollector">
             <summary>
             Used for collect operation on RDD
-            </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.IRDDCollector">
-            <summary>
-            Interface for collect operation on RDD
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.DoubleRDDFunctions">
@@ -400,6 +395,11 @@
             </summary>
             <param name="self"></param>
             <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.IRDDCollector">
+            <summary>
+            Interface for collect operation on RDD
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions">
             <summary>
@@ -1038,6 +1038,14 @@
             <param name="path">path to sequence file</param>
             <param name="compressionCodecClass">(None by default)</param>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupByMergeHelper`2">
+            <summary>
+            These classes are defined explicitly and marked as [Serializable]instead of using anonymous method as delegate to 
+            prevent C# compiler from generating private anonymous type that is not serializable. Since the delegate has to be 
+            serialized and sent to the Spark workers for execution, it is necessary to have the type marked [Serializable]. 
+            These classes are to work around the limitation on the serializability of compiler generated types
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.NullIfEmpty``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             Converts a collection to a list where the element type is Option(T) type.
@@ -1047,20 +1055,35 @@
             <typeparam name="T">The element type in the collection</typeparam>
             <returns>A list that use Option(T) as element type</returns>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupByMergeHelper`2">
-            <summary>
-            These classes are defined explicitly and marked as [Serializable]instead of using anonymous method as delegate to 
-            prevent C# compiler from generating private anonymous type that is not serializable. Since the delegate has to be 
-            serialized and sent to the Spark workers for execution, it is necessary to have the type marked [Serializable]. 
-            These classes are to work around the limitation on the serializability of compiler generated types
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1">
             <summary>
             Wraps C#-based transformations that can be executed within a stage. It helps avoid unnecessary Ser/De of data between
             JVM and CLR to execute C# transformations and pipelines them
             </summary>
             <typeparam name="U"></typeparam>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndex``1(System.Func{System.Int32,System.Collections.Generic.IEnumerable{`0},System.Collections.Generic.IEnumerable{``0}},System.Boolean)">
+            <summary>
+            Return a new RDD by applying a function to each partition of this RDD,
+            while tracking the index of the original partition.
+            </summary>
+            <typeparam name="U1">The element type</typeparam>
+            <param name="newFunc">The function to be applied to each partition</param>
+            <param name="preservesPartitioningParam">Indicates if it preserves partition parameters</param>
+            <returns>A new RDD</returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndexHelper`2">
+            <summary>
+            This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
+            private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
+            for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
+            on the serializability of compiler generated types
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.Profiler">
+            <summary>
+            A class represents a profiler
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDD`1">
             <summary>
@@ -1079,6 +1102,21 @@
         <member name="F:Microsoft.Spark.CSharp.Core.RDD`1.isCheckpointed">
             <summary>
             Indicates whether the RDD is checkpointed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCached">
+            <summary>
+            Return whether this RDD has been cached or not
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCheckpointed">
+            <summary>
+            Return whether this RDD has been checkpointed or not
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.Name">
+            <summary>
+            Return the name of this RDD.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.RDD`1.Cache">
@@ -1637,7 +1675,7 @@
             n is the number of partitions. So there may exist gaps, but this
             method won't trigger a spark job, which is different from <see cref="M:Microsoft.Spark.CSharp.Core.RDD`1.ZipWithIndex"/>
             
-            &gt;&gt;&gt; sc.Parallelize(new string[] { "a", "b", "c", "d" }, 1).ZipWithIndex().Collect()
+            >>> sc.Parallelize(new string[] { "a", "b", "c", "d" }, 1).ZipWithIndex().Collect()
             [('a', 0), ('b', 1), ('c', 4), ('d', 2), ('e', 5)]
             
             </summary>
@@ -1690,44 +1728,6 @@
             <param name="ub">upper bound to use for the Bernoulli sampler</param>
             <param name="seed">the seed for the Random number generator</param>
             <returns>A random sub-sample of the RDD without replacement.</returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCached">
-            <summary>
-            Return whether this RDD has been cached or not
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCheckpointed">
-            <summary>
-            Return whether this RDD has been checkpointed or not
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.Name">
-            <summary>
-            Return the name of this RDD.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndex``1(System.Func{System.Int32,System.Collections.Generic.IEnumerable{`0},System.Collections.Generic.IEnumerable{``0}},System.Boolean)">
-            <summary>
-            Return a new RDD by applying a function to each partition of this RDD,
-            while tracking the index of the original partition.
-            </summary>
-            <typeparam name="U1">The element type</typeparam>
-            <param name="newFunc">The function to be applied to each partition</param>
-            <param name="preservesPartitioningParam">Indicates if it preserves partition parameters</param>
-            <returns>A new RDD</returns>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndexHelper`2">
-            <summary>
-            This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
-            private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
-            for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
-            on the serializability of compiler generated types
-            </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.Profiler">
-            <summary>
-            A class represents a profiler
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StringRDDFunctions">
             <summary>
@@ -1931,6 +1931,36 @@
             Main entry point for Spark functionality. A SparkContext represents the 
             connection to a Spark cluster, and can be used to create RDDs, accumulators 
             and broadcast variables on that cluster.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.Version">
+            <summary>
+            The version of Spark on which this application is running.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StartTime">
+            <summary>
+            Return the epoch time when the Spark Context was started.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultParallelism">
+            <summary>
+            Default level of parallelism to use when not given by user (e.g. for reduce tasks)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultMinPartitions">
+            <summary>
+            Default min number of partitions for Hadoop RDDs when not given by user
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.SparkUser">
+            <summary>
+            Get SPARK_USER for user who is running SparkContext.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StatusTracker">
+            <summary>
+            Return :class:`StatusTracker` object
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(System.String,System.String,System.String)">
@@ -2275,36 +2305,6 @@
             Cancel all jobs that have been scheduled or are running.
             </summary>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.Version">
-            <summary>
-            The version of Spark on which this application is running.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StartTime">
-            <summary>
-            Return the epoch time when the Spark Context was started.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultParallelism">
-            <summary>
-            Default level of parallelism to use when not given by user (e.g. for reduce tasks)
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultMinPartitions">
-            <summary>
-            Default min number of partitions for Hadoop RDDs when not given by user
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.SparkUser">
-            <summary>
-            Get SPARK_USER for user who is running SparkContext.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StatusTracker">
-            <summary>
-            Return :class:`StatusTracker` object
-            </summary>
-        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.Merge(System.Double)">
             <summary>
             Add a value into this StatCounter, updating the internal statistics.
@@ -2494,11 +2494,6 @@
             Utility methods for C#-JVM interaction
             </summary>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
-            <summary>
-            Contains everything needed to setup an environment for using C# with Spark
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.IJvmBridge">
             <summary>
             Behavior of the bridge used for the IPC interop between JVM and CLR
@@ -2527,6 +2522,11 @@
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Interop.Ipc.SerDe" -->
+        <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
+            <summary>
+            Contains everything needed to setup an environment for using C# with Spark
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Proxy.Ipc.DataFrameIpcProxy.Intersect(Microsoft.Spark.CSharp.Proxy.IDataFrameProxy)">
             <summary>
             Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, intersect(other: DataFrame): DataFrame
@@ -2689,6 +2689,84 @@
             Right now it just prints out the messages to Console
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.GetLoggerInstance(System.Type)">
+            <summary>
+            Get an instance of ILoggerService by a given type of logger
+            </summary>
+            <param name="type">The type of a logger to return</param>
+            <returns>An instance of ILoggerService</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String)">
+            <summary>
+            Logs a message at debug level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String,System.Object[])">
+            <summary>
+            Logs a message at debug level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String)">
+            <summary>
+            Logs a message at info level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String,System.Object[])">
+            <summary>
+            Logs a message at info level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String)">
+            <summary>
+            Logs a message at warning level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String,System.Object[])">
+            <summary>
+            Logs a message at warning level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String)">
+            <summary>
+            Logs a fatal message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String,System.Object[])">
+            <summary>
+            Logs a fatal message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String)">
+            <summary>
+            Logs a error message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String,System.Object[])">
+            <summary>
+            Logs a error message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogException(System.Exception)">
+            <summary>
+            Logs an exception
+            </summary>
+            <param name="e">The exception to be logged</param>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Services.ILoggerService">
             <summary>
             Defines a logger what be used in service
@@ -2767,84 +2845,6 @@
             <param name="messageParameters">The array of arguments</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogException(System.Exception)">
-            <summary>
-            Logs an exception
-            </summary>
-            <param name="e">The exception to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.GetLoggerInstance(System.Type)">
-            <summary>
-            Get an instance of ILoggerService by a given type of logger
-            </summary>
-            <param name="type">The type of a logger to return</param>
-            <returns>An instance of ILoggerService</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String)">
-            <summary>
-            Logs a message at debug level.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String,System.Object[])">
-            <summary>
-            Logs a message at debug level with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String)">
-            <summary>
-            Logs a message at info level.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String,System.Object[])">
-            <summary>
-            Logs a message at info level with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String)">
-            <summary>
-            Logs a message at warning level.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String,System.Object[])">
-            <summary>
-            Logs a message at warning level with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String)">
-            <summary>
-            Logs a fatal message.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String,System.Object[])">
-            <summary>
-            Logs a fatal message with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String)">
-            <summary>
-            Logs a error message.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String,System.Object[])">
-            <summary>
-            Logs a error message with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogException(System.Exception)">
             <summary>
             Logs an exception
             </summary>
@@ -4052,6 +4052,28 @@
                Format("parquet").Save(path)
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.HiveContext">
+            <summary>
+            A variant of Spark SQL that integrates with data stored in Hive. 
+            Configuration for Hive is read from hive-site.xml on the classpath.
+            It supports running both SQL and HiveQL commands.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.HiveContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext)">
+            <summary>
+            Creates a HiveContext
+            </summary>
+            <param name="sparkContext"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.HiveContext.RefreshTable(System.String)">
+            <summary>
+            Invalidate and refresh all the cached the metadata of the given table.
+            For performance reasons, Spark SQL or the external data source library it uses
+            might cache certain metadata about a table, such as the location of blocks.
+            When those change outside of Spark SQL, users should call this function to invalidate the cache.
+            </summary>
+            <param name="tableName"></param>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.PythonSerDe">
             <summary>
             Used for SerDe of Python objects
@@ -4552,22 +4574,6 @@
             The base type of all Spark SQL data types.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(System.String)">
-            <summary>
-            Parses a Json string to construct a DataType.
-            </summary>
-            <param name="json">The Json string to be parsed</param>
-            <returns>The new DataType instance from the Json string</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(Newtonsoft.Json.Linq.JToken)">
-            <summary>
-            Parse a JToken object to construct a DataType.
-            </summary>
-            <param name="json">The JToken object to be parsed</param>
-            <returns>The new DataType instance from the Json string</returns>
-            <exception cref="T:System.NotImplementedException">Not implemented for "udt" type</exception>
-            <exception cref="T:System.ArgumentException"></exception>
-        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.DataType.TypeName">
             <summary>
             Trim "Type" in the end from class name, ToLower() to align with Scala.
@@ -4587,6 +4593,22 @@
             <summary>
             The compact JSON representation of this data type.
             </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(System.String)">
+            <summary>
+            Parses a Json string to construct a DataType.
+            </summary>
+            <param name="json">The Json string to be parsed</param>
+            <returns>The new DataType instance from the Json string</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(Newtonsoft.Json.Linq.JToken)">
+            <summary>
+            Parse a JToken object to construct a DataType.
+            </summary>
+            <param name="json">The JToken object to be parsed</param>
+            <returns>The new DataType instance from the Json string</returns>
+            <exception cref="T:System.NotImplementedException">Not implemented for "udt" type</exception>
+            <exception cref="T:System.ArgumentException"></exception>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.AtomicType">
             <summary>
@@ -4702,20 +4724,6 @@
             The data type for collections of multiple values. 
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.#ctor(Microsoft.Spark.CSharp.Sql.DataType,System.Boolean)">
-            <summary>
-            Initializes a ArrayType instance with a specific DataType and specifying if the array has null values.
-            </summary>
-            <param name="elementType">The data type of values</param>
-            <param name="containsNull">Indicates if values have null values</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.FromJson(Newtonsoft.Json.Linq.JObject)">
-            <summary>
-            Constructs a ArrayType from a Json object
-            </summary>
-            <param name="json">The Json object used to construct a ArrayType</param>
-            <returns>A new ArrayType instance</returns>
-        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.ArrayType.ElementType">
             <summary>
             Gets the DataType of each element in the array
@@ -4726,10 +4734,24 @@
             Returns whether the array can contain null (None) values
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.#ctor(Microsoft.Spark.CSharp.Sql.DataType,System.Boolean)">
+            <summary>
+            Initializes a ArrayType instance with a specific DataType and specifying if the array has null values.
+            </summary>
+            <param name="elementType">The data type of values</param>
+            <param name="containsNull">Indicates if values have null values</param>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.ArrayType.SimpleString">
             <summary>
             Readable string representation for the type.
             </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a ArrayType from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a ArrayType</param>
+            <returns>A new ArrayType instance</returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.MapType">
             <summary>
@@ -4748,22 +4770,6 @@
             <summary>
             A field inside a StructType.
             </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.#ctor(System.String,Microsoft.Spark.CSharp.Sql.DataType,System.Boolean,Newtonsoft.Json.Linq.JObject)">
-            <summary>
-            Initializes a StructField instance with a specific name, data type, nullable, and metadata
-            </summary>
-            <param name="name">The name of this field</param>
-            <param name="dataType">The data type of this field</param>
-            <param name="isNullable">Indicates if values of this field can be null values</param>
-            <param name="metadata">The metadata of this field</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.FromJson(Newtonsoft.Json.Linq.JObject)">
-            <summary>
-            Constructs a StructField from a Json object
-            </summary>
-            <param name="json">The Json object used to construct a StructField</param>
-            <returns>A new StructField instance</returns>
         </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.StructField.Name">
             <summary>
@@ -4785,15 +4791,36 @@
             The metadata of this field. The metadata should be preserved during transformation if the content of the column is not modified, e.g, in selection. 
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.#ctor(System.String,Microsoft.Spark.CSharp.Sql.DataType,System.Boolean,Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Initializes a StructField instance with a specific name, data type, nullable, and metadata
+            </summary>
+            <param name="name">The name of this field</param>
+            <param name="dataType">The data type of this field</param>
+            <param name="isNullable">Indicates if values of this field can be null values</param>
+            <param name="metadata">The metadata of this field</param>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.StructField.SimpleString">
             <summary>
             Returns a readable string that represents the type.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a StructField from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a StructField</param>
+            <returns>A new StructField instance</returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.StructType">
             <summary>
             Struct type, consisting of a list of StructField
             This is the data type representing a Row
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.Fields">
+            <summary>
+            Gets a list of StructField.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.StructType.#ctor(System.Collections.Generic.IEnumerable{Microsoft.Spark.CSharp.Sql.StructField})">
@@ -4802,22 +4829,17 @@
             </summary>
             <param name="fields">The collection that holds StructField objects</param>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.SimpleString">
+            <summary>
+            Returns a readable string that joins all <see cref="T:Microsoft.Spark.CSharp.Sql.StructField"/>s together.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.StructType.FromJson(Newtonsoft.Json.Linq.JObject)">
             <summary>
             Constructs a StructType from a Json object
             </summary>
             <param name="json">The Json object used to construct a StructType</param>
             <returns>A new StructType instance</returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.Fields">
-            <summary>
-            Gets a list of StructField.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.SimpleString">
-            <summary>
-            Returns a readable string that joins all <see cref="T:Microsoft.Spark.CSharp.Sql.StructField"/>s together.
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.DStream`1">
             <summary>
@@ -4839,6 +4861,11 @@
              - A function that is used to generate an RDD after each time interval
             </summary>
             <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.DStream`1.SlideDuration">
+            <summary>
+            Return the slideDuration in seconds of this DStream
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.DStream`1.Count">
             <summary>
@@ -5096,11 +5123,6 @@
             </param>
             <param name="numPartitions">number of partitions of each RDD in the new DStream.</param>
             <returns></returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Streaming.DStream`1.SlideDuration">
-            <summary>
-            Return the slideDuration in seconds of this DStream
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.MapPartitionsWithIndexHelper`2">
             <summary>
