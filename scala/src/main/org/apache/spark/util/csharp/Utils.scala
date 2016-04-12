@@ -86,7 +86,7 @@ object Utils {
    * @param targetDir target directory
    */
   def unzip(file: File, targetDir: File): Unit = {
-    if (!targetDir.exists()){
+    if (!targetDir.exists()) {
       targetDir.mkdir()
     }
 
@@ -96,20 +96,30 @@ object Utils {
       while (entries.hasMoreElements()) {
         val entry = entries.nextElement()
         val targetFile = new File(targetDir, entry.getName)
-        if (!targetFile.getParentFile.exists()) {
-          targetFile.getParentFile.mkdir()
-        }
-        if (entry.isDirectory) {
-          targetFile.mkdirs()
+
+        if (targetFile.exists()) {
+          println(s"Warning: target file/directory $targetFile already exists," +
+            s" make sure this is expected, skip it for now.")
         } else {
-          val input = zipFile.getInputStream(entry)
-          val output = new FileOutputStream(targetFile)
-          IOUtils.copy(input, output)
-          IOUtils.closeQuietly(input)
-          IOUtils.closeQuietly(output)
+          if (!targetFile.getParentFile.exists()) {
+            targetFile.getParentFile.mkdir()
+          }
+
+          if (entry.isDirectory) {
+            targetFile.mkdirs()
+          } else {
+            val input = zipFile.getInputStream(entry)
+            val output = new FileOutputStream(targetFile)
+            IOUtils.copy(input, output)
+            IOUtils.closeQuietly(input)
+            IOUtils.closeQuietly(output)
+          }
         }
       }
-    } finally {
+    } catch {
+      case e: Exception => println("Error: exception caught during uncompression." + e)
+    }
+    finally {
       zipFile.close()
     }
   }
