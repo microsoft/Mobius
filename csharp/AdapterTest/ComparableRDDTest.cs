@@ -4,6 +4,7 @@ using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using NUnit.Framework;
+using System.Linq;
 
 namespace AdapterTest
 {
@@ -39,6 +40,12 @@ namespace AdapterTest
             Assert.AreEqual(2, taken.Length);
             Assert.AreEqual("brown", taken[0]);
             Assert.AreEqual("dog", taken[1]);
+
+            taken = words.Distinct().TakeOrdered(2, x => new string(x.ToCharArray().Reverse().ToArray()));
+            Array.Sort(taken, StringComparer.Ordinal);
+            Assert.AreEqual(2, taken.Length);
+            Assert.AreEqual("The", taken[0]);
+            Assert.AreEqual("the", taken[1]);
         }
 
         [Test]
