@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
@@ -98,6 +97,32 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestSqlContextReadDataFrame()
+        {
+            var dataFrameProxy = new DataFrameIpcProxy(new JvmObjectReference("1"), mockSqlContextProxy.Object);
+            mockSqlContextProxy.Setup(
+                m => m.ReadDataFrame(It.IsAny<string>(), It.IsAny<StructType>(), It.IsAny<Dictionary<string, string>>()))
+                .Returns(dataFrameProxy);
+            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+            var structTypeProxy = new Mock<IStructTypeProxy>();
+            const string schemaJson = @"{
+	                                ""fields"": [{
+		                                ""metadata"": {},
+		                                ""name"": ""guid"",
+		                                ""nullable"": false,
+		                                ""type"": ""string""
+	                                }],
+	                                ""type"": ""struct""
+                                    }";
+            structTypeProxy.Setup(m => m.ToJson()).Returns(schemaJson);
+            // act
+            var dataFrame = sqlContext.ReadDataFrame(@"c:\path\to\input.txt", new StructType(structTypeProxy.Object), null);
+
+            // assert
+            Assert.AreEqual(dataFrameProxy, dataFrame.DataFrameProxy);
+        }
+
+        [Test]
         public void TestSqlContextCreateDataFrame()
         {
             // arrange
@@ -111,11 +136,11 @@ namespace AdapterTest
             var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
             var structTypeProxy = new Mock<IStructTypeProxy>();
             const string schemaJson = @"{
-	                                ""fields"": [{
-		                                ""metadata"": {},
-		                                ""name"": ""guid"",
-		                                ""nullable"": false,
-		                                ""type"": ""string""
+                                    ""fields"": [{
+                                        ""metadata"": {},
+                                        ""name"": ""guid"",
+                                        ""nullable"": false,
+                                        ""type"": ""string""
 	                                }],
 	                                ""type"": ""struct""
                                     }";
@@ -263,7 +288,7 @@ namespace AdapterTest
         {
             var sqlContext = new SqlContext(new SparkContext("", "")); 
             var dataFrame = sqlContext.Read().Json(@"c:\path\to\input.json");
-            var paramValuesToJsonFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
+            var paramValuesToJsonFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
             Assert.AreEqual(@"c:\path\to\input.json", paramValuesToJsonFileMethod[0]);
         }
 
@@ -272,7 +297,7 @@ namespace AdapterTest
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
             var dataFrame = sqlContext.TextFile(@"c:\path\to\input.txt");
-            var paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
+            var paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
             Assert.AreEqual(@"c:\path\to\input.txt", paramValuesToTextFileMethod[0]);
             Assert.AreEqual(@",", paramValuesToTextFileMethod[1]);
             Assert.IsFalse(bool.Parse(paramValuesToTextFileMethod[2].ToString()));
@@ -280,7 +305,7 @@ namespace AdapterTest
 
             sqlContext = new SqlContext(new SparkContext("", "")); 
             dataFrame = sqlContext.TextFile(@"c:\path\to\input.txt", "|", true, true);
-            paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
+            paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
             Assert.AreEqual(@"c:\path\to\input.txt", paramValuesToTextFileMethod[0]);
             Assert.AreEqual(@"|", paramValuesToTextFileMethod[1]);
             Assert.IsTrue(bool.Parse(paramValuesToTextFileMethod[2].ToString()));
