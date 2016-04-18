@@ -172,5 +172,39 @@ namespace Microsoft.Spark.CSharp
             ssc.Start();
             ssc.AwaitTermination();
         }
+
+        /// <summary>
+        /// A sample shows that ConstantInputDStream is an input stream that always returns the same mandatory input RDD at every batch time.
+        /// </summary>
+        [Sample("experimental")]
+        internal static void DStreamConstantDStreamSample()
+        {
+            var sc = SparkCLRSamples.SparkContext;
+            var ssc = new StreamingContext(sc, 2000);
+
+            const int count = 100;
+            const int partitions = 2;
+
+            // create the RDD
+            var seedRDD = sc.Parallelize(Enumerable.Range(0, 100), 2);
+            var dstream = new ConstantInputDStream<int>(seedRDD, ssc);
+
+            dstream.ForeachRDD((time, rdd) =>
+            {
+                long batchCount = rdd.Count();
+                int numPartitions = rdd.GetNumPartitions();
+
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Time: {0}", time);
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Count: " + batchCount);
+                Console.WriteLine("Partitions: " + numPartitions);
+                Assert.AreEqual(count, batchCount);
+                Assert.AreEqual(partitions, numPartitions);
+            });
+
+            ssc.Start();
+            ssc.AwaitTermination();
+        }
     }
 }
