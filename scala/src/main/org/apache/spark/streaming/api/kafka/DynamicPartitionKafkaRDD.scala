@@ -90,7 +90,7 @@ class DynamicPartitionKafkaRDD[
       s"for topic ${part.topic} partition ${part.partition} start ${part.fromOffset}." +
       " This should not happen, and indicates a message may have been skipped"
 
-  private val metadata: Boolean = sc.getConf.getBoolean("spark.streaming.kafka.metadata", false)
+  private val CSharpReaderEnabled: Boolean = sc.getConf.getBoolean("mobius.streaming.kafka.CSharpReader.enabled", false)
 
   override def compute(thePart: Partition, context: TaskContext): Iterator[R] = {
     val part = thePart.asInstanceOf[KafkaRDDPartition]
@@ -99,7 +99,7 @@ class DynamicPartitionKafkaRDD[
       log.info(s"Beginning offset ${part.fromOffset} is the same as ending offset " +
         s"skipping ${part.topic} ${part.partition}")
       Iterator.empty
-    } else if (metadata) {
+    } else if (CSharpReaderEnabled) {
         Iterator((part.topic.getBytes(), ByteBuffer.allocate(4).putInt(part.partition).array()).asInstanceOf[R], (ByteBuffer.allocate(8).putLong(part.fromOffset).array(), ByteBuffer.allocate(8).putLong(part.untilOffset).array()).asInstanceOf[R])
     } else {
       new DynamicPartitionKafkaRDDIterator(part, context)
