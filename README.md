@@ -1,5 +1,4 @@
-<h1><img src='logo/mobius-star-200.png' width='125px' alt='Mobius logo' /></h1>
-
+<img src='logo/mobius-star-200.png' width='125px' alt='Mobius logo' />
 # Mobius: C# API for Spark
 
 [Mobius](https://github.com/Microsoft/Mobius) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
