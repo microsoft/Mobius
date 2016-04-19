@@ -128,6 +128,7 @@
     <Compile Include="Sql\SqlContext.cs" />
     <Compile Include="Sql\Types.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
+    <Compile Include="Streaming\ConstantInputDStream.cs" />
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\EventHubsUtils.cs" />
     <Compile Include="Streaming\Kafka.cs" />

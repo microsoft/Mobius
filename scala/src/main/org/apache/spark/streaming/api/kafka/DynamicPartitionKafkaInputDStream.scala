@@ -223,6 +223,20 @@ class DynamicPartitionKafkaInputDStream[
     currentOffsets = currentOffsets ++ untilOffsets.map(kv => kv._1 -> kv._2.offset)
   }
 
+  def instantiateAndStartRefreshOffsetsScheduler(): Unit = {
+    // start a new thread to refresh offsets range asynchronously
+    if (refreshOffsetsScheduler == null) {
+      refreshOffsetsScheduler =
+        ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets-" + UUID.randomUUID().toString().substring(0, 8))
+      logInfo("Instantiated refreshOffsetsScheduler successfully.")
+    }
+    refreshOffsetsScheduler.scheduleAtFixedRate(new Runnable {
+      override def run(): Unit = {
+        setOffsetsRangeForNextBatch()
+      }
+    }, 0, refreshOffsetsInterval, TimeUnit.MILLISECONDS)
+  }
+
   if (fromOffsets.nonEmpty) {
     // use partitions and offsets passed from constructor
     hasFetchedAllPartitions = true
@@ -234,17 +248,6 @@ class DynamicPartitionKafkaInputDStream[
       throw new IllegalArgumentException("Must set auto.offset.reset if fromOffsets is empty")
     }
   }
-
-  // start a new thread to refresh offsets range asynchronously
-  if (refreshOffsetsScheduler == null) {
-    refreshOffsetsScheduler =
-      ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets-" + UUID.randomUUID().toString().substring(0,8))
-  }
-  refreshOffsetsScheduler.scheduleAtFixedRate(new Runnable {
-    override def run(): Unit = {
-      setOffsetsRangeForNextBatch()
-    }
-  }, 0, refreshOffsetsInterval, TimeUnit.MILLISECONDS)
 
   override def compute(validTime: Time): Option[DynamicPartitionKafkaRDD[K, V, U, T, R]] = {
     var offsetsRange:
@@ -285,6 +288,12 @@ class DynamicPartitionKafkaInputDStream[
     ssc.scheduler.inputInfoTracker.reportInfo(validTime, inputInfo)
 
     Some(rdd)
+  }
+
+  override def start(): Unit = {
+    if(refreshOffsetsScheduler == null) {
+      instantiateAndStartRefreshOffsetsScheduler
+    }
   }
 
   override def stop(): Unit = {
