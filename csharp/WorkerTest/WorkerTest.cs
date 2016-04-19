@@ -17,90 +17,10 @@ using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using NUnit.Framework;
 using Razorvine.Pickle;
+using Tests.Common;
 
 namespace WorkerTest
 {
-    /// <summary>
-    /// Used to pickle StructType objects
-    /// Reference: StructTypePickler from https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/python.scala#L240
-    /// </summary>
-    internal class StructTypePickler : IObjectPickler
-    {
-
-        private const string module = "pyspark.sql.types";
-
-        public void Register()
-        {
-            Pickler.registerCustomPickler(this.GetType(), this);
-            Pickler.registerCustomPickler(typeof(StructType), this);
-        }
-
-        public void pickle(object o, Stream stream, Pickler currentPickler)
-        {
-            var schema = o as StructType;
-            if (schema == null)
-            {
-                throw new InvalidOperationException(this.GetType().Name + " only accepts 'StructType' type objects.");
-            }
-
-            SerDe.Write(stream, Opcodes.GLOBAL);
-            SerDe.Write(stream, Encoding.UTF8.GetBytes(module + "\n" + "_parse_datatype_json_string" + "\n"));
-            currentPickler.save(schema.Json);
-            SerDe.Write(stream, Opcodes.TUPLE1);
-            SerDe.Write(stream, Opcodes.REDUCE);
-        }
-    }
-
-    /// <summary>
-    /// Used to pickle Row objects
-    /// Reference: RowPickler from https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/python.scala#L261
-    /// </summary>
-    internal class RowPickler : IObjectPickler
-    {
-        private const string module = "pyspark.sql.types";
-
-        public void Register()
-        {
-            Pickler.registerCustomPickler(this.GetType(), this);
-            Pickler.registerCustomPickler(typeof(Row), this);
-            Pickler.registerCustomPickler(typeof(RowImpl), this);
-        }
-
-        public void pickle(object o, Stream stream, Pickler currentPickler)
-        {
-            if (o.Equals(this))
-            {
-                SerDe.Write(stream, Opcodes.GLOBAL);
-                SerDe.Write(stream, Encoding.UTF8.GetBytes(module + "\n" + "_create_row_inbound_converter" + "\n"));
-            }
-            else
-            {
-                var row = o as Row;
-                if (row == null)
-                {
-                    throw new InvalidOperationException(this.GetType().Name + " only accepts 'Row' type objects.");
-                }
-
-                currentPickler.save(this);
-                currentPickler.save(row.GetSchema());
-                SerDe.Write(stream, Opcodes.TUPLE1);
-                SerDe.Write(stream, Opcodes.REDUCE);
-
-                SerDe.Write(stream, Opcodes.MARK);
-
-                var i = 0;
-                while (i < row.Size())
-                {
-                    currentPickler.save(row.Get(i));
-                    i++;
-                }
-
-                SerDe.Write(stream, Opcodes.TUPLE);
-                SerDe.Write(stream, Opcodes.REDUCE);
-            }
-        }
-    }
-
     /// <summary>
     /// Validates CSharpWorker by creating a TcpListener server to 
     /// simulate interactions between CSharpRDD and CSharpWorker
@@ -372,33 +292,6 @@ namespace WorkerTest
             CSharpRDD_SocketServer.Stop();
         }
 
-        // Build Row object for test
-        internal Row BuildRow(int seq)
-        {
-            const string jsonSchema = @"
-                {
-                  ""type"" : ""struct"",
-                  ""fields"" : [{
-                    ""name"" : ""age"",
-                    ""type"" : ""long"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""id"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""name"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  } ]
-                }";
-
-            return new RowImpl(new object[] { seq, "id " + seq, "name" + seq }, DataType.ParseDataTypeFromJson(jsonSchema) as StructType);
-        }
-
         /// <summary>
         /// test when deserializedMode is set to Row, and serializedMode is set to bytes.
         /// </summary>
@@ -424,7 +317,7 @@ namespace WorkerTest
 
                 for (int i = 0; i < expectedCount; i++)
                 {
-                    byte[] pickleBytes = pickler.dumps(new Row[] { BuildRow(i) });
+                    byte[] pickleBytes = pickler.dumps(new[] { RowHelper.BuildRowForBasicSchema(i) });
                     SerDe.Write(s, pickleBytes.Length);
                     SerDe.Write(s, pickleBytes);
                 }
