@@ -23,7 +23,6 @@ import scala.collection.mutable.HashMap
  */
 // Since SparkCLR is a package to Spark and not a part of spark-core, it mirrors the implementation
 // of selected parts from RBackend with SparkCLR customizations
-@Sharable
 class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHandler[Array[Byte]] {
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: Array[Byte]): Unit = {
@@ -269,31 +268,36 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
  */
 private object JVMObjectTracker {
 
-  // TODO: This map should be thread-safe if we want to support multiple
-  // connections at the same time
+  // Muliple threads may access objMap and increase objCounter. Because get method return Option,
+  // it is convenient to use a Scala map instead of java.util.concurrent.ConcurrentHashMap.
   private[this] val objMap = new HashMap[String, Object]
-
-  // TODO: We support only one connection now, so an integer is fine.
-  // Investigate using use atomic integer in the future.
   private[this] var objCounter: Int = 1
 
   def getObject(id: String): Object = {
-    objMap(id)
+    synchronized {
+      objMap(id)
+    }
   }
 
   def get(id: String): Option[Object] = {
-    objMap.get(id)
+    synchronized {
+      objMap.get(id)
+    }
   }
 
   def put(obj: Object): String = {
-    val objId = objCounter.toString
-    objCounter = objCounter + 1
-    objMap.put(objId, obj)
-    objId
+    synchronized {
+      val objId = objCounter.toString
+      objCounter = objCounter + 1
+      objMap.put(objId, obj)
+      objId
+    }
   }
 
   def remove(id: String): Option[Object] = {
-    objMap.remove(id)
+    synchronized {
+      objMap.remove(id)
+    }
   }
 
 }
