@@ -5,12 +5,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using AdapterTest.Mocks;
-using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
-using Microsoft.Spark.CSharp.Proxy;
-using Moq;
+using Microsoft.Spark.CSharp.Sql;
 using NUnit.Framework;
+using Razorvine.Pickle;
+using Tests.Common;
 
 namespace AdapterTest
 {
@@ -96,6 +95,49 @@ namespace AdapterTest
             SerDe.Write(ms, (int)SpecialLengths.NULL);
             ms.Position = 0;
             Assert.IsNull(SerDe.ReadBytes(ms));
+        }
+
+        [Test]
+        public void TestSerDeWithPythonSerDe()
+        {
+            const int expectedCount = 5;
+            using (var ms = new MemoryStream())
+            {
+                new StructTypePickler().Register();
+                new RowPickler().Register();
+                var pickler = new Pickler();
+                for (int i = 0; i < expectedCount; i++)
+                {
+                    var pickleBytes = pickler.dumps(new[] { RowHelper.BuildRowForBasicSchema(i) });
+                    SerDe.Write(ms, pickleBytes.Length);
+                    SerDe.Write(ms, pickleBytes);
+                }
+
+                SerDe.Write(ms, (int)SpecialLengths.END_OF_STREAM);
+                ms.Flush();
+
+                ms.Position = 0;
+                int count = 0;
+                while (true)
+                {
+                    byte[] outBuffer = null;
+                    int length = SerDe.ReadInt(ms);
+                    if (length > 0)
+                    {
+                        outBuffer = SerDe.ReadBytes(ms, length);
+                    }
+                    else if (length == (int)SpecialLengths.END_OF_STREAM)
+                    {
+                        break;
+                    }
+
+                    var unpickledObjs = PythonSerDe.GetUnpickledObjects(outBuffer);
+                    var rows = unpickledObjs.Select(item => (item as RowConstructor).GetRow()).ToList();
+                    Assert.AreEqual(1, rows.Count);
+                    Assert.AreEqual(count++, rows[0].Get("age"));
+                }
+                Assert.AreEqual(expectedCount, count);
+            }
         }
     }
 }
