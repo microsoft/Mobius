@@ -107,7 +107,12 @@ namespace AdapterTest.Mocks
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
             return new MockDStreamProxy(rdd.RddProxy);
         }
-        
+
+        public IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy)
+        {
+            return new MockDStreamProxy();
+        }
+
         public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
         {
             throw new NotImplementedException();
