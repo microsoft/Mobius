@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SparkCLR-Pi")]
-[assembly: AssemblyDescription("SparkCLR Pi example.")]
+[assembly: AssemblyDescription("Mobius Pi example.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft Corporation")]
-[assembly: AssemblyProduct("Microsoft SparkCLR")]
+[assembly: AssemblyProduct("Microsoft Mobius")]
 [assembly: AssemblyCopyright("Copyright © Microsoft Corporation 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
