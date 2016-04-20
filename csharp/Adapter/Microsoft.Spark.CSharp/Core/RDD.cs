@@ -762,9 +762,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public IDictionary<T, long> CountByValue()
+        public IEnumerable<Tuple<T, long>> CountByValue()
         {
-            return Map<Tuple<T, T>>(v => new Tuple<T, T>(v, default(T))).CountByKey();
+            return Map(v => new Tuple<T, T>(v, default(T))).CountByKey();
         }
 
         /// <summary>

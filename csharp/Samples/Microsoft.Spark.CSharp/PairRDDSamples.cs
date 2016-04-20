@@ -112,7 +112,7 @@ namespace Microsoft.Spark.CSharp.Samples
                     new Tuple<string, int>("a", 1)
                 }, 2)
                 .CountByKey()
-                .ToLookup(x => x.Key);
+                .ToLookup(x => x.Item1);
 
             foreach (var kv in countByKey)
                 Console.WriteLine(kv);

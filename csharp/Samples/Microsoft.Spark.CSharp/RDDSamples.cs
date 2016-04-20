@@ -221,7 +221,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void RDDCountByValueSample()
         {
-            var countByValue = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 2, 1, 2, 2 }, 2).CountByValue();
+            var countByValue = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 2, 1, 2, 2 }, 2).CountByValue().ToArray();
             foreach (var item in countByValue)
                 Console.WriteLine(item);
 

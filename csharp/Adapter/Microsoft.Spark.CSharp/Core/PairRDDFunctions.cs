@@ -146,9 +146,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <typeparam name="V"></typeparam>
         /// <param name="self"></param>
         /// <returns></returns>
-        public static IDictionary<K, long> CountByKey<K, V>(this RDD<Tuple<K, V>> self)
+        public static IEnumerable<Tuple<K, long>> CountByKey<K, V>(this RDD<Tuple<K, V>> self)
         {
-            return self.MapValues(v => 1L).ReduceByKey((a, b) => a + b).CollectAsMap();
+            return self.MapValues(v => 1L).ReduceByKey((a, b) => a + b).Collect();
         }
 
         /// <summary>

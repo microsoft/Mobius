@@ -42,7 +42,7 @@ namespace AdapterTest
         {
             foreach (var record in words.CountByValue())
             {
-                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value);
+                Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2);
             }
         }
 
