@@ -12,6 +12,7 @@ using Moq;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using System.Collections.Generic;
+using Tests.Common;
 
 namespace AdapterTest
 {
@@ -22,15 +23,6 @@ namespace AdapterTest
     public class SqlContextTest
     {
         private static Mock<ISqlContextProxy> mockSqlContextProxy;
-        private const string SchemaJson = @"{
-                                    ""fields"": [{
-		                                ""metadata"": {},
-		                                ""name"": ""guid"",
-		                                ""nullable"": false,
-		                                ""type"": ""string""
-	                                }],
-	                                ""type"": ""struct""
-                                    }";
 
         [OneTimeSetUp]
         public static void ClassInitialize()
@@ -121,7 +113,7 @@ namespace AdapterTest
                 .Returns(dataFrameProxy);
             var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
             var structTypeProxy = new Mock<IStructTypeProxy>();
-            structTypeProxy.Setup(m => m.ToJson()).Returns(SchemaJson);
+            structTypeProxy.Setup(m => m.ToJson()).Returns(RowHelper.BasicJsonSchema);
             // act
             var dataFrame = sqlContext.ReadDataFrame(@"c:\path\to\input.txt", new StructType(structTypeProxy.Object), null);
 
@@ -142,7 +134,7 @@ namespace AdapterTest
             mockSqlContextProxy.Setup(m => m.CreateDataFrame(It.IsAny<IRDDProxy>(), It.IsAny<IStructTypeProxy>())).Returns(dataFrameProxy);
             var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
             var structTypeProxy = new Mock<IStructTypeProxy>();
-            structTypeProxy.Setup(m => m.ToJson()).Returns(SchemaJson);
+            structTypeProxy.Setup(m => m.ToJson()).Returns(RowHelper.ComplexJsonSchema);
             // act
             var dataFrame = sqlContext.CreateDataFrame(rdd, new StructType(structTypeProxy.Object));
 
@@ -335,7 +327,7 @@ namespace AdapterTest
             // Test with a given schema
             sqlContext = new SqlContext(new SparkContext("", ""));
             var structTypeProxy = new Mock<IStructTypeProxy>();
-            structTypeProxy.Setup(m => m.ToJson()).Returns(SchemaJson);
+            structTypeProxy.Setup(m => m.ToJson()).Returns(RowHelper.BasicJsonSchema);
             var structType = new StructType(structTypeProxy.Object);
             dataFrame = sqlContext.TextFile(@"c:\path\to\input.txt", structType);
             paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
