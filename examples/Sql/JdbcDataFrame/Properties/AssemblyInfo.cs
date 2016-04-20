@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SparkCLRJdbcDataFrameExample")]
-[assembly: AssemblyDescription("JDBC Example for DataFrame API in SparkCLR")]
+[assembly: AssemblyDescription("JDBC Example for DataFrame API in Mobius")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft Corporation")]
-[assembly: AssemblyProduct("Microsoft SparkCLR")]
+[assembly: AssemblyProduct("Microsoft Mobius")]
 [assembly: AssemblyCopyright("Copyright © Microsoft Corporation 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
