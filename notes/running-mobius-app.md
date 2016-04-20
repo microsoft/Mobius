@@ -69,11 +69,43 @@ scripts\sparkclr-submit.cmd ^
 ````
 
 ### YARN Cluster
+Mobius `runtime` folder and the build output of Mobius application must be copied over to the machine where you submit Mobius application to a YARN cluster, also make sure following enviroment variables are set properly before submission.
+
+* `HADOOP_HOME`
+* `HADOOP_CONF_DIR`
+* `YARN_CONF_DIR`
+* `SPARK_HOME`
+* `SPARK_DIST_CLASSPATH`
+
 #### Client Mode
-To be added
+Sample command
+````
+sparkclr-submit.cmd ^
+    --master yarn ^
+    --deploy-mode client ^
+    --num-executors 10 ^
+    --executor-cores 2 ^
+    --executor-memory 1G ^
+    --conf spark.speculation=true ^
+    --driver-memory 1G ^
+    --exe SparkClrPi.exe ^
+    C:\Git\Mobius\examples\Pi\bin\Debug
+````
 
 #### Cluster Mode
-To be added
+Sample command
+````
+sparkclr-submit.cmd ^
+    --master yarn ^
+    --deploy-mode cluster ^
+    --num-executors 10 ^
+    --executor-cores 2 ^
+    --executor-memory 1G ^
+    --conf spark.speculation=true ^
+    --driver-memory 1G ^
+    --exe SparkClrPi.exe ^
+    C:\Git\Mobius\examples\Pi\bin\Debug
+````
 
 ## Linux Instructions
 The instructions above cover running Mobius applications in Windows. With the following tweaks, the same instructions can be used to run Mobius applications in Linux.
