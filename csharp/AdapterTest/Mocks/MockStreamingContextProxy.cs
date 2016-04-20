@@ -39,17 +39,17 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy KafkaStream(Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, Microsoft.Spark.CSharp.Core.StorageLevelType storageLevelType)
+        public IDStreamProxy KafkaStream(IEnumerable<Tuple<string, int>> topics, IEnumerable<Tuple<string, string>> kafkaParams, Microsoft.Spark.CSharp.Core.StorageLevelType storageLevelType)
         {
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
+        public IDStreamProxy DirectKafkaStream(List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets)
         {
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions)
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, int numPartitions)
         {
             return new MockDStreamProxy();
         }
@@ -113,7 +113,7 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
+        public IDStreamProxy EventHubsUnionStream(IEnumerable<Tuple<string, string>> eventHubsParams, StorageLevelType storageLevelType)
         {
             throw new NotImplementedException();
         }

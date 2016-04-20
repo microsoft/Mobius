@@ -129,7 +129,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var rdd = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 1, 2, 3, 5, 8 }, 1);
             var groups = rdd.GroupBy(x => x % 2).Collect();
             foreach (var kv in groups)
-                Console.WriteLine(kv.Key + ", " + string.Join(",", kv.Value));
+                Console.WriteLine(kv.Item1 + ", " + string.Join(",", kv.Item2));
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
@@ -137,9 +137,9 @@ namespace Microsoft.Spark.CSharp.Samples
                 foreach (var kv in groups)
                 {
                     // the group with key=1 is odd numbers
-                    if (kv.Key == 1) CollectionAssert.AreEquivalent(new[] { 1, 1, 3, 5 }, kv.Value);
+                    if (kv.Item1 == 1) CollectionAssert.AreEquivalent(new[] { 1, 1, 3, 5 }, kv.Item2);
                     // the group with key=0 is even numbers
-                    else if (kv.Key == 0) CollectionAssert.AreEquivalent(new[] { 2, 8 }, kv.Value);
+                    else if (kv.Item1 == 0) CollectionAssert.AreEquivalent(new[] { 2, 8 }, kv.Item2);
                 }
             }
         }
@@ -292,10 +292,10 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(keyBy.Contains(new KeyValuePair<int, int>(1, 1)));
-                Assert.IsTrue(keyBy.Contains(new KeyValuePair<int, int>(4, 2)));
-                Assert.IsTrue(keyBy.Contains(new KeyValuePair<int, int>(9, 3)));
-                Assert.IsTrue(keyBy.Contains(new KeyValuePair<int, int>(16, 4)));
+                Assert.IsTrue(keyBy.Contains(new Tuple<int, int>(1, 1)));
+                Assert.IsTrue(keyBy.Contains(new Tuple<int, int>(4, 2)));
+                Assert.IsTrue(keyBy.Contains(new Tuple<int, int>(9, 3)));
+                Assert.IsTrue(keyBy.Contains(new Tuple<int, int>(16, 4)));
             }
         }
 
@@ -344,7 +344,7 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 for (int i = 0; i < 5; i++)
                 {
-                    Assert.IsTrue(zip.Contains(new KeyValuePair<int, int>(i, 1000 + i)));
+                    Assert.IsTrue(zip.Contains(new Tuple<int, int>(i, 1000 + i)));
                 }
             }
         }
@@ -358,10 +358,10 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(zipWithIndex.Contains(new KeyValuePair<string, long>("a", 0)));
-                Assert.IsTrue(zipWithIndex.Contains(new KeyValuePair<string, long>("b", 1)));
-                Assert.IsTrue(zipWithIndex.Contains(new KeyValuePair<string, long>("c", 2)));
-                Assert.IsTrue(zipWithIndex.Contains(new KeyValuePair<string, long>("d", 3)));
+                Assert.IsTrue(zipWithIndex.Contains(new Tuple<string, long>("a", 0)));
+                Assert.IsTrue(zipWithIndex.Contains(new Tuple<string, long>("b", 1)));
+                Assert.IsTrue(zipWithIndex.Contains(new Tuple<string, long>("c", 2)));
+                Assert.IsTrue(zipWithIndex.Contains(new Tuple<string, long>("d", 3)));
             }
         }
 
@@ -374,11 +374,11 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(zipWithUniqueId.Contains(new KeyValuePair<string, long>("a", 0)));
-                Assert.IsTrue(zipWithUniqueId.Contains(new KeyValuePair<string, long>("b", 1)));
-                Assert.IsTrue(zipWithUniqueId.Contains(new KeyValuePair<string, long>("c", 4)));
-                Assert.IsTrue(zipWithUniqueId.Contains(new KeyValuePair<string, long>("d", 2)));
-                Assert.IsTrue(zipWithUniqueId.Contains(new KeyValuePair<string, long>("e", 5)));
+                Assert.IsTrue(zipWithUniqueId.Contains(new Tuple<string, long>("a", 0)));
+                Assert.IsTrue(zipWithUniqueId.Contains(new Tuple<string, long>("b", 1)));
+                Assert.IsTrue(zipWithUniqueId.Contains(new Tuple<string, long>("c", 4)));
+                Assert.IsTrue(zipWithUniqueId.Contains(new Tuple<string, long>("d", 2)));
+                Assert.IsTrue(zipWithUniqueId.Contains(new Tuple<string, long>("e", 5)));
             }
         }
 
@@ -530,22 +530,22 @@ namespace Microsoft.Spark.CSharp.Samples
             
             var words = lines.FlatMap(s => s.Split(' '));
             
-            var wordCounts = words.Map(w => new KeyValuePair<string, int>(w.Trim(), 1))
+            var wordCounts = words.Map(w => new Tuple<string, int>(w.Trim(), 1))
                                   .ReduceByKey((x, y) => x + y).Collect();
 
             Console.WriteLine("*** Printing words and their counts ***");
             foreach (var kvp in wordCounts)
             {
-                Console.WriteLine("'{0}':{1}", kvp.Key, kvp.Value);
+                Console.WriteLine("'{0}':{1}", kvp.Item1, kvp.Item2);
             }
 
-            var wordCountsCaseInsensitve = words.Map(w => new KeyValuePair<string, int>(w.ToLower().Trim(), 1))
+            var wordCountsCaseInsensitve = words.Map(w => new Tuple<string, int>(w.ToLower().Trim(), 1))
                                                 .ReduceByKey((x, y) => x + y).Collect();
 
             Console.WriteLine("*** Printing words and their counts ignoring case ***");
             foreach (var kvp in wordCountsCaseInsensitve)
             {
-                Console.WriteLine("'{0}':{1}", kvp.Key, kvp.Value);
+                Console.WriteLine("'{0}':{1}", kvp.Item1, kvp.Item2);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -553,7 +553,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 var dictionary = new Dictionary<string, int>();
                 foreach (var kvp in wordCounts)
                 {
-                    dictionary[kvp.Key] = kvp.Value;
+                    dictionary[kvp.Item1] = kvp.Item2;
                 }
 
                 Assert.AreEqual(22, dictionary["the"]);
@@ -563,7 +563,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 var caseInsenstiveWordCountDictionary = new Dictionary<string, int>();
                 foreach (var kvp in wordCountsCaseInsensitve)
                 {
-                    caseInsenstiveWordCountDictionary[kvp.Key] = kvp.Value;
+                    caseInsenstiveWordCountDictionary[kvp.Item1] = kvp.Item2;
                 }
 
                 Assert.AreEqual(45, caseInsenstiveWordCountDictionary["the"]);
@@ -584,12 +584,12 @@ namespace Microsoft.Spark.CSharp.Samples
             var requestsColumns = requests.Map(s =>
             {
                 var columns = s.Split(',');
-                return new KeyValuePair<string, string[]>(columns[0], new[] { columns[1], columns[2], columns[3] });
+                return new Tuple<string, string[]>(columns[0], new[] { columns[1], columns[2], columns[3] });
             });
             var metricsColumns = metrics.Map(s =>
             {
                 var columns = s.Split(',');
-                return new KeyValuePair<string, string[]>(columns[3], new[] { columns[4], columns[5], columns[6] });
+                return new Tuple<string, string[]>(columns[3], new[] { columns[4], columns[5], columns[6] });
             });
 
             var requestsJoinedWithMetrics = requestsColumns.Join(metricsColumns)
@@ -597,29 +597,29 @@ namespace Microsoft.Spark.CSharp.Samples
                                                                 s =>
                                                                     new []
                                                                     {
-                                                                        s.Key, //guid
-                                                                        s.Value.Item1[0], s.Value.Item1[1], s.Value.Item1[2], //dc, abtestid, traffictype
-                                                                        s.Value.Item2[0],s.Value.Item2[1], s.Value.Item2[2] //lang, country, metric
+                                                                        s.Item1, //guid
+                                                                        s.Item2.Item1[0], s.Item2.Item1[1], s.Item2.Item1[2], //dc, abtestid, traffictype
+                                                                        s.Item2.Item2[0],s.Item2.Item2[1], s.Item2.Item2[2] //lang, country, metric
                                                                     });
 
 
-            var latencyByDatacenter = requestsJoinedWithMetrics.Map(i => new KeyValuePair<string, int> (i[1], int.Parse(i[6]))); //key is "datacenter"      
+            var latencyByDatacenter = requestsJoinedWithMetrics.Map(i => new Tuple<string, int> (i[1], int.Parse(i[6]))); //key is "datacenter"      
             var maxLatencyByDataCenterList = latencyByDatacenter.ReduceByKey(Math.Max).Collect();
 
             Console.WriteLine("***** Max latency metrics by DC *****");
-            foreach (var keyValuePair in maxLatencyByDataCenterList)
+            foreach (var Tuple in maxLatencyByDataCenterList)
             {
-                Console.WriteLine("Datacenter={0}, Max latency={1}", keyValuePair.Key, keyValuePair.Value);
+                Console.WriteLine("Datacenter={0}, Max latency={1}", Tuple.Item1, Tuple.Item2);
             }
             
-            var latencyAndCountByDatacenter = requestsJoinedWithMetrics.Map(i => new KeyValuePair<string, Tuple<int,int>> (i[1], new Tuple<int, int>(int.Parse(i[6]), 1)));
+            var latencyAndCountByDatacenter = requestsJoinedWithMetrics.Map(i => new Tuple<string, Tuple<int,int>> (i[1], new Tuple<int, int>(int.Parse(i[6]), 1)));
             var sumLatencyAndCountByDatacenter = latencyAndCountByDatacenter.ReduceByKey((tuple, tuple1) => new Tuple<int, int>((tuple == null ? 0 : tuple.Item1) + tuple1.Item1, (tuple == null ? 0 : tuple.Item2) + tuple1.Item2));
             var sumLatencyAndCountByDatacenterList = sumLatencyAndCountByDatacenter.Collect();
 
             Console.WriteLine("***** Mean latency metrics by DC *****");
-            foreach (var keyValuePair in sumLatencyAndCountByDatacenterList)
+            foreach (var Tuple in sumLatencyAndCountByDatacenterList)
             {
-                Console.WriteLine("Datacenter={0}, Mean latency={1}", keyValuePair.Key, keyValuePair.Value.Item1/keyValuePair.Value.Item2);
+                Console.WriteLine("Datacenter={0}, Mean latency={1}", Tuple.Item1, Tuple.Item2.Item1/Tuple.Item2.Item2);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -627,7 +627,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 var dictionary = new Dictionary<string, int>();
                 foreach (var kvp in maxLatencyByDataCenterList)
                 {
-                    dictionary[kvp.Key] = kvp.Value;
+                    dictionary[kvp.Item1] = kvp.Item2;
                 }
 
                 Assert.AreEqual(835, dictionary["iowa"]);
@@ -636,7 +636,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 var meanDictionary = new Dictionary<string, Tuple<int, int>>();
                 foreach (var kvp in sumLatencyAndCountByDatacenterList)
                 {
-                    meanDictionary[kvp.Key] = new Tuple<int, int>(kvp.Value.Item1, kvp.Value.Item2);
+                    meanDictionary[kvp.Item1] = new Tuple<int, int>(kvp.Item2.Item1, kvp.Item2.Item2);
                 }
 
                 Assert.AreEqual(1621, meanDictionary["iowa"].Item1);
@@ -737,7 +737,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var markets = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath("market.tab"), 1);
             long totalMarketsCount = markets.Count();
 
-            var marketsByKey = markets.Map(x => new KeyValuePair<string, string>(x.Substring(0, x.IndexOf('-')), x));
+            var marketsByKey = markets.Map(x => new Tuple<string, string>(x.Substring(0, x.IndexOf('-')), x));
             var categories = marketsByKey.PartitionBy(2)
                 .CombineByKey(() => "", (c, v) => v.Substring(0, v.IndexOf('-')), (c1, c2) => c1, 2);
             var categoriesCollectedCount = categories.Collect().Count();

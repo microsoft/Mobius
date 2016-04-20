@@ -31,13 +31,13 @@ namespace AdapterTest
             var socketStream = ssc.SocketTextStream(IPAddress.Loopback.ToString(), 12345);
             Assert.IsNotNull(socketStream.DStreamProxy);
 
-            var kafkaStream = KafkaUtils.CreateStream(ssc, IPAddress.Loopback + ":2181", "testGroupId", new Dictionary<string, int> { { "testTopic1", 1 } }, new Dictionary<string, string>());
+            var kafkaStream = KafkaUtils.CreateStream(ssc, IPAddress.Loopback + ":2181", "testGroupId", new [] { Tuple.Create("testTopic1", 1) }, new List<Tuple<string, string>>());
             Assert.IsNotNull(kafkaStream.DStreamProxy);
 
-            var directKafkaStream = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic2" }, new Dictionary<string, string>(), new Dictionary<string, long>());
+            var directKafkaStream = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic2" }, new List<Tuple<string, string>>(), new List<Tuple<string, long>>());
             Assert.IsNotNull(directKafkaStream.DStreamProxy);
 
-            var directKafkaStreamWithRepartition = KafkaUtils.CreateDirectStreamWithRepartition(ssc, new List<string> { "testTopic3" }, new Dictionary<string, string>(), new Dictionary<string, long>(), 10);
+            var directKafkaStreamWithRepartition = KafkaUtils.CreateDirectStreamWithRepartition(ssc, new List<string> { "testTopic3" }, new List<Tuple<string, string>>(), new List<Tuple<string, long>>(), 10);
             Assert.IsNotNull(directKafkaStreamWithRepartition.DStreamProxy);
 
             var union = ssc.Union(textFile, socketStream);

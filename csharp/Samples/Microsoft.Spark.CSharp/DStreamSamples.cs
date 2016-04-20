@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp
                     var lines = context.TextFileStream(Path.Combine(directory, "test"));
                     lines = context.Union(lines, lines);
                     var words = lines.FlatMap(l => l.Split(' '));
-                    var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+                    var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
                     // since operations like ReduceByKey, Join and UpdateStateByKey are
                     // separate dstream transformations defined in CSharpDStream.scala
@@ -140,7 +140,7 @@ namespace Microsoft.Spark.CSharp
                         {"auto.offset.reset", "smallest"}
                     };
 
-                    var dstream = KafkaUtils.CreateDirectStreamWithRepartition(context, new List<string> { topic }, kafkaParams, new Dictionary<string, long>(), partitions);
+                    var dstream = KafkaUtils.CreateDirectStreamWithRepartition(context, new List<string> { topic }, kafkaParams.Select(kv => Tuple.Create(kv.Key, kv.Value)), new List<Tuple<string, long>>(), partitions);
 
                     dstream.ForeachRDD((time, rdd) => 
                         {

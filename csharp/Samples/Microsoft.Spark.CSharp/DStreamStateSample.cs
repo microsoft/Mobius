@@ -61,16 +61,16 @@ namespace Microsoft.Spark.CSharp.Samples
                     var lines = context.TextFileStream(Path.Combine(directory, "test1"));
                     lines = context.Union(lines, lines);
                     var words = lines.FlatMap(l => l.Split(' '));
-                    var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+                    var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
-                    var initialState = sc.Parallelize(new[] { new KeyValuePair<string, int>("NOT_A_WORD", 1024), new KeyValuePair<string, int>("dog", 10000), }, 1);
-                    var stateSpec = new StateSpec<string, int, int, KeyValuePair<string, int>>((word, count, state) =>
+                    var initialState = sc.Parallelize(new[] { new Tuple<string, int>("NOT_A_WORD", 1024), new Tuple<string, int>("dog", 10000), }, 1);
+                    var stateSpec = new StateSpec<string, int, int, Tuple<string, int>>((word, count, state) =>
                     {
                         if (state.IsTimingOut())
                         {
                             Console.WriteLine("Found timing out word: {0}", word);
-                            return new KeyValuePair<string, int>(word, state.Get());
+                            return new Tuple<string, int>(word, state.Get());
                         }
 
                         var sum = 0;
@@ -80,7 +80,7 @@ namespace Microsoft.Spark.CSharp.Samples
                         }
                         state.Update(sum + count);
                         Console.WriteLine("word: {0}, count: {1}", word, sum + count);
-                        return new KeyValuePair<string, int>(word, sum + count);
+                        return new Tuple<string, int>(word, sum + count);
                     }).NumPartitions(1).InitialState(initialState).Timeout(TimeSpan.FromSeconds(30));
 
                     var snapshots = wordCounts.MapWithState(stateSpec).StateSnapshots();
@@ -90,9 +90,9 @@ namespace Microsoft.Spark.CSharp.Samples
                         Console.WriteLine("Snapshots @ Time: {0}", time);
                         Console.WriteLine("-------------------------------------------");
 
-                        foreach (KeyValuePair<string, int> record in rdd.Collect())
+                        foreach (Tuple<string, int> record in rdd.Collect())
                         {
-                            Console.WriteLine("[{0}, {1}]", record.Key, record.Value);
+                            Console.WriteLine("[{0}, {1}]", record.Item1, record.Item2);
                         }
                         Console.WriteLine();
                     });

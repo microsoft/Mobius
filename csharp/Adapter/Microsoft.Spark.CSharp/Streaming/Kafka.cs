@@ -25,7 +25,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="topics">Dict of (topic_name -> numPartitions) to consume. Each partition is consumed in its own thread.</param>
         /// <param name="kafkaParams">Additional params for Kafka</param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, Dictionary<string, int> topics, Dictionary<string, string> kafkaParams)
+        public static DStream<Tuple<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, IEnumerable<Tuple<string, int>> topics, IEnumerable<Tuple<string, string>> kafkaParams)
         {
             return CreateStream(ssc, zkQuorum, groupId, topics, kafkaParams, StorageLevelType.MEMORY_AND_DISK_SER_2);
         }
@@ -40,19 +40,21 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="kafkaParams">Additional params for Kafka</param>
         /// <param name="storageLevelType">RDD storage level.</param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, StorageLevelType storageLevelType)
+        public static DStream<Tuple<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, IEnumerable<Tuple<string, int>> topics, IEnumerable<Tuple<string, string>> kafkaParams, StorageLevelType storageLevelType)
         {
             if (kafkaParams == null)
-                kafkaParams = new Dictionary<string, string>();
+                kafkaParams = new List<Tuple<string, string>>();
+
+            var kafkaParamsMap = kafkaParams.ToDictionary(x => x.Item1, x => x.Item2);
 
             if (!string.IsNullOrEmpty(zkQuorum))
-                kafkaParams["zookeeper.connect"] = zkQuorum;
+                kafkaParamsMap["zookeeper.connect"] = zkQuorum;
             if (groupId != null)
-                kafkaParams["group.id"] = groupId;
-            if (kafkaParams.ContainsKey("zookeeper.connection.timeout.ms"))
-                kafkaParams["zookeeper.connection.timeout.ms"] = "10000";
+                kafkaParamsMap["group.id"] = groupId;
+            if (kafkaParamsMap.ContainsKey("zookeeper.connection.timeout.ms"))
+                kafkaParamsMap["zookeeper.connection.timeout.ms"] = "10000";
 
-            return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.KafkaStream(topics, kafkaParams, storageLevelType), ssc);
+            return new DStream<Tuple<byte[], byte[]>>(ssc.streamingContextProxy.KafkaStream(topics, kafkaParamsMap.Select(x => Tuple.Create(x.Key, x.Value)), storageLevelType), ssc);
         }
 
         /// <summary>
@@ -79,9 +81,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </param>
         /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateDirectStream(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
+        public static DStream<Tuple<byte[], byte[]>> CreateDirectStream(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets)
         {
-            return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStream(topics, kafkaParams, fromOffsets), ssc, SerializedMode.Pair);
+            return new DStream<Tuple<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStream(topics, kafkaParams, fromOffsets), ssc, SerializedMode.Pair);
         }
 
         /// <summary>
@@ -116,9 +118,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         ///     If numPartitions > 0, repartition using this parameter
         /// </param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateDirectStreamWithRepartition(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions = -1)
+        public static DStream<Tuple<byte[], byte[]>> CreateDirectStreamWithRepartition(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, int numPartitions = -1)
         {
-            return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions), ssc, SerializedMode.Pair);
+            return new DStream<Tuple<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions), ssc, SerializedMode.Pair);
         }
     }
 }

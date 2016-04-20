@@ -63,11 +63,11 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
 
             var flaggedRows = parsedRows.Filter(s => s.Item1); //select good rows
             var selectedDeletions = flaggedRows.Filter(s => s.Item3.Equals(s.Item5)); //select deletions made by same creators
-            var userDeletions = selectedDeletions.Map(s => new KeyValuePair<string, int>(s.Item3, 1));
+            var userDeletions = selectedDeletions.Map(s => new Tuple<string, int>(s.Item3, 1));
             var userDeletionCount = userDeletions.ReduceByKey((x, y) => x + y);
-            var userWithMaxDeletions = userDeletionCount.Fold(new KeyValuePair<string, int>("zerovalue", 0), (kvp1, kvp2) =>
+            var userWithMaxDeletions = userDeletionCount.Fold(new Tuple<string, int>("zerovalue", 0), (kvp1, kvp2) =>
             {
-                if (kvp1.Value > kvp2.Value)
+                if (kvp1.Item2 > kvp2.Item2)
                     return kvp1;
                 else
                     return kvp2;
@@ -76,7 +76,7 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
             stopwatch.Stop();
             PerfBenchmark.ExecutionTimeList.Add(stopwatch.Elapsed);
 
-            Console.WriteLine("User with max deletions is {0}, count of deletions={1}. Elapsed time={2}", userWithMaxDeletions.Key, userWithMaxDeletions.Value, stopwatch.Elapsed);
+            Console.WriteLine("User with max deletions is {0}, count of deletions={1}. Elapsed time={2}", userWithMaxDeletions.Item1, userWithMaxDeletions.Item2, stopwatch.Elapsed);
         }
 
         [PerfSuite]

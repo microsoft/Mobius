@@ -119,14 +119,14 @@ namespace AdapterTest
         {
             words.GroupBy(w => w).Foreach(record =>
             {
-                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Count);
+                Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2.Count);
             });
             
             words.GroupBy(w => w).ForeachPartition(iter =>
             {
                 foreach (var record in iter)
                 {
-                    Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Count);
+                    Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2.Count);
                 }
             });
         }
@@ -144,7 +144,7 @@ namespace AdapterTest
             int index = 0;
             foreach(var record in words.ZipWithIndex().Collect())
             {
-                Assert.AreEqual(index++, record.Value);
+                Assert.AreEqual(index++, record.Item2);
             }
         }
 
@@ -155,7 +155,7 @@ namespace AdapterTest
             int num = words.GetNumPartitions();
             foreach (var record in words.ZipWithUniqueId().Collect())
             {
-                Assert.AreEqual(num * index++, record.Value);
+                Assert.AreEqual(num * index++, record.Item2);
             }
         }
 

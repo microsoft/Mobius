@@ -297,7 +297,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="valueConverterClass">(None by default)</param>
         /// <param name="conf"> Hadoop configuration, passed in as a dict (None by default)</param>
         /// <returns></returns>
-        public RDD<byte[]> NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        public RDD<byte[]> NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<Tuple<string, string>> conf = null)
         {
             return new RDD<byte[]>(SparkContextProxy.NewAPIHadoopFile(filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
         }
@@ -316,7 +316,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="valueConverterClass">(None by default)</param>
         /// <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
         /// <returns></returns>
-        public RDD<byte[]> NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        public RDD<byte[]> NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<Tuple<string, string>> conf = null)
         {
             return new RDD<byte[]>(SparkContextProxy.NewAPIHadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
         }
@@ -337,7 +337,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="valueConverterClass">(None by default)</param>
         /// <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
         /// <returns></returns>
-        public RDD<byte[]> HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        public RDD<byte[]> HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<Tuple<string, string>> conf = null)
         {
             return new RDD<byte[]>(SparkContextProxy.HadoopFile(filePath, inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
         }
@@ -356,7 +356,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="valueConverterClass">(None by default)</param>
         /// <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
         /// <returns></returns>
-        public RDD<byte[]> HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<KeyValuePair<string, string>> conf = null)
+        public RDD<byte[]> HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass = null, string valueConverterClass = null, IEnumerable<Tuple<string, string>> conf = null)
         {
             return new RDD<byte[]>(SparkContextProxy.HadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf, 1), this, SerializedMode.None);
         }

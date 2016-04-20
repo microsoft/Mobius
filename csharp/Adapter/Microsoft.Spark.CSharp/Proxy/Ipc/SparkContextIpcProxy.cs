@@ -157,7 +157,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(jvmRddReference);
         }
 
-        public IRDDProxy NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
+        public IRDDProxy NewAPIHadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<Tuple<string, string>> conf, int batchSize)
         {
             var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "newAPIHadoopFile",
@@ -165,7 +165,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(jvmRddReference);
         }
 
-        public IRDDProxy NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
+        public IRDDProxy NewAPIHadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<Tuple<string, string>> conf, int batchSize)
         {
             var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "newAPIHadoopRDD",
@@ -173,7 +173,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(jvmRddReference);
         }
 
-        public IRDDProxy HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
+        public IRDDProxy HadoopFile(string filePath, string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<Tuple<string, string>> conf, int batchSize)
         {
             var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "hadoopFile",
@@ -181,7 +181,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(jvmRddReference);
         }
 
-        public IRDDProxy HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<KeyValuePair<string, string>> conf, int batchSize)
+        public IRDDProxy HadoopRDD(string inputFormatClass, string keyClass, string valueClass, string keyConverterClass, string valueConverterClass, IEnumerable<Tuple<string, string>> conf, int batchSize)
         {
             var jconf = JvmBridgeUtils.GetJavaHashMap<string, string>(conf);
             var jvmRddReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "hadoopRDD",

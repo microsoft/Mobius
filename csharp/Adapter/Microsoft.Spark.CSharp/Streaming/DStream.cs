@@ -153,7 +153,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<T> Reduce(Func<T, T, T> f)
         {
-            return Map<KeyValuePair<string, T>>(x => new KeyValuePair<string, T>(string.Empty, x)).ReduceByKey(f, 1).Map<T>(kvp => kvp.Value);
+            return Map<Tuple<string, T>>(x => new Tuple<string, T>(string.Empty, x)).ReduceByKey(f, 1).Map<T>(kvp => kvp.Item2);
         }
 
         /// <summary>
@@ -235,9 +235,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// distinct value in each RDD of this DStream.
         /// </summary>
         /// <returns></returns>
-        public DStream<KeyValuePair<T, long>> CountByValue(int numPartitions = 0)
+        public DStream<Tuple<T, long>> CountByValue(int numPartitions = 0)
         {
-            return Map(v => new KeyValuePair<T, long>(v, 1L)).ReduceByKey((x, y) => x + y, numPartitions);
+            return Map(v => new Tuple<T, long>(v, 1L)).ReduceByKey((x, y) => x + y, numPartitions);
         }
 
         /// <summary>
@@ -427,9 +427,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<T> ReduceByWindow(Func<T, T, T> reduceFunc, Func<T, T, T> invReduceFunc, int windowSeconds, int slideSeconds = 0)
         {
-            var keyed = Map(v => new KeyValuePair<int, T>(1, v));
+            var keyed = Map(v => new Tuple<int, T>(1, v));
             var reduced = keyed.ReduceByKeyAndWindow(reduceFunc, invReduceFunc, windowSeconds, slideSeconds, 1);
-            return reduced.Map(kv => (T)kv.Value);
+            return reduced.Map(kv => (T)kv.Item2);
         }
 
         /// <summary>
@@ -462,9 +462,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<long> CountByValueAndWindow(int windowSeconds, int slideSeconds, int numPartitions = 0)
         {
-            var keyed = Map(v => new KeyValuePair<T, int>(v, 1));
+            var keyed = Map(v => new Tuple<T, int>(v, 1));
             var counted = keyed.ReduceByKeyAndWindow((x, y) => x + y, (x, y) => x - y, windowSeconds, slideSeconds, numPartitions);
-            return counted.Filter(kv => kv.Value > 0).Count();
+            return counted.Filter(kv => kv.Item2 > 0).Count();
         }
     }
 

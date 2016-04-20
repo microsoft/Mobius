@@ -47,8 +47,8 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, long> countByWord = (KeyValuePair<string, long>)record;
-                    Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22);
+                    Tuple<string, long> countByWord = (Tuple<string, long>)record;
+                    Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
             });
 
@@ -90,7 +90,7 @@ namespace AdapterTest
 
             var words = lines.FlatMap(l => l.Split(' '));
 
-            var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+            var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
             var wordCounts = pairs.PartitionBy().ReduceByKey((x, y) => x + y);
 
@@ -101,8 +101,8 @@ namespace AdapterTest
 
                     foreach (object record in taken)
                     {
-                        KeyValuePair<string, int> countByWord = (KeyValuePair<string, int>)record;
-                        Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22);
+                        Tuple<string, int> countByWord = (Tuple<string, int>)record;
+                        Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                     }
                 });
 
@@ -115,8 +115,8 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, List<int>> countByWord = (KeyValuePair<string, List<int>>)record;
-                    Assert.AreEqual(countByWord.Value.Count, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22);
+                    Tuple<string, List<int>> countByWord = (Tuple<string, List<int>>)record;
+                    Assert.AreEqual(countByWord.Item2.Count, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
             });
 
@@ -129,8 +129,8 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, int> countByWord = (KeyValuePair<string, int>)record;
-                    Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 46 : 44);
+                    Tuple<string, int> countByWord = (Tuple<string, int>)record;
+                    Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 46 : 44);
                 }
             });
         }
@@ -146,12 +146,12 @@ namespace AdapterTest
 
             var words = lines.FlatMap(l => l.Split(' '));
 
-            var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+            var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
             var wordCounts = pairs.ReduceByKey((x, y) => x + y);
 
-            var left = wordCounts.Filter(x => x.Key != "quick" && x.Key != "lazy");
-            var right = wordCounts.Filter(x => x.Key != "brown");
+            var left = wordCounts.Filter(x => x.Item1 != "quick" && x.Item1 != "lazy");
+            var right = wordCounts.Filter(x => x.Item1 != "brown");
 
             var groupWith = left.GroupWith(right);
             groupWith.ForeachRDD((time, rdd) =>
@@ -161,15 +161,15 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<List<int>, List<int>>> countByWord = (KeyValuePair<string, Tuple<List<int>, List<int>>>)record;
-                    if (countByWord.Key == "quick" || countByWord.Key == "lazy")
-                        Assert.AreEqual(countByWord.Value.Item1.Count, 0);
-                    else if (countByWord.Key == "brown")
-                        Assert.AreEqual(countByWord.Value.Item2.Count, 0);
+                    Tuple<string, Tuple<List<int>, List<int>>> countByWord = (Tuple<string, Tuple<List<int>, List<int>>>)record;
+                    if (countByWord.Item1 == "quick" || countByWord.Item1 == "lazy")
+                        Assert.AreEqual(countByWord.Item2.Item1.Count, 0);
+                    else if (countByWord.Item1 == "brown")
+                        Assert.AreEqual(countByWord.Item2.Item2.Count, 0);
                     else
                     {
-                        Assert.AreEqual(countByWord.Value.Item1[0], countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : 22);
-                        Assert.AreEqual(countByWord.Value.Item2[0], countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22);
+                        Assert.AreEqual(countByWord.Item2.Item1[0], countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 23 : 22);
+                        Assert.AreEqual(countByWord.Item2.Item2[0], countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                     }
                 }
             });
@@ -182,9 +182,9 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<int, int>> countByWord = (KeyValuePair<string, Tuple<int, int>>)record;
-                    Assert.AreEqual(countByWord.Value.Item1, countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : 22);
-                    Assert.AreEqual(countByWord.Value.Item2, countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : 22);
+                    Tuple<string, Tuple<int, int>> countByWord = (Tuple<string, Tuple<int, int>>)record;
+                    Assert.AreEqual(countByWord.Item2.Item1, countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 23 : 22);
+                    Assert.AreEqual(countByWord.Item2.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 23 : 22);
                 }
             });
 
@@ -196,11 +196,11 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<int, Option<int>>> countByWord = (KeyValuePair<string, Tuple<int, Option<int>>>)record;
-                    Assert.AreEqual(countByWord.Value.Item1, countByWord.Key == "The" || countByWord.Key == "dog" ? 23 : 22);
-                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" ? 
-                        countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 23 : (countByWord.Key == "brown" ?
-                        countByWord.Value.Item2.IsDefined == true == false : countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 22));
+                    Tuple<string, Tuple<int, Option<int>>> countByWord = (Tuple<string, Tuple<int, Option<int>>>)record;
+                    Assert.AreEqual(countByWord.Item2.Item1, countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 23 : 22);
+                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 
+                        countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 23 : (countByWord.Item1 == "brown" ?
+                        countByWord.Item2.Item2.IsDefined == true == false : countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 22));
                 }
             });
 
@@ -212,12 +212,12 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<Option<int>, int>> countByWord = (KeyValuePair<string, Tuple<Option<int>, int>>)record;
-                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" ? 
-                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 23 : 
-                        (countByWord.Key == "quick" || countByWord.Key == "lazy" ? countByWord.Value.Item1.IsDefined == false :
-                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 22));
-                    Assert.AreEqual(countByWord.Value.Item2, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22);
+                    Tuple<string, Tuple<Option<int>, int>> countByWord = (Tuple<string, Tuple<Option<int>, int>>)record;
+                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 
+                        countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 23 : 
+                        (countByWord.Item1 == "quick" || countByWord.Item1 == "lazy" ? countByWord.Item2.Item1.IsDefined == false :
+                        countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 22));
+                    Assert.AreEqual(countByWord.Item2.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
             });
             
@@ -229,15 +229,15 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, Tuple<Option<int>, Option<int>>> countByWord = (KeyValuePair<string, Tuple<Option<int>, Option<int>>>)record;
-                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" ?
-                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 23 :
-                        (countByWord.Key == "quick" || countByWord.Key == "lazy" ? countByWord.Value.Item1.IsDefined == false :
-                        countByWord.Value.Item1.IsDefined == true && countByWord.Value.Item1.GetValue() == 22));
+                    Tuple<string, Tuple<Option<int>, Option<int>>> countByWord = (Tuple<string, Tuple<Option<int>, Option<int>>>)record;
+                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" ?
+                        countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 23 :
+                        (countByWord.Item1 == "quick" || countByWord.Item1 == "lazy" ? countByWord.Item2.Item1.IsDefined == false :
+                        countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 22));
 
-                    Assert.IsTrue(countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 
-                        countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 23 : 
-                        (countByWord.Key == "brown" ? countByWord.Value.Item2.IsDefined == false : countByWord.Value.Item2.IsDefined == true && countByWord.Value.Item2.GetValue() == 22));
+                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 
+                        countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 23 : 
+                        (countByWord.Item1 == "brown" ? countByWord.Item2.Item2.IsDefined == false : countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 22));
                 }
             });
         }
@@ -253,7 +253,7 @@ namespace AdapterTest
 
             var words = lines.FlatMap(l => l.Split(' '));
 
-            var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+            var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
             var doubleCounts = pairs.GroupByKey().FlatMapValues(vs => vs).MapValues(v => 2 * v).ReduceByKey((x, y) => x + y);
             doubleCounts.ForeachRDD((time, rdd) =>
@@ -263,8 +263,8 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, int> countByWord = (KeyValuePair<string, int>)record;
-                    Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 2 * 23 : 2 * 22);
+                    Tuple<string, int> countByWord = (Tuple<string, int>)record;
+                    Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 2 * 23 : 2 * 22);
                 }
             });
 
@@ -279,8 +279,8 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, int> countByWord = (KeyValuePair<string, int>)record;
-                    Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 24 : 23);
+                    Tuple<string, int> countByWord = (Tuple<string, int>)record;
+                    Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 24 : 23);
                 }
             });
         }
@@ -314,7 +314,7 @@ namespace AdapterTest
                 var ssc = new StreamingContext(new SparkContext(sparkContextProxy.Object, sparkConf), 10000);
 
                 var dstreamProxy = new Mock<IDStreamProxy>();
-                var pairDStream = new DStream<KeyValuePair<string, int>>(dstreamProxy.Object, ssc);
+                var pairDStream = new DStream<Tuple<string, int>>(dstreamProxy.Object, ssc);
 
                 var stateSpec = new StateSpec<string, int, int, int>((k, v, s) => v);
                 var stateDStream = pairDStream.MapWithState(stateSpec);
@@ -357,7 +357,7 @@ namespace AdapterTest
             Assert.IsNotNull(resultRdd);
 
             // test when initialStateRdd is not null
-            var initialStateRdd = new RDD<KeyValuePair<string, int>>(new Mock<IRDDProxy>().Object, null);
+            var initialStateRdd = new RDD<Tuple<string, int>>(new Mock<IRDDProxy>().Object, null);
             var stateSpec2 = new StateSpec<string, int, int, int>((k, v, s) => v).InitialState(initialStateRdd).NumPartitions(2);
             var helper2 = new MapWithStateHelper<string, int, int, int>((t, rdd) => rdd, stateSpec2);
 
@@ -388,13 +388,13 @@ namespace AdapterTest
 
             var input = new dynamic[4];
 
-            var preStateRddRecord = new MapWithStateRDDRecord<string, int, int>(ticks - TimeSpan.FromSeconds(2).Ticks, new [] { new KeyValuePair<string, int>("1", 1), new KeyValuePair<string, int>("2", 2)});
+            var preStateRddRecord = new MapWithStateRDDRecord<string, int, int>(ticks - TimeSpan.FromSeconds(2).Ticks, new [] { new Tuple<string, int>("1", 1), new Tuple<string, int>("2", 2)});
             preStateRddRecord.stateMap.Add("expired", new KeyedState<int>(0, ticks - TimeSpan.FromSeconds(60).Ticks));
 
             input[0] = preStateRddRecord;
-            input[1] = new KeyValuePair<string, int>("1", -1);
-            input[2] = new KeyValuePair<string, int>("2", 2);
-            input[3] = new KeyValuePair<string, int>("3", 3);
+            input[1] = new Tuple<string, int>("1", -1);
+            input[2] = new Tuple<string, int>("2", 2);
+            input[3] = new Tuple<string, int>("3", 3);
 
             var result = helper.Execute(1, input).GetEnumerator();
             Assert.IsNotNull(result);

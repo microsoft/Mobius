@@ -26,7 +26,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="ascending"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, V>> SortByKey<K, V>(this RDD<KeyValuePair<K, V>> self,
+        public static RDD<Tuple<K, V>> SortByKey<K, V>(this RDD<Tuple<K, V>> self,
             bool ascending = true, int? numPartitions = null)
         {
             return SortByKey<K, V, K>(self, ascending, numPartitions, new DefaultSortKeyFuncHelper<K>().Execute);
@@ -42,7 +42,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="numPartitions">Number of partitions. Each partition of the sorted RDD contains a sorted range of the elements.</param>
         /// <param name="keyFunc">RDD will sort by keyFunc(key) for every key in KeyValuePair. Must not be null.</param>
         /// <returns></returns>
-        public static RDD<KeyValuePair<K, V>> SortByKey<K, V, U>(this RDD<KeyValuePair<K, V>> self,
+        public static RDD<Tuple<K, V>> SortByKey<K, V, U>(this RDD<Tuple<K, V>> self,
             bool ascending, int? numPartitions, Func<K, U> keyFunc)
         {
             if (keyFunc == null)
@@ -73,7 +73,7 @@ namespace Microsoft.Spark.CSharp.Core
             /* first compute the boundary of each part via sampling: we want to partition
              * the key-space into bins such that the bins have roughly the same
              * number of (key, value) pairs falling into them */
-            U[] samples = self.Sample(false, fraction, 1).Map(kv => kv.Key).Collect().Select(k => keyFunc(k)).ToArray();
+            U[] samples = self.Sample(false, fraction, 1).Map(kv => kv.Item1).Collect().Select(k => keyFunc(k)).ToArray();
             Array.Sort(samples, StringComparer.Ordinal); // case sensitive if key type is string
 
             List<U> bounds = new List<U>();
@@ -123,22 +123,22 @@ namespace Microsoft.Spark.CSharp.Core
                 this.ascending = ascending;
             }
 
-            public IEnumerable<KeyValuePair<K, V>> Execute(int pid, IEnumerable<KeyValuePair<K, V>> kvs)
+            public IEnumerable<Tuple<K, V>> Execute(int pid, IEnumerable<Tuple<K, V>> kvs)
             {
-                IEnumerable<KeyValuePair<K, V>> ordered;
+                IEnumerable<Tuple<K, V>> ordered;
                 if (ascending)
                 {
                     if (typeof(K) == typeof(string))
-                        ordered = kvs.OrderBy(k => func(k.Key).ToString(), StringComparer.Ordinal);
+                        ordered = kvs.OrderBy(k => func(k.Item1).ToString(), StringComparer.Ordinal);
                     else
-                        ordered = kvs.OrderBy(k => func(k.Key));
+                        ordered = kvs.OrderBy(k => func(k.Item1));
                 }
                 else
                 {
                     if (typeof(K) == typeof(string))
-                        ordered = kvs.OrderByDescending(k => func(k.Key).ToString(), StringComparer.Ordinal);
+                        ordered = kvs.OrderByDescending(k => func(k.Item1).ToString(), StringComparer.Ordinal);
                     else
-                        ordered = kvs.OrderByDescending(k => func(k.Key));
+                        ordered = kvs.OrderByDescending(k => func(k.Item1));
                 }
                 return ordered;
             }

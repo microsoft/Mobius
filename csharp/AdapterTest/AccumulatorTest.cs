@@ -80,7 +80,7 @@ namespace AdapterTest
                 // write update
                 int key = 0;
                 int value = 100;
-                KeyValuePair<int, dynamic> update = new KeyValuePair<int, dynamic>(key, value);
+                Tuple<int, dynamic> update = new Tuple<int, dynamic>(key, value);
                 var ms = new MemoryStream();
                 var formatter = new BinaryFormatter();
                 formatter.Serialize(ms, update);
@@ -111,7 +111,7 @@ namespace AdapterTest
                 // write update
                 int key = 1;
                 int value = 1000;
-                KeyValuePair<int, dynamic> update = new KeyValuePair<int, dynamic>(key, value);
+                Tuple<int, dynamic> update = new Tuple<int, dynamic>(key, value);
                 var ms = new MemoryStream();
                 var formatter = new BinaryFormatter();
                 formatter.Serialize(ms, update);
@@ -123,8 +123,8 @@ namespace AdapterTest
                 byte[] receiveBuffer = new byte[1];
                 s.Read(receiveBuffer, 0, 1);
 
-                Assert.IsTrue(Accumulator.accumulatorRegistry.ContainsKey(update.Key));
-                var accumulator = Accumulator.accumulatorRegistry[update.Key] as Accumulator<int>;
+                Assert.IsTrue(Accumulator.accumulatorRegistry.ContainsKey(update.Item1));
+                var accumulator = Accumulator.accumulatorRegistry[update.Item1] as Accumulator<int>;
                 Assert.AreEqual(accumulator.Value, value);
             }
         }

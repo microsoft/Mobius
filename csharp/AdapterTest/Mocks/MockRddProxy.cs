@@ -136,7 +136,7 @@ namespace AdapterTest.Mocks
             return this;
         }
 
-        public IRDDProxy SampleByKey(bool withReplacement, Dictionary<string, double> fractions, long seed)
+        public IRDDProxy SampleByKey(bool withReplacement, IEnumerable<Tuple<string, double>> fractions, long seed)
         {
             return this;
         }
@@ -151,13 +151,13 @@ namespace AdapterTest.Mocks
             return null;
         }
 
-        public void SaveAsNewAPIHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
+        public void SaveAsNewAPIHadoopDataset(IEnumerable<Tuple<string, string>> conf)
         { }
 
-        public void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf)
+        public void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<Tuple<string, string>> conf)
         { }
 
-        public void SaveAsHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf)
+        public void SaveAsHadoopDataset(IEnumerable<Tuple<string, string>> conf)
         { }
 
         public void SaveAsSequenceFile(string path, string compressionCodecClass)
@@ -167,7 +167,7 @@ namespace AdapterTest.Mocks
         { }
 
 
-        public void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass)
+        public void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<Tuple<string, string>> conf, string compressionCodecClass)
         { }
 
 

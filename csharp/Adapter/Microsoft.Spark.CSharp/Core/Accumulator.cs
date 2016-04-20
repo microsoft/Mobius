@@ -215,19 +215,19 @@ namespace Microsoft.Spark.CSharp.Core
                             for (int i = 0; i < numUpdates; i++)
                             {
                                 var ms = new MemoryStream(SerDe.ReadBytes(ns));
-                                KeyValuePair<int, dynamic> update = (KeyValuePair<int, dynamic>)formatter.Deserialize(ms);
+                                var update = (Tuple<int, dynamic>)formatter.Deserialize(ms);
 
-                                if (Accumulator.accumulatorRegistry.ContainsKey(update.Key))
+                                if (Accumulator.accumulatorRegistry.ContainsKey(update.Item1))
                                 {
-                                    Accumulator accumulator = Accumulator.accumulatorRegistry[update.Key];
-                                    accumulator.GetType().GetMethod("Add").Invoke(accumulator, new object[] { update.Value });
+                                    Accumulator accumulator = Accumulator.accumulatorRegistry[update.Item1];
+                                    accumulator.GetType().GetMethod("Add").Invoke(accumulator, new object[] { update.Item2 });
                                 }
                                 else
                                 {
-                                    Console.Error.WriteLine("WARN: cann't find update.Key: {0} for accumulator, will create a new one", update.Key);
+                                    Console.Error.WriteLine("WARN: cann't find update.Key: {0} for accumulator, will create a new one", update.Item1);
                                     var genericAccumulatorType = typeof(Accumulator<>);
-                                    var specificAccumulatorType = genericAccumulatorType.MakeGenericType(update.Value.GetType());
-                                    Activator.CreateInstance(specificAccumulatorType, new object[] { update.Key, update.Value });
+                                    var specificAccumulatorType = genericAccumulatorType.MakeGenericType(update.Item2.GetType());
+                                    Activator.CreateInstance(specificAccumulatorType, new object[] { update.Item1, update.Item2 });
                                 }
                             }
                             ns.WriteByte((byte)1);  // acknowledge byte other than -1

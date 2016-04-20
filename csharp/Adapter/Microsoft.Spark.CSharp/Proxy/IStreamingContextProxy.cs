@@ -20,9 +20,9 @@ namespace Microsoft.Spark.CSharp.Proxy
         void Checkpoint(string directory);
         IDStreamProxy TextFileStream(string directory);
         IDStreamProxy SocketTextStream(string hostname, int port, StorageLevelType storageLevelType);
-        IDStreamProxy KafkaStream(Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, StorageLevelType storageLevelType);
-        IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets);
-        IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions);
+        IDStreamProxy KafkaStream(IEnumerable<Tuple<string, int>> topics, IEnumerable<Tuple<string, string>> kafkaParams, StorageLevelType storageLevelType);
+        IDStreamProxy DirectKafkaStream(List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets);
+        IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, int numPartitions);
         IDStreamProxy Union(IDStreamProxy firstDStreams, IDStreamProxy[] otherDStreams);
         void AwaitTermination();
         void AwaitTermination(int timeout);
@@ -31,7 +31,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode);
         IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string className, string serializationMode, string serializationMode2);
         IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy);
-        IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType);
+        IDStreamProxy EventHubsUnionStream(IEnumerable<Tuple<string, string>> eventHubsParams, StorageLevelType storageLevelType);
 
     }
 }
