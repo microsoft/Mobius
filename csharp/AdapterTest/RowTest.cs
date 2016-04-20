@@ -26,7 +26,7 @@ namespace AdapterTest
             Assert.Throws(typeof(Exception), () => { new RowImpl(new List<object> { "id", "name" }, RowHelper.BasicSchema); });
 
             // complex scheme
-            Row row3 = new RowImpl(new object[]{ new object[]{"redmond", "washington"}, 1, "id", "name"}, RowHelper.ComplexSchema);
+            Row row3 = new RowImpl(new object[]{ new object[]{"redmond", "washington"}, 1, "id", "name", new object[]{ "Tel3", "Tel4" } }, RowHelper.ComplexSchema);
         }
 
         [Test]
