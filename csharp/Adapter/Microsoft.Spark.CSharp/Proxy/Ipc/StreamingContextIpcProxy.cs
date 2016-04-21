@@ -145,6 +145,21 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
         }
 
+        public IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy)
+        {
+            var rddReference =
+                new JvmObjectReference(
+                    (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(((RDDIpcProxy)rddProxy).JvmRddReference, "rdd"));
+
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor(
+                "org.apache.spark.streaming.api.csharp.CSharpConstantInputDStream", jvmStreamingContextReference, rddReference);
+
+            var javaDStreamReference =
+                new JvmObjectReference((String)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+
+            return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
         public IDStreamProxy TextFileStream(string directory)
         {
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "textFileStream", new object[] { directory }).ToString());
@@ -189,7 +204,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(jstream);
         }
 
-        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, uint numPartitions)
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions)
         {
             JvmObjectReference jtopics = JvmBridgeUtils.GetJavaSet<string>(topics);
             JvmObjectReference jkafkaParams = JvmBridgeUtils.GetJavaMap<string, string>(kafkaParams);

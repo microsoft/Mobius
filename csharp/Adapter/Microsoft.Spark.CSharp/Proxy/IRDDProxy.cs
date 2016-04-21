@@ -42,6 +42,5 @@ namespace Microsoft.Spark.CSharp.Proxy
         void SaveAsTextFile(string path, string compressionCodecClass);
         long Count();
         int CollectAndServe();
-        int PartitionLength();
     }
 }

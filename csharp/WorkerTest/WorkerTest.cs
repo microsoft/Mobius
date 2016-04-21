@@ -17,90 +17,10 @@ using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using NUnit.Framework;
 using Razorvine.Pickle;
+using Tests.Common;
 
 namespace WorkerTest
 {
-    /// <summary>
-    /// Used to pickle StructType objects
-    /// Reference: StructTypePickler from https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/python.scala#L240
-    /// </summary>
-    internal class StructTypePickler : IObjectPickler
-    {
-
-        private const string module = "pyspark.sql.types";
-
-        public void Register()
-        {
-            Pickler.registerCustomPickler(this.GetType(), this);
-            Pickler.registerCustomPickler(typeof(StructType), this);
-        }
-
-        public void pickle(object o, Stream stream, Pickler currentPickler)
-        {
-            var schema = o as StructType;
-            if (schema == null)
-            {
-                throw new InvalidOperationException(this.GetType().Name + " only accepts 'StructType' type objects.");
-            }
-
-            SerDe.Write(stream, Opcodes.GLOBAL);
-            SerDe.Write(stream, Encoding.UTF8.GetBytes(module + "\n" + "_parse_datatype_json_string" + "\n"));
-            currentPickler.save(schema.Json);
-            SerDe.Write(stream, Opcodes.TUPLE1);
-            SerDe.Write(stream, Opcodes.REDUCE);
-        }
-    }
-
-    /// <summary>
-    /// Used to pickle Row objects
-    /// Reference: RowPickler from https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/execution/python.scala#L261
-    /// </summary>
-    internal class RowPickler : IObjectPickler
-    {
-        private const string module = "pyspark.sql.types";
-
-        public void Register()
-        {
-            Pickler.registerCustomPickler(this.GetType(), this);
-            Pickler.registerCustomPickler(typeof(Row), this);
-            Pickler.registerCustomPickler(typeof(RowImpl), this);
-        }
-
-        public void pickle(object o, Stream stream, Pickler currentPickler)
-        {
-            if (o.Equals(this))
-            {
-                SerDe.Write(stream, Opcodes.GLOBAL);
-                SerDe.Write(stream, Encoding.UTF8.GetBytes(module + "\n" + "_create_row_inbound_converter" + "\n"));
-            }
-            else
-            {
-                var row = o as Row;
-                if (row == null)
-                {
-                    throw new InvalidOperationException(this.GetType().Name + " only accepts 'Row' type objects.");
-                }
-
-                currentPickler.save(this);
-                currentPickler.save(row.GetSchema());
-                SerDe.Write(stream, Opcodes.TUPLE1);
-                SerDe.Write(stream, Opcodes.REDUCE);
-
-                SerDe.Write(stream, Opcodes.MARK);
-
-                var i = 0;
-                while (i < row.Size())
-                {
-                    currentPickler.save(row.Get(i));
-                    i++;
-                }
-
-                SerDe.Write(stream, Opcodes.TUPLE);
-                SerDe.Write(stream, Opcodes.REDUCE);
-            }
-        }
-    }
-
     /// <summary>
     /// Validates CSharpWorker by creating a TcpListener server to 
     /// simulate interactions between CSharpRDD and CSharpWorker
@@ -115,7 +35,12 @@ namespace WorkerTest
         private int numBroadcastVariables = 0;
         private readonly byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
 
-        private TcpListener CreateServer(StringBuilder output, out Process worker)
+        // StringBuilder is not thread-safe, it shouldn't be used concurrently from different threads.
+        // http://stackoverflow.com/questions/12645351/stringbuilder-tostring-throw-an-index-out-of-range-exception
+        StringBuilder output = new StringBuilder();
+        private readonly object syncLock = new object();
+
+        private TcpListener CreateServer(out Process worker)
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
@@ -128,17 +53,27 @@ namespace WorkerTest
                 StartInfo =
                 {
                     FileName = Path.Combine(exeLocation, "CSharpWorker.exe"),
+                    Arguments = "-m pyspark.worker",
                     UseShellExecute = false,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true
                 }
             };
+
+            lock (syncLock)
+            {
+                output.Clear();
+            }
+
             worker.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
             {
                 if (!String.IsNullOrEmpty(e.Data))
                 {
                     Debug.WriteLine(e.Data);
-                    output.AppendLine(e.Data);
+                    lock (syncLock)
+                    {
+                        output.AppendLine(e.Data);
+                    }
                 }
             });
             Console.WriteLine("Starting worker process from {0}", worker.StartInfo.FileName);
@@ -207,12 +142,17 @@ namespace WorkerTest
         /// test worker has exited and with expected exit code
         /// </summary>
         /// <param name="exitCode"></param>
-        private void AssertWorker(Process worker, StringBuilder output, int exitCode = 0, string errorMessage = null)
+        private void AssertWorker(Process worker, int exitCode = 0, string assertMessage = null)
         {
             worker.WaitForExit(3000);
             Assert.IsTrue(worker.HasExited);
             Assert.AreEqual(exitCode, worker.ExitCode);
-            Assert.IsTrue(errorMessage == null || output.ToString().Contains(errorMessage));
+            string str;
+            lock (syncLock)
+            {
+                str = output.ToString();
+            }
+            Assert.IsTrue(assertMessage == null || str.Contains(assertMessage));
         }
 
         /// <summary>
@@ -221,9 +161,8 @@ namespace WorkerTest
         [Test]
         public void TestWorkerSuccess()
         {
-            StringBuilder output = new StringBuilder();
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -249,7 +188,49 @@ namespace WorkerTest
                 Assert.AreEqual(100, count);
             }
 
-            AssertWorker(worker, output);
+            AssertWorker(worker);
+
+            CSharpRDD_SocketServer.Stop();
+        }
+
+        /// <summary>
+        /// test when socket read incomplet and worker exit with 0
+        /// </summary>
+        [Test]
+        public void TestWorkerReadIncomplete()
+        {
+            Process worker;
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
+
+            const int num = 10;
+            byte[] takeCommand = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter.Take(num)),
+                SerializedMode.String, SerializedMode.String);
+
+            using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
+            using (var s = new NetworkStream(serverSocket))
+            {
+                WritePayloadHeaderToWorker(s);
+
+                SerDe.Write(s, takeCommand.Length);
+                SerDe.Write(s, takeCommand);
+
+                for (int i = 0; i < 100; i++)
+                    SerDe.Write(s, i.ToString());
+
+                SerDe.Write(s, (int)SpecialLengths.END_OF_DATA_SECTION);
+                SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
+                s.Flush();
+
+                int count = 0;
+                foreach (var bytes in ReadWorker(s))
+                {
+                    Assert.AreEqual(count++.ToString(), Encoding.UTF8.GetString(bytes));
+                }
+
+                Assert.AreEqual(num, count);
+            }
+
+            AssertWorker(worker, 0, "not all data is read");
 
             CSharpRDD_SocketServer.Stop();
         }
@@ -260,9 +241,8 @@ namespace WorkerTest
         [Test]
         public void TestWorkerIncompleteBytes()
         {
-            StringBuilder output = new StringBuilder();
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -273,7 +253,7 @@ namespace WorkerTest
                 s.Write(command, 0, command.Length / 2);
             }
 
-            AssertWorker(worker, output, -1, "System.ArgumentException: Incomplete bytes read: ");
+            AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
 
             CSharpRDD_SocketServer.Stop();
         }
@@ -284,9 +264,8 @@ namespace WorkerTest
         [Test]
         public void TestWorkerIncompleteData()
         {
-            StringBuilder output = new StringBuilder();
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -308,36 +287,9 @@ namespace WorkerTest
                 Assert.AreEqual(100, count);
             }
 
-            AssertWorker(worker, output, -1, "System.NullReferenceException: Object reference not set to an instance of an object.");
+            AssertWorker(worker, 0, "System.NullReferenceException: Object reference not set to an instance of an object.");
 
             CSharpRDD_SocketServer.Stop();
-        }
-
-        // Build Row object for test
-        internal Row BuildRow(int seq)
-        {
-            const string jsonSchema = @"
-                {
-                  ""type"" : ""struct"",
-                  ""fields"" : [{
-                    ""name"" : ""age"",
-                    ""type"" : ""long"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""id"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  }, {
-                    ""name"" : ""name"",
-                    ""type"" : ""string"",
-                    ""nullable"" : true,
-                    ""metadata"" : { }
-                  } ]
-                }";
-
-            return new RowImpl(new object[] { seq, "id " + seq, "name" + seq }, DataType.ParseDataTypeFromJson(jsonSchema) as StructType);
         }
 
         /// <summary>
@@ -346,9 +298,8 @@ namespace WorkerTest
         [Test]
         public void TestWorkerWithRowDeserializedModeAndBytesSerializedMode()
         {
-            StringBuilder output = new StringBuilder();
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             const int expectedCount = 5;
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
@@ -366,7 +317,7 @@ namespace WorkerTest
 
                 for (int i = 0; i < expectedCount; i++)
                 {
-                    byte[] pickleBytes = pickler.dumps(new Row[] { BuildRow(i) });
+                    byte[] pickleBytes = pickler.dumps(new[] { RowHelper.BuildRowForBasicSchema(i) });
                     SerDe.Write(s, pickleBytes.Length);
                     SerDe.Write(s, pickleBytes);
                 }
@@ -390,16 +341,15 @@ namespace WorkerTest
                 Assert.AreEqual(expectedCount, count);
             }
 
-            AssertWorker(worker, output);
+            AssertWorker(worker);
             CSharpRDD_SocketServer.Stop();
         }
 
         [Test]
         public void TestWorkerWithRawDeserializedModeAndBytesSerializedMode()
         {
-            StringBuilder output = new StringBuilder();
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -442,10 +392,9 @@ namespace WorkerTest
         [Test]
         public void TestWorkerWithBytesDeserializedModeAndRowSerializedMode()
         {
-            StringBuilder output = new StringBuilder();
             const int expectedCount = 100;
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -484,7 +433,7 @@ namespace WorkerTest
                 Assert.AreEqual(expectedCount, count);
             }
 
-            AssertWorker(worker, output);
+            AssertWorker(worker);
             CSharpRDD_SocketServer.Stop();
         }
 
@@ -494,10 +443,9 @@ namespace WorkerTest
         [Test]
         public void TestWorkerWithPairDeserializedModeAndNoneSerializedMode()
         {
-            StringBuilder output = new StringBuilder();
             const int expectedCount = 100;
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -540,7 +488,7 @@ namespace WorkerTest
                 Assert.AreEqual(expectedCount, count);
             }
 
-            AssertWorker(worker, output);
+            AssertWorker(worker);
 
             CSharpRDD_SocketServer.Stop();
         }
@@ -551,9 +499,9 @@ namespace WorkerTest
         [Test]
         public void TestBroadcastVariablesInWorker()
         {
-            StringBuilder output = new StringBuilder();
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
+            string assertMessage;
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -593,11 +541,13 @@ namespace WorkerTest
                 }
 
                 Assert.AreEqual(100, count);
+
                 // TODO verification should not depends on the output of worker
-                Assert.IsTrue(output.ToString().Contains("num_broadcast_variables: " + (broadcastVariablesToAdd.Length + broadcastVariablesToDelete.Length)));
+                // we postpone the test of assertMessage after worker exit
+                assertMessage = "num_broadcast_variables: " + (broadcastVariablesToAdd.Length + broadcastVariablesToDelete.Length);
             }
            
-            AssertWorker(worker, output);
+            AssertWorker(worker, 0, assertMessage);
             CSharpRDD_SocketServer.Stop();
         }
 
@@ -664,15 +614,13 @@ namespace WorkerTest
         }
 
         /// <summary>
-        /// test broadcast variables in worker. 
+        /// test accumulator variables in worker. 
         /// </summary>
         [Test]
         public void TestAccumulatorInWorker()
         {
-            StringBuilder output = new StringBuilder();
-
             Process worker;
-            TcpListener CSharpRDD_SocketServer = CreateServer(output, out worker);
+            TcpListener CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.AcceptSocket())
             using (var s = new NetworkStream(serverSocket))
@@ -714,7 +662,7 @@ namespace WorkerTest
                 SerDe.ReadInt(s);
             }
 
-            AssertWorker(worker, output);
+            AssertWorker(worker);
             CSharpRDD_SocketServer.Stop();
         }
     }

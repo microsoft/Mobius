@@ -12,6 +12,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Services;
@@ -30,40 +31,75 @@ namespace Microsoft.Spark.CSharp
     public class Worker
     {
         private static readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private static ILoggerService logger;
 
-        static void Main(string[] args)
+        private static ILoggerService logger = null;
+
+        public static void Main(string[] args)
         {
-            // if there exists exe.config file, then use log4net
-            if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile))
-            {
-                LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance);
-            }
-            logger = LoggerServiceFactory.GetLogger(typeof(Worker));
-            logger.LogDebug("Staring CSharpWorker execution");
+            // can't initialize logger early because in MultiThreadWorker mode, JVM will read C#'s stdout via
+            // pipe. When initialize logger, some unwanted info will be flushed to stdout. But we can still
+            // use stderr
+            Console.Error.WriteLine("input args: [{0}]", string.Join(" ", args));
 
-            Socket socket = null;
+            if (args.Count() != 2)
+            {
+                Console.Error.WriteLine("Wrong number of args: {0}, will exit", args.Count());
+                Environment.Exit(-1);
+            }
+
+            if ("pyspark.daemon".Equals(args[1]))
+            {
+                var multiThreadWorker = new MultiThreadWorker();
+                multiThreadWorker.Run();
+            }
+            else
+            {
+                RunSimpleWorker();
+            }
+        }
+
+        /// <summary>
+        /// The C# worker process is used to execute only one JVM Task. It will exit after the task is finished.
+        /// </summary>
+        private static void RunSimpleWorker()
+        {
             try
             {
+                InitializeLogger();
+                logger.LogInfo("RunSimpleWorker ...");
                 PrintFiles();
+
                 int javaPort = int.Parse(Console.ReadLine()); //reading port number written from JVM
                 logger.LogDebug("Port number used to pipe in/out data between JVM and CLR {0}", javaPort);
-                socket = InitializeSocket(javaPort);
-                ProcessStream(socket);
-                logger.LogDebug("CSharpWorker execution completed successfully");
+                Socket socket = InitializeSocket(javaPort);
+                TaskRunner taskRunner = new TaskRunner(0, socket, false);
+                taskRunner.Run();
             }
             catch (Exception e)
             {
-                logger.LogError("CSharpWorker failed with the following exception. Exiting CSharpWorker.");
+                logger.LogError("RunSimpleWorker failed with exception, will Exit");
                 logger.LogException(e);
                 Environment.Exit(-1);
             }
-            finally
+
+            logger.LogInfo("RunSimpleWorker finished successfully");
+        }
+
+        public static void InitializeLogger()
+        {
+            try
             {
-                if (socket != null)
+                // if there exists exe.config file, then use log4net
+                if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile))
                 {
-                    socket.Close();
+                    LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance);
                 }
+                logger = LoggerServiceFactory.GetLogger(typeof(Worker));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("InitializeLogger exception {0}, will exit", e);
+                Environment.Exit(-1);
             }
         }
 
@@ -74,99 +110,89 @@ namespace Microsoft.Spark.CSharp
             return socket;
         }
 
-        private static void ProcessStream(Socket socket)
+        public static bool ProcessStream(NetworkStream networkStream, int splitIndex)
         {
-            logger.LogDebug("Start of stream processing");
-            using (var networkStream = new NetworkStream(socket))
+            logger.LogInfo(string.Format("Start of stream processing, splitIndex: {0}", splitIndex));
+            bool readComplete = true;   // Whether all input data from the socket is read though completely
+
+            try
             {
+                DateTime bootTime = DateTime.UtcNow;
+
+                string ver = SerDe.ReadString(networkStream);
+                logger.LogDebug("version: " + ver);
+
+                //// initialize global state
+                //shuffle.MemoryBytesSpilled = 0
+                //shuffle.DiskBytesSpilled = 0
+
+                // fetch name of workdir
+                string sparkFilesDir = SerDe.ReadString(networkStream);
+                logger.LogDebug("spark_files_dir: " + sparkFilesDir);
+                //SparkFiles._root_directory = sparkFilesDir
+                //SparkFiles._is_running_on_worker = True
+
+                ProcessIncludesItems(networkStream);
+
+                ProcessBroadcastVariables(networkStream);
+
+                Accumulator.threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
+
+                var formatter = ProcessCommand(networkStream, splitIndex, bootTime);
+
+                // Mark the beginning of the accumulators section of the output
+                SerDe.Write(networkStream, (int)SpecialLengths.END_OF_DATA_SECTION);
+
+                WriteAccumulatorValues(networkStream, formatter);
+
+                int end = SerDe.ReadInt(networkStream);
+
+                // check end of stream
+                if (end == (int)SpecialLengths.END_OF_STREAM)
+                {
+                    SerDe.Write(networkStream, (int)SpecialLengths.END_OF_STREAM);
+                    logger.LogDebug("END_OF_STREAM: " + (int)SpecialLengths.END_OF_STREAM);
+                }
+                else
+                {
+                    // This may happen when the input data is not read completely, e.g., when take() operation is performed
+                    logger.LogWarn(string.Format("**** unexpected read: {0}, not all data is read", end));
+                    // write a different value to tell JVM to not reuse this worker
+                    SerDe.Write(networkStream, (int)SpecialLengths.END_OF_DATA_SECTION);
+                    readComplete = false;
+                }
+
+                networkStream.Flush();
+
+                // log bytes read and write
+                logger.LogDebug(string.Format("total read bytes: {0}", SerDe.totalReadNum));
+                logger.LogDebug(string.Format("total write bytes: {0}", SerDe.totalWriteNum));
+
+                logger.LogDebug("Stream processing completed successfully");
+            }
+            catch (Exception e)
+            {
+                logger.LogError("ProcessStream failed with exception:");
+                logger.LogError(e.ToString());
                 try
                 {
-                    DateTime bootTime = DateTime.UtcNow;
-
-                    int splitIndex = SerDe.ReadInt(networkStream);
-                    logger.LogDebug("split_index: " + splitIndex);
-
-                    if (splitIndex == -1)
-                    {
-                        logger.LogDebug("SplitIndex == -1. Exiting CSharpWorker.");
-                        Environment.Exit(-1);
-                    }
-
-                    string ver = SerDe.ReadString(networkStream);
-                    logger.LogDebug("version: " + ver);
-
-                    //// initialize global state
-                    //shuffle.MemoryBytesSpilled = 0
-                    //shuffle.DiskBytesSpilled = 0
-
-                    // fetch name of workdir
-                    string sparkFilesDir = SerDe.ReadString(networkStream);
-                    logger.LogDebug("spark_files_dir: " + sparkFilesDir);
-                    //SparkFiles._root_directory = sparkFilesDir
-                    //SparkFiles._is_running_on_worker = True
-
-                    ProcessIncludesItems(networkStream);
-
-                    ProcessBroadcastVariables(networkStream);
-
-                    Accumulator.accumulatorRegistry.Clear();
-
-                    var formatter = ProcessCommand(networkStream, splitIndex, bootTime);
-
-                    // Mark the beginning of the accumulators section of the output
-                    SerDe.Write(networkStream, (int) SpecialLengths.END_OF_DATA_SECTION);
-
-                    WriteAccumulatorValues(networkStream, formatter);
-
-                    int end = SerDe.ReadInt(networkStream);
-
-                    // check end of stream
-                    if (end == (int) SpecialLengths.END_OF_STREAM)
-                    {
-                        SerDe.Write(networkStream, (int) SpecialLengths.END_OF_STREAM);
-                        logger.LogDebug("END_OF_STREAM: " + (int) SpecialLengths.END_OF_STREAM);
-                    }
-                    else
-                    {
-                        // write a different value to tell JVM to not reuse this worker
-                        SerDe.Write(networkStream, (int) SpecialLengths.END_OF_DATA_SECTION);
-                        logger.LogDebug("Value of 'end' is not END_OF_STREAM. Exiting CSharpWorker process.");
-                        Environment.Exit(-1);
-                    }
-
-                    networkStream.Flush();
-
-                    // log bytes read and write
-                    logger.LogDebug(string.Format("total read bytes: {0}", SerDe.totalReadNum));
-                    logger.LogDebug(string.Format("total write bytes: {0}", SerDe.totalWriteNum));
-
-                    // wait for server to complete, otherwise server gets 'connection reset' exception
-                    // Use SerDe.ReadBytes() to detect java side has closed socket properly
-                    // ReadBytes() will block until the socket is closed
-                    SerDe.ReadBytes(networkStream);
-                    logger.LogDebug("Stream processing completed successfully");
+                    logger.LogError("Trying to write error to stream");
+                    SerDe.Write(networkStream, e.ToString());
                 }
-                catch (Exception e)
+                catch (IOException)
                 {
-                    logger.LogError("Processing stream failed with exception:");
-                    logger.LogError(e.ToString());
-                    try
-                    {
-                        logger.LogError("Trying to write error to stream");
-                        SerDe.Write(networkStream, e.ToString());
-                    }
-                    catch (IOException)
-                    {
-                        // JVM close the socket
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError("Writing exception to stream failed with exception:");
-                        logger.LogException(ex);
-                    }
-                    Environment.Exit(-1);
+                    // JVM close the socket
                 }
+                catch (Exception ex)
+                {
+                    logger.LogError("Writing exception to stream failed with exception:");
+                    logger.LogException(ex);
+                }
+                throw e;
             }
+
+            logger.LogInfo(string.Format("Stop of stream processing, splitIndex: {0}, readComplete: {1}", splitIndex, readComplete));
+            return readComplete;
         }
 
         private static void ProcessIncludesItems(NetworkStream networkStream)
@@ -203,7 +229,8 @@ namespace Microsoft.Spark.CSharp
                     else
                     {
                         bid = -bid - 1;
-                        Broadcast.broadcastRegistry.Remove(bid);
+                        Broadcast bc;
+                        Broadcast.broadcastRegistry.TryRemove(bid, out bc);
                     }
                 }
             }
@@ -222,7 +249,7 @@ namespace Microsoft.Spark.CSharp
                 var funcProcessWatch = new Stopwatch();
                 commandProcessWatch.Start();
 
-                ReadDiagnosticsInfo(networkStream);
+                int stageId = ReadDiagnosticsInfo(networkStream);
 
                 string deserializerMode = SerDe.ReadString(networkStream);
                 logger.LogDebug("Deserializer mode: " + deserializerMode);
@@ -235,7 +262,7 @@ namespace Microsoft.Spark.CSharp
                 logger.LogDebug("command bytes read: " + command.Length);
                 var stream = new MemoryStream(command);
 
-                var workerFunc = (CSharpWorkerFunc) formatter.Deserialize(stream);
+                var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
                 var func = workerFunc.Func;
                 logger.LogDebug(
                     "------------------------ Printing stack trace of workerFunc for ** debugging ** ------------------------------");
@@ -243,7 +270,7 @@ namespace Microsoft.Spark.CSharp
                 logger.LogDebug(
                     "--------------------------------------------------------------------------------------------------------------");
                 DateTime initTime = DateTime.UtcNow;
-                
+
                 // here we use low level API because we need to get perf metrics
                 var inputEnumerator = new WorkerInputEnumerator(networkStream, deserializerMode);
                 IEnumerable<dynamic> inputEnumerable = inputEnumerator.Cast<dynamic>();
@@ -295,7 +322,7 @@ namespace Microsoft.Spark.CSharp
                 // log statistics
                 inputEnumerator.LogStatistic();
                 logger.LogInfo(string.Format("func process time: {0}", funcProcessWatch.ElapsedMilliseconds));
-                logger.LogInfo(string.Format("command process time: {0}", commandProcessWatch.ElapsedMilliseconds));
+                logger.LogInfo(string.Format("stage {0}, command process time: {1}", stageId, commandProcessWatch.ElapsedMilliseconds));
             }
             else
             {
@@ -363,12 +390,13 @@ namespace Microsoft.Spark.CSharp
         }
 
 
-        private static void ReadDiagnosticsInfo(NetworkStream networkStream)
+        private static int ReadDiagnosticsInfo(NetworkStream networkStream)
         {
             int rddId = SerDe.ReadInt(networkStream);
             int stageId = SerDe.ReadInt(networkStream);
             int partitionId = SerDe.ReadInt(networkStream);
             logger.LogInfo(string.Format("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId));
+            return stageId;
         }
 
         private static void WriteDiagnosticsInfo(NetworkStream networkStream, DateTime bootTime, DateTime initTime)
@@ -388,8 +416,8 @@ namespace Microsoft.Spark.CSharp
 
         private static void WriteAccumulatorValues(NetworkStream networkStream, IFormatter formatter)
         {
-            SerDe.Write(networkStream, Accumulator.accumulatorRegistry.Count);
-            foreach (var item in Accumulator.accumulatorRegistry)
+            SerDe.Write(networkStream, Accumulator.threadLocalAccumulatorRegistry.Count);
+            foreach (var item in Accumulator.threadLocalAccumulatorRegistry)
             {
                 var ms = new MemoryStream();
                 var value =
@@ -404,7 +432,7 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        private static void PrintFiles()
+        public static void PrintFiles()
         {
             logger.LogDebug("Files available in executor");
             var driverFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);

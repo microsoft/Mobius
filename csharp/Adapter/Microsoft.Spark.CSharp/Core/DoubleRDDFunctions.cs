@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp.Core
 {
+    /// <summary>
+    /// Extra functions available on RDDs of Doubles through an implicit conversion. 
+    /// </summary>
     public static class DoubleRDDFunctions
     {
         /// <summary>

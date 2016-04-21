@@ -39,6 +39,13 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new SqlContextIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createSQLContext", new object[] { jvmSparkContextReference })));
         }
 
+        public ISqlContextProxy CreateHiveContext()
+        {
+            return new SqlContextIpcProxy(new JvmObjectReference(
+                (string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
+                    "org.apache.spark.sql.api.csharp.SQLUtils", "createHiveContext", new object[] { jvmSparkContextReference })));
+        }
+
         public void CreateSparkContext(string master, string appName, string sparkHome, ISparkConfProxy conf)
         {
             object[] args = (new object[] { master, appName, sparkHome, (conf == null ? null : (conf as SparkConfIpcProxy).JvmSparkConfReference) }).Where(x => x != null).ToArray();
@@ -250,13 +257,20 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             }
         }
 
-        public IRDDProxy CreatePairwiseRDD(IRDDProxy jvmReferenceOfByteArrayRdd, int numPartitions)
+        /// <summary>
+        /// Create a PairwiseRDD.
+        /// </summary>
+        /// <param name="jvmReferenceOfByteArrayRdd"></param>
+        /// <param name="numPartitions"></param>
+        /// <param name="partitionFuncId">Global unique id of partitioner which is used for comparison PythonPartitioners in JVM.</param>
+        /// <returns></returns>
+        public IRDDProxy CreatePairwiseRDD(IRDDProxy jvmReferenceOfByteArrayRdd, int numPartitions, long partitionFuncId)
         {
             var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod((jvmReferenceOfByteArrayRdd as RDDIpcProxy).JvmRddReference, "rdd"));
             var pairwiseRdd = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PairwiseRDD", rdd);
             var pairRddJvmReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(pairwiseRdd, "asJavaPairRDD", new object[] { }).ToString());
 
-            var jpartitionerJavaReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonPartitioner", new object[] { numPartitions, (long)0 });
+            var jpartitionerJavaReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonPartitioner", new object[] { numPartitions, partitionFuncId });
             var partitionedPairRddJvmReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(pairRddJvmReference, "partitionBy", new object[] { jpartitionerJavaReference }).ToString());
             var jvmRddReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "valueOfPair", new object[] { partitionedPairRddJvmReference }).ToString());
             //var jvmRddReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(partitionedRddJvmReference, "rdd", new object[] { }).ToString());

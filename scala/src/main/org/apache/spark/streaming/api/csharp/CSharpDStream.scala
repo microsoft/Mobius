@@ -7,18 +7,17 @@ package org.apache.spark.streaming.api.csharp
 
 import org.apache.spark.api.csharp._
 import org.apache.spark.api.csharp.SerDe._
-
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 import java.util.{ArrayList => JArrayList}
+
 import scala.collection.JavaConversions._
 import scala.language.existentials
-
 import org.apache.spark.api.java._
 import org.apache.spark.rdd._
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.streaming.{Duration, Interval, Time}
+import org.apache.spark.streaming.{Duration, Interval, StreamingContext, Time}
 import org.apache.spark.streaming.dstream._
 import org.apache.spark.streaming.api.java._
 
@@ -298,4 +297,13 @@ class InternalMapWithStateDStream(
       lastState
     }
   }
+}
+
+/**
+  * An input stream that always returns the same RDD on each timestep. Useful for testing.
+  */
+class CSharpConstantInputDStream(ssc_ : StreamingContext, rdd: RDD[Array[Byte]])
+  extends ConstantInputDStream[Array[Byte]](ssc_, rdd) {
+
+  val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
 }

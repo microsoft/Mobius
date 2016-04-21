@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
     /// <summary>
-    /// Behavior of the bridge used for the IPC interop between JVM & CLR
+    /// Behavior of the bridge used for the IPC interop between JVM and CLR
     /// </summary>
     internal interface IJvmBridge : IDisposable
     {

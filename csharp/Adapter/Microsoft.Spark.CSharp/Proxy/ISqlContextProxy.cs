@@ -35,5 +35,10 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy TextFile(string path, string delimiter, bool hasHeader, bool inferSchema);
         IDataFrameProxy Sql(string query);
         void RegisterFunction(string name, byte[] command, string returnType);
+
+        #region HiveContext
+        void RefreshTable(string tableName);
+
+        #endregion
     }
 }

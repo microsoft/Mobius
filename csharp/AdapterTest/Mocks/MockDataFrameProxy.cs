@@ -146,12 +146,12 @@ namespace AdapterTest.Mocks
 
         public IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string[] joinColumnNames)
         {
-            throw new NotImplementedException();
+            return new MockDataFrameProxy(new object[] { otherScalaDataFrameReference, joinColumnNames }, SqlContextProxy);
         }
 
         public IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, IColumnProxy scalaColumnReference, string joinType)
         {
-            throw new NotImplementedException();
+            return new MockDataFrameProxy(new object[] { otherScalaDataFrameReference, scalaColumnReference, joinType }, SqlContextProxy);
         }
 
         public bool IsLocal

@@ -26,7 +26,7 @@ import io.netty.handler.codec.bytes.{ByteArrayDecoder, ByteArrayEncoder}
  */
 // Since SparkCLR is a package to Spark and not a part of spark-core it mirrors the implementation of
 // selected parts from RBackend with SparkCLR customizations
-class CSharpBackend {
+class CSharpBackend { self => // for accessing the this reference in inner class(ChannelInitializer)
   private[this] var channelFuture: ChannelFuture = null
   private[this] var bootstrap: ServerBootstrap = null
   private[this] var bossGroup: EventLoopGroup = null
@@ -35,7 +35,6 @@ class CSharpBackend {
     // need at least 3 threads, use 10 here for safety
     bossGroup = new NioEventLoopGroup(10)
     val workerGroup = bossGroup
-    val handler = new CSharpBackendHandler(this) //TODO - work with SparkR devs to make this configurable and reuse RBackend
 
     bootstrap = new ServerBootstrap()
       .group(bossGroup, workerGroup)
@@ -54,7 +53,8 @@ class CSharpBackend {
             //new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4))
             new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4))
           .addLast("decoder", new ByteArrayDecoder())
-          .addLast("handler", handler)
+          //TODO - work with SparkR devs to make this configurable and reuse RBackend
+          .addLast("handler", new CSharpBackendHandler(self))
       }
     })
 

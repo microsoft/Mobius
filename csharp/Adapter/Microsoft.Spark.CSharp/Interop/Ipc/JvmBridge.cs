@@ -13,7 +13,7 @@ using Microsoft.Spark.CSharp.Services;
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
     /// <summary>
-    /// Implementation of thread safe IPC bridge between JVM & CLR
+    /// Implementation of thread safe IPC bridge between JVM and CLR
     /// throught a concourrent socket connection queue (lightweight synchronisation mechanism)
     /// supporting async JVM calls like StreamingContext.AwaitTermination()
     /// </summary>

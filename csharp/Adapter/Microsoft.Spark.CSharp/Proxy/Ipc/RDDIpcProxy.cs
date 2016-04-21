@@ -79,13 +79,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new RDDIpcProxy(jref);
         }
 
-        public int PartitionLength()
-        {
-            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            var partitions = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "partitions", new object[] { });
-            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("java.lang.reflect.Array", "getLength", new object[] { partitions }).ToString());
-        }
-
         public IRDDProxy Coalesce(int numPartitions, bool shuffle)
         {
             return new RDDIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "coalesce", new object[] { numPartitions, shuffle })));

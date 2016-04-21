@@ -110,6 +110,56 @@ class UtilsSuite extends SparkCLRFunSuite {
     FileUtils.deleteQuietly(targetZipFile)
   }
 
+  test("Unzip file to a directory where some files already exist.") {
+
+    // create tmp dir
+    val tmpDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_" + System.currentTimeMillis())
+
+    tmpDir.mkdir()
+    val str = "test string"
+    val size = 10
+
+    // create some files in the tmp dir
+    for (i <- 1 to size) {
+      val f = new File(tmpDir, i + ".txt")
+      FileUtils.writeStringToFile(f, str + i)
+    }
+
+    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Zip_" +
+      System.currentTimeMillis() + ".zip")
+
+    // Compress all files under tmpDir into a zip file
+    Utils.zip(tmpDir, targetZipFile)
+
+    val entries = Utils.listZipFileEntries(targetZipFile)
+    assert(entries != null)
+    assert(entries.size == size)
+
+    entries.foreach(f => assert(f.matches("\\d+\\.txt")))
+
+    val destDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Unzip_" + System.currentTimeMillis())
+    destDir.mkdir()
+
+    // create some files which names can also be found in the zip file.
+    val content = "Not replaced."
+    FileUtils.writeStringToFile(new File(destDir, 1 + ".txt"), content)
+
+    Utils.unzip(targetZipFile, destDir)
+
+    val unzippedFiles = FileUtils.listFiles(destDir, null, true)
+
+    assert(unzippedFiles != null && unzippedFiles.size() == size)
+    unzippedFiles.foreach(f => assert(f.getName.matches("\\d+\\.txt")))
+    unzippedFiles.filter(f => f.getName.split("\\.")(0) != "1")
+      .foreach(f => assert(FileUtils.readFileToString(f).startsWith(str)))
+    unzippedFiles.filter(f => f.getName.split("\\.")(0) == "1")
+      .foreach(f => assert(FileUtils.readFileToString(f).startsWith(content)))
+
+    FileUtils.deleteQuietly(tmpDir)
+    FileUtils.deleteQuietly(destDir)
+    FileUtils.deleteQuietly(targetZipFile)
+  }
+
   def generateFilesInDirectory(directory: File, n: Int): Unit = {
     val str = "test string"
     for (i <- 1 to n) {

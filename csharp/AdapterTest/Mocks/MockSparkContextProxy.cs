@@ -84,7 +84,7 @@ namespace AdapterTest.Mocks
             }
         }
 
-        public IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions)
+        public IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions, long partitionFuncId)
         {
             return javaReferenceInByteArrayRdd;
         }
@@ -278,6 +278,11 @@ namespace AdapterTest.Mocks
         }
 
         public ISqlContextProxy CreateSqlContext()
+        {
+            return new MockSqlContextProxy(this);
+        }
+
+        public ISqlContextProxy CreateHiveContext()
         {
             return new MockSqlContextProxy(this);
         }
