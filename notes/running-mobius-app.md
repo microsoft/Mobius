@@ -69,18 +69,56 @@ scripts\sparkclr-submit.cmd ^
 ````
 
 ### YARN Cluster
+Mobius `runtime` folder and the build output of Mobius application must be copied over to the machine where you submit Mobius application to a YARN cluster, also make sure following enviroment variables are set properly before submission.
+
+* `HADOOP_HOME`
+* `HADOOP_CONF_DIR`
+* `YARN_CONF_DIR`
+* `SPARK_HOME`
+* `SPARK_DIST_CLASSPATH`
+
 #### Client Mode
-To be added
+Sample command
+````
+sparkclr-submit.cmd ^
+    --master yarn ^
+    --deploy-mode client ^
+    --num-executors 10 ^
+    --executor-cores 2 ^
+    --executor-memory 1G ^
+    --conf spark.speculation=true ^
+    --driver-memory 1G ^
+    --exe SparkClrPi.exe ^
+    C:\Git\Mobius\examples\Pi\bin\Debug
+````
 
 #### Cluster Mode
-To be added
+Sample command
+````
+sparkclr-submit.cmd ^
+    --master yarn ^
+    --deploy-mode cluster ^
+    --num-executors 10 ^
+    --executor-cores 2 ^
+    --executor-memory 1G ^
+    --conf spark.speculation=true ^
+    --driver-memory 1G ^
+    --exe SparkClrPi.exe ^
+    C:\Git\Mobius\examples\Pi\bin\Debug
+````
 
 ## Linux Instructions
 The instructions above cover running Mobius applications in Windows. With the following tweaks, the same instructions can be used to run Mobius applications in Linux.
 * Instead of `RunSamples.cmd`, use `run-samples.sh`
 * Instead of `sparkclr-submit.cmd`, use `sparkclr-submit.sh`
 
-## Running Examples in Local Mode
+## Running Mobius Examples in Local Mode
+| Type          | Examples      |
+| ------------- |--------------|
+| Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li></ul> |
+| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li></ul> |
+| Streaming | <ul><li>[Kafka](#kafka-example-streaming)</li><li>[EventHubs](#eventhubs-example-streaming)</li><li>[HDFS Word Count](#hdfswordcount-example-streaming)</li></ul> |
+
 The following sample commands show how to run Mobius examples in local mode. Using the instruction above, the following sample commands can be tweaked to run in other modes
 
 ### Pi Example (Batch)
@@ -123,3 +161,8 @@ Note that all the dependencies listed above are available in maven that can be d
 * Run `sparkclr-submit.cmd --exe SparkClrHdfsWordCount.exe C:\Git\Mobius\examples\Streaming\HdfsWordCount\bin\Debug <checkpoint directory> <input directory>`
 
 Counts words in new text files created in the given directory using Mobius streaming.
+
+### Kafka Example (Streaming)
+* Publish sample messages to Kafka to be used in this example using MessagePublisher class (remember to include reference to KafkaNet library (https://github.com/Microsoft/CSharpClient-for-Kafka), connection parameters to Kafka and uncomment commented out statements to build and use MessagePublisher)
+* Update Kafka parameters in SparkClrKafkaExample implementation and build
+* `sparkclr-submit.cmd --master local[4] --conf spark.local.dir=d:\temp --exe SparkClrKafka.exe C:\Git\Mobius\examples\Streaming\Kafka\bin\Debug`

@@ -66,6 +66,14 @@ namespace Tests.Common
                     ""type"" : ""string"",
                     ""nullable"" : true,
                     ""metadata"" : { }
+                  }, {
+                    ""name"" : ""phone numbers"",
+                    ""type"" : {
+                        ""type"" : ""array"",
+                        ""elementType"" : ""string"",
+                        ""containsNull"" : true },
+                    ""nullable"" : true,
+                    ""metadata"" : { }
                   } ]
                 }";
 
