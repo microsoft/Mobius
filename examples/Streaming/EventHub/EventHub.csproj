@@ -36,7 +36,7 @@
   <ItemGroup>
     <Reference Include="CSharpWorker">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.SparkCLR.1.6.000-PREVIEW-2\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.000-PREVIEW-2\lib\net45\CSharpWorker.exe</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
@@ -67,7 +67,7 @@
     <Compile Include="EventPublisher.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\packages\Microsoft.SparkCLR.1.6.000-PREVIEW-2\lib\net45\CSharpWorker.exe.config">
+    <None Include="..\..\packages\Microsoft.SparkCLR.1.6.000-PREVIEW-2\lib\net45\CSharpWorker.exe.config">
       <Link>CSharpWorker.exe.config</Link>
     </None>
     <None Include="App.config">
