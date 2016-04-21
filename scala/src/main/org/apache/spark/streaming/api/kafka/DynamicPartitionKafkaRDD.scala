@@ -90,7 +90,7 @@ class DynamicPartitionKafkaRDD[
       s"for topic ${part.topic} partition ${part.partition} start ${part.fromOffset}." +
       " This should not happen, and indicates a message may have been skipped"
 
-  private val CSharpReaderEnabled: Boolean = sc.getConf.getBoolean("mobius.streaming.kafka.CSharpReader.enabled", false)
+  private val CSharpReaderEnabled: Boolean = sc.getConf.getBoolean("spark.mobius.streaming.kafka.CSharpReader.enabled", false)
 
   override def compute(thePart: Partition, context: TaskContext): Iterator[R] = {
     val part = thePart.asInstanceOf[KafkaRDDPartition]
