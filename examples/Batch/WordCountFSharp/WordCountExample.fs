@@ -3,12 +3,13 @@ open Microsoft.Spark.CSharp.Services
 open System.Reflection
 open System.Collections.Generic
 
-LoggerServiceFactory.SetLoggerService Log4NetLoggerService.Instance
-let logger = LoggerServiceFactory.GetLogger (MethodInfo.GetCurrentMethod().DeclaringType)
-
 [<EntryPoint>]
 let main = function
     | [| filePath |] ->
+        let logger =
+            LoggerServiceFactory.SetLoggerService Log4NetLoggerService.Instance
+            LoggerServiceFactory.GetLogger (MethodInfo.GetCurrentMethod().DeclaringType)
+        
         let sparkContext = SparkConf().SetAppName "MobiusWordCount" |> SparkContext
         logger.LogInfo (sprintf "Reading from file %s" filePath)
 
