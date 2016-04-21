@@ -3,36 +3,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Streaming;
 
 namespace Microsoft.Spark.CSharp.Examples
 {
     /// <summary>
-    /// Sample SparkCLR application that processes events from EventHub in the format [timestamp],[loglevel],[logmessage]
-    /// EventPublisher class may be used to publish sample events to EventHubs to consume in this app
+    /// Sample SparkCLR application that processes events from Kafka in the format [timestamp],[loglevel],[logmessage]
+    /// MessagePublisher class may be used to publish sample messages to Kafka to consume in this app
     /// </summary>
-    class SparkCLREventHubsExample
+    class SparkClrKafkaExample
     {
         static void Main(string[] args)
         {
-            var sparkContext = new SparkContext(new SparkConf().SetAppName("SparkCLREventHub Example"));
-            var eventhubsParams = new Dictionary<string, string>()
+            var sparkContext = new SparkContext(new SparkConf().SetAppName("SparkCLRKafka Example"));
+            const string topicName = "<topicName>";
+            var topicList = new List<string> {topicName};
+            var kafkaParams = new Dictionary<string, string> //refer to http://kafka.apache.org/documentation.html#configuration
             {
-                {"eventhubs.policyname", "<policyname>"},
-                {"eventhubs.policykey", "<policykey>"},
-                {"eventhubs.namespace", "<namespace>"},
-                {"eventhubs.name", "<name>"},
-                {"eventhubs.partition.count", "<partitioncount>"},
-                {"eventhubs.consumergroup", "$default"},
-                {"eventhubs.checkpoint.dir", "<hdfs path to eventhub checkpoint dir>"},
-                {"eventhubs.checkpoint.interval", "<interval>"},
+                {"metadata.broker.list", "<kafka brokers list>"},
+                {"auto.offset.reset", "smallest"}
             };
+            var perTopicPartitionKafkaOffsets = new Dictionary<string, long>();
             const int windowDurationInSecs = 5;
             const int slideDurationInSecs = 5;
-            const string checkpointPath = "<hdfs path to spark checkpoint dir>";
-            //const string outputPath = "<hdfs path to output dir>";
+            const string checkpointPath = "<hdfs path to spark checkpoint directory>";
+            const string appOutputPath = "<hdfs path to app output directory>";
+
 
             const long slideDurationInMillis = 5000;
             StreamingContext sparkStreamingContext = StreamingContext.GetOrCreate(checkpointPath,
@@ -41,22 +42,21 @@ namespace Microsoft.Spark.CSharp.Examples
                     var ssc = new StreamingContext(sparkContext, slideDurationInMillis);
                     ssc.Checkpoint(checkpointPath);
 
-                    var stream = EventHubsUtils.CreateUnionStream(ssc, eventhubsParams);
+                    var stream = KafkaUtils.CreateDirectStream(ssc, topicList, kafkaParams, perTopicPartitionKafkaOffsets);
                     var countByLogLevelAndTime = stream
-                                                    .Map(bytes => Encoding.UTF8.GetString(bytes))
+                                                    .Map(kvp => Encoding.UTF8.GetString(kvp.Value))
                                                     .Filter(line => line.Contains(","))
                                                     .Map(line => line.Split(','))
                                                     .Map(columns => new KeyValuePair<string, int>(string.Format("{0},{1}", columns[0], columns[1]), 1))
                                                     .ReduceByKeyAndWindow((x, y) => x + y, (x, y) => x - y, windowDurationInSecs, slideDurationInSecs, 3)
                                                     .Map(logLevelCountPair => string.Format("{0},{1}", logLevelCountPair.Key, logLevelCountPair.Value));
-                    
+
                     countByLogLevelAndTime.ForeachRDD(countByLogLevel =>
                     {
-                        //dimensionalCount.SaveAsTextFile(string.Format("{0}/{1}", outputPath, Guid.NewGuid()));
-                        var dimensionalCountCollection = countByLogLevel.Collect();
-                        foreach (var dimensionalCountItem in dimensionalCountCollection)
+                        countByLogLevel.SaveAsTextFile(string.Format("{0}/{1}", appOutputPath, Guid.NewGuid()));
+                        foreach (var logCount in countByLogLevel.Collect())
                         {
-                            Console.WriteLine(dimensionalCountItem);
+                            Console.WriteLine(logCount);
                         }
                     });
 
