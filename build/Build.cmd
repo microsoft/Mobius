@@ -133,6 +133,38 @@ popd
 pushd "%CMDHOME%\..\examples"
 call Clean.cmd
 call Build.cmd
+
+if %ERRORLEVEL% NEQ 0 (
+  @echo Build SparkCLR C# examples failed, stop building.
+  popd
+  goto :eof
+)
+
+set EXAMPLES_HOME=%CMDHOME%\examples
+@echo set EXAMPLES_HOME=%EXAMPLES_HOME%
+
+if EXIST "%EXAMPLES_HOME%" (
+    @echo Delete existing %EXAMPLES_HOME% ...
+    rd /s /q "%EXAMPLES_HOME%"
+)
+if NOT EXIST "%EXAMPLES_HOME%" mkdir "%EXAMPLES_HOME%"
+
+set CURRDIR=%cd%
+for /f "delims=" %%D in ('dir /b /s bin') do call :copyexamples %%D
+goto :copyscripts
+
+:copyexamples
+    set EXAMPLES_SRC=%1
+    set EXAMPLES_TARGET=%1
+    call set EXAMPLES_TARGET=%%EXAMPLES_TARGET:%CURRDIR%=%EXAMPLES_HOME%%%
+    set EXAMPLES_TARGET=%EXAMPLES_TARGET:~0,-3%
+
+    @echo mkdir %EXAMPLES_TARGET%
+    if NOT EXIST "%EXAMPLES_TARGET%" mkdir "%EXAMPLES_TARGET%"
+    copy /y "%EXAMPLES_SRC%\Release\*" "%EXAMPLES_TARGET%"
+    goto :eof
+
+:copyscripts
 popd
 
 @echo Assemble SparkCLR script components
@@ -150,8 +182,8 @@ if not defined ProjectVersion (
 set SPARKCLR_NAME=spark-clr_2.10-%ProjectVersion%
 
 @rem Create the zip file
-@echo 7z a .\target\%SPARKCLR_NAME%.zip runtime localmode ..\examples
-7z a .\target\%SPARKCLR_NAME%.zip runtime localmode ..\examples
+@echo 7z a .\target\%SPARKCLR_NAME%.zip runtime localmode examples
+7z a .\target\%SPARKCLR_NAME%.zip runtime localmode examples
 
 :distdone
 popd

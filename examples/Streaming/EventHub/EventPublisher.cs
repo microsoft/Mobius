@@ -71,9 +71,9 @@ namespace Microsoft.Spark.CSharp.Examples
             Thread.Sleep(Timeout.Infinite);
         }
 
-        /***************************************************************************************************************************************************
-        * ********* To publish samples events to EventHubs, uncomment package references for EventHub in packages.config uncomment the following line **** *
-        ***************************************************************************************************************************************************/
+        /*********************************************************************************************************************************************************
+        * ********* To publish samples events to EventHubs, uncomment package references for EventHub in packages.config and uncomment the following method **** *
+        **********************************************************************************************************************************************************/
         /*
         public static void Main(string[] args)
         {

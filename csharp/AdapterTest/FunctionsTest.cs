@@ -594,6 +594,60 @@ namespace AdapterTest
 
         #endregion
 
+        #region udf functions
+
+        [Test]
+        public void TestUdfFunction()
+        {
+            var mockUdfProxy = new Mock<IUDFProxy>();
+            mockUdfProxy.Setup(m => m.Apply(It.IsAny<IColumnProxy[]>()));
+            mockSparkContextProxy.Setup(m => m.CreateUserDefinedCSharpFunction(It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<string>())).Returns(mockUdfProxy.Object);
+
+            Functions.Udf(() => 0).Invoke();
+            mockUdfProxy.Verify(m => m.Apply(new IColumnProxy[] { }), Times.Once);
+
+            var column1 = GeneratorColum();
+            Functions.Udf<int, int>(i => 1).Invoke(column1);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy }), Times.Once);
+
+            var column2 = GeneratorColum();
+            Functions.Udf<int, int, int>( (i1, i2) => 2).Invoke(column1, column2);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy }), Times.Once);
+
+            var column3 = GeneratorColum();
+            Functions.Udf<int, int, int, int>((i1, i2, i3) => 3).Invoke(column1, column2, column3);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy }), Times.Once);
+
+            var column4 = GeneratorColum();
+            Functions.Udf<int, int, int, int, int>((i1, i2, i3, i4) => 4).Invoke(column1, column2, column3, column4);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy, column4.ColumnProxy }), Times.Once);
+
+            var column5 = GeneratorColum();
+            Functions.Udf<int, int, int, int, int, int>((i1, i2, i3, i4, i5) => 5).Invoke(column1, column2, column3, column4, column5);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy, column4.ColumnProxy, column5.ColumnProxy }), Times.Once);
+
+            var column6 = GeneratorColum();
+            Functions.Udf<int, int, int, int, int, int, int>((i1, i2, i3, i4, i5, i6) => 6).Invoke(column1, column2, column3, column4, column5, column6);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy, column4.ColumnProxy, column5.ColumnProxy, column6.ColumnProxy }), Times.Once);
+
+            var column7 = GeneratorColum();
+            Functions.Udf<int, int, int, int, int, int, int, int>((i1, i2, i3, i4, i5, i6, i7) => 7).Invoke(column1, column2, column3, column4, column5, column6, column7);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy, column4.ColumnProxy, column5.ColumnProxy, column6.ColumnProxy, column7.ColumnProxy }), Times.Once);
+
+            var column8 = GeneratorColum();
+            Functions.Udf<int, int, int, int, int, int, int, int, int>((i1, i2, i3, i4, i5, i6, i7, i8) => 8).Invoke(column1, column2, column3, column4, column5, column6, column7, column8);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy, column4.ColumnProxy, column5.ColumnProxy, column6.ColumnProxy, column7.ColumnProxy, column8.ColumnProxy }), Times.Once);
+
+            var column9 = GeneratorColum();
+            Functions.Udf<int, int, int, int, int, int, int, int, int, int>((i1, i2, i3, i4, i5, i6, i7, i8, i9) => 9).Invoke(column1, column2, column3, column4, column5, column6, column7, column8, column9);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy, column4.ColumnProxy, column5.ColumnProxy, column6.ColumnProxy, column7.ColumnProxy, column8.ColumnProxy, column9.ColumnProxy }), Times.Once);
+
+            var column10 = GeneratorColum();
+            Functions.Udf<int, int, int, int, int, int, int, int, int, int, int>((i1, i2, i3, i4, i5, i6, i7, i8, i9, i10) => 10).Invoke(column1, column2, column3, column4, column5, column6, column7, column8, column9, column10);
+            mockUdfProxy.Verify(m => m.Apply(new[] { column1.ColumnProxy, column2.ColumnProxy, column3.ColumnProxy, column4.ColumnProxy, column5.ColumnProxy, column6.ColumnProxy, column7.ColumnProxy, column8.ColumnProxy, column9.ColumnProxy, column10.ColumnProxy }), Times.Once);
+        }
+        #endregion
+
         private Column GeneratorColum()
         {
             Mock<IColumnProxy> mockColumnProxy = new Mock<IColumnProxy>();

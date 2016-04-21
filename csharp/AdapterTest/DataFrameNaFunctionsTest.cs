@@ -42,6 +42,13 @@ namespace AdapterTest
         public void TestDropWithAny()
         {
             // arrange
+            const string columnName = "column1";
+            var mockSchemaProxy = new Mock<IStructTypeProxy>();
+            var mockFieldProxy = new Mock<IStructFieldProxy>();
+            mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockSchemaProxy.Object);
+            mockSchemaProxy.Setup(m => m.GetStructTypeFields()).Returns(new List<IStructFieldProxy> { mockFieldProxy.Object });
+            mockFieldProxy.Setup(m => m.GetStructFieldName()).Returns(columnName);
+
             var sparkContext = new SparkContext("", "");
             mockDataFrameNaFunctionsProxy.Setup(m => m.Drop(It.IsAny<int>(), It.IsAny<string[]>())).Returns(mockDataFrameProxy.Object);
 
@@ -50,12 +57,21 @@ namespace AdapterTest
 
             // act
             var cols = new[] { "col1", "col2" };
-            var df = f.Drop("any", cols);
+            var df1 = f.Drop("any", cols);
+            var df2 = f.Drop();
+            var df3 = f.Drop("any");
 
             // verify
-            Assert.IsNotNull(df);
-            Assert.AreEqual(df.DataFrameProxy, dataFrame.DataFrameProxy);
+            Assert.IsNotNull(df1);
+            Assert.AreEqual(df1.DataFrameProxy, dataFrame.DataFrameProxy);
             mockDataFrameNaFunctionsProxy.Verify(m => m.Drop(cols.Length, cols), Times.Once);
+
+            Assert.IsNotNull(df2);
+            Assert.AreEqual(df2.DataFrameProxy, dataFrame.DataFrameProxy);
+            
+            Assert.IsNotNull(df3);
+            Assert.AreEqual(df3.DataFrameProxy, dataFrame.DataFrameProxy);
+            mockDataFrameNaFunctionsProxy.Verify(m => m.Drop(1, new[] { columnName }), Times.Exactly(2));
         }
 
         [Test]
@@ -104,6 +120,29 @@ namespace AdapterTest
 
             Assert.AreSame(dataFrame, df);
             mockDataFrameNaFunctionsProxy.Verify(m => m.Drop(It.IsAny<int>(), It.IsAny<string[]>()), Times.Never);
+        }
+
+        [Test]
+        public void TestDropWithMinNonNulls()
+        {
+            const string columnName = "column1";
+            var mockSchemaProxy = new Mock<IStructTypeProxy>();
+            var mockFieldProxy = new Mock<IStructFieldProxy>();
+            mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockSchemaProxy.Object);
+            mockSchemaProxy.Setup(m => m.GetStructTypeFields()).Returns(new List<IStructFieldProxy> { mockFieldProxy.Object });
+            mockFieldProxy.Setup(m => m.GetStructFieldName()).Returns(columnName);
+
+            var sparkContext = new SparkContext("", "");
+            mockDataFrameNaFunctionsProxy.Setup(m => m.Drop(It.IsAny<int>(), It.IsAny<string[]>())).Returns(mockDataFrameProxy.Object);
+
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, sparkContext);
+            var f = new DataFrameNaFunctions(mockDataFrameNaFunctionsProxy.Object, dataFrame, sparkContext);
+
+            var df = f.Drop(20);
+            Assert.IsNotNull(df);
+            Assert.AreEqual(df.DataFrameProxy, dataFrame.DataFrameProxy);
+            Assert.AreNotSame(dataFrame, df);
+            mockDataFrameNaFunctionsProxy.Verify(m => m.Drop(20, new[] { columnName }), Times.Once);
         }
 
         [Test]

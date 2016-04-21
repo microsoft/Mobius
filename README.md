@@ -50,6 +50,35 @@ maxLatencyByDcDataFrame.ShowSchema();
 maxLatencyByDcDataFrame.Show();
 ```
 
+A simple Spark Streaming application that processes messages from Kafka using C# may be implemented using the following code:
+
+```  c#
+StreamingContext sparkStreamingContext = StreamingContext.GetOrCreate(checkpointPath, () =>
+    {
+      var ssc = new StreamingContext(sparkContext, slideDurationInMillis);
+      ssc.Checkpoint(checkpointPath);
+      var stream = KafkaUtils.CreateDirectStream(ssc, topicList, kafkaParams, perTopicPartitionKafkaOffsets);
+      //message format: [timestamp],[loglevel],[logmessage]
+      var countByLogLevelAndTime = stream
+                                    .Map(kvp => Encoding.UTF8.GetString(kvp.Value))
+                                    .Filter(line => line.Contains(","))
+                                    .Map(line => line.Split(','))
+                                    .Map(columns => new KeyValuePair<string, int>(
+                                                          string.Format("{0},{1}", columns[0], columns[1]), 1))
+                                    .ReduceByKeyAndWindow((x, y) => x + y, (x, y) => x - y,
+                                                          windowDurationInSecs, slideDurationInSecs, 3)
+                                    .Map(logLevelCountPair => string.Format("{0},{1}",
+                                                          logLevelCountPair.Key, logLevelCountPair.Value));
+      countByLogLevelAndTime.ForeachRDD(countByLogLevel =>
+      {
+          foreach (var logCount in countByLogLevel.Collect())
+              Console.WriteLine(logCount);
+      });
+      return ssc;
+    });
+sparkStreamingContext.Start();
+sparkStreamingContext.AwaitTermination();
+```
 Refer to [Mobius\csharp\Samples](csharp/Samples) directory and [sample usage](csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
 
 ## API Documentation
@@ -90,7 +119,7 @@ Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using 
 
 ## Supported Spark Versions
 
-Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [Spark 1.6.0](https://github.com/Microsoft/Mobius/tree/master).
+Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [Spark 1.6.*](https://github.com/Microsoft/Mobius/tree/branch-1.6).
 
 ## Releases
 
@@ -117,6 +146,6 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
 * Options to ask your question to the Mobius community
   * create issue on [GitHub](https://github.com/Microsoft/Mobius)
   * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
-  * send email to sparkclr-user@googlegroups.com
   * join chat at [Mobius room in Gitter](https://gitter.im/Microsoft/Mobius)
   * tweet [@MobiusForSpark](http://twitter.com/MobiusForSpark)
+  * send email to sparkclr-user@googlegroups.com
