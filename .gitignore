@@ -30,6 +30,7 @@
 scala/dependency-reduced-pom.xml
 build/runtime/
 build/tools/
+build/examples/
 *.log
 lib/
 
