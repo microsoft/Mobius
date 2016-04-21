@@ -1,4 +1,4 @@
-﻿open Microsoft.Spark.CSharp.Core
+open Microsoft.Spark.CSharp.Core
 open Microsoft.Spark.CSharp.Services
 open System.Reflection
 open System.Collections.Generic
