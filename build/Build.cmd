@@ -134,6 +134,12 @@ pushd "%CMDHOME%\..\examples"
 call Clean.cmd
 call Build.cmd
 
+if %ERRORLEVEL% NEQ 0 (
+  @echo Build SparkCLR C# examples failed, stop building.
+  popd
+  goto :eof
+)
+
 set EXAMPLES_HOME=%CMDHOME%\examples
 @echo set EXAMPLES_HOME=%EXAMPLES_HOME%
 
