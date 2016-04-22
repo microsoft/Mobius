@@ -82,8 +82,14 @@ echo "Assemble SparkCLR examples"
 pushd "$FWDIR/../examples"
 # clean any possible previous build first
 ./clean.sh
-
 ./build.sh
+
+if [ $? -ne 0 ];
+then
+	echo "Build SparkCLR C# Examples failed, stop building."
+	popd
+	exit 1
+fi
 popd
 
 echo "Assemble SparkCLR script components"
