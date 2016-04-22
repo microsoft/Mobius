@@ -121,9 +121,11 @@ Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/Mobiu
 
 ## Releases
 
-https://github.com/Microsoft/Mobius/releases
+Mobius releases are available at https://github.com/Microsoft/Mobius/releases. References needed to build C# Spark driver applicaiton using Mobius are also available in [NuGet](https://www.nuget.org/packages/Microsoft.SparkCLR)
 
 [![Nuget](https://img.shields.io/badge/nuget-package-00BFFF.svg)](https://www.nuget.org/packages/Microsoft.SparkCLR)
+
+Refer to [mobius-release-info.md](notes/mobius-release-info.md) for the details on verioning policy and the contents of the release.
 
 ## License
 
