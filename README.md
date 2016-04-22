@@ -115,8 +115,6 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 |Run Mobius app in standalone cluster |[running-mobius-app.md](notes/running-mobius-app.md#standalone-cluster) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
 |Run Mobius app in YARN cluster |[running-mobius-app.md](notes/running-mobius-app.md#yarn-cluster) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
 
-Note: Refer to [linux-compatibility.md](notes/linux-compatibility.md) for using Mobius with Spark on Linux
-
 ## Supported Spark Versions
 
 Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [Spark 1.6.*](https://github.com/Microsoft/Mobius/tree/branch-1.6).
