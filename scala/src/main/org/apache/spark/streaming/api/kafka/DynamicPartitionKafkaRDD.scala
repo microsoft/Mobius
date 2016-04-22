@@ -51,7 +51,7 @@ class DynamicPartitionKafkaRDD[
       if (numPartitions < 0) {
         // If numPartitions = -1, either repartition based on spark.streaming.kafka.maxRatePerTask.*
         // or do nothing if config not defined
-        (topic, sparkContext.getConf.getInt("spark.streaming.kafka.maxRatePerTask." + topic,
+        (topic, sparkContext.getConf.getInt("spark.mobius.streaming.kafka.maxMessagesPerTask." + topic,
           Int.MaxValue).asInstanceOf[Long])
       } else {
         val partitions = {
