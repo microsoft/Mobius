@@ -60,7 +60,7 @@ class CSharpRDD(
       command(i) = bytes(i)
     }
 
-    if (CSharpRDD.maxCSharpWorkerNum >= 0) {
+    if (CSharpRDD.maxCSharpWorkerProcessCount >= 0) {
       var workerFactoryId = CSharpRDD.getWorkerFactoryId(context.stageId())
       // change envVars to use different PythonWorkerFactory
       envVars.put("WORKER_FACTORY_ID", workerFactoryId.toString)
@@ -191,8 +191,8 @@ object CSharpRDD {
   var currentStageId: Int = 0
   var nextSeqNum: Int = 0
 
-  // long runing multi-process CSharpWorker mode is enabled only when configurated explicitly
-  var maxCSharpWorkerNum: Int = SparkEnv.get.conf.getInt("spark.csharp.worker.maxNum", -1)
+  // long running multi-process CSharpWorker mode is enabled only when configurated explicitly
+  var maxCSharpWorkerProcessCount: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.maxProcessCount", -1)
 
   def createRDDFromArray(
       sc: SparkContext,
@@ -225,8 +225,8 @@ object CSharpRDD {
         nextSeqNum = 0
       }
       val workerFactoryId = {
-        if (maxCSharpWorkerNum != 0) {
-          nextSeqNum % maxCSharpWorkerNum
+        if (maxCSharpWorkerProcessCount != 0) {
+          nextSeqNum % maxCSharpWorkerProcessCount
         } else {
           nextSeqNum
         }
