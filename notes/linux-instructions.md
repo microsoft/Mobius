@@ -101,14 +101,3 @@ sparkclr-submit.sh --verbose --master yarn-cluster --exe SparkCLRSamples.exe $SP
     ./test.sh
     ```
 
-# Debugging Tips
-
-CSharpBackend and C# driver are separately launched for debugging Mobius Adapter or driver.
-
-For example, to debug [Mobius samples](../csharp/Samples/Microsoft.Spark.CSharp):
-
-* Launch CSharpBackend.exe using `sparkclr-submit.sh debug` and get the port number displayed in the console.  
-* Navigate to `csharp/Samples/Microsoft.Spark.CSharp` and edit `App.Config` to use the port number from the previous step for `CSharpBackendPortNumber` config and also set `CSharpWorkerPath` config values.  
-* Run `SparkCLRSamples.exe`.
-
-To debug [Mobius examples](../examples), the steps are the same. Just use appropriate examples project instead of samples project to update App.config and execution in Visual Studio.
