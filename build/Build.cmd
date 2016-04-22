@@ -91,7 +91,8 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 @echo SparkCLR Scala binaries
-copy /y target\spark*.jar "%SPARKCLR_HOME%\lib\"
+@rem copy non-uber jar to runtime\lib folder
+powershell -f ..\build\copyjar.ps1
 popd
 
 @REM Any .jar files under the lib directory will be copied to the staged runtime lib tree.
