@@ -58,7 +58,7 @@ RunSamples.cmd
 
 It is **required** to run [Build.cmd](../build/Build.cmd) prior to running [RunSamples.cmd](../build/RunSamples.cmd).
 
-[RunSamples.cmd](../build/localmode/RunSamples.cmd) downloads Apache Spark 1.6.0, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `Mobius\build\runtime` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `Mobius\build\runtime\Temp`.
+[RunSamples.cmd](../build/localmode/RunSamples.cmd) downloads the version of Apache Spark referenced in the current branch, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `Mobius\build\runtime` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `Mobius\build\runtime\Temp`.
 
 A few more [RunSamples.cmd](../build/localmode/RunSamples.cmd) examples:
 - To display all options supported by [RunSamples.cmd](../build/localmode/RunSamples.cmd): 
@@ -100,13 +100,3 @@ sparkclr-submit.cmd --verbose --master yarn-cluster --exe SparkCLRSamples.exe %S
     ```
     Test.cmd
     ```
-
-# Debugging Tips
-
-CSharpBackend and C# driver are separately launched for debugging Mobius Adapter or driver.
-
-For example, to debug Mobius samples:
-
-* Launch CSharpBackend.exe using `sparkclr-submit.cmd debug` and get the port number displayed in the console.  
-* Navigate to `csharp/Samples/Microsoft.Spark.CSharp` and edit `App.Config` to use the port number from the previous step for `CSharpBackendPortNumber` config and also set `CSharpWorkerPath` config values.  
-* Run `SparkCLRSamples.exe` in Visual Studio.
