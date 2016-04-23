@@ -37,7 +37,6 @@ namespace Microsoft.Spark.CSharp.Examples
             });
             var kafkaProducer = new Producer(kafkaProducerConfig);
 */
-            var topicName = "<kafkaTopicName>";
 
             var now = DateTime.Now.Ticks;
             for (int messageIndex = 1; messageIndex <= 5; messageIndex++)

@@ -37,6 +37,9 @@ namespace Microsoft.Spark.CSharp.Sql
         [NonSerialized]
         private readonly Random random = new Random();
 
+        /// <summary>
+        /// Represents the content of the DataFrame as an RDD of Rows.
+        /// </summary>
         public RDD<Row> Rdd
         {
             get
@@ -63,6 +66,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Returns true if the collect and take methods can be run locally (without any Spark executors).
+        /// </summary>
         public bool IsLocal
         {
             get
@@ -88,11 +94,18 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return dataFrameProxy;  }
         }
 
+        /// <summary>
+        /// Returns the schema of this DataFrame.
+        /// </summary>
         public StructType Schema
         {
             get { return schema ?? (schema = new StructType(dataFrameProxy.GetSchema())); }
         }
 
+        /// <summary>
+        /// Returns a column for a given column name.
+        /// </summary>
+        /// <param name="columnName">The name of column</param>
         public Column this[string columnName]
         {
             get
@@ -1143,8 +1156,14 @@ namespace Microsoft.Spark.CSharp.Sql
         } 
     }
 
+    /// <summary>
+    /// The type of join operation for DataFrame
+    /// </summary>
     public class JoinType
     {
+        /// <summary>
+        /// Get the string that represents a join type
+        /// </summary>
         public string Value { get; private set; }
         private JoinType(string value)
         {
@@ -1157,6 +1176,9 @@ namespace Microsoft.Spark.CSharp.Sql
         private static readonly JoinType RightOuterJoinType = new JoinType("right_outer");
         private static readonly JoinType LeftSemiJoinType = new JoinType("leftsemi");
 
+        /// <summary>
+        /// Inner join
+        /// </summary>
         public static JoinType Inner
         {
             get
@@ -1165,6 +1187,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Outer join
+        /// </summary>
         public static JoinType Outer
         {
             get
@@ -1173,6 +1198,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Left outer join
+        /// </summary>
         public static JoinType LeftOuter
         {
             get
@@ -1181,6 +1209,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Right outer join
+        /// </summary>
         public static JoinType RightOuter
         {
             get
@@ -1189,6 +1220,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Left semi join
+        /// </summary>
         public static JoinType LeftSemi
         {
             get
@@ -1198,6 +1232,9 @@ namespace Microsoft.Spark.CSharp.Sql
         }
     }
 
+    /// <summary>
+    /// A set of methods for aggregations on a DataFrame, created by DataFrame.groupBy.
+    /// </summary>
     public class GroupedData
     {
         internal IGroupedDataProxy GroupedDataProxy
@@ -1214,36 +1251,79 @@ namespace Microsoft.Spark.CSharp.Sql
             this.dataFrame = dataFrame;
         }
 
+        /// <summary>
+        /// Compute aggregates by specifying a dictionary from column name to aggregate methods.
+        /// The available aggregate methods are avg, max, min, sum, count.
+        /// </summary>
+        /// <param name="columnNameAggFunctionDictionary">The dictionary of column name to aggregate method</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Agg(Dictionary<string, string> columnNameAggFunctionDictionary)
         {
             return new DataFrame(dataFrame.DataFrameProxy.Agg(groupedDataProxy, columnNameAggFunctionDictionary), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Count the number of rows for each group.
+        /// </summary>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Count()
         {
             return new DataFrame(groupedDataProxy.Count(), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the average value for each numeric columns for each group.
+        /// This is an alias for avg.
+        /// When specified columns are given, only compute the average values for them. 
+        /// </summary>
+        /// <param name="columns">The name of columns to be computed.</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Mean(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Mean(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the max value for each numeric columns for each group.
+        /// When specified columns are given, only compute the max values for them.
+        /// </summary>
+        /// <param name="columns"> The name of columns to be computed.</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Max(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Max(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the min value for each numeric column for each group.
+        /// </summary>
+        /// <param name="columns">
+        /// The name of columns to be computed. When specified columns are
+        /// given, only compute the min values for them. 
+        /// </param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Min(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Min(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the mean value for each numeric columns for each group.
+        /// When specified columns are given, only compute the mean values for them. 
+        /// </summary>
+        /// <param name="columns">The name of columns to be computed</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Avg(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Avg(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the sum for each numeric columns for each group.
+        /// When specified columns are given, only compute the sum for them.
+        /// </summary>
+        /// <param name="columns">The name of columns to be computed</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Sum(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Sum(columns), dataFrame.SparkContext);
