@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp.Core
 {
+    /// <summary>
+    /// A class for tracking the statistics of a set of numbers (count, mean and variance) in a numerically
+    /// robust way. Includes support for merging two StatCounters. Based on Welford and Chan's algorithms
+    /// for running variance. 
+    /// </summary>
     [Serializable]
     public class StatCounter
     {
@@ -18,9 +23,16 @@ namespace Microsoft.Spark.CSharp.Core
         private double maxValue = double.MinValue; // Running max of our values
         private double minValue = double.MaxValue; // Running min of our values
 
+        /// <summary>
+        /// Initializes the StatCounter with no values.
+        /// </summary>
         public StatCounter()
         { }
 
+        /// <summary>
+        /// Initializes the StatCounter with the given values.
+        /// </summary>
+        /// <param name="values"></param>
         public StatCounter(IEnumerable<double> values)
         {
             Merge(values);
@@ -114,10 +126,30 @@ namespace Microsoft.Spark.CSharp.Core
             other.minValue = minValue;
             return other;
         }
+
+        /// <summary>
+        /// Gets the count number of this StatCounter
+        /// </summary>
         public long Count { get { return n; } }
+
+        /// <summary>
+        /// Gets the average number of this StatCounter
+        /// </summary>
         public double Mean { get { return mu; } }
+
+        /// <summary>
+        /// Gets the sum number of this StatCounter
+        /// </summary>
         public double Sum { get { return n * mu; } }
+
+        /// <summary>
+        /// Gets the maximum number of this StatCounter
+        /// </summary>
         public double Max { get { return maxValue; } }
+
+        /// <summary>
+        /// Gets the minimum number of this StatCounter
+        /// </summary>
         public double Min { get { return minValue; } }
         
         /// <summary>
@@ -139,6 +171,13 @@ namespace Microsoft.Spark.CSharp.Core
         /// Return the sample standard deviation of the values, which corrects for bias in estimating the variance by dividing by N-1 instead of N.
         /// </summary>
         public double SampleStdev { get { return Math.Sqrt(SampleVariance); } }
+
+        /// <summary>
+        /// Returns a string that represents this StatCounter.
+        /// </summary>
+        /// <returns>
+        /// A string that represents this StatCounter.
+        /// </returns>
         public override string ToString()
         {
             return string.Format("(count: {0}, mean: {1}, stdev: {2}, max: {3}, min: {4})", Count, Mean, Stdev, Max, Min);
