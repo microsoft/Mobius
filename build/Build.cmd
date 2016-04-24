@@ -91,7 +91,8 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 @echo SparkCLR Scala binaries
-copy /y target\spark*.jar "%SPARKCLR_HOME%\lib\"
+@rem copy non-uber jar to runtime\lib folder
+powershell -f ..\build\copyjar.ps1
 popd
 
 @REM Any .jar files under the lib directory will be copied to the staged runtime lib tree.
@@ -128,6 +129,15 @@ copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 @echo SparkCLR Samples data
 copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
 popd
+
+@echo Download external dependencies
+pushd "%CMDHOME%"
+set DEPENDENCIES_DIR=dependencies
+if NOT EXIST "%DEPENDENCIES_DIR%" mkdir %DEPENDENCIES_DIR%
+set DEPENDENCIES_HOME=%CMDHOME%\%DEPENDENCIES_DIR%
+powershell -f localmode\downloadtools.ps1 dependencies
+@echo Assemble dependencies
+xcopy /e /y "%DEPENDENCIES_HOME%"  "%SPARKCLR_HOME%\dependencies\"
 
 @echo Assemble SparkCLR examples
 pushd "%CMDHOME%\..\examples"
