@@ -130,6 +130,15 @@ copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
 popd
 
+@echo Download external dependencies
+pushd "%CMDHOME%"
+set DEPENDENCIES_DIR=dependencies
+if NOT EXIST "%DEPENDENCIES_DIR%" mkdir %DEPENDENCIES_DIR%
+set DEPENDENCIES_HOME=%CMDHOME%\%DEPENDENCIES_DIR%
+powershell -f localmode\downloadtools.ps1 dependencies
+@echo Assemble dependencies
+xcopy /e /y "%DEPENDENCIES_HOME%"  "%SPARKCLR_HOME%\dependencies\"
+
 @echo Assemble SparkCLR examples
 pushd "%CMDHOME%\..\examples"
 call Clean.cmd

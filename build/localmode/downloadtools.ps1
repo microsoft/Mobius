@@ -280,6 +280,21 @@ function Download-BuildTools
     $envStream.close()
 }
 
+function Download-ExternalDependencies
+{
+    # Downloading spark-csv package and its depenency. These packages are required for DataFrame operations in Mobius
+	$url = "http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.3.0/spark-csv_2.10-1.3.0.jar"
+    $output="$scriptDir\..\dependencies\spark-csv_2.10-1.3.0.jar"
+    Download-File $url $output
+	Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
+	
+	$url = "http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar"
+	$output="$scriptDir\..\dependencies\commons-csv-1.1.jar"
+	Download-File $url $output
+    Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
+	return
+}
+
 function Download-RuntimeDependencies
 {
     # Create a cmd file to update environment variable
@@ -512,6 +527,10 @@ if ($stage.ToLower() -eq "build")
 elseif ($stage.ToLower() -eq "run")
 {
     Download-RuntimeDependencies
+}
+elseif ($stage.ToLower() -eq "dependencies")
+{
+    Download-ExternalDependencies
 }
 else
 {
