@@ -29,7 +29,7 @@ if "%2" == "examples" (
 	powershell -f SetSparkClrJarVersion.ps1 -targetDir ..\..\scripts -version %ProjectVersion%
 	
 	@rem update Moibus Nuget package version in nuspec file 
-	powershell -f SetSparkClrPackageVersion.ps1 -targetDir ..\..\examples -version %ProjectVersion% -nuspecDir ..\..\csharp -mode %1
+	powershell -f SetSparkClrPackageVersion.ps1 -targetDir ..\..\examples -version %ProjectVersion% -nuspecDir ..\..\csharp -mode %2
 )
 
 popd
