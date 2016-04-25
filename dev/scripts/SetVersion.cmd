@@ -43,6 +43,6 @@ goto :eof
 @echo     Example usage below -   
 @echo         %0 1.5.200-preview-1 [core|examples]
 @echo         						core - to update version in Mobius core artifacts (pom, nuspec files)
-@echo         						core - to update version in Mobius examples
+@echo         						examples - to update version in Mobius examples
 @echo.
 @echo =============================================================
