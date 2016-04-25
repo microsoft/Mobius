@@ -89,11 +89,11 @@ Refer to [Mobius C# API documentation](csharp/Adapter/documentation/Mobius_API_D
 
 Mobius API usage samples are available at:
 
+* [Examples folder](./examples) which contains standalone [C# projects](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) that can be used as templates to start developing Mobius applications
+
 * [Samples project](csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of Mobius APIs to implement samples that are also used for functional validation of APIs
-
-* [Examples folder](./examples) which contains standalone C# projects that can be used as templates to start developing Mobius applications
-
-* Performance test scenarios implemented in [C#](csharp/Perf/Microsoft.Spark.CSharp) and [Scala](scala/perf) for side by side comparison of Spark driver code
+ 
+* Mobius performance test scenarios implemented in [C#](csharp/Perf/Microsoft.Spark.CSharp) and [Scala](scala/perf) for side by side comparison of Spark driver code
 
 ## Documents
 
@@ -108,16 +108,15 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 ## Getting Started
 
 | |Windows |Linux |
-|---|:------:|:----:|
-|Build & run unit tests |[windows-instructions.md](notes/windows-instructions.md#building-mobius) |[linux-instructions.md](notes/linux-instructions.md#building-mobius) |
-|Run samples (functional tests) in local mode |[windows-instructions.md](notes/windows-instructions.md#running-samples) |[linux-instructions.md](notes/linux-instructions.md#running-samples) |
-|Run examples in local mode |[running-mobius-app.md](notes/running-mobius-app.md#running-examples-in-local-mode) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
-|Run Mobius app in standalone cluster |[running-mobius-app.md](notes/running-mobius-app.md#standalone-cluster) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
-|Run Mobius app in YARN cluster |[running-mobius-app.md](notes/running-mobius-app.md#yarn-cluster) |[running-mobius-app.md](notes/running-mobius-app.md#linux-instructions) |
+|---|:------|:----|
+|Build & run unit tests |[Build in Windows](notes/windows-instructions.md#building-mobius) |[Build in Linux](notes/linux-instructions.md#building-mobius) |
+|Run samples (functional tests) in local mode |[Samples in Windows](notes/windows-instructions.md#running-samples) |[Samples in Linux](notes/linux-instructions.md#running-samples) |
+|Run examples in local mode |[Examples in Windows](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) |[Examples in Linux](notes/running-mobius-app.md#linux-instructions) |
+|Run Mobius app |<ul><li>[Standalone cluster](notes/running-mobius-app.md#standalone-cluster)</li><li>[YARN cluster](notes/running-mobius-app.md#yarn-cluster)</li></ul> |[Mobius app in Linux](notes/running-mobius-app.md#linux-instructions) |
 
 ## Supported Spark Versions
 
-Mobius is built and tested with [Spark 1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [Spark 1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [Spark 1.6.*](https://github.com/Microsoft/Mobius/tree/branch-1.6).
+Mobius is built and tested with Apache Spark [1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [1.6.*](https://github.com/Microsoft/Mobius/tree/branch-1.6).
 
 ## Releases
 
@@ -125,7 +124,7 @@ Mobius releases are available at https://github.com/Microsoft/Mobius/releases. R
 
 [![Nuget](https://img.shields.io/badge/nuget-package-00BFFF.svg)](https://www.nuget.org/packages/Microsoft.SparkCLR)
 
-Refer to [mobius-release-info.md](notes/mobius-release-info.md) for the details on verioning policy and the contents of the release.
+Refer to [mobius-release-info.md](notes/mobius-release-info.md) for the details on versioning policy and the contents of the release.
 
 ## License
 
@@ -148,4 +147,3 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
   * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
   * join chat at [Mobius room in Gitter](https://gitter.im/Microsoft/Mobius)
   * tweet [@MobiusForSpark](http://twitter.com/MobiusForSpark)
-  * send email to sparkclr-user@googlegroups.com
