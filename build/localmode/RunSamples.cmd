@@ -22,7 +22,7 @@ if "%1" == "" (
     @rem TODO: this check will fail if "--exe" only exists in the argument list of user application.
     if "%1" == "--exe" (
         set USER_EXE="true"
-        @echo [RunSamples.cmd] Run user specified application, instead of SparkCLR samples.
+        @echo [RunSamples.cmd] Run user specified application, instead of Mobius samples.
     )
 
     rem - shift the arguments and examine %1 again
