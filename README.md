@@ -114,6 +114,10 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 |Run examples in local mode |[Examples in Windows](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) |[Examples in Linux](notes/running-mobius-app.md#linux-instructions) |
 |Run Mobius app |<ul><li>[Standalone cluster](notes/running-mobius-app.md#standalone-cluster)</li><li>[YARN cluster](notes/running-mobius-app.md#yarn-cluster)</li></ul> |[Mobius app in Linux](notes/running-mobius-app.md#linux-instructions) |
 
+### Useful Links
+* [Configuration parameters in Mobius](/notes/configuration-mobius.md)
+* [Troubleshooting in Mobius](/notes/troubleshooting-mobius.md)
+
 ## Supported Spark Versions
 
 Mobius is built and tested with Apache Spark [1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [1.6.*](https://github.com/Microsoft/Mobius/tree/branch-1.6).
