@@ -257,7 +257,7 @@ function Download-BuildTools
         $gpgZip = "$toolsDir\gpg4win-vanilla-2.3.0.zip"
         if (!(test-path $gpgZip))
         {
-            $url = "https://github.com/SparkCLR/build/blob/master/tools/gpg4win-vanilla-2.3.0.zip?raw=true"
+            $url = "https://github.com/MobiusForSpark/build/blob/master/tools/gpg4win-vanilla-2.3.0.zip?raw=true"
             $output=$gpgZip
             Download-File $url $output
             # Unzip-File $output $toolsDir
@@ -495,8 +495,8 @@ function Print-Usage
     Write-Output ''
     Write-Output '    This script takes one input parameter ("stage"), which can be either [build | run].'
     Write-Output ''
-    Write-Output '        Build: Download tools required in building SparkCLR;'
-    Write-Output '        Run: Download Apache Spark and related binaries, required to run SparkCLR samples locally.'
+    Write-Output '        Build: Download tools required in building Mobius;'
+    Write-Output '        Run: Download Apache Spark and related binaries, required to run Mobius samples locally.'
     Write-Output ''
     Write-Output '====================================================================================================='
 }

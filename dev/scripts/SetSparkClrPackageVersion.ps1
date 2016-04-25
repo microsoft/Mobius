@@ -1,5 +1,5 @@
 #
-# This script takes in "version" and "targetDir" (optional) parameters, update SparkCLR Nuget package 
+# This script takes in "version" and "targetDir" (optional) parameters, update Mobius Nuget package 
 # version reference in all *.csproj and packages.config under "dir". 
 #
 # "targetDir" parameter is default to current directory where this script is located, when not provided.
@@ -17,7 +17,7 @@ function Update-Csproj($targetDir, $version)
     Write-Output "[SetSparkClrPackageVersion.Update-Csproj] Start setting *.csproj under $targetDir to version=$version"
 
     # 
-    # Update SparkCLR package version to this release. Example in *.csproj:  
+    # Update Mobius package version to this release. Example in *.csproj:  
     #     <HintPath>..\packages\Microsoft.SparkCLR.1.5.2-SNAPSHOT\lib\net45\CSharpWorker.exe</HintPath>
     # 
     Get-ChildItem $targetDir -filter "*.csproj" -recurs | % { 
@@ -39,7 +39,7 @@ function Update-PackageConfig($targetDir, $version)
     Write-Output "[SetSparkClrPackageVersion.Update-PackageConfig] Start setting packages.config under $targetDir to version=$version"
 
     # 
-    #  Update SparkCLR package version to this release. Example in packages.config:  
+    #  Update Mobius package version to this release. Example in packages.config:  
     #      <package id="Microsoft.SparkCLR" version="1.5.2-SNAPSHOT" targetFramework="net45" />
     # 
     Get-ChildItem $targetDir -filter "packages.config" -recurs | % { 
@@ -61,7 +61,7 @@ function Update_NuSpec($nuspecDir, $version)
     Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] Start setting SparkCLR.nuspec under $nuspecDir to version=$version"
 
     # 
-    #  Update SparkCLR package version to this release. Example in SparkCLR.nuspec:  
+    #  Update Mobius package version to this release. Example in SparkCLR.nuspec:  
     #      <version>1.5.2-SNAPSHOT</version>
     # 
     Get-ChildItem $nuspecDir -filter "SparkCLR.nuspec" | % { 
