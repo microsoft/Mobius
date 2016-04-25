@@ -33,5 +33,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy);
         IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType);
 
+        void copyFromLocalToCheckpointDir(string localPath, string checkpointDir, string checkpointFileName);
+        void copyFromCheckpointDirToLocal(string checkpointDir, string checkpointFileName, string localPath);
     }
 }

@@ -122,5 +122,16 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public void copyFromLocalToCheckpointDir(string localPath, string checkpointDir, string checkpointFileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void copyFromCheckpointDirToLocal(string checkpointDir, string checkpointFileName, string localPath)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

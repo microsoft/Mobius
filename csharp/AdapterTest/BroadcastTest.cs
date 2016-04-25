@@ -50,7 +50,7 @@ namespace AdapterTest
         }
 
         // create bytes for deserialization
-        internal Broadcast<T> CreateBroadcastVarInWorker<T>(T expectedValue, out long bid, out string path)
+        internal Broadcast<T> CreateBroadcastVarInWorker<T>(T expectedValue, out long csharpBid, out long jvmBid, out string path)
         {
             // create broadcast variable for serialization
 
@@ -66,7 +66,8 @@ namespace AdapterTest
             SparkContext sc = new SparkContext(sparkContextProxy.Object, new SparkConf());
             Broadcast<T> broadcastVar = new Broadcast<T>(sc, expectedValue);
 
-            bid = broadcastVar.broadcastId;
+            csharpBid = broadcastVar.csharpBid;
+            jvmBid = broadcastVar.jvmBid;
             path = broadcastVar.path;
 
             var formatter = new BinaryFormatter();
@@ -82,12 +83,14 @@ namespace AdapterTest
         public void TestBroadcastInWorker()
         {
             const int expectedValue = 1024;
-            long bid;
+            long csharpBid;
+            long jvmBid;
             string dumpPath;
 
             // worker side operations            
-            Broadcast<int> broadcastVarInWorker = CreateBroadcastVarInWorker(expectedValue, out bid, out dumpPath);
-            Broadcast.broadcastRegistry[bid] = new Broadcast(dumpPath);
+            Broadcast<int> broadcastVarInWorker = CreateBroadcastVarInWorker(expectedValue, out csharpBid, out jvmBid, out dumpPath);
+            Broadcast.broadcastRegistry[jvmBid] = new Broadcast(dumpPath);
+            Broadcast.csharpToJvmBidMap[csharpBid] = jvmBid;
 
             var broadcastValueInWorker = broadcastVarInWorker.Value;
 
@@ -103,13 +106,14 @@ namespace AdapterTest
         public void TestOperationOnDestroyedBroadcastInWorker()
         {
             const int expectedValue = 2048;
-            long bid;
+            long csharpBid;
+            long jvmBid;
             string dumpPath;
 
             // worker side operations            
-            Broadcast<int> broadcastVarInWorker = CreateBroadcastVarInWorker(expectedValue, out bid, out dumpPath);
+            Broadcast<int> broadcastVarInWorker = CreateBroadcastVarInWorker(expectedValue, out csharpBid, out jvmBid, out dumpPath);
             Broadcast bc;
-            Broadcast.broadcastRegistry.TryRemove(bid, out bc);
+            Broadcast.broadcastRegistry.TryRemove(jvmBid, out bc);
 
             // assert
             Assert.Throws<ArgumentException>(() => { var broadcastValueInWorker = broadcastVarInWorker.Value; });

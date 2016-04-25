@@ -94,6 +94,14 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 if (rddProxy == null)
                 {
+                    // put the csharpToJvmBidMap to workerFunc, and this info will be transmitted to C# worker
+                    var csharpToJvmBidMap = workerFunc.CSharpToJvmBidMap;
+                    csharpToJvmBidMap.Clear();
+                    foreach (var b in Broadcast.broadcastVars)
+                    {
+                        csharpToJvmBidMap[b.csharpBid] = b.jvmBid;
+                    }
+
                     rddProxy = sparkContext.SparkContextProxy.CreateCSharpRdd(previousRddProxy,
                         SparkContext.BuildCommand(workerFunc, prevSerializedMode, bypassSerializer ? SerializedMode.None : serializedMode),
                         null, null, preservesPartitioning, null, null);
@@ -112,6 +120,9 @@ namespace Microsoft.Spark.CSharp.Core
 
         // stackTrace of this func, for debug purpose
         private readonly string stackTrace;
+
+        // mapping between csharp bid to JVM bid
+        private readonly Dictionary<long, long> csharpToJvmBidMap = new Dictionary<long, long>();
 
         public CSharpWorkerFunc(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func)
         {
@@ -138,6 +149,14 @@ namespace Microsoft.Spark.CSharp.Core
             get
             {
                 return stackTrace;
+            }
+        }
+
+        public Dictionary<long, long> CSharpToJvmBidMap
+        {
+            get
+            {
+                return csharpToJvmBidMap;
             }
         }
     }

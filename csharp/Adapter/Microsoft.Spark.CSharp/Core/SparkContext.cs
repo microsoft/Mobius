@@ -403,6 +403,13 @@ namespace Microsoft.Spark.CSharp.Core
             return broadcast;
         }
 
+        // this function is intended to use to restore broadcast variable from checkpoint
+        internal Broadcast<T> Broadcast<T>(T value, long designatedCSharpBid)
+        {
+            var broadcast = new Broadcast<T>(this, value, designatedCSharpBid);
+            return broadcast;
+        }
+
         /// <summary>
         /// Create an <see cref="Accumulator"/> with the given initial value, using a given
         /// <see cref="AccumulatorParam{T}"/> helper object to define how to add values of the

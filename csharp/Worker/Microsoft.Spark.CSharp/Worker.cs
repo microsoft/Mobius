@@ -269,6 +269,14 @@ namespace Microsoft.Spark.CSharp
                 logger.LogDebug(workerFunc.StackTrace);
                 logger.LogDebug(
                     "--------------------------------------------------------------------------------------------------------------");
+
+                logger.LogDebug("CSharpToJvmBidMap:");
+                foreach (var kvp in workerFunc.CSharpToJvmBidMap)
+                {
+                    logger.LogDebug(string.Format("csharpBid: {0}, jvmBid: {1}", kvp.Key, kvp.Value));
+                    Broadcast.csharpToJvmBidMap[kvp.Key] = kvp.Value;
+                }
+
                 DateTime initTime = DateTime.UtcNow;
 
                 // here we use low level API because we need to get perf metrics

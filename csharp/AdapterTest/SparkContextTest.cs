@@ -283,7 +283,7 @@ namespace AdapterTest
             // Assert
             Assert.IsNotNull(broadcastVar);
             Assert.AreEqual(expectedValue, broadcastVar.Value);
-            Assert.AreEqual(broadcastId, broadcastVar.broadcastId);
+            Assert.AreEqual(broadcastId, broadcastVar.jvmBid);
 
             sparkContextProxy.Verify(m => m.ReadBroadcastFromFile(It.IsAny<string>(), out broadcastId), Times.Once);
         }

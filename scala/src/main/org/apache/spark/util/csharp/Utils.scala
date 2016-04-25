@@ -8,6 +8,8 @@ import java.io._
 import java.util.{TimerTask, Timer}
 import java.util.zip.{ZipEntry, ZipOutputStream, ZipFile}
 import org.apache.commons.io.IOUtils
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.Path
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -164,4 +166,27 @@ object Utils {
     exit(status, 1000)
   }
 
+  /*
+   * copy local file to checkpoint directory
+  */
+  def copyFromLocalToCheckpointDir
+      (localPath: String, checkpointDir: String, checkpointFileName: String): Unit = {
+    val hadoopConf: Configuration = new Configuration()
+    val fs = new Path(checkpointDir).getFileSystem(hadoopConf)
+    val in = fs.copyFromLocalFile(
+      new Path(localPath),
+      new Path(checkpointDir, checkpointFileName))
+  }
+
+  /*
+   * copy checkpoint file to local file
+   */
+  def copyFromCheckpointDirToLocal
+      (checkpointDir: String, checkpointFileName: String, localPath: String): Unit = {
+    val hadoopConf: Configuration = new Configuration()
+    val fs = new Path(checkpointDir).getFileSystem(hadoopConf)
+    val in = fs.copyToLocalFile(
+      new Path(checkpointDir, checkpointFileName),
+      new Path(localPath))
+  }
 }
