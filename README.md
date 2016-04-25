@@ -116,7 +116,8 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 
 ### Useful Links
 * [Configuration parameters in Mobius](/notes/configuration-mobius.md)
-* [Troubleshooting in Mobius](/notes/troubleshooting-mobius.md)
+* [Troubleshoot errors in Mobius](/notes/troubleshooting-mobius.md)
+* [Debug Mobius apps](/notes/running-mobius-app.md#debug-mode)
 
 ## Supported Spark Versions
 
