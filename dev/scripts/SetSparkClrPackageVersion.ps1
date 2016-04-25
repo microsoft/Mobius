@@ -4,7 +4,7 @@
 #
 # "targetDir" parameter is default to current directory where this script is located, when not provided.
 #
-Param([string]$targetDir, [string]$version, [string]$nuspecDir)
+Param([string]$targetDir, [string]$version, [string]$nuspecDir, [string]$mode)
 
 function Update-Csproj($targetDir, $version)
 {
@@ -81,8 +81,11 @@ function Print-Usage
     Write-Output ''
     Write-Output '    "targetDir" parameter is default to current directory where this script is located. '
     Write-Output ''
+    Write-Output '    "mode" parameter is used to update version in Example projects or core artifacts like nuspec.'
+	Write-Output '    Mode options are "examples" and "core" respectively'
+    Write-Output ''	
     Write-Output '    Example usage - '
-    Write-Output '        powershell -f SetSparkClrPackageVersion.ps1 -version 1.5.200-preview-1'
+    Write-Output '        powershell -f SetSparkClrPackageVersion.ps1 -version 1.5.200-preview-1' -mode [core|examples]
     Write-Output ''
     Write-Output '====================================================================================================='
 }
@@ -92,22 +95,31 @@ function Print-Usage
 #
 if (!$PSBoundParameters.ContainsKey('version') -or [string]::IsNullOrEmpty($version))
 {
-    Print-Usage
+	Print-Usage
     return
 }
 
 if (!$PSBoundParameters.ContainsKey('targetDir') -or [string]::IsNullOrEmpty($targetDir))
 {
-    Print-Usage
+	Print-Usage
     return
 }
 
 if (!$PSBoundParameters.ContainsKey('nuspecDir') -or [string]::IsNullOrEmpty($nuspecDir))
 {
-    Print-Usage
+	Print-Usage
     return
 }
 
-Update-Csproj $targetDir $version
-Update-PackageConfig $targetDir $version
-Update_NuSpec $nuspecDir $version
+if (!$PSBoundParameters.ContainsKey('mode') -or [string]::IsNullOrEmpty($mode))
+{
+	Print-Usage
+    return
+}
+
+if ($mode -eq "examples") {
+	Update-Csproj $targetDir $version
+	Update-PackageConfig $targetDir $version
+} elseif ($mode -eq "core") {
+	Update_NuSpec $nuspecDir $version
+}
