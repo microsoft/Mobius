@@ -37,14 +37,14 @@ if NOT EXIST "%SPARKCLR_HOME%\data" mkdir "%SPARKCLR_HOME%\data"
 if NOT EXIST "%SPARKCLR_HOME%\lib" mkdir "%SPARKCLR_HOME%\lib"
 if NOT EXIST "%SPARKCLR_HOME%\samples" mkdir "%SPARKCLR_HOME%\samples"
 
-@echo Assemble SparkCLR Scala components
+@echo Assemble Mobius Scala components
 pushd "%CMDHOME%\..\scala"
 
 @rem clean the target directory first
 call mvn.cmd %MVN_QUIET% clean
 
 @rem
-@rem Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
+@rem Note: Shade-plugin helps creates an uber-package to simplify running samples during CI;
 @rem however, it breaks debug mode in IntellJ. So enable shade-plugin
 @rem only in build.cmd to create the uber-package.
 @rem
@@ -85,13 +85,14 @@ IF "%APPVEYOR_REPO_TAG%" == "true" (goto :sign)
 copy /y %temp%\pom.xml.original pom.xml
 
 if %ERRORLEVEL% NEQ 0 (
-  @echo Build SparkCLR Scala components failed, stop building.
+  @echo Build Mobius Scala components failed, stop building.
   popd
   goto :eof
 )
 
-@echo SparkCLR Scala binaries
-copy /y target\spark*.jar "%SPARKCLR_HOME%\lib\"
+@echo Mobius Scala binaries
+@rem copy non-uber jar to runtime\lib folder
+powershell -f ..\build\copyjar.ps1
 popd
 
 @REM Any .jar files under the lib directory will be copied to the staged runtime lib tree.
@@ -104,7 +105,7 @@ if EXIST "%CMDHOME%\lib" (
 )
 
 :buildCSharp
-@echo Assemble SparkCLR C# components
+@echo Assemble Mobius C# components
 pushd "%CMDHOME%\..\csharp"
 
 @rem clean any possible previous build first
@@ -112,27 +113,42 @@ call Clean.cmd
 call Build.cmd
 
 if %ERRORLEVEL% NEQ 0 (
-  @echo Build SparkCLR C# components failed, stop building.
+  @echo Build Mobius C# components failed, stop building.
   popd
   goto :eof
 )
 
-@echo SparkCLR C# binaries
+@echo Mobius C# binaries
 copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\bin\"
 
-@echo SparkCLR C# Samples binaries
+@echo Mobius C# Samples binaries
 @rem need to include CSharpWorker.exe.config in samples folder
 copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 
-@echo SparkCLR Samples data
+@echo Mobius Samples data
 copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
 popd
 
-@echo Assemble SparkCLR examples
+@echo Download external dependencies
+pushd "%CMDHOME%"
+set DEPENDENCIES_DIR=dependencies
+if NOT EXIST "%DEPENDENCIES_DIR%" mkdir %DEPENDENCIES_DIR%
+set DEPENDENCIES_HOME=%CMDHOME%\%DEPENDENCIES_DIR%
+powershell -f localmode\downloadtools.ps1 dependencies
+@echo Assemble dependencies
+xcopy /e /y "%DEPENDENCIES_HOME%"  "%SPARKCLR_HOME%\dependencies\"
+
+@echo Assemble Mobius examples
 pushd "%CMDHOME%\..\examples"
 call Clean.cmd
 call Build.cmd
+
+if %ERRORLEVEL% NEQ 0 (
+  @echo Build Mobius C# examples failed, stop building.
+  popd
+  goto :eof
+)
 
 set EXAMPLES_HOME=%CMDHOME%\examples
 @echo set EXAMPLES_HOME=%EXAMPLES_HOME%
@@ -161,7 +177,7 @@ goto :copyscripts
 :copyscripts
 popd
 
-@echo Assemble SparkCLR script components
+@echo Assemble Mobius script components
 xcopy /e /y "%CMDHOME%\..\scripts"  "%SPARKCLR_HOME%\scripts\"
 
 @echo Make distribution

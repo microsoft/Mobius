@@ -75,8 +75,8 @@ class DynamicPartitionKafkaRDDSuite extends SparkCLRFunSuite {
       )
       assert(testEqualityOfKafkaPartitions(partitions, rdd.getPartitions))
 
-      // test numPartitions < 0, with spark.streaming.kafka.maxRatePerTask.* conf
-      sc.conf.set("spark.streaming.kafka.maxRatePerTask." + topic, "500")
+      // test numPartitions < 0, with spark.mobius.streaming.kafka.maxMessagesPerTask.* conf
+      sc.conf.set("spark.mobius.streaming.kafka.maxMessagesPerTask." + topic, "500")
       rdd = new DynamicPartitionKafkaRDD(sc, Map(), offsetRanges, leaders, null, -1)
       partitions = Array(
         new KafkaRDDPartition(0, topic, 0, 100, 600, host0, port),
