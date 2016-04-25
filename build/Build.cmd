@@ -172,12 +172,11 @@ goto :copyscripts
     @echo mkdir %EXAMPLES_TARGET%
     if NOT EXIST "%EXAMPLES_TARGET%" mkdir "%EXAMPLES_TARGET%"
 
-    for /f "delims=" %%S in ("%EXAMPLES_TARGET%") do set FORLDERNAME=%%~nS
+    REM 1. Copy dependencies from %SPARKCLR_HOME%\bin to use latest Mobius binaries
+    xcopy /y "%SPARKCLR_HOME%\bin\*" "%EXAMPLES_TARGET%"
+    REM 2. copy Examples APPs
+    xcopy /d /y "%EXAMPLES_SRC%\Release" "%EXAMPLES_TARGET%"
 
-    REM 1. copy Examples APPs
-    copy /y "%EXAMPLES_SRC%\Release\*%FORLDERNAME%.*" "%EXAMPLES_TARGET%"
-    REM 2. copy dependencies from %SPARKCLR_HOME%\bin to use latest Mobius binaries
-    copy /y "%SPARKCLR_HOME%\bin\*" "%EXAMPLES_TARGET%"
     goto :eof
 
 :copyscripts
