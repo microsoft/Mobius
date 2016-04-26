@@ -310,7 +310,7 @@ namespace Microsoft.Spark.CSharp.Core
             }
             
             var partitioner = new Partitioner(numPartitions, partitionFunc);
-            if (self.partitioner == partitioner)
+            if (self.partitioner != null && self.partitioner.Equals(partitioner))
                 return self;
 
             var keyed = self.MapPartitionsWithIndex(new AddShuffleKeyHelper<K, V>(numPartitions, partitionFunc).Execute, true);
