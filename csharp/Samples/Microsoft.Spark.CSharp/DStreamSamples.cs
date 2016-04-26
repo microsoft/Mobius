@@ -66,6 +66,7 @@ namespace Microsoft.Spark.CSharp
                     StreamingContext context = new StreamingContext(sc, 2000);
                     context.Checkpoint(checkpointPath);
 
+                    var b = sc.Broadcast<int>(0);
                     var lines = context.TextFileStream(Path.Combine(directory, "test"));
                     lines = context.Union(lines, lines);
                     var words = lines.FlatMap(l => l.Split(' '));
@@ -76,7 +77,7 @@ namespace Microsoft.Spark.CSharp
                     // an extra CSharpRDD is introduced in between these operations
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
                     var join = wordCounts.Join(wordCounts, 2);
-                    var state = join.UpdateStateByKey<string, Tuple<int, int>, int>((vs, s) => vs.Sum(x => x.Item1 + x.Item2) + s);
+                    var state = join.UpdateStateByKey<string, Tuple<int, int>, int>(new UpdateStateHelper(b).Execute);
 
                     state.ForeachRDD((time, rdd) =>
                     {
@@ -207,4 +208,23 @@ namespace Microsoft.Spark.CSharp
             ssc.AwaitTermination();
         }
     }
+
+    // Use this helper class to test broacast variable in streaming application
+    [Serializable]
+    internal class UpdateStateHelper
+    {
+        private Broadcast<int> b;
+
+        internal UpdateStateHelper(Broadcast<int> b)
+        {
+            this.b = b;
+        }
+
+        internal int Execute(IEnumerable<Tuple<int, int>> vs, int s)
+        {
+            int result = vs.Sum(x => x.Item1 + x.Item2) + s + b.Value;
+            return result;
+        }
+    }
+
 }

@@ -65,6 +65,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="CheckpointDataTest.cs" />
     <Compile Include="ColumnTest.cs" />
     <Compile Include="AccumulatorTest.cs" />
     <Compile Include="BroadcastTest.cs" />

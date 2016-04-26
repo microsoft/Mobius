@@ -375,5 +375,21 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
             return (callbackServer.LocalEndpoint as IPEndPoint).Port;
         }
+
+        public void copyFromLocalToCheckpointDir(string localPath, string checkpointDir, string checkpointFileName)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
+                "org.apache.spark.util.csharp.Utils",
+                "copyFromLocalToCheckpointDir",
+                new object[] { localPath, checkpointDir, checkpointFileName });
+        }
+
+        public void copyFromCheckpointDirToLocal(string checkpointDir, string checkpointFileName, string localPath)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
+                "org.apache.spark.util.csharp.Utils",
+                "copyFromCheckpointDirToLocal",
+                new object[] { checkpointDir, checkpointFileName, localPath });
+        }
     }
 }

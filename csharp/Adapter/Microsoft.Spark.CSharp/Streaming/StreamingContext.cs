@@ -31,6 +31,8 @@ namespace Microsoft.Spark.CSharp.Streaming
     {
         internal readonly IStreamingContextProxy streamingContextProxy;
         private SparkContext sparkContext;
+        private const string CSHARP_CHECKPOINT_FILE_NAME = "csharp_checkpoint_data";
+
         internal SparkContext SparkContext
         {
             get
@@ -74,14 +76,19 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static StreamingContext GetOrCreate(string checkpointPath, Func<StreamingContext> creatingFunc)
         {
+            StreamingContext ssc;
             if (!SparkCLREnvironment.SparkCLRProxy.CheckpointExists(checkpointPath))
             {
-                var ssc = creatingFunc();
+                ssc = creatingFunc();
                 ssc.Checkpoint(checkpointPath);
-                return ssc;
+                ssc.WriteCheckpointData(checkpointPath);
             }
-            
-            return new StreamingContext(SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(checkpointPath));
+            else
+            {
+                ssc = new StreamingContext(SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(checkpointPath));
+                ssc.ReadCheckpointData(checkpointPath);
+            }
+            return ssc;
         }
 
         /// <summary>
@@ -209,6 +216,29 @@ namespace Microsoft.Spark.CSharp.Streaming
             var rest = dstreams.Skip(1);
             
             return new DStream<T>(streamingContextProxy.Union(first.dstreamProxy, rest.Select(x => x.dstreamProxy).ToArray()), this, first.serializedMode);
+        }
+
+        private void WriteCheckpointData(string checkpointDir)
+        {
+            if (checkpointDir != null)
+            {
+                CheckpointData checkpointData = new CheckpointData();
+                Broadcast.WriteToCheckpointData(checkpointData);
+                string localPath = Path.GetTempFileName();
+                CheckpointData.DumpToLocalFile(checkpointData, localPath);
+                streamingContextProxy.copyFromLocalToCheckpointDir(localPath, checkpointDir, CSHARP_CHECKPOINT_FILE_NAME);
+            }
+        }
+
+        private void ReadCheckpointData(string checkpointDir)
+        {
+            if (checkpointDir != null)
+            {
+                string localPath = Path.GetTempFileName();
+                streamingContextProxy.copyFromCheckpointDirToLocal(checkpointDir, CSHARP_CHECKPOINT_FILE_NAME, localPath);
+                CheckpointData checkpointData = CheckpointData.LoadFromLocalFile(localPath);
+                Broadcast.ReadFromCheckpointData(SparkContext, checkpointData);
+            }
         }
     }
 }

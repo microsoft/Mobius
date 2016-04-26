@@ -520,7 +520,10 @@ namespace WorkerTest
                 broadcastVariablesToAdd.ToList().ForEach(bid => { SerDe.Write(s, bid); SerDe.Write(s, "path" + bid); });
                 broadcastVariablesToDelete.ToList().ForEach(bid => SerDe.Write(s, -bid - 1));
 
-                byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
+                CSharpWorkerFunc csharpWorkerFunc = new CSharpWorkerFunc((pid, iter) => iter);
+                // add one element to CSharpToJvmBidMap to increase code coverage
+                csharpWorkerFunc.CSharpToJvmBidMap[0] = 0;
+                byte[] command = SparkContext.BuildCommand(csharpWorkerFunc, SerializedMode.String, SerializedMode.String);
 
                 SerDe.Write(s, command.Length);
                 SerDe.Write(s, command);
