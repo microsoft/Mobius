@@ -52,6 +52,11 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.streamingContextProxy = streamingContextProxy;
         }
 
+        /// <summary>
+        /// Initializes a new instance of StreamingContext with a existing SparkContext 
+        /// </summary>
+        /// <param name="sparkContext">An existing SparkContext</param>
+        /// <param name="durationMs">the time interval at which streaming data will be divided into batches</param>
         public StreamingContext(SparkContext sparkContext, long durationMs)
         {
             this.sparkContext = sparkContext;
@@ -79,11 +84,17 @@ namespace Microsoft.Spark.CSharp.Streaming
             return new StreamingContext(SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(checkpointPath));
         }
 
+        /// <summary>
+        /// Start the execution of the streams. 
+        /// </summary>
         public void Start()
         {
             streamingContextProxy.Start();
         }
 
+        /// <summary>
+        /// Stop the execution of the streams.
+        /// </summary>
         public void Stop()
         {
             streamingContextProxy.Stop();

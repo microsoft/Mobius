@@ -49,7 +49,7 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, uint numPartitions)
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions)
         {
             return new MockDStreamProxy();
         }
@@ -107,8 +107,18 @@ namespace AdapterTest.Mocks
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
             return new MockDStreamProxy(rdd.RddProxy);
         }
-        
+
+        public IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy)
+        {
+            return new MockDStreamProxy();
+        }
+
         public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDStreamProxy KafkaMetaStream(byte[] metaParams, uint numPartitions)
         {
             throw new NotImplementedException();
         }

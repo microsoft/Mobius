@@ -61,6 +61,7 @@
     <Compile Include="Core\Accumulator.cs" />
     <Compile Include="Core\Broadcast.cs" />
     <Compile Include="Core\Option.cs" />
+    <Compile Include="Core\Partitioner.cs" />
     <Compile Include="Core\RDDCollector.cs" />
     <Compile Include="Core\DoubleRDDFunctions.cs" />
     <Compile Include="Core\IRDDCollector.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="Sql\DataFrameNaFunctions.cs" />
     <Compile Include="Sql\DataFrameReader.cs" />
     <Compile Include="Sql\DataFrameWriter.cs" />
+    <Compile Include="Sql\HiveContext.cs" />
     <Compile Include="Sql\PythonSerDe.cs" />
     <Compile Include="Sql\RowConstructor.cs" />
     <Compile Include="Sql\Row.cs" />
@@ -126,9 +128,11 @@
     <Compile Include="Sql\SqlContext.cs" />
     <Compile Include="Sql\Types.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
+    <Compile Include="Streaming\ConstantInputDStream.cs" />
     <Compile Include="Streaming\DStream.cs" />
     <Compile Include="Streaming\EventHubsUtils.cs" />
     <Compile Include="Streaming\Kafka.cs" />
+    <Compile Include="Streaming\MapWithStateDStream.cs" />
     <Compile Include="Streaming\PairDStreamFunctions.cs" />
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />

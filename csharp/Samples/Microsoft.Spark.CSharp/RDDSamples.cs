@@ -418,13 +418,13 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void RDDSaveAsTextFileSample()
         {
             var rdd = SparkCLRSamples.SparkContext.Parallelize(new string[] { "a", "b", "c", "d", "e" }, 2);
-            var path = Path.GetTempFileName();
-            File.Delete(path);
+            var path = SparkCLRSamples.FileSystemHelper.GetTempFileName();
+            SparkCLRSamples.FileSystemHelper.DeleteFile(path);
             rdd.SaveAsTextFile(path);
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(Directory.Exists(path));
+                Assert.IsTrue(SparkCLRSamples.FileSystemHelper.Exists(path));
             }
         }
 
@@ -493,6 +493,18 @@ namespace Microsoft.Spark.CSharp.Samples
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
                 CollectionAssert.AreEquivalent(new[] { 1, 2, 3, 4, 5, 6 }, takeOrderd);
+            }
+        }
+
+        [Sample]
+        internal static void RDDTakeOrderedSample2()
+        {
+            var takeOrderd = SparkCLRSamples.SparkContext.Parallelize(new int[] { 10, 1, 2, 9, 3, 4, 5, 6, 7 }, 2).TakeOrdered(6, x => -x);
+            Console.WriteLine(string.Join(",", takeOrderd));
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                CollectionAssert.AreEquivalent(new[] { 10, 9, 7, 6, 5, 4 }, takeOrderd);
             }
         }
 

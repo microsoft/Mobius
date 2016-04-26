@@ -45,16 +45,87 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestRegisterTempTable()
+        {
+            mockDataFrameProxy.Setup(m => m.RegisterTempTable(It.IsAny<string>()));
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
+            dataFrame.RegisterTempTable("TestTable");
+            mockDataFrameProxy.Verify(m => m.RegisterTempTable("TestTable"), Times.Once);
+        }
+
+        [Test]
+        public void TestDataFrameCount()
+        {
+            mockDataFrameProxy.Setup(m => m.Count()).Returns(1);
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
+            Assert.AreEqual(1, dataFrame.Count());
+            mockDataFrameProxy.Verify(m => m.Count(), Times.Once);
+        }
+
+        [Test]
+        public void TestShow()
+        {
+            mockDataFrameProxy.Setup(m => m.GetShowString(It.IsAny<int>(), It.IsAny<bool>())).Returns("Show");
+            var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
+            dataFrame.Show();
+            mockDataFrameProxy.Verify(m => m.GetShowString(20, true), Times.Once);
+        }
+
+        [Test]
         public void TestDataFrameJoin()
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
             var dataFrame = sqlContext.Read().Json(@"c:\path\to\input.json");
             var dataFrame2 = sqlContext.Read().Json(@"c:\path\to\input2.json"); 
             var joinedDataFrame = dataFrame.Join(dataFrame2, "JoinCol");
-            var paramValuesToJoinMethod = (joinedDataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
-            var paramValuesToSecondDataFrameJsonFileMethod = ((paramValuesToJoinMethod[0] as MockDataFrameProxy).mockDataFrameReference as object[]);
+            var paramValuesToJoinMethod = (joinedDataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            var paramValuesToSecondDataFrameJsonFileMethod = (paramValuesToJoinMethod[0] as MockDataFrameProxy).mockDataFrameReference;
             Assert.AreEqual(@"c:\path\to\input2.json", paramValuesToSecondDataFrameJsonFileMethod[0]);
             Assert.AreEqual("JoinCol", paramValuesToJoinMethod[1]);
+
+            var joinedDataFrame2 = dataFrame.Join(dataFrame2, new[] {"JoinCol1", "JoinCol2"});
+            var paramValuesToJoinMethod2 = (joinedDataFrame2.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            var paramValuesToSecondDataFrameJsonFileMethod2 = (paramValuesToJoinMethod2[0] as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(@"c:\path\to\input2.json", paramValuesToSecondDataFrameJsonFileMethod2[0]);
+            Assert.AreEqual("JoinCol1", (paramValuesToJoinMethod2[1] as string[])[0]);
+            Assert.AreEqual("JoinCol2", (paramValuesToJoinMethod2[1] as string[])[1]);
+
+            var mockColumnProxy = new Mock<IColumnProxy>().Object;
+            var mockColumn = new Column(mockColumnProxy);
+            var joinedDataFrame3 = dataFrame.Join(dataFrame2, mockColumn);
+            var paramValuesToJoinMethod3 = (joinedDataFrame3.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            var paramValuesToSecondDataFrameJsonFileMethod3 = (paramValuesToJoinMethod3[0] as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(@"c:\path\to\input2.json", paramValuesToSecondDataFrameJsonFileMethod3[0]);
+            Assert.AreEqual(mockColumnProxy, paramValuesToJoinMethod3[1]);
+            Assert.AreEqual(JoinType.Inner.Value, paramValuesToJoinMethod3[2]);
+
+            var joinedDataFrame4 = dataFrame.Join(dataFrame2, mockColumn, JoinType.Outer);
+            var paramValuesToJoinMethod4 = (joinedDataFrame4.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            var paramValuesToSecondDataFrameJsonFileMethod4 = (paramValuesToJoinMethod4[0] as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(@"c:\path\to\input2.json", paramValuesToSecondDataFrameJsonFileMethod4[0]);
+            Assert.AreEqual(mockColumnProxy, paramValuesToJoinMethod4[1]);
+            Assert.AreEqual(JoinType.Outer.Value, paramValuesToJoinMethod4[2]);
+
+            var joinedDataFrame5 = dataFrame.Join(dataFrame2, mockColumn, JoinType.LeftOuter);
+            var paramValuesToJoinMethod5 = (joinedDataFrame5.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            var paramValuesToSecondDataFrameJsonFileMethod5 = (paramValuesToJoinMethod5[0] as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(@"c:\path\to\input2.json", paramValuesToSecondDataFrameJsonFileMethod5[0]);
+            Assert.AreEqual(mockColumnProxy, paramValuesToJoinMethod5[1]);
+            Assert.AreEqual(JoinType.LeftOuter.Value, paramValuesToJoinMethod5[2]);
+
+            var joinedDataFrame6 = dataFrame.Join(dataFrame2, mockColumn, JoinType.RightOuter);
+            var paramValuesToJoinMethod6 = (joinedDataFrame6.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            var paramValuesToSecondDataFrameJsonFileMethod6 = (paramValuesToJoinMethod6[0] as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(@"c:\path\to\input2.json", paramValuesToSecondDataFrameJsonFileMethod6[0]);
+            Assert.AreEqual(mockColumnProxy, paramValuesToJoinMethod6[1]);
+            Assert.AreEqual(JoinType.RightOuter.Value, paramValuesToJoinMethod6[2]);
+
+            var joinedDataFrame7 = dataFrame.Join(dataFrame2, mockColumn, JoinType.LeftSemi);
+            var paramValuesToJoinMethod7 = (joinedDataFrame7.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            var paramValuesToSecondDataFrameJsonFileMethod7 = (paramValuesToJoinMethod7[0] as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(@"c:\path\to\input2.json", paramValuesToSecondDataFrameJsonFileMethod7[0]);
+            Assert.AreEqual(mockColumnProxy, paramValuesToJoinMethod7[1]);
+            Assert.AreEqual(JoinType.LeftSemi.Value, paramValuesToJoinMethod7[2]);
         }
 
         
@@ -185,6 +256,48 @@ namespace AdapterTest
             dataFrameNaFunctionsProxy.Verify(m => m.Drop(1, It.Is<string[]>(subset => subset.Length == 1 && 
                 subset.Contains(columnName))));
             Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestFillNa()
+        {
+            // Arrange
+            const string columnName = "column1";
+            var mockSchemaProxy = new Mock<IStructTypeProxy>();
+            var mockFieldProxy = new Mock<IStructFieldProxy>();
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.GetSchema()).Returns(mockSchemaProxy.Object);
+
+            // dataframeNaFunctionsProxy
+            var dataFrameNaFunctionsProxy = new Mock<IDataFrameNaFunctionsProxy>();
+            dataFrameNaFunctionsProxy.Setup(d => d.Fill(It.IsAny<double>(), It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+            dataFrameNaFunctionsProxy.Setup(d => d.Fill(It.IsAny<string>(), It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+            dataFrameNaFunctionsProxy.Setup(d => d.Fill(It.IsAny<Dictionary<string, object>>())).Returns(expectedResultDataFrameProxy);
+
+            mockDataFrameProxy.Setup(m => m.Na()).Returns(dataFrameNaFunctionsProxy.Object);
+
+            mockSchemaProxy.Setup(m => m.GetStructTypeFields()).Returns(new List<IStructFieldProxy> { mockFieldProxy.Object });
+            mockFieldProxy.Setup(m => m.GetStructFieldName()).Returns(columnName);
+            var sc = new SparkContext(null);
+
+            var dict = new Dictionary<string, object> {{columnName, 1}};
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame1 = originalDataFrame.FillNa(1);
+            var actualResultDataFrame2 = originalDataFrame.FillNa("1", new[] {columnName});
+            var actualResultDataFrame3 = originalDataFrame.FillNa(dict);
+
+            // Assert
+            // assert DropNa of Proxy was invoked with correct parameters
+            dataFrameNaFunctionsProxy.Verify(m => m.Fill(1, It.Is<string[]>(subset => subset.Length == 1 &&
+                subset.Contains(columnName))));
+            dataFrameNaFunctionsProxy.Verify(m => m.Fill("1", It.Is<string[]>(subset => subset.Length == 1 &&
+                subset.Contains(columnName))));
+            dataFrameNaFunctionsProxy.Verify(m => m.Fill(dict));
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame1.DataFrameProxy);
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame2.DataFrameProxy);
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame3.DataFrameProxy);
         }
 
         [Test]
@@ -1015,6 +1128,60 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestSelect_ColumnName()
+        {
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Select(It.IsAny<string>(), It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            const string column1Name = "colName1";
+            const string column2Name = "colName2";
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.Select(column1Name, column2Name);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Select(column1Name, new [] { column2Name } ));
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestSelectExpr()
+        {
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.SelectExpr(It.IsAny<string[]>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+            
+            const string columnExpr = "colB as newName";
+
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.SelectExpr(columnExpr);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.SelectExpr(new[] { columnExpr }));
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
+        }
+
+        [Test]
+        public void TestWhere()
+        {
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            mockDataFrameProxy.Setup(m => m.Filter(It.IsAny<string>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            const string condition = "Filter Condition";
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResultDataFrame = originalDataFrame.Where(condition);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Filter(condition));
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResultDataFrame.DataFrameProxy);
+        }
+
+        [Test]
         public void TestWithColumn()
         {
             // Arrange
@@ -1231,6 +1398,26 @@ namespace AdapterTest
         }
 
         #region GroupedDataTest
+
+        [Test]
+        public void TestAgg()
+        {
+            // Arrange
+            var expectedResultDataFrameProxy = new Mock<IDataFrameProxy>().Object;
+            var mockGroupedDataProxy = new Mock<IGroupedDataProxy>();
+            mockDataFrameProxy.Setup(m => m.GroupBy()).Returns(mockGroupedDataProxy.Object);
+            mockDataFrameProxy.Setup(m => m.Agg(It.IsAny<IGroupedDataProxy>(), It.IsAny<Dictionary<string, string>>())).Returns(expectedResultDataFrameProxy);
+            var sc = new SparkContext(null);
+
+            var columnNameAggFuncDic = new Dictionary<string, string> {{"name", "count"}};
+            // Act
+            var originalDataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
+            var actualResult = originalDataFrame.Agg(columnNameAggFuncDic);
+
+            // Assert
+            mockDataFrameProxy.Verify(m => m.Agg(mockGroupedDataProxy.Object, columnNameAggFuncDic)); // assert Agg was invoked with correct parameters
+            Assert.AreEqual(expectedResultDataFrameProxy, actualResult.DataFrameProxy);
+        }
 
         [Test]
         public void TestCount()

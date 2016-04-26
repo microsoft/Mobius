@@ -60,9 +60,7 @@ With `JAVA_HOME` set properly, navigate to [Mobius\build\localmode](../build/loc
 
 It is **required** to run [build.sh](../build/build.sh) prior to running [run-samples.sh](../build/localmode/run-samples.sh).
 
-**Note that Mobius requires a customized Apache Spark for use in Linux** (see [linux-compatibility.md](./linux-compatibility.md) for details).
-
-[run-samples.sh](../build/localmode/run-samples.sh) downloads Apache Spark 1.6.0 and builds a customized version of Spark, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `Mobius/build/runtime` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `Mobius/build/runtime/Temp`.
+[run-samples.sh](../build/localmode/run-samples.sh) downloads the version of Apache Spark referenced in the current branch, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `Mobius/build/runtime` directory created by [build.sh](../build/build.sh), and invokes [sparkclr-submit.sh](../scripts/sparkclr-submit.sh), with `spark.local.dir` set to `Mobius/build/runtime/Temp`.
 
 A few more [run-samples.sh](../build/localmode/run-samples.sh) examples:
 - To display all options supported by [run-samples.sh](../build/localmode/run-samples.sh): 
@@ -103,12 +101,3 @@ sparkclr-submit.sh --verbose --master yarn-cluster --exe SparkCLRSamples.exe $SP
     ./test.sh
     ```
 
-# Debugging Tips
-
-CSharpBackend and C# driver are separately launched for debugging Mobius Adapter or driver.
-
-For example, to debug Mobius samples:
-
-* Launch CSharpBackend.exe using `sparkclr-submit.sh debug` and get the port number displayed in the console.  
-* Navigate to `csharp/Samples/Microsoft.Spark.CSharp` and edit `App.Config` to use the port number from the previous step for `CSharpBackendPortNumber` config and also set `CSharpWorkerPath` config values.  
-* Run `SparkCLRSamples.exe`.

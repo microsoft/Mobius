@@ -45,7 +45,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MultiThreadWorker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskRunner.cs" />
     <Compile Include="Worker.cs" />
   </ItemGroup>
   <ItemGroup />

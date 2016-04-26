@@ -97,10 +97,10 @@ object FreebaseDeletionsBenchmark {
     val filtered = rows.filter("C1 = C3")
     val aggregated = filtered.groupBy("C1").agg(("C1", "count"))
     aggregated.registerTempTable("freebasedeletions")
-    val max = sqlContext.sql("select max(`COUNT(C1)`) from freebasedeletions")
+    val max = sqlContext.sql("select max(`count(C1)`) from freebasedeletions")
     val maxArray = max.collect
     val maxValue = maxArray(0)
-    val maxDeletions = sqlContext.sql("select * from freebasedeletions where `COUNT(C1)` = " + maxValue.get(0))
+    val maxDeletions = sqlContext.sql("select * from freebasedeletions where `count(C1)` = " + maxValue.get(0))
     maxDeletions.show
     //TODO - add perf suite for subquery
     val elapsed = System.currentTimeMillis - startTime

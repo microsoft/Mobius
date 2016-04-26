@@ -16,6 +16,7 @@ using Microsoft.Spark.CSharp.Interop.Ipc;
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
     [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
+    [Serializable]
     internal class RDDIpcProxy : IRDDProxy
     {
         private readonly JvmObjectReference jvmRddReference;
@@ -76,13 +77,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             var jref = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "union", new object[] { (javaRddReferenceOther as RDDIpcProxy).jvmRddReference }).ToString());
             return new RDDIpcProxy(jref);
-        }
-
-        public int PartitionLength()
-        {
-            var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            var partitions = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "partitions", new object[] { });
-            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("java.lang.reflect.Array", "getLength", new object[] { partitions }).ToString());
         }
 
         public IRDDProxy Coalesce(int numPartitions, bool shuffle)

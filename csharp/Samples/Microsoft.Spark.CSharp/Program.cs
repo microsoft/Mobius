@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Services;
+using Microsoft.Spark.CSharp.Utils;
 
 namespace Microsoft.Spark.CSharp.Samples
 {
@@ -18,6 +19,7 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static Configuration Configuration;
         internal static SparkContext SparkContext;
         internal static ILoggerService Logger;
+        internal static IFileSystemHelper FileSystemHelper;
 
         static void Main(string[] args)
         {
@@ -40,6 +42,17 @@ namespace Microsoft.Spark.CSharp.Samples
                 }
                 ConsoleWriteLine("Set checkpoint directory to: " + Configuration.CheckpointDir);
                 SparkContext.SetCheckpointDir(Configuration.CheckpointDir);
+
+                if (!string.IsNullOrEmpty(Configuration.SampleDataLocation) &&
+                    (Configuration.SampleDataLocation.ToLower().StartsWith("hdfs://") ||
+                     Configuration.SampleDataLocation.ToLower().StartsWith("webhdfs://")))
+                {
+                    FileSystemHelper = new HdfsFileSystemHelper();
+                }
+                else
+                {
+                    FileSystemHelper = new LocalFileSystemHelper();
+                }
 
                 status = SamplesRunner.RunSamples();
 
