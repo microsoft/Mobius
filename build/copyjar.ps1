@@ -35,14 +35,9 @@ foreach($file in $files)
 	write-output "Name of the file to copy: $sourceFileName"
 }
 
-#uber-jar has the name from pom.xml - this is the name we want to use
-$files = get-childitem $configPath -filter "spark*"
-#only one file in $files
-foreach($file in $files)
-{
-	$destFileName = $file.Name
-	write-output "Name of the file to use in destination: $destFileName" 
-}
+$pattern = "^original-(.*)"
+$destFileName = $sourceFileName -replace $pattern,'$1'
+write-output "Name of the file to use in destination: $destFileName"
 
 copy-item $sourceFileName -Destination "$destDir\$destFileName"
 popd
