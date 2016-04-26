@@ -12,6 +12,7 @@ using Moq;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using System.Collections.Generic;
+using Tests.Common;
 
 namespace AdapterTest
 {
@@ -50,6 +51,13 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestSqlContextGetOrCreate()
+        {
+            var sqlContext = SqlContext.GetOrCreate(new SparkContext("", ""));
+            Assert.IsNotNull(sqlContext.SqlContextProxy);
+        }
+
+        [Test]
         public void TestSqlContextNewSession()
         {
             // arrange
@@ -70,7 +78,6 @@ namespace AdapterTest
             // arrange
             const string key = "key";
             const string value = "value";
-            var sessionProxy = new SqlContextIpcProxy(new JvmObjectReference("1"));
             mockSqlContextProxy.Setup(m => m.GetConf(key, "")).Returns(value);
             var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
 
@@ -98,6 +105,23 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestSqlContextReadDataFrame()
+        {
+            var dataFrameProxy = new DataFrameIpcProxy(new JvmObjectReference("1"), mockSqlContextProxy.Object);
+            mockSqlContextProxy.Setup(
+                m => m.ReadDataFrame(It.IsAny<string>(), It.IsAny<StructType>(), It.IsAny<Dictionary<string, string>>()))
+                .Returns(dataFrameProxy);
+            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+            var structTypeProxy = new Mock<IStructTypeProxy>();
+            structTypeProxy.Setup(m => m.ToJson()).Returns(RowHelper.BasicJsonSchema);
+            // act
+            var dataFrame = sqlContext.ReadDataFrame(@"c:\path\to\input.txt", new StructType(structTypeProxy.Object), null);
+
+            // assert
+            Assert.AreEqual(dataFrameProxy, dataFrame.DataFrameProxy);
+        }
+
+        [Test]
         public void TestSqlContextCreateDataFrame()
         {
             // arrange
@@ -110,16 +134,7 @@ namespace AdapterTest
             mockSqlContextProxy.Setup(m => m.CreateDataFrame(It.IsAny<IRDDProxy>(), It.IsAny<IStructTypeProxy>())).Returns(dataFrameProxy);
             var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
             var structTypeProxy = new Mock<IStructTypeProxy>();
-            const string schemaJson = @"{
-	                                ""fields"": [{
-		                                ""metadata"": {},
-		                                ""name"": ""guid"",
-		                                ""nullable"": false,
-		                                ""type"": ""string""
-	                                }],
-	                                ""type"": ""struct""
-                                    }";
-            structTypeProxy.Setup(m => m.ToJson()).Returns(schemaJson);
+            structTypeProxy.Setup(m => m.ToJson()).Returns(RowHelper.ComplexJsonSchema);
             // act
             var dataFrame = sqlContext.CreateDataFrame(rdd, new StructType(structTypeProxy.Object));
 
@@ -259,11 +274,34 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestSqlContextIsCached()
+        {
+            // arrange
+            mockSqlContextProxy.Setup(m => m.IsCached(It.IsAny<string>()));
+            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+
+            // act
+            sqlContext.IsCached("table");
+
+            // assert
+            mockSqlContextProxy.Verify(m => m.IsCached("table"));
+        }
+
+        [Test]
+        public void TestSqlContextSql()
+        {
+            var sqlContext = new SqlContext(new SparkContext("", ""));
+            var dataFrame = sqlContext.Sql("Query of SQL text");
+            var paramValuesToJsonFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual("Query of SQL text", paramValuesToJsonFileMethod[0]);
+        }
+
+        [Test]
         public void TestSqlContextJsonFile()
         {
             var sqlContext = new SqlContext(new SparkContext("", "")); 
             var dataFrame = sqlContext.Read().Json(@"c:\path\to\input.json");
-            var paramValuesToJsonFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
+            var paramValuesToJsonFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
             Assert.AreEqual(@"c:\path\to\input.json", paramValuesToJsonFileMethod[0]);
         }
 
@@ -272,7 +310,7 @@ namespace AdapterTest
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
             var dataFrame = sqlContext.TextFile(@"c:\path\to\input.txt");
-            var paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
+            var paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
             Assert.AreEqual(@"c:\path\to\input.txt", paramValuesToTextFileMethod[0]);
             Assert.AreEqual(@",", paramValuesToTextFileMethod[1]);
             Assert.IsFalse(bool.Parse(paramValuesToTextFileMethod[2].ToString()));
@@ -280,11 +318,62 @@ namespace AdapterTest
 
             sqlContext = new SqlContext(new SparkContext("", "")); 
             dataFrame = sqlContext.TextFile(@"c:\path\to\input.txt", "|", true, true);
-            paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference as object[];
+            paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
             Assert.AreEqual(@"c:\path\to\input.txt", paramValuesToTextFileMethod[0]);
             Assert.AreEqual(@"|", paramValuesToTextFileMethod[1]);
             Assert.IsTrue(bool.Parse(paramValuesToTextFileMethod[2].ToString()));
             Assert.IsTrue(bool.Parse(paramValuesToTextFileMethod[3].ToString()));
+
+            // Test with a given schema
+            sqlContext = new SqlContext(new SparkContext("", ""));
+            var structTypeProxy = new Mock<IStructTypeProxy>();
+            structTypeProxy.Setup(m => m.ToJson()).Returns(RowHelper.BasicJsonSchema);
+            var structType = new StructType(structTypeProxy.Object);
+            dataFrame = sqlContext.TextFile(@"c:\path\to\input.txt", structType);
+            paramValuesToTextFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(@"c:\path\to\input.txt", paramValuesToTextFileMethod[0]);
+            Assert.AreEqual(structType, paramValuesToTextFileMethod[1]);
+            Assert.AreEqual(@",", paramValuesToTextFileMethod[2]);
+        }
+
+        [Test]
+        public void TestSqlContextRegisterFunction()
+        {
+            mockSqlContextProxy.Setup(m => m.RegisterFunction(It.IsAny<string>(), It.IsAny<byte[]>(), It.IsAny<string>()));
+            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+
+            sqlContext.RegisterFunction("Func0", () => "Func0");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func0", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string>("Func1", s => "Func1");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func1", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string>("Func2", (s1, s2) => "Func2");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func2", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string>("Func3", (s1, s2, s3) => "Func3");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func3", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string, string>("Func4", (s1, s2, s3, s4) => "Func4");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func4", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string, string, string>("Func5", (s1, s2, s3, s4, s5) => "Func5");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func5", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string, string, string, string>("Func6", (s1, s2, s3, s4, s5, s6) => "Func6");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func6", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string, string, string, string, string>("Func7", (s1, s2, s3, s4, s5, s6, s7) => "Func7");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func7", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string, string, string, string, string, string>("Func8", (s1, s2, s3, s4, s5, s6, s7, s8) => "Func8");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func8", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string, string, string, string, string, string, string>("Func9", (s1, s2, s3, s4, s5, s6, s7, s8, s9) => "Func9");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func9", It.IsAny<byte[]>(), "string"));
+
+            sqlContext.RegisterFunction<string, string, string, string, string, string, string, string, string, string, string>("Func10", (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) => "Func10");
+            mockSqlContextProxy.Verify(m => m.RegisterFunction("Func10", It.IsAny<byte[]>(), "string"));
         }
     }
 }

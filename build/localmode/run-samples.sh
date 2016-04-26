@@ -11,7 +11,7 @@ do
 done
 
 # setup Hadoop and Spark versions
-export SPARK_VERSION=1.6.0
+export SPARK_VERSION=1.6.1
 export HADOOP_VERSION=2.6
 echo "[run-samples.sh] SPARK_VERSION=$SPARK_VERSION, HADOOP_VERSION=$HADOOP_VERSION"
 
@@ -27,18 +27,6 @@ if [ ! -d "$SPARK_HOME" ];
 then
   wget "http://www.us.apache.org/dist/spark/spark-$SPARK_VERSION/$SPARK.tgz" -O "$TOOLS_DIR/$SPARK.tgz"
   tar xfz "$TOOLS_DIR/$SPARK.tgz" -C "$TOOLS_DIR"
-
-  # hack: use a customized spark
-  # TODO: fix the C# Worker
-  export SPARK_SRC="$TOOLS_DIR/spark-$SPARK_VERSION"
-  wget "http://www.us.apache.org/dist/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION.tgz" -O "$SPARK_SRC.tgz"
-  tar xfz "$SPARK_SRC.tgz" -C "$TOOLS_DIR"
-  pushd "$SPARK_SRC"
-  sed -i "s/val useDaemon = /val useDaemon = false \/\//g" "core/src/main/scala/org/apache/spark/api/python/PythonWorkerFactory.scala"
-  build/mvn -Pyarn -Phadoop-$HADOOP_VERSION -DskipTests package 2>&1 | grep warn
-  [ $? -ne 0 ] && exit 1
-  cp assembly/target/scala-2.10/spark-assembly*hadoop*.jar "$SPARK_HOME/lib/"
-  popd
 fi
 export PATH="$SPARK_HOME/bin:$PATH"
 

@@ -6,7 +6,7 @@ if not exist "%JAVA_HOME%\bin\java.exe" (
     @echo. 
     @echo ============================================================================================
     @echo. 
-    @echo WARNING!!! %~nx0 detected JAVA_HOME is not set properly. SparkCLR requires JDK 7u85 and above, 
+    @echo WARNING!!! %~nx0 detected JAVA_HOME is not set properly. Mobius requires JDK 7u85 and above, 
     @echo            or JDK 8u60 and above. You can either download OpenJDK available at 
     @echo            http://www.azul.com/downloads/zulu/zulu-windows/, or use Oracle JDK. 
     @echo. 
@@ -33,7 +33,7 @@ goto :eof
 @echo ============================================================================================
 @echo. 
 @echo WARNING!!! %~nx0 detected version of Visual Studio in current command prompt as %version%. 
-@echo            SparkCLR %~nx0 requires "Developer Command Prompt for VS2013" and above, or 
+@echo            Mobius %~nx0 requires "Developer Command Prompt for VS2013" and above, or 
 @echo            "MSBuild Command Prompt for VS2015" and above.
 @echo. 
 @echo ============================================================================================

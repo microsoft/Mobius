@@ -31,10 +31,17 @@ namespace Microsoft.Spark.CSharp.Core
         internal SerializedMode serializedMode; //used for deserializing data before processing in C# worker
         internal SerializedMode prevSerializedMode;
 
+        /// <summary>
+        /// Indicates whether the RDD is cached.
+        /// </summary>
         protected bool isCached;
+
+        /// <summary>
+        /// Indicates whether the RDD is checkpointed.
+        /// </summary>
         protected bool isCheckpointed;
         internal bool bypassSerializer;
-        internal int? partitioner;
+        internal Partitioner partitioner;
 
         internal virtual IRDDProxy RddProxy
         {
@@ -170,6 +177,10 @@ namespace Microsoft.Spark.CSharp.Core
             RddProxy.Checkpoint();
         }
 
+        /// <summary>
+        /// Returns the number of partitions of this RDD.
+        /// </summary>
+        /// <returns>The number of partitions of this RDD</returns>
         public int GetNumPartitions()
         {
             return RddProxy.GetNumPartitions();
@@ -178,7 +189,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Return a new RDD by applying a function to each element of this RDD.
         /// 
-        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new <see cref="KeyValuePair{string, int}"/>(x, 1)).Collect()
+        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new KeyValuePair&lt;string, int>(x, 1)).Collect()
         /// [('a', 1), ('b', 1), ('c', 1)]
         /// 
         /// </summary>
@@ -229,7 +240,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// Return a new RDD by applying a function to each partition of this RDD,
         /// while tracking the index of the original partition.
         /// 
-        /// <see cref="sc.Parallelize(new int[]{1, 2, 3, 4}, 4).MapPartitionsWithIndex{double}"/>((pid, iter) => (double)pid).Sum()
+        /// sc.Parallelize(new int[]{1, 2, 3, 4}, 4).MapPartitionsWithIndex&lt;double>((pid, iter) => (double)pid).Sum()
         /// 6
         /// </summary>
         /// <typeparam name="U"></typeparam>
@@ -429,7 +440,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Union(RDD<T> other)
         {
             var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
-            if (partitioner == other.partitioner && RddProxy.PartitionLength() == rdd.RddProxy.PartitionLength())
+            if (partitioner == other.partitioner && RddProxy.GetNumPartitions() == rdd.RddProxy.GetNumPartitions())
                 rdd.partitioner = partitioner;
             return rdd;
         }
@@ -1060,6 +1071,14 @@ namespace Microsoft.Spark.CSharp.Core
         {
             return new RDD<T>(RddProxy.RandomSampleWithRange(lb, ub, seed), sparkContext);
         }
+
+        internal int GetDefaultPartitionNum()
+        {
+            var numPartitions = sparkContext.SparkConf.SparkConfProxy.GetInt("spark.default.parallelism", 0);
+            if (numPartitions == 0 && previousRddProxy != null)
+                numPartitions = previousRddProxy.GetNumPartitions();
+            return numPartitions;
+        }
     }
 
     /// <summary>
@@ -1128,10 +1147,12 @@ namespace Microsoft.Spark.CSharp.Core
         /// <typeparam name="T"></typeparam>
         /// <param name="self"></param>
         /// <param name="num"></param>
+        /// <param name="keyFunc"></param>
         /// <returns></returns>
-        public static T[] TakeOrdered<T>(this RDD<T> self, int num) where T : IComparable<T>
+        public static T[] TakeOrdered<T>(this RDD<T> self, int num, Func<T, dynamic> keyFunc = null) where T : IComparable<T>
         {
-            return self.MapPartitionsWithIndex<T>(new TakeOrderedHelper<T>(num).Execute).Collect().OrderBy(x => x).Take(num).ToArray();
+            return self.MapPartitionsWithIndex<T>(new TakeOrderedHelper<T>(num, keyFunc).Execute).Collect()
+                .OrderBy(x => keyFunc == null ? x : keyFunc(x)).Take(num).ToArray();
         }
 
         /// <summary>
@@ -1445,13 +1466,15 @@ namespace Microsoft.Spark.CSharp.Core
     internal class TakeOrderedHelper<T>
     {
         private readonly int num;
-        internal TakeOrderedHelper(int num)
+        private readonly Func<T, dynamic> keyFunc;
+        internal TakeOrderedHelper(int num, Func<T, dynamic> keyFunc)
         {
             this.num = num;
+            this.keyFunc = keyFunc;
         }
         internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
-            return input.OrderBy(x => x).Take(num);
+            return input.OrderBy(x => keyFunc == null ? x : keyFunc(x)).Take(num);
         }
     }
     [Serializable]

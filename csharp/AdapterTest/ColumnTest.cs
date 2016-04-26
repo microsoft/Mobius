@@ -196,6 +196,24 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestColumnGetHashCode()
+        {
+            var column1 = new Column(null);
+            Assert.AreEqual(0, column1.GetHashCode());
+
+            var column2 = new Column(mockColumnProxy.Object);
+            Assert.AreNotEqual(0, column2.GetHashCode());
+        }
+
+        [Test]
+        public void TestColumnEquals()
+        {
+            var column1 = new Column(mockColumnProxy.Object);
+            var column2 = new Column(mockColumnProxy.Object);
+            Assert.IsTrue(column1.Equals(column2));
+        }
+
+        [Test]
         public void TestColumnLike()
         {
             mockColumnProxy.Setup(m => m.BinOp(It.IsAny<string>(), It.IsAny<string>()));

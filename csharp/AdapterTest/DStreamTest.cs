@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
@@ -339,7 +340,7 @@ namespace AdapterTest
             var sc = new SparkContext(sparkContextProxy.Object, null);
 
             var pairwiseRddProxy = new Mock<IRDDProxy>();
-            sparkContextProxy.Setup(p => p.CreatePairwiseRDD(It.IsAny<IRDDProxy>(), It.IsAny<int>())).Returns(pairwiseRddProxy.Object);
+            sparkContextProxy.Setup(p => p.CreatePairwiseRDD(It.IsAny<IRDDProxy>(), It.IsAny<int>(), It.IsAny<long>())).Returns(pairwiseRddProxy.Object);
 
             var pipelinedRddProxy = new Mock<IRDDProxy>();
             pipelinedRddProxy.Setup(p => p.Union(It.IsAny<IRDDProxy>())).Returns(new Mock<IRDDProxy>().Object);
@@ -404,6 +405,21 @@ namespace AdapterTest
             Assert.IsNotNull(stateRddRecord);
             Assert.AreEqual(stateRddRecord.mappedData.Count, 4); // timedout record also appears in return results
             Assert.AreEqual(stateRddRecord.stateMap.Count, 2);
+        }
+
+        [Test]
+        public void TestConstantInputDStream()
+        {
+            var sc = new SparkContext("", "");
+            var rdd = sc.Parallelize(Enumerable.Range(0, 10), 1);
+            var ssc = new StreamingContext(sc, 1000);
+
+            // test when rdd is null
+            Assert.Throws<ArgumentNullException>(() => new ConstantInputDStream<int>(null, ssc));
+
+            var constantInputDStream = new ConstantInputDStream<int>(rdd, ssc);
+            Assert.IsNotNull(constantInputDStream);
+            Assert.AreEqual(ssc, constantInputDStream.streamingContext);     
         }
     }
 }

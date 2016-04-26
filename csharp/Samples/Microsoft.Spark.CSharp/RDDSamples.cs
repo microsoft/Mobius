@@ -497,6 +497,18 @@ namespace Microsoft.Spark.CSharp.Samples
         }
 
         [Sample]
+        internal static void RDDTakeOrderedSample2()
+        {
+            var takeOrderd = SparkCLRSamples.SparkContext.Parallelize(new int[] { 10, 1, 2, 9, 3, 4, 5, 6, 7 }, 2).TakeOrdered(6, x => -x);
+            Console.WriteLine(string.Join(",", takeOrderd));
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                CollectionAssert.AreEquivalent(new[] { 10, 9, 7, 6, 5, 4 }, takeOrderd);
+            }
+        }
+
+        [Sample]
         internal static void RDDTopSample()
         {
             var top = SparkCLRSamples.SparkContext.Parallelize(new int[] { 2, 3, 4, 5, 6 }, 2).Top(3);

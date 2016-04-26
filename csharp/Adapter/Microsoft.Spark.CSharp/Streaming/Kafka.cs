@@ -11,6 +11,9 @@ using Microsoft.Spark.CSharp.Core;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
+    /// <summary>
+    /// Utils for Kafka input stream.
+    /// </summary>
     public class KafkaUtils
     {
         /// <summary>
@@ -30,6 +33,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <summary>
         /// Create an input stream that pulls messages from a Kafka Broker.
         /// </summary>
+        /// <param name="ssc">Spark Streaming Context</param>
         /// <param name="zkQuorum">Zookeeper quorum (hostname:port,hostname:port,..).</param>
         /// <param name="groupId">The group id for this consumer.</param>
         /// <param name="topics">Dict of (topic_name -> numPartitions) to consume. Each partition is consumed in its own thread.</param>
@@ -107,9 +111,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         ///     user hint on how many kafka RDD partitions to create instead of aligning with kafka partitions,
         ///     unbalanced kafka partitions and/or under-distributed data will be redistributed evenly across 
         ///     a probably larger number of RDD partitions
+        ///     If numPartitions = -1, either repartition based on spark.streaming.kafka.maxRatePerTask or do nothing if config not defined
+        ///     If numPartitions = 0, repartition using original kafka partition count
+        ///     If numPartitions > 0, repartition using this parameter
         /// </param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateDirectStreamWithRepartition(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, uint numPartitions)
+        public static DStream<KeyValuePair<byte[], byte[]>> CreateDirectStreamWithRepartition(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions = -1)
         {
             return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions), ssc, SerializedMode.Pair);
         }

@@ -12,7 +12,7 @@ if ($stage.ToLower() -eq "run")
     $hadoopVersion = if ($envValue -eq $null) { "2.6" } else { $envValue }
     
     $envValue = [Environment]::GetEnvironmentVariable("SPARK_VERSION")
-    $sparkVersion = if ($envValue -eq $null) { "1.6.0" } else { $envValue }
+    $sparkVersion = if ($envValue -eq $null) { "1.6.1" } else { $envValue }
     
     Write-Output "[downloadtools] hadoopVersion=$hadoopVersion, sparkVersion=$sparkVersion"
 }
@@ -257,7 +257,7 @@ function Download-BuildTools
         $gpgZip = "$toolsDir\gpg4win-vanilla-2.3.0.zip"
         if (!(test-path $gpgZip))
         {
-            $url = "https://github.com/SparkCLR/build/blob/master/tools/gpg4win-vanilla-2.3.0.zip?raw=true"
+            $url = "https://github.com/MobiusForSpark/build/blob/master/tools/gpg4win-vanilla-2.3.0.zip?raw=true"
             $output=$gpgZip
             Download-File $url $output
             # Unzip-File $output $toolsDir
@@ -278,6 +278,21 @@ function Download-BuildTools
     }
 
     $envStream.close()
+}
+
+function Download-ExternalDependencies
+{
+    # Downloading spark-csv package and its depenency. These packages are required for DataFrame operations in Mobius
+	$url = "http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.3.0/spark-csv_2.10-1.3.0.jar"
+    $output="$scriptDir\..\dependencies\spark-csv_2.10-1.3.0.jar"
+    Download-File $url $output
+	Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
+	
+	$url = "http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar"
+	$output="$scriptDir\..\dependencies\commons-csv-1.1.jar"
+	Download-File $url $output
+    Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
+	return
 }
 
 function Download-RuntimeDependencies
@@ -480,8 +495,8 @@ function Print-Usage
     Write-Output ''
     Write-Output '    This script takes one input parameter ("stage"), which can be either [build | run].'
     Write-Output ''
-    Write-Output '        Build: Download tools required in building SparkCLR;'
-    Write-Output '        Run: Download Apache Spark and related binaries, required to run SparkCLR samples locally.'
+    Write-Output '        Build: Download tools required in building Mobius;'
+    Write-Output '        Run: Download Apache Spark and related binaries, required to run Mobius samples locally.'
     Write-Output ''
     Write-Output '====================================================================================================='
 }
@@ -512,6 +527,10 @@ if ($stage.ToLower() -eq "build")
 elseif ($stage.ToLower() -eq "run")
 {
     Download-RuntimeDependencies
+}
+elseif ($stage.ToLower() -eq "dependencies")
+{
+    Download-ExternalDependencies
 }
 else
 {

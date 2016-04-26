@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Collections.Concurrent;
 
 using Microsoft.Spark.CSharp.Proxy;
 
@@ -30,13 +31,21 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     public class Broadcast
     {
+        /// <summary>
+        /// A thread-safe static collection that is used to store registered broadcast objects.
+        /// </summary>
         [NonSerialized]
-        public static Dictionary<long, Broadcast> broadcastRegistry = new Dictionary<long, Broadcast>();
+        public static ConcurrentDictionary<long, Broadcast> broadcastRegistry = new ConcurrentDictionary<long, Broadcast>();
         [NonSerialized]
         internal string path;
 
         internal long broadcastId;
         internal Broadcast() { }
+
+        /// <summary>
+        /// Initializes a new instance of Broadcast class with a specified path.
+        /// </summary>
+        /// <param name="path">The path that to be set.</param>
         public Broadcast(string path)
         {
             this.path = path;
@@ -59,6 +68,11 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
     }
+
+    /// <summary>
+    /// A generic version of <see cref="Broadcast"/> where the element can be specified.
+    /// </summary>
+    /// <typeparam name="T">The type of element in Broadcast</typeparam>
     [Serializable]
     public class Broadcast<T> : Broadcast
     {
