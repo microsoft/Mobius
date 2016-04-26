@@ -59,10 +59,13 @@ namespace Microsoft.Spark.CSharp
             string directory = SparkCLRSamples.Configuration.SampleDataLocation;
             string checkpointPath = Path.Combine(directory, "checkpoint");
 
+            SparkContext sc = SparkCLRSamples.SparkContext;
+            var b = sc.Broadcast<int>(0);
+
             StreamingContext ssc = StreamingContext.GetOrCreate(checkpointPath,
                 () =>
                 {
-                    SparkContext sc = SparkCLRSamples.SparkContext;
+
                     StreamingContext context = new StreamingContext(sc, 2000);
                     context.Checkpoint(checkpointPath);
 
@@ -76,7 +79,7 @@ namespace Microsoft.Spark.CSharp
                     // an extra CSharpRDD is introduced in between these operations
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
                     var join = wordCounts.Join(wordCounts, 2);
-                    var state = join.UpdateStateByKey<string, Tuple<int, int>, int>((vs, s) => vs.Sum(x => x.Item1 + x.Item2) + s);
+                    var state = join.UpdateStateByKey<string, Tuple<int, int>, int>(new UpdateStateHelper(b).Execute);
 
                     state.ForeachRDD((time, rdd) =>
                     {
@@ -207,4 +210,24 @@ namespace Microsoft.Spark.CSharp
             ssc.AwaitTermination();
         }
     }
+
+
+    // Use this helper class to test broacast variable in streaming application
+    [Serializable]
+    internal class UpdateStateHelper
+    {
+        private Broadcast<int> b;
+
+        internal UpdateStateHelper(Broadcast<int> b)
+        {
+            this.b = b;
+        }
+
+        internal int Execute(IEnumerable<Tuple<int, int>> vs, int s)
+        {
+            int result = vs.Sum(x => x.Item1 + x.Item2) + s + b.Value;
+            return result;
+        }
+    }
+
 }

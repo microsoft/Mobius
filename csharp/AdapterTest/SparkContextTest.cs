@@ -31,6 +31,7 @@ namespace AdapterTest
             var paramValuesToConstructor = (sparkContext.SparkContextProxy as MockSparkContextProxy).mockSparkContextReference as object[];
             Assert.AreEqual("masterUrl", (paramValuesToConstructor[0] as MockSparkConfProxy).stringConfDictionary["mockmaster"]);
             Assert.AreEqual("appName", (paramValuesToConstructor[0] as MockSparkConfProxy).stringConfDictionary["mockappName"]);
+            Assert.AreEqual(sparkContext, SparkContext.GetActiveSparkContext());
 
             sparkContext = new SparkContext("masterUrl", "appName", "sparkhome");
             Assert.IsNotNull((sparkContext.SparkContextProxy as MockSparkContextProxy).mockSparkContextReference);
@@ -38,11 +39,13 @@ namespace AdapterTest
             Assert.AreEqual("masterUrl", (paramValuesToConstructor[0] as MockSparkConfProxy).stringConfDictionary["mockmaster"]);
             Assert.AreEqual("appName", (paramValuesToConstructor[0] as MockSparkConfProxy).stringConfDictionary["mockappName"]);
             Assert.AreEqual("sparkhome", (paramValuesToConstructor[0] as MockSparkConfProxy).stringConfDictionary["mockhome"]);
+            Assert.AreEqual(sparkContext, SparkContext.GetActiveSparkContext());
 
             sparkContext = new SparkContext(null);
             Assert.IsNotNull((sparkContext.SparkContextProxy as MockSparkContextProxy).mockSparkContextReference);
             paramValuesToConstructor = (sparkContext.SparkContextProxy as MockSparkContextProxy).mockSparkContextReference as object[];
             Assert.IsNotNull(paramValuesToConstructor[0]); //because SparkContext constructor create default sparkConf
+            Assert.AreEqual(sparkContext, SparkContext.GetActiveSparkContext());
         }
 
         [Test]
