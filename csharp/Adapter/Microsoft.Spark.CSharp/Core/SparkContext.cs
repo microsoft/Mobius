@@ -30,7 +30,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Get existing SparkContext
         /// </summary>
-        public static SparkContext GetActiveSparkContext()
+        internal static SparkContext GetActiveSparkContext()
         {
                 return _activeSparkContext;
         }
