@@ -2,27 +2,31 @@
 The [release in GitHub](https://github.com/Microsoft/Mobius/releases) is a zip file. When you unzip that file, you will see a directory layout as follows:
 
 ````    
-|-- examples
-    |-- Example Mobius applications
-|-- localmode
-    |-- Scripts for running samples and examples in local mode
+|-- mobius-release-info.md
 |-- runtime
     |-- bin
         |-- .NET binaries and its dependencies used by Mobius applications
-    |-- data    
-        |-- Data files used by the [samples](..\csharp\Samples\Microsoft.Spark.CSharp)
-    |-- examples    
-        |-- C# Spark driver [examples](..\examples) implemented using Mobius        
+    |-- dependencies    
+        |-- jar files Mobius depends on for functionality like CSV parsing, Kafka message processing etc.        
     |-- lib
         |-- Mobius jar file
-    |-- samples
-        |-- C# Spark driver [samples](..\csharp\Samples\Microsoft.Spark.CSharp) for Moibus API  
     |-- scripts
         |-- Mobius job submission scripts
+|-- examples
+    |-- Example Mobius applications
+|-- samples
+    |-- C# Spark driver samples for Mobius API 
+    |-- data    
+        |-- Data files used by the samples
 ```` 
 
-You can run all the samples locally by invoking `localmode\RunSamples.cmd`. The script automatically downloads Apache Spark distribution and run the samples on your local machine. Note: Apache Spark distribution is a greater than 200 Mbytes download; `Runsamples.cmd` only downloads the Apache Spark distribution once.
-[Mobius examples](..\examples) may have external dependencies and may need configuration settings to those dependencies before they can be run.
+Instructions on running a Mobius app is available at https://github.com/skaarthik/Mobius/blob/master/notes/running-mobius-app.md
+
+Mobius samples do not have any extenral dependencies. The dependent jar files and data files used by samples are included in the release. Instructions to run samples are available at
+* https://github.com/skaarthik/Mobius/blob/master/notes/windows-instructions.md#running-samples for Windows
+* https://github.com/skaarthik/Mobius/blob/master/notes/linx-instructions.md#running-samples for Linux
+
+Mobius examples under "examples" folder may have external dependencies and may need configuration settings to those dependencies before they can be run. Refer to [Running Examples](https://github.com/Microsoft/Mobius/blob/master/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) for details on how to run each example.
 
 # NuGet Package
 The packages published to [NuGet](https://www.nuget.org/packages/Microsoft.SparkCLR/) are primarily for references when building Mobius application. If Visual Studio is used for development. the reference to the NuGet package will go in packages.config file.
