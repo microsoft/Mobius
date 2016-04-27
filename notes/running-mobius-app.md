@@ -116,7 +116,7 @@ The instructions above cover running Mobius applications in Windows. With the fo
 | Type          | Examples      |
 | ------------- |--------------|
 | Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li></ul> |
-| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li></ul> |
+| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li></ul> |
 | Streaming | <ul><li>[Kafka](#kafka-example-streaming)</li><li>[EventHubs](#eventhubs-example-streaming)</li><li>[HDFS Word Count](#hdfswordcount-example-streaming)</li></ul> |
 
 The following sample commands show how to run Mobius examples in local mode. Using the instruction above, the following sample commands can be tweaked to run in other modes
@@ -142,6 +142,11 @@ The schema and row count of the table name provided as the commandline argument 
 
 Displays the number of XML elements in the input XML file provided as the first argument to SparkClrXml.exe and writes the modified XML to the file specified in the second commandline argument.
 
+### Hive Example (Sql)
+* 
+`sparkclr-submit.cmd --jars <jar files used for using Hive in Spark> --exe HiveDataFrame.exe C:\Git\Mobius\examples\Sql\HiveDataFrame\bin\Debug`
+
+Reads data from a csv file, creates a Hive table and reads data from it
 ### EventHubs Example (Streaming)
 * Get the following jar files
   * qpid-amqp-1-0-client-0.32.jar
