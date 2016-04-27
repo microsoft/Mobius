@@ -60,12 +60,20 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { checkpointPath });
             jvmStreamingContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "ssc"));
-            JvmObjectReference jvmSparkContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "sc"));
-            JvmObjectReference jvmSparkConfReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "conf"));
-            JvmObjectReference jvmJavaContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "sparkContext"));
-            sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
-            var sparkConfProxy = new SparkConfIpcProxy(jvmSparkConfReference);
-            sparkContext = new SparkContext(sparkContextProxy, new SparkConf(sparkConfProxy));
+            sparkContext = SparkContext.GetActiveSparkContext();
+            if (sparkContext == null)
+            {
+                JvmObjectReference jvmSparkContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "sc"));
+                JvmObjectReference jvmSparkConfReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "conf"));
+                JvmObjectReference jvmJavaContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "sparkContext"));
+                sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
+                var sparkConfProxy = new SparkConfIpcProxy(jvmSparkConfReference);
+                sparkContext = new SparkContext(sparkContextProxy, new SparkConf(sparkConfProxy));
+            }
+            else
+            {
+                sparkContextProxy = sparkContext.SparkContextProxy;
+            }
             StartAccumulatorServer(sparkContext);
         }
 

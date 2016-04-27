@@ -195,10 +195,21 @@ if not defined ProjectVersion (
 )
 
 set SPARKCLR_NAME=spark-clr_2.10-%ProjectVersion%
+@echo "%SPARKCLR_HOME%
+
+@rem copy samples to top-level folder before zipping
+@echo move /Y "%SPARKCLR_HOME%\samples "%CMDHOME%"
+move /Y %SPARKCLR_HOME%\samples %CMDHOME%
+@echo move /Y "%SPARKCLR_HOME%\data" "%CMDHOME%\samples"
+move /Y %SPARKCLR_HOME%\data %CMDHOME%\samples
+
+@rem copy release info
+@echo copy /Y "%CMDHOME%\..\notes\mobius-release-info.md"
+copy /Y "%CMDHOME%\..\notes\mobius-release-info.md"
 
 @rem Create the zip file
-@echo 7z a .\target\%SPARKCLR_NAME%.zip runtime localmode examples
-7z a .\target\%SPARKCLR_NAME%.zip runtime localmode examples
+@echo 7z a .\target\test.zip runtime examples samples mobius-release-info.md
+7z a .\target\test.zip runtime examples samples mobius-release-info.md
 
 :distdone
 popd
