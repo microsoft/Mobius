@@ -8,6 +8,18 @@ The following software need to be installed and appropriate environment variable
 |winutils.exe | see [Running Hadoop on Windows](https://wiki.apache.org/hadoop/WindowsProblems) for details |HADOOP_HOME |Spark in Windows needs this utility in `%HADOOP_HOME%\bin` directory. It can be copied over from any Hadoop distribution. Alternative, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `toos\winutils` directory (under [`build`](../build) directory) that can be used as HADOOP_HOME  |
 |Mobius |[v1.5.200](https://github.com/Microsoft/Mobius/releases) or v1.6.100-PREVIEW-1 | SPARKCLR_HOME |If you downloaded a [Mobius release](https://github.com/Microsoft/Mobius/releases), SPARKCLR_HOME should be set to the directory named `runtime` (for example, `D:\downloads\spark-clr_2.10-1.5.200\runtime`). Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `runtime` directory (under [`build`](../build) directory) that can be used as SPARKCLR_HOME. **Note** - setting SPARKCLR_HOME is _optional_ and it is set by sparkclr-submit.cmd if not set. |
 
+## Dependencies
+Some features in Mobius depend on classes outside of Spark and Mobius. A selected set of jar files that Mobius depends on are available in Mobius release under "runtime\dependencies" folder. These jar files are used with "--jars" parameter in Mobius (that is sparkclr-submit.cmd) and they get passed to Spark (spark-submit.cmd). 
+
+The following tables lists the Mobius features and their dependencies. The version numbers in the jar files below are just for completeness in names and a different version of the jar file may work with Mobius.
+
+|Mobius Feature | Dependencies |
+|----|-----|
+|Using CSV files with DataFrame API | <ui><li>spark-csv_2.10-1.3.0.jar</li><li>commons-csv-1.1.jar</li></ui> |
+|Kafka messages processing with DStream API | spark-streaming-kafka-assembly_2.10-1.6.1.jar |
+
+Note that additional external jar files may need to be specificed as dependencies for a Mobius application depending on the Mobius features used (like EventHubs event processing or using Hive). These jars are not included in Mobius release under "dependencies" folder.
+
 ## Windows Instructions
 ### Local Mode
 To use Mobius with Spark available locally in a machine, navigate to `%SPARKCLR_HOME%\scripts` directory and run the following command
