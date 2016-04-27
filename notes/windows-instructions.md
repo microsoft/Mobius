@@ -6,7 +6,7 @@
 * Developer Command Prompt for [Visual Studio](https://www.visualstudio.com/) 2013 or above, which comes with .NET Framework 4.5 or above. Note: [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) is **FREE**.
 * 64-bit JDK 7u85 or above; or, 64-bit JDK 8u60 or above. OpenJDK for Windows can be downloaded from [http://www.azul.com/downloads/zulu/zulu-windows/](http://www.azul.com/downloads/zulu/zulu-windows/); Oracle JDK8 for Windows is available at Oracle website.
 
-JDK should be downloaded manually, and the following environment variables should be set properly in the Developer Command Prompt for Visual Studio:
+The following environment variables should be set properly in the Developer Command Prompt for Visual Studio:
 
 * `JAVA_HOME`
 
