@@ -40,16 +40,43 @@ JDK should be downloaded manually, and the following environment variables shoul
   * **scripts** ( `sparkclr-submit.cmd` )  
   * **data** ( `Mobius\csharp\Samples\Microsoft.Spark.CSharp\data\*` )    
 
+# Running Unit Tests
+
+* In Visual Studio: Install NUnit3 Test Adapter. Run the tests through "Test" -> "Run" -> "All Tests"
+
+* Install NUnit Runner 3.0 or above using NuGet (see [https://www.nuget.org/packages/NUnit.Runners/](https://www.nuget.org/packages/NUnit.Runners/)). In Developer Command Prompt for VS, set `NUNITCONSOLE` to the path to nunit console, and navigate to `Mobius\csharp` and run the following command: 
+    ```
+    Test.cmd
+    ```
+
 # Running Samples
+Samples demonstrate comprehesive usage of Mobius API and also serve as functional tests for the API. Following are the options to run samples:
+* [Local mode](#running-in-local-mode)
+* [Standalone cluster](#running-in-standalone-mode)
+* [YARN cluster](#running-in-yarn-mode)
+* [Local mode dev environment](#running-in-local-mode-dev-environment) (using artifacts built in the local Git repo)
 
-## Prerequisites
-
-JDK should be downloaded manually, and the following environment variables should be set properly in the Developer Command Prompt for Visual Studio:
-
-* `JAVA_HOME`
+The prerequisites for running Mobius samples are same as the ones for running any other Mobius applications. Refer to [instructions](.\running-mobius-app.md#pre-requisites) for details on that. [Local mode dev environment](#running-in-local-mode-dev-environment) makes it easier to run samples in dev environment by downloading Spark.
 
 ## Running in Local mode
+```
+sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  c:\temp\MobiusRelease\samples sparkclr.sampledata.loc c:\temp\MobiusRelease\samples\data
+```
 
+## Running in Standalone mode
+
+```
+sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
+```
+- When option `--deploy-mode` is specified with `cluster`, option `--remote-sparkclr-jar` is required and needs to be specified with a valid file path of spark-clr*.jar on HDFS.
+
+## Running in YARN mode
+
+```
+sparkclr-submit.cmd --verbose --master yarn-cluster --exe SparkCLRSamples.exe %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
+```
+
+## Running in local mode dev environment
 In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set properly, navigate to [Mobius\build](../build/) directory:
 
 ```  
@@ -77,26 +104,4 @@ A few more [RunSamples.cmd](../build/localmode/RunSamples.cmd) examples:
 
     ```  
     RunSamples.cmd  --torun pi* --verbose
-    ```
-
-## Running in Standalone mode
-
-```
-sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
-```
-- When option `--deploy-mode` is specified with `cluster`, option `--remote-sparkclr-jar` is required and needs to be specified with a valid file path of spark-clr*.jar on HDFS.
-
-## Running in YARN mode
-
-```
-sparkclr-submit.cmd --verbose --master yarn-cluster --exe SparkCLRSamples.exe %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
-```
-
-# Running Unit Tests
-
-* In Visual Studio: Install NUnit3 Test Adapter. Run the tests through "Test" -> "Run" -> "All Tests"
-
-* Install NUnit Runner 3.0 or above using NuGet (see [https://www.nuget.org/packages/NUnit.Runners/](https://www.nuget.org/packages/NUnit.Runners/)). In Developer Command Prompt for VS, set `NUNITCONSOLE` to the path to nunit console, and navigate to `Mobius\csharp` and run the following command: 
-    ```
-    Test.cmd
     ```
