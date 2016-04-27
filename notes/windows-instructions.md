@@ -60,20 +60,20 @@ The prerequisites for running Mobius samples are same as the ones for running an
 
 ## Running in Local mode
 ```
-sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  c:\temp\MobiusRelease\samples sparkclr.sampledata.loc c:\temp\MobiusRelease\samples\data
+sparkclr-submit.cmd --verbose --jars c:\MobiusRelease\dependencies\spark-csv_2.10-1.3.0.jar,c:\MobiusRelease\dependencies\commons-csV-1.1.jar --exe SparkCLRSamples.exe  c:\MobiusRelease\samples sparkclr.sampledata.loc c:\MobiusRelease\samples\data
 ```
 
 ## Running in Standalone mode
 
 ```
-sparkclr-submit.cmd --verbose --master spark://host:port --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
+sparkclr-submit.cmd --verbose --master spark://host:port --jars <hdfs path to spark-csv_2.10-1.3.0.jar,commons-csv-1.1.jar> --exe SparkCLRSamples.exe  %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
 ```
 - When option `--deploy-mode` is specified with `cluster`, option `--remote-sparkclr-jar` is required and needs to be specified with a valid file path of spark-clr*.jar on HDFS.
 
 ## Running in YARN mode
 
 ```
-sparkclr-submit.cmd --verbose --master yarn-cluster --exe SparkCLRSamples.exe %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
+sparkclr-submit.cmd --verbose --master yarn-cluster --jars <hdfs path to spark-csv_2.10-1.3.0.jar,commons-csv-1.1.jar> --exe SparkCLRSamples.exe %SPARKCLR_HOME%\samples sparkclr.sampledata.loc hdfs://path/to/mobius/sampledata
 ```
 
 ## Running in local mode dev environment
