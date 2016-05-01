@@ -46,7 +46,7 @@ after_test:
     - pip install codecov
     - codecov -f "SparkCLRCodeCoverage.xml"
     - cmd: cd .\build\localmode
-    - cmd: .\Runsamples.cmd --validate
+    - cmd: if not defined ProjectVersion (.\Runsamples.cmd --validate)
     - cmd: cd ..\..
     - cmd: dir csharp\Microsoft*.nupkg
     - cmd: dir scala\target\spark-clr*.jar

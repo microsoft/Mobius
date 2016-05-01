@@ -208,8 +208,8 @@ move /Y %SPARKCLR_HOME%\data %CMDHOME%\samples
 copy /Y "%CMDHOME%\..\notes\mobius-release-info.md"
 
 @rem Create the zip file
-@echo 7z a .\target\test.zip runtime examples samples mobius-release-info.md
-7z a .\target\test.zip runtime examples samples mobius-release-info.md
+@echo 7z a .\target\%SPARKCLR_NAME%.zip runtime examples samples mobius-release-info.md
+7z a .\target\%SPARKCLR_NAME%.zip runtime examples samples mobius-release-info.md
 
 :distdone
 popd
