@@ -45,12 +45,10 @@ set SPARK_VERSION=1.6.1
 set HADOOP_VERSION=2.6
 @echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
 
-@rem Windows 7/8/10 may not allow powershell scripts by default
-powershell -Command Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
-
 @rem download runtime dependencies
 pushd "%CMDHOME%"
-powershell -f downloadtools.ps1 run !VERBOSE!
+@rem Windows 7/8/10 may not allow powershell scripts by default
+powershell -ExecutionPolicy Unrestricted -File downloadtools.ps1 run !VERBOSE!
 @echo [RunSamples.cmd] UpdateRuntime.cmd
 type ..\tools\updateruntime.cmd
 call ..\tools\updateruntime.cmd
