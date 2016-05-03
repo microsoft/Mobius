@@ -127,7 +127,7 @@ Mobius is built and tested with Apache Spark [1.4.1](https://github.com/Microsof
 
 Mobius releases are available at https://github.com/Microsoft/Mobius/releases. References needed to build C# Spark driver applicaiton using Mobius are also available in [NuGet](https://www.nuget.org/packages/Microsoft.SparkCLR)
 
-[![Nuget](https://img.shields.io/badge/nuget-package-00BFFF.svg)](https://www.nuget.org/packages/Microsoft.SparkCLR)
+[![NuGet Badge](https://buildstats.info/nuget/Microsoft.SparkCLR)](https://www.nuget.org/packages/Microsoft.SparkCLR)
 
 Refer to [mobius-release-info.md](notes/mobius-release-info.md) for the details on versioning policy and the contents of the release.
 
