@@ -11,7 +11,7 @@ let main args =
             LoggerServiceFactory.SetLoggerService Log4NetLoggerService.Instance
             LoggerServiceFactory.GetLogger (MethodInfo.GetCurrentMethod().DeclaringType)
         
-        let sparkContext = SparkConf().SetAppName "MobiusWordCount" |> SparkContext
+        let sparkContext = SparkContext(SparkConf().SetAppName "MobiusWordCount")
         logger.LogInfo (sprintf "Reading from file %s" filePath)
 
         try
