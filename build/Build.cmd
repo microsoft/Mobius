@@ -145,7 +145,7 @@ call Clean.cmd
 call Build.cmd
 
 if %ERRORLEVEL% NEQ 0 (
-  @echo Build Mobius C# examples failed, stop building.
+  @echo Build Mobius .NET examples failed, stop building.
   popd
   goto :eof
 )
