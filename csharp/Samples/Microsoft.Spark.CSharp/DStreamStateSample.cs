@@ -13,7 +13,6 @@ namespace Microsoft.Spark.CSharp.Samples
 {
     class DStreamStateSample
     {
-        private static int count;
         private static bool stopFileServer;
         private static void StartFileServer(string directory, string pattern, int loop)
         {

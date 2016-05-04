@@ -42,6 +42,11 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             return base.Equals(obj);
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public string GetDebugInfo()
         {
             var javaObjectReferenceForClassObject = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(this, "getClass").ToString());

@@ -1,5 +1,5 @@
 #
-# This script takes in and "nuspecDir" and "version" parameters, update SparkCLR Nuget package 
+# This script takes in and "nuspecDir" and "version" parameters, update Mobius Nuget package 
 # version
 #
 Param([string]$nuspecDir, [string]$version)
@@ -16,7 +16,7 @@ $validNugetVersion = $version -replace "(\s*\S*-\S*)(\.)(\S*)",'$1-$3'
 Write-Output "[SetSparkClrNugetPackageVersion] Start setting SparkCLR.nuspec under $nuspecDir to version=$validNugetVersion"
 
 # 
-#  Update SparkCLR package version. Example in SparkCLR.nuspec:  
+#  Update Mobius package version. Example in SparkCLR.nuspec:  
 #      <version>1.6.0-SNAPSHOT-1</version>
 # 
 Get-ChildItem $nuspecDir -filter "SparkCLR.nuspec" | % { 

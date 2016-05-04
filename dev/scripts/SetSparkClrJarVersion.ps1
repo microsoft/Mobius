@@ -34,7 +34,7 @@ function Update-SparkClrSubmit($targetDir, $version)
     Write-Output "[SetSparkClrJarVersion.Update-SparkClrSubmit] Start setting sparkclr-submit.cmd under $targetDir to version=$version"
 
     # 
-    #  Update SparkCLR package version to this release. The version string in sparkclr-submit.cmd - 
+    #  Update Mobius package version to this release. The version string in sparkclr-submit.cmd - 
     #
     #      if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.5.2-SNAPSHOT.jar)
     # 
@@ -48,7 +48,7 @@ function Update-SparkClrSubmit($targetDir, $version)
     Write-Output "[SetSparkClrJarVersion.Update-SparkClrSubmit] Start setting sparkclr-submit.sh under $targetDir to version=$version"
 
     # 
-    #  Update SparkCLR package version to this release. The version string in sparkclr-submit.sh - 
+    #  Update Mobius package version to this release. The version string in sparkclr-submit.sh - 
     #
     #      export SPARKCLR_JAR=spark-clr_2.10-1.6.0-SNAPSHOT.jar
     # 

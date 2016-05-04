@@ -18,14 +18,14 @@ fi
 [ ! -d "$SPARKCLR_HOME/samples" ] && mkdir "$SPARKCLR_HOME/samples"
 [ ! -d "$SPARKCLR_HOME/scripts" ] && mkdir "$SPARKCLR_HOME/scripts"
 
-echo "Assemble SparkCLR Scala components"
+echo "Assemble Mobius Scala components"
 pushd "$FWDIR/../scala"
 
 # clean the target directory first
 mvn clean -q
 [ $? -ne 0 ] && exit 1
 
-# Note: Shade-plugin helps creates an uber-package to simplify SparkCLR job submission;
+# Note: Shade-plugin helps creates an uber-package to simplify running samples during CI;
 # however, it breaks debug mode in IntellJ. So enable shade-plugin
 # only in build.cmd to create the uber-package.
 # build the package
@@ -33,11 +33,11 @@ mvn package -Puber-jar -q
 
 if [ $? -ne 0 ]
 then
-	echo "Build SparkCLR Scala components failed, stop building."
+	echo "Build Mobius Scala components failed, stop building."
 	popd
 	exit 1
 fi
-echo "SparkCLR Scala binaries"
+echo "Mobius Scala binaries"
 cp target/spark*.jar "$SPARKCLR_HOME/lib/"
 popd
 
@@ -52,7 +52,7 @@ then
   done
 fi
 
-echo "Assemble SparkCLR C# components"
+echo "Assemble Mobius C# components"
 pushd "$FWDIR/../csharp"
 
 # clean any possible previous build first
@@ -62,31 +62,37 @@ pushd "$FWDIR/../csharp"
 
 if [ $? -ne 0 ];
 then
-	echo "Build SparkCLR C# components failed, stop building."
+	echo "Build Mobius C# components failed, stop building."
 	popd
 	exit 1
 fi
-echo "SparkCLR C# binaries"
+echo "Mobius C# binaries"
 cp Worker/Microsoft.Spark.CSharp/bin/Release/* "$SPARKCLR_HOME/bin/"
 
-echo "SparkCLR C# Samples binaries"
+echo "Mobius C# Samples binaries"
 # need to include CSharpWorker.exe.config in samples folder
 cp Worker/Microsoft.Spark.CSharp/bin/Release/* "$SPARKCLR_HOME/samples/"
 cp Samples/Microsoft.Spark.CSharp/bin/Release/* "$SPARKCLR_HOME/samples/"
 
-echo "SparkCLR Samples data"
+echo "Mobius Samples data"
 cp Samples/Microsoft.Spark.CSharp/data/* "$SPARKCLR_HOME/data/"
 popd
 
-echo "Assemble SparkCLR examples"
+echo "Assemble Mobius examples"
 pushd "$FWDIR/../examples"
 # clean any possible previous build first
 ./clean.sh
-
 ./build.sh
+
+if [ $? -ne 0 ];
+then
+	echo "Build Mobius C# Examples failed, stop building."
+	popd
+	exit 1
+fi
 popd
 
-echo "Assemble SparkCLR script components"
+echo "Assemble Mobius script components"
 pushd "$FWDIR/../scripts"
 cp *.sh  "$SPARKCLR_HOME/scripts/"
 popd

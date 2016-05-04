@@ -25,6 +25,16 @@ namespace Microsoft.Spark.CSharp.Core
         internal ISparkContextProxy SparkContextProxy { get; private set; }
         internal SparkConf SparkConf { get; private set; }
 
+        private static SparkContext _activeSparkContext = null;
+
+        /// <summary>
+        /// Get existing SparkContext
+        /// </summary>
+        internal static SparkContext GetActiveSparkContext()
+        {
+                return _activeSparkContext;
+        }
+
         private AccumulatorServer accumulatorServer;
         private int nextAccumulatorId;
 
@@ -119,6 +129,7 @@ namespace Microsoft.Spark.CSharp.Core
                 SparkConf.SetSparkHome(sparkHome);
 
             SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
+            _activeSparkContext = this;
         }
 
         internal void StartAccumulatorServer()

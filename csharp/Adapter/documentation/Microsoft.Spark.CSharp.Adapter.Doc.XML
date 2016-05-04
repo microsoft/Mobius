@@ -274,6 +274,23 @@
             <param name="partitionFunc">Defines how the elements in a key-value pair RDD are partitioned by key. Input of Func is key, output is partition index.
             Warning: diffrent Func instances are considered as different partitions which will cause repartition.</param>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Partitioner.Equals(System.Object)">
+            <summary>
+            Determines whether the specified object is equal to the current object.
+            </summary>
+            <returns>
+            true if the specified object  is equal to the current object; otherwise, false.
+            </returns>
+            <param name="obj">The object to compare with the current object. </param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.Partitioner.GetHashCode">
+            <summary>
+            Serves as the default hash function. 
+            </summary>
+            <returns>
+            A hash code for the current object.
+            </returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDDCollector">
             <summary>
             Used for collect operation on RDD
@@ -1934,6 +1951,11 @@
             and broadcast variables on that cluster.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.GetActiveSparkContext">
+            <summary>
+            Get existing SparkContext
+            </summary>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.Version">
             <summary>
             The version of Spark on which this application is running.
@@ -2306,6 +2328,24 @@
             Cancel all jobs that have been scheduled or are running.
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.StatCounter">
+            <summary>
+            A class for tracking the statistics of a set of numbers (count, mean and variance) in a numerically
+            robust way. Includes support for merging two StatCounters. Based on Welford and Chan's algorithms
+            for running variance. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.#ctor">
+            <summary>
+            Initializes the StatCounter with no values.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.#ctor(System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            Initializes the StatCounter with the given values.
+            </summary>
+            <param name="values"></param>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.Merge(System.Double)">
             <summary>
             Add a value into this StatCounter, updating the internal statistics.
@@ -2333,6 +2373,31 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.Count">
+            <summary>
+            Gets the count number of this StatCounter
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.Mean">
+            <summary>
+            Gets the average number of this StatCounter
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.Sum">
+            <summary>
+            Gets the sum number of this StatCounter
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.Max">
+            <summary>
+            Gets the maximum number of this StatCounter
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.Min">
+            <summary>
+            Gets the minimum number of this StatCounter
+            </summary>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.Variance">
             <summary>
             Return the variance of the values.
@@ -2351,6 +2416,19 @@
         <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.SampleStdev">
             <summary>
             Return the sample standard deviation of the values, which corrects for bias in estimating the variance by dividing by N-1 instead of N.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.ToString">
+            <summary>
+            Returns a string that represents this StatCounter.
+            </summary>
+            <returns>
+            A string that represents this StatCounter.
+            </returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.StatusTracker">
+            <summary>
+            Low-level status reporting APIs for monitoring job and stage progress.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.StatusTracker.GetJobIdsForGroup(System.String)">
@@ -2393,6 +2471,92 @@
             </summary>
             <param name="stageId"></param>
             <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.SparkJobInfo">
+            <summary>
+            SparkJobInfo represents a job information of Spark
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkJobInfo.#ctor(System.Int32,System.Int32[],System.String)">
+            <summary>
+            Initializes a SparkJobInfo instance with a given job Id, stage Ids, and status
+            </summary>
+            <param name="jobId"></param>
+            <param name="stageIds"></param>
+            <param name="status"></param>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkJobInfo.JobId">
+            <summary>
+            Gets the Id of this Spark job
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkJobInfo.StageIds">
+            <summary>
+            Gets the stage Ids of this Spark job
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkJobInfo.Status">
+            <summary>
+            Gets the status of this Spark job
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.SparkStageInfo">
+            <summary>
+            SparkJobInfo represents a stage information of Spark
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkStageInfo.#ctor(System.Int32,System.Int32,System.Int64,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Initializes a SparkStageInfo instance with given values
+            </summary>
+            <param name="stageId">The stage Id</param>
+            <param name="currentAttemptId">The current attempt Id</param>
+            <param name="submissionTime">The submission time</param>
+            <param name="name">The name of this stage</param>
+            <param name="numTasks">The number of tasks</param>
+            <param name="numActiveTasks">The number of active tasks</param>
+            <param name="numCompletedTasks">The number of completed tasks</param>
+            <param name="numFailedTasks">The number of failed tasks</param>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.StageId">
+            <summary>
+            Gets the stage Id of this SparkStageInfo
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.CurrentAttemptId">
+            <summary>
+            Gets the current attempt Id of this SparkStageInfo
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.SubmissionTime">
+            <summary>
+            Gets the submission time of this SparkStageInfo
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.Name">
+            <summary>
+            Gets the name of this SparkStageInfo
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.NumTasks">
+            <summary>
+            Gets the number of tasks of this SparkStageInfo
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.NumActiveTasks">
+            <summary>
+            Gets the number of active tasks of this SparkStageInfo
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.NumCompletedTasks">
+            <summary>
+            Gets the number of completed tasks of this SparkStageInfo
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.NumFailedTasks">
+            <summary>
+            Gets the number of failed tasks of this SparkStageInfro
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StorageLevelType">
             <summary>
@@ -2522,7 +2686,196 @@
             see PythonRDD.scala with which Work.cs communicates
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Microsoft.Spark.CSharp.Interop.Ipc.SerDe" -->
+        <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.SpecialLengths.END_OF_DATA_SECTION">
+            <summary>
+            Flag to indicate the end of data section
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.SpecialLengths.DOTNET_EXCEPTION_THROWN">
+            <summary>
+            Flag to indicate an exception thrown from .NET side
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.SpecialLengths.TIMING_DATA">
+            <summary>
+            Flag to indicate a timing data
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.SpecialLengths.END_OF_STREAM">
+            <summary>
+            Flag to indicate the end of stream
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.SpecialLengths.NULL">
+            <summary>
+            Flag to indicate non-defined type
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.SerDe">
+            <summary>
+            Serialization and Deserialization of data types between JVM and CLR
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.totalReadNum">
+            <summary>
+            The total number of read
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.totalWriteNum">
+            <summary>
+            The total number of write
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToBytes(System.Boolean)">
+            <summary>
+            Converts a boolean to a byte array
+            </summary>
+            <param name="value">The boolean to be converted</param>
+            <returns>The byte array converted from a boolean</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToBytes(System.String)">
+            <summary>
+            Converts a string to a byte array.
+            </summary>
+            <param name="value">The string to be converted</param>
+            <returns>The byte array converted from a string</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToBytes(System.Int32)">
+            <summary>
+            Converts an integer to a byte array
+            </summary>
+            <param name="value">The intger to be converted</param>
+            <returns>The byte array converted from an integer</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToBytes(System.Int64)">
+            <summary>
+            Converts a long integer to a byte array
+            </summary>
+            <param name="value">The long intger to be converted</param>
+            <returns>The byte array converted from a long integer</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToBytes(System.Double)">
+            <summary>
+            Converts a double to a byte array
+            </summary>
+            <param name="value">The double to be converted</param>
+            <returns>The byte array converted from a double</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToChar(System.Byte)">
+            <summary>
+            Converts a byte to a character
+            </summary>
+            <param name="value">The byte to be converted</param>
+            <returns>The char converted from a byte</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToString(System.Byte[])">
+            <summary>
+            Converts a byte array to a string
+            </summary>
+            <param name="value">The byte array to be converted</param>
+            <returns>The string converted from a byte array</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ToInt(System.Byte[])">
+            <summary>
+            Converts a byte array to an integer
+            </summary>
+            <param name="value">The byte array to be converted</param>
+            <returns>The integer converted from a byte array</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ReadInt(System.IO.Stream)">
+            <summary>
+            Reads an integer from a stream
+            </summary>
+            <param name="s">The stream to be read</param>
+            <returns>The integer read from stream</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ReadLong(System.IO.Stream)">
+            <summary>
+            Reads a long integer from a stream
+            </summary>
+            <param name="s">The stream to be read</param>
+            <returns>The long integer read from stream</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ReadDouble(System.IO.Stream)">
+            <summary>
+            Reads a double from a stream
+            </summary>
+            <param name="s">The stream to be read</param>
+            <returns>The double read from stream</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ReadString(System.IO.Stream)">
+            <summary>
+            Reads a string from a stream
+            </summary>
+            <param name="s">The stream to be read</param>
+            <returns>The string read from stream</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ReadBytes(System.IO.Stream,System.Int32)">
+            <summary>
+            Reads a byte array with a given length from a stream
+            </summary>
+            <param name="s">The stream to be read</param>
+            <param name="length">The length to be read</param>
+            <returns>The a byte array read from stream</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">An ArgumentOutOfRangeException thrown if the given length is negative</exception>
+            <exception cref="T:System.ArgumentException">An ArgumentException if the actual read length is less than the given length</exception>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ReadBytes(System.IO.Stream)">
+            <summary>
+            Reads a byte array from a stream. The first 4 bytes indicate the length of a byte array.
+            </summary>
+            <param name="s">The stream to be read</param>
+            <returns>The byte array read from stream</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.ReadObjectId(System.IO.Stream)">
+            <summary>
+            Read an object Id from a stream.
+            </summary>
+            <param name="s">The stream to be read</param>
+            <returns>The object Id read from stream</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.Write(System.IO.Stream,System.Byte)">
+            <summary>
+            Writes a byte to a stream
+            </summary>
+            <param name="s">The stream to write</param>
+            <param name="value">The byte to write</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.Write(System.IO.Stream,System.Byte[])">
+            <summary>
+            Writes a byte array to a stream
+            </summary>
+            <param name="s">The stream to write</param>
+            <param name="value">The byte array to write</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.Write(System.IO.Stream,System.Int32)">
+            <summary>
+            Writes an integer to a stream
+            </summary>
+            <param name="s">The stream to write</param>
+            <param name="value">The integer to write</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.Write(System.IO.Stream,System.Int64)">
+            <summary>
+            Writes a long integer to a stream
+            </summary>
+            <param name="s">The stream to write</param>
+            <param name="value">The long integer to write</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.Write(System.IO.Stream,System.Double)">
+            <summary>
+            Writes a double to a stream
+            </summary>
+            <param name="s">The stream to write</param>
+            <param name="value">The double to write</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Interop.Ipc.SerDe.Write(System.IO.Stream,System.String)">
+            <summary>
+            Writes a string to a stream
+            </summary>
+            <param name="s">The stream to write</param>
+            <param name="value">The string to write</param>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
             <summary>
             Contains everything needed to setup an environment for using C# with Spark
@@ -3182,6 +3535,27 @@
             See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.DataFrame
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Rdd">
+            <summary>
+            Represents the content of the DataFrame as an RDD of Rows.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.IsLocal">
+            <summary>
+            Returns true if the collect and take methods can be run locally (without any Spark executors).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Schema">
+            <summary>
+            Returns the schema of this DataFrame.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Item(System.String)">
+            <summary>
+            Returns a column for a given column name.
+            </summary>
+            <param name="columnName">The name of column</param>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.RegisterTempTable(System.String)">
             <summary>
             Registers this DataFrame as a temporary table using the given name.  The lifetime of this 
@@ -3737,6 +4111,103 @@
             SaveMode specified by mode, and a set of options.
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.JoinType">
+            <summary>
+            The type of join operation for DataFrame
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.JoinType.Value">
+            <summary>
+            Get the string that represents a join type
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.JoinType.Inner">
+            <summary>
+            Inner join
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.JoinType.Outer">
+            <summary>
+            Outer join
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.JoinType.LeftOuter">
+            <summary>
+            Left outer join
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.JoinType.RightOuter">
+            <summary>
+            Right outer join
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.JoinType.LeftSemi">
+            <summary>
+            Left semi join
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.GroupedData">
+            <summary>
+            A set of methods for aggregations on a DataFrame, created by DataFrame.groupBy.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.GroupedData.Agg(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Compute aggregates by specifying a dictionary from column name to aggregate methods.
+            The available aggregate methods are avg, max, min, sum, count.
+            </summary>
+            <param name="columnNameAggFunctionDictionary">The dictionary of column name to aggregate method</param>
+            <returns>The DataFrame object that contains the grouping columns.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.GroupedData.Count">
+            <summary>
+            Count the number of rows for each group.
+            </summary>
+            <returns>The DataFrame object that contains the grouping columns.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.GroupedData.Mean(System.String[])">
+            <summary>
+            Compute the average value for each numeric columns for each group.
+            This is an alias for avg.
+            When specified columns are given, only compute the average values for them. 
+            </summary>
+            <param name="columns">The name of columns to be computed.</param>
+            <returns>The DataFrame object that contains the grouping columns.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.GroupedData.Max(System.String[])">
+            <summary>
+            Compute the max value for each numeric columns for each group.
+            When specified columns are given, only compute the max values for them.
+            </summary>
+            <param name="columns"> The name of columns to be computed.</param>
+            <returns>The DataFrame object that contains the grouping columns.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.GroupedData.Min(System.String[])">
+            <summary>
+            Compute the min value for each numeric column for each group.
+            </summary>
+            <param name="columns">
+            The name of columns to be computed. When specified columns are
+            given, only compute the min values for them. 
+            </param>
+            <returns>The DataFrame object that contains the grouping columns.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.GroupedData.Avg(System.String[])">
+            <summary>
+            Compute the mean value for each numeric columns for each group.
+            When specified columns are given, only compute the mean values for them. 
+            </summary>
+            <param name="columns">The name of columns to be computed</param>
+            <returns>The DataFrame object that contains the grouping columns.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.GroupedData.Sum(System.String[])">
+            <summary>
+            Compute the sum for each numeric columns for each group.
+            When specified columns are given, only compute the sum for them.
+            </summary>
+            <param name="columns">The name of columns to be computed</param>
+            <returns>The DataFrame object that contains the grouping columns.</returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.DataFrameNaFunctions">
             <summary>
             Functionality for working with missing data in DataFrames.
@@ -4172,19 +4643,646 @@
             DataFrame Built-in functions
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Exp(Microsoft.Spark.CSharp.Sql.Column)">
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Lit(System.Object)">
             <summary>
-            Computes the exponential of the given value.
+            Creates a Column of any literal value.
+            </summary>
+            <param name="column">The given literal value</param>
+            <returns>A new Column is created to represent the literal value</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Col(System.String)">
+            <summary>
+            Returns a Column based on the given column name.
+            </summary>
+            <param name="colName">The name of column specified</param>
+            <returns>The column for the given name</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Column(System.String)">
+            <summary>
+            Returns a Column based on the given column name.
+            </summary>
+            <param name="colName">The name of column specified</param>
+            <returns>The column for the given name</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Asc(System.String)">
+            <summary>
+            Returns a sort expression based on ascending order of the column.
+            </summary>
+            <param name="columnName">The name of column specified</param>
+            <returns>The column with ascending order</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Desc(System.String)">
+            <summary>
+            Returns a sort expression based on the descending order of the column.
+            </summary>
+            <param name="columnName">The name of column specified</param>
+            <returns>the column with descending order</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Upper(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Converts a string column to upper case.
+            </summary>
+            <param name="column">The string column specified</param>
+            <returns>The string column in upper case</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Lower(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Converts a string column to lower case.
+            </summary>
+            <param name="column">The string column specified</param>
+            <returns>The string column in lower case</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Sqrt(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the square root of the specified float column.
+            </summary>
+            <param name="column">The float column</param>
+            <returns>The square root of the specified float column.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Abs(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the absolute value.
+            </summary>
+            <param name="column">The column to compute</param>
+            <returns>The new column represents the absolute value of the given column</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Max(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the maximum value of the expression in a group.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column reprents the maximum value</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Min(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the minimum value of the expression in a group.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the minimum value</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.First(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the first value in a group. 
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the first value</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Last(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the last value in a group.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the last value</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Count(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the number of items in a group.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the count value</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Sum(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the sum of all values in the expression.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the sum</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Avg(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the average of the values in a group.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the average</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Mean(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the average of the values in a group.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the average</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.SumDistinct(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the sum of distinct values in the expression.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column represents the sum of distinct values </returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Array(Microsoft.Spark.CSharp.Sql.Column[])">
+            <summary>
+            Creates a new array column. The input columns must all have the same data type. 
+            </summary>
+            <param name="columns">The given columns</param>
+            <returns>The new array column</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Coalesce(Microsoft.Spark.CSharp.Sql.Column[])">
+            <summary>
+            Returns the first column that is not null, or null if all inputs are null.
+            </summary>
+            <param name="columns">The given columns</param>
+            <returns>The first column that is not null</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.CountDistinct(Microsoft.Spark.CSharp.Sql.Column[])">
+            <summary>
+             Returns the number of distinct items in a group.
+            </summary>
+            <param name="columns">The given columns</param>
+            <returns>The new column represents the number of distinct items</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Struct(Microsoft.Spark.CSharp.Sql.Column[])">
+            <summary>
+            Creates a new struct column.
+            </summary>
+            <param name="columns">The given columns</param>
+            <returns>The new struct column</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.ApproxCountDistinct(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the approximate number of distinct items in a group
+            </summary>
+            <param name="column">The given columns</param>
+            <returns>The column represents the approximate number of distinct items</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Explode(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Creates a new row for each element in the given array or map column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The new column for each element in the given array or map column</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Rand(System.Int64)">
+            <summary>
+            Generate a random column with i.i.d. samples from U[0.0, 1.0].
+            </summary>
+            <param name="seed">The long integer as seed</param>
+            <returns>A random column with i.i.d. samples from U[0.0, 1.0]. </returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Randn(System.Int64)">
+            <summary>
+            Generate a column with i.i.d. samples from the standard normal distribution. 
+            </summary>
+            <param name="seed">The long integer as seed</param>
+            <returns>A column with i.i.d. samples from the standard normal distribution</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Ntile(System.Int32)">
+            <summary>
+            Returns the ntile group id (from 1 to n inclusive) in an ordered window partition.
+            This is equivalent to the NTILE function in SQL. 
+            </summary>
+            <param name="n">The given number</param>
+            <returns>The ntile group id</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Acos(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the cosine inverse of the given column; the returned angle is in the range 0.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the cosine inverse</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Asin(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the sine inverse of the given column; the returned angle is in the range -pi/2 through pi/2.
             </summary>
             <param name="column"></param>
-            <returns></returns>
+            <returns>The column represents the sine inverse</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Atan(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the tangent inverse of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the tangent inverse</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Cbrt(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the cube-root of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the cube-root</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Ceil(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the ceiling of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the ceiling</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Cos(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the cosine of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the cosine</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Cosh(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the hyperbolic cosine of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the hyperbolic cosine</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Exp(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the exponential of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the exponential</returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Expm1(Microsoft.Spark.CSharp.Sql.Column)">
             <summary>
-            Computes the exponential of the given value minus one.
+            Computes the exponential of the given value minus column.
             </summary>
-            <param name="column"></param>
-            <returns></returns>
+            <param name="column">The given column</param>
+            <returns>The column represents the exponential</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Floor(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the floor of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the floor</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Log(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the natural logarithm of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the natural logarithm</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Log10(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the logarithm of the given column in base 10.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the logarithm</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Log1p(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the natural logarithm of the given column plus one.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the logarithm</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Rint(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the double value that is closest in value to the argument and is equal to a mathematical integer.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the double value</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Signum(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the signum of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the signum</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Sin(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the sine of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the sine</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Sinh(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the hyperbolic sine of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the hyperbolic sine</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Tan(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the tangent of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the tangent</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Tanh(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes the hyperbolic tangent of the given column.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the hyperbolic tangent</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.ToDegrees(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Converts an angle measured in radians to an approximately equivalent angle measured in degrees.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the degrees</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.ToRadians(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Converts an angle measured in degrees to an approximately equivalent angle measured in radians.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column represents the radians</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.BitwiseNOT(Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes bitwise NOT.
+            </summary>
+            <param name="column">The given column</param>
+            <returns>The column of bitwise NOT result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Atan2(Microsoft.Spark.CSharp.Sql.Column,Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta).
+            </summary>
+            <param name="leftColumn">The left column</param>
+            <param name="rightColumn">The right column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Hypot(Microsoft.Spark.CSharp.Sql.Column,Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes sqrt(a2 + b2) without intermediate overflow or underflow.
+            </summary>
+            <param name="leftColumn">The left column</param>
+            <param name="rightColumn">The right column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Hypot(Microsoft.Spark.CSharp.Sql.Column,System.Double)">
+            <summary>
+            Computes sqrt(a2 + b2) without intermediate overflow or underflow.
+            </summary>
+            <param name="leftColumn">The left column</param>
+            <param name="rightValue">The right column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Hypot(System.Double,Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Computes sqrt(a2 + b2) without intermediate overflow or underflow.
+            </summary>
+            <param name="leftValue">The left value</param>
+            <param name="rightColumn">The right column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Pow(Microsoft.Spark.CSharp.Sql.Column,Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the value of the first argument raised to the power of the second argument.
+            </summary>
+            <param name="leftColumn">The left column</param>
+            <param name="rightColumn">The right column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Pow(Microsoft.Spark.CSharp.Sql.Column,System.Double)">
+            <summary>
+            Returns the value of the first argument raised to the power of the second argument.
+            </summary>
+            <param name="leftColumn">The left column</param>
+            <param name="rightValue">The right value</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Pow(System.Double,Microsoft.Spark.CSharp.Sql.Column)">
+            <summary>
+            Returns the value of the first argument raised to the power of the second argument.
+            </summary>
+            <param name="leftValue">The left value</param>
+            <param name="rightColumn">The right column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.ApproxCountDistinct(Microsoft.Spark.CSharp.Sql.Column,System.Double)">
+            <summary>
+            Returns the approximate number of distinct items in a group.
+            </summary>
+            <param name="column">The given column</param>
+            <param name="rsd">The rsd</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.When(Microsoft.Spark.CSharp.Sql.Column,System.Object)">
+            <summary>
+            Evaluates a list of conditions and returns one of multiple possible result expressions. 
+            </summary>
+            <param name="condition">The given column of condition</param>
+            <param name="value">The value of condition</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Lag(Microsoft.Spark.CSharp.Sql.Column,System.Int32)">
+            <summary>
+            Returns the value that is offset rows before the current row, and null if there is less than offset rows before the current row.
+            </summary>
+            <param name="column">The given column</param>
+            <param name="offset">The offset of the given column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Lead(Microsoft.Spark.CSharp.Sql.Column,System.Int32)">
+            <summary>
+            Returns the value that is offset rows after the current row, and null if there is less than offset rows after the current row.
+            </summary>
+            <param name="column">The given column</param>
+            <param name="offset">The offset of the given column</param>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.RowNumber">
+            <summary>
+            Returns a sequential number starting at 1 within a window partition.
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.DenseRank">
+            <summary>
+            Returns the rank of rows within a window partition, without any gaps.
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Rank">
+            <summary>
+             Returns the rank of rows within a window partition.
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.CumeDist">
+            <summary>
+            Returns the cumulative distribution of values within a window partition
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.PercentRank">
+            <summary>
+            Returns the relative rank (i.e. percentile) of rows within a window partition.
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.MonotonicallyIncreasingId">
+            <summary>
+            A column expression that generates monotonically increasing 64-bit integers.
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.SparkPartitionId">
+            <summary>
+            Partition ID of the Spark task.
+            Note that this is indeterministic because it depends on data partitioning and task scheduling.
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Rand">
+            <summary>
+            Generate a random column with i.i.d. samples from U[0.0, 1.0]. 
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Randn">
+            <summary>
+            Generate a column with i.i.d. samples from the standard normal distribution. 
+            </summary>
+            <returns>The column of the result</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``1(System.Func{``0})">
+            <summary>
+            Defines a user-defined function of 0 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``2(System.Func{``1,``0})">
+            <summary>
+            Defines a user-defined function of 1 arguments as user-defined function (UDF). 
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``3(System.Func{``1,``2,``0})">
+            <summary>
+            Defines a user-defined function of 2 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``4(System.Func{``1,``2,``3,``0})">
+            <summary>
+            Defines a user-defined function of 3 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``5(System.Func{``1,``2,``3,``4,``0})">
+            <summary>
+            Defines a user-defined function of 4 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <typeparam name="A4">The 4th arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``6(System.Func{``1,``2,``3,``4,``5,``0})">
+            <summary>
+            Defines a user-defined function of 5 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <typeparam name="A4">The 4th arguement of the given function</typeparam>
+            <typeparam name="A5">The 5th arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``7(System.Func{``1,``2,``3,``4,``5,``6,``0})">
+            <summary>
+            Defines a user-defined function of 6 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <typeparam name="A4">The 4th arguement of the given function</typeparam>
+            <typeparam name="A5">The 5th arguement of the given function</typeparam>
+            <typeparam name="A6">The 6th arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``8(System.Func{``1,``2,``3,``4,``5,``6,``7,``0})">
+            <summary>
+            Defines a user-defined function of 7 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <typeparam name="A4">The 4th arguement of the given function</typeparam>
+            <typeparam name="A5">The 5th arguement of the given function</typeparam>
+            <typeparam name="A6">The 6th arguement of the given function</typeparam>
+            <typeparam name="A7">The 7th arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``9(System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``0})">
+            <summary>
+            Defines a user-defined function of 8 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <typeparam name="A4">The 4th arguement of the given function</typeparam>
+            <typeparam name="A5">The 5th arguement of the given function</typeparam>
+            <typeparam name="A6">The 6th arguement of the given function</typeparam>
+            <typeparam name="A7">The 7th arguement of the given function</typeparam>
+            <typeparam name="A8">The 8th arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``10(System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``0})">
+            <summary>
+            Defines a user-defined function of 9 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <typeparam name="A4">The 4th arguement of the given function</typeparam>
+            <typeparam name="A5">The 5th arguement of the given function</typeparam>
+            <typeparam name="A6">The 6th arguement of the given function</typeparam>
+            <typeparam name="A7">The 7th arguement of the given function</typeparam>
+            <typeparam name="A8">The 8th arguement of the given function</typeparam>
+            <typeparam name="A9">The 9th arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Functions.Udf``11(System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``0})">
+            <summary>
+            Defines a user-defined function of 10 arguments as user-defined function (UDF).
+            The data types are automatically inferred based on the function's signature. 
+            </summary>
+            <param name="f">The given function</param>
+            <typeparam name="RT">The return type of the given function</typeparam>
+            <typeparam name="A1">The 1st arguement of the given function</typeparam>
+            <typeparam name="A2">The 2nd arguement of the given function</typeparam>
+            <typeparam name="A3">The 3rd arguement of the given function</typeparam>
+            <typeparam name="A4">The 4th arguement of the given function</typeparam>
+            <typeparam name="A5">The 5th arguement of the given function</typeparam>
+            <typeparam name="A6">The 6th arguement of the given function</typeparam>
+            <typeparam name="A7">The 7th arguement of the given function</typeparam>
+            <typeparam name="A8">The 8th arguement of the given function</typeparam>
+            <typeparam name="A9">The 9th arguement of the given function</typeparam>
+            <typeparam name="A10">The 10th arguement of the given function</typeparam>
+            <returns>The new user-defined function</returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.UdfHelper`1">
             <summary>
@@ -5323,6 +6421,8 @@
             Set the number of partitions by which the state RDDs generated by `mapWithState` will be partitioned.
             Hash partitioning will be used.
             </summary>
+            <param name="numPartitions">The number of partitions</param>
+            <returns>The new StateSpec object</returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.StateSpec`4.Timeout(System.TimeSpan)">
             <summary>
@@ -5331,14 +6431,53 @@
             mapping function will be called one final time on the idle states that are going to be
             removed; [[org.apache.spark.streaming.State State.isTimingOut()]] set to `true` in that call.
             </summary>
-            <param name="ts"></param>
-            <returns></returns>
+            <param name="idleDuration">The idle time of duration</param>
+            <returns>The new StateSpec object</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StateSpec`4.InitialState(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{`0,`2}})">
+            <summary>
+            Set the RDD containing the initial states that will be used by mapWithState
+            </summary>
+            <param name="initialState">The given initial state</param>
+            <returns>The new StateSpec object</returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.State`1">
             <summary>
             class for getting and updating the state in mapping function used in the `mapWithState` operation
             </summary>
             <typeparam name="S">Type of the state</typeparam>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.State`1.Exists">
+            <summary>
+            Returns whether the state already exists
+            </summary>
+            <returns>true, if the state already exists; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.State`1.Get">
+            <summary>
+            Gets the state if it exists, otherwise it will throw ArgumentException.
+            </summary>
+            <returns>The state</returns>
+            <exception cref="T:System.ArgumentException">ArgumentException if it does not exist.</exception>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.State`1.Update(`0)">
+            <summary>
+            Updates the state with a new value.
+            </summary>
+            <param name="newState">The new state</param>
+            <exception cref="T:System.ArgumentException">ArgumentException if the state already be removed or timing out</exception>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.State`1.Remove">
+            <summary>
+            Removes the state if it exists.
+            </summary>
+            <exception cref="T:System.ArgumentException">ArgumentException if the state already be removed or timing out</exception>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.State`1.IsTimingOut">
+            <summary>
+            Returns whether the state is timing out and going to be removed by the system after the current batch.
+            </summary>
+            <returns>true, if it is timing out; otherwise, false.</returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions">
             <summary>
