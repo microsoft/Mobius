@@ -65,7 +65,6 @@
     <Compile Include="WordCountExample.fs" />
     <Content Include="App.config" />
     <Content Include="packages.config" />
-    <None Include="CSharpWorker.exe.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CSharpWorker">
