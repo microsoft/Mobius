@@ -86,7 +86,7 @@ pushd "$FWDIR/../examples"
 
 if [ $? -ne 0 ];
 then
-	echo "Build Mobius C# Examples failed, stop building."
+	echo "Build Mobius .NET Examples failed, stop building."
 	popd
 	exit 1
 fi
