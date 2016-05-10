@@ -4,7 +4,7 @@ export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export XBUILDOPT=/verbosity:minimal
 
-if [ $builduri = "" ];
+if [ -z $builduri ];
 then
   export builduri=build.sh
 fi
@@ -15,7 +15,7 @@ export PROJ="$FWDIR/$PROJ_NAME.sln"
 echo "===== Building $PROJ ====="
 
 function error_exit() {
-  if [ "$STEP" = "" ]; 
+  if [ -z $STEP ]; 
   then
     export STEP=$CONFIGURATION 
   fi
