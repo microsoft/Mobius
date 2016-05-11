@@ -373,7 +373,7 @@ function Download-RuntimeDependencies
     $winutilsExe = "$winutilsBin\winutils.exe"
     if (!(test-path $winutilsExe))
     {
-        $url = "http://public-repo-1.hortonworks.com/hdp-win-alpha/winutils.exe"
+        $url = "https://github.com/MobiusForSpark/winutils/blob/master/hadoop-2.6.0/bin/winutils.exe?raw=true"
         $output=$winutilsExe
         Download-File $url $output
     }
