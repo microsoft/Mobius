@@ -5,7 +5,8 @@
 
 package org.apache.spark.launcher
 
-import java.io.{PrintStream, File}
+import java.io.{File, PrintStream}
+import java.util.regex.Pattern
 import java.util.{List => JList}
 
 import org.apache.spark._
@@ -25,9 +26,35 @@ object SparkCLRSubmitArguments {
   var exitFn: Int => Unit = (exitCode: Int) => CSharpUtils.exit(exitCode)
   var printStream: PrintStream = System.err
 
+  /**
+    * Regex pattern of special characters for command line argument.
+    * Argument need to be quoted if it contains special character, for example, a connection string contains "&":
+    * jdbc:mysql://localhost:3306/lzdb?user=guest&password=abc123
+    * Note that following special character pattern is given by an contrary set of normal characters.
+    * Regex refer to : http://www.tutorialspoint.com/scala/scala_regular_expressions.htm
+    */
+  private val ABNORMAL_ARG_CHARS = Pattern.compile("[^-\\.\\w/=:]")
+
   def main(args: Array[String]): Unit = {
     val submitArguments = new SparkCLRSubmitArguments(args, sys.env, exitFn, printStream)
     System.out.println(submitArguments.buildCmdOptions())
+  }
+
+  /**
+    * Add quotes to command line argument which contains special character.
+    *
+    * @param arg               : argument value.
+    * @param addNeedlessQuotes : add quotes even needless.
+    * @return argument that might added with quotes.
+    */
+  def quoteArg(arg: String, addNeedlessQuotes: Boolean = false): String = {
+    if (arg == null || arg.length < 1 || arg.startsWith("\"") && arg.endsWith("\"")) {
+      arg
+    } else if (addNeedlessQuotes || ABNORMAL_ARG_CHARS.matcher(arg).find()) {
+      "\"" + arg + "\""
+    } else {
+      arg
+    }
   }
 }
 
@@ -291,7 +318,9 @@ class SparkCLRSubmitArguments(
   }
 
   override protected def handleExtraArgs(extra: JList[String]): Unit = {
-    childArgs ++= extra
+    for (arg <- extra) {
+      childArgs += quoteArg(arg)
+    }
   }
 
   private def inferSubmitArguments(): Unit = {
