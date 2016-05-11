@@ -1951,6 +1951,11 @@
             and broadcast variables on that cluster.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.GetActiveSparkContext">
+            <summary>
+            Get existing SparkContext
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(System.String,System.String,System.String)">
             <summary>
             Initializes a SparkContext instance with a specific master, application name, and spark home 
@@ -6819,6 +6824,15 @@
             <summary>
             Create a unified DStream from multiple DStreams of the same
             type and same slide duration.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="dstreams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.UnionAsync``1(Microsoft.Spark.CSharp.Streaming.DStream{``0}[])">
+            <summary>
+            Create a unified AsyncUnionDStream from multiple DStreams of the same type and same slide duration.
+            In AsyncUnionDStream, RDDs of parents DStream will be pre-computed and cached asynchronouly for parellel operation.
             </summary>
             <typeparam name="T"></typeparam>
             <param name="dstreams"></param>

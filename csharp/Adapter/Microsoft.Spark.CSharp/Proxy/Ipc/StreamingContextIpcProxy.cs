@@ -258,6 +258,21 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     )));
         }
 
+        public IDStreamProxy UnionAsync(IDStreamProxy[] dStreamProxies)
+        {
+            return new DStreamIpcProxy(
+                new JvmObjectReference(
+                    (string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
+                        "org.apache.spark.streaming.api.csharp.CSharpDStream",
+                        "unionAsync",
+                        new object[] 
+                        { 
+                            jvmStreamingContextReference,
+                            JvmBridgeUtils.GetJavaList<JvmObjectReference>(dStreamProxies.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
+                        }
+                    )));
+        }
+
         public void AwaitTermination()
         {
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTermination");

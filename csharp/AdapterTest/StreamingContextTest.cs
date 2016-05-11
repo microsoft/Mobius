@@ -43,6 +43,24 @@ namespace AdapterTest
             var union = ssc.Union(textFile, socketStream);
             Assert.IsNotNull(union.DStreamProxy);
 
+            var unionAsync = ssc.UnionAsync(textFile, socketStream);
+            Assert.IsNotNull(unionAsync.DStreamProxy);
+
+            Assert.Catch(typeof(ArgumentException),
+                delegate {
+                    ssc.UnionAsync(new DStream<string>[0]);
+                });
+
+            // change serializedMode to test the exception case
+            var serializedMode = textFile.serializedMode;
+            textFile.serializedMode = SerializedMode.Row;
+            Assert.Catch(typeof(ArgumentException),
+            delegate
+            {
+                ssc.UnionAsync(textFile, socketStream);
+            });
+            textFile.serializedMode = serializedMode;
+
             ssc.AwaitTermination();
             ssc.Stop();
         }

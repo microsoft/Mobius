@@ -59,6 +59,11 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
+        public IDStreamProxy UnionAsync(IDStreamProxy[] dStreamProxies)
+        {
+            return new MockDStreamProxy();
+        }
+
         public void AwaitTermination()
         {
         }

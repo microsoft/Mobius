@@ -11,8 +11,13 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 import java.util.{ArrayList => JArrayList}
+import java.util.concurrent.{ExecutorService, ConcurrentHashMap}
 
+import org.apache.spark.util.ThreadUtils
+
+import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 import scala.language.existentials
 import org.apache.spark.api.java._
 import org.apache.spark.rdd._
@@ -22,6 +27,7 @@ import org.apache.spark.streaming.dstream._
 import org.apache.spark.streaming.api.java._
 
 import scala.language.existentials
+import scala.reflect.ClassTag
 
 object CSharpDStream {
 
@@ -86,6 +92,20 @@ object CSharpDStream {
     val queue = new java.util.LinkedList[JavaRDD[Array[Byte]]]
     rdds.forall(queue.add(_))
     queue
+  }
+
+  /**
+   * Create a AsyncUnionDStream from multiple DStreams of the same type and same slide duration.
+   */
+  def unionAsync[T](ssc: StreamingContext, javaDStreams: JArrayList[JavaDStream[T]]):
+      JavaDStream[T] = {
+    val first = javaDStreams(0)
+    implicit val cm: ClassTag[T] = first.classTag
+    val dstreams: Seq[DStream[T]] = javaDStreams.asScala.map(_.dstream)
+    val dstream = ssc.withScope {
+      new AsyncUnionDStream[T](dstreams.toArray)
+    }
+    new JavaDStream[T](dstream)
   }
 }
 
@@ -306,4 +326,127 @@ class CSharpConstantInputDStream(ssc_ : StreamingContext, rdd: RDD[Array[Byte]])
   extends ConstantInputDStream[Array[Byte]](ssc_, rdd) {
 
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
+}
+
+/**
+ * Similar to UnionDStream, but RDDs of parents DStream will be precomputed and cached
+ * asynchronously.
+ */
+class AsyncUnionDStream[T: ClassTag](parents: Array[DStream[T]])
+  extends DStream[T](parents.head.ssc) {
+
+  require(parents.length > 0, "List of DStreams to AyncUnion is empty")
+  require(parents.map(_.ssc).distinct.size == 1, "Some of the DStreams have different contexts")
+  require(parents.map(_.slideDuration).distinct.size == 1,
+    "Some of the DStreams have different slide durations")
+
+  override def dependencies: List[DStream[_]] = parents.toList
+
+  override def slideDuration: Duration = parents.head.slideDuration
+
+  private val parentsNum = parents.length
+  @transient private var initialized: Boolean = false
+  @transient private var jobExecutors: Array[ExecutorService] = null
+  // number of threads for each job executor
+  private val nThreads = ssc.sc.getConf.getInt("spark.mobius.streaming.asyncUnion.numThreads", 1)
+  @transient private var precomputedRdds: Array[ConcurrentHashMap[Time, RDD[T]]] = null
+  @transient private var cachedRddTimes: Array[ConcurrentHashMap[Time, List[Time]]] = null
+  // Because multiple threads may used to pre-compute RDD of one parent DStream, to re-assemble the
+  // result, time of the next pre-computed rdd need to be remembered
+  @transient private var nextRddTimes: Array[Time] = null
+
+  private def init(validTime: Time): Unit = {
+    if (!initialized) {
+      jobExecutors = new Array[ExecutorService](parentsNum)
+      precomputedRdds = new Array[ConcurrentHashMap[Time, RDD[T]]](parentsNum)
+      cachedRddTimes = new Array[ConcurrentHashMap[Time, List[Time]]](parentsNum)
+      nextRddTimes = new Array[Time](parentsNum)
+      for (i <- 0 until parentsNum) {
+        jobExecutors(i) = ThreadUtils.newDaemonFixedThreadPool(nThreads, s"AsyncUnion-executor-$i")
+        precomputedRdds(i) = new ConcurrentHashMap()
+        cachedRddTimes(i) = new ConcurrentHashMap()
+        nextRddTimes(i) = validTime
+      }
+      initialized = true
+    }
+  }
+
+  override def compute(validTime: Time): Option[RDD[T]] = {
+    if (!initialized) init(validTime)
+
+    // submit job to pre-compute rdd
+    for (i <- 0 until parentsNum) {
+      val rddOption = parents(i).getOrCompute(validTime)
+      if (rddOption.isDefined) {
+        val rdd = rddOption.get
+        val rddTime = validTime
+        jobExecutors(i).execute(new Runnable {
+          override def run(): Unit = {
+            rdd.cache()
+            ssc.sc.setCallSite(s"runJob for parent [$i] in AsyncUnionDStream")
+            ssc.sc.runJob(rdd, (iterator: Iterator[T]) => {})
+            precomputedRdds(i).put(rddTime, rdd)
+          }
+        })
+      }
+    }
+
+    // get pre-computed rdds
+    val rdds = new ArrayBuffer[RDD[T]]()
+    for (i <- 0 until parentsNum) {
+      val rddTimes = new ArrayBuffer[Time]()
+      var stop = false
+      while (!stop) {
+        if (precomputedRdds(i).containsKey(nextRddTimes(i))) {
+          val rdd = precomputedRdds(i).remove(nextRddTimes(i))
+          rdds += rdd
+          rddTimes += nextRddTimes(i)
+          nextRddTimes(i) += slideDuration
+        } else {
+          stop = true
+        }
+      }
+      cachedRddTimes(i).put(validTime, rddTimes.toList)
+    }
+
+    if (rdds.nonEmpty) {
+      Some(new UnionRDD(ssc.sc, rdds))
+    } else {
+      Some(ssc.sc.emptyRDD[T])
+    }
+  }
+
+  // override this method to prevent prematurely unpersist parent rdds that are still cached
+  override private[streaming] def clearMetadata(time: Time): Unit = {
+    val unpersistData = ssc.conf.getBoolean("spark.streaming.unpersist", true)
+    val oldRDDs = generatedRDDs.filter(_._1 <= (time - rememberDuration))
+    logDebug("Clearing references to old RDDs: [" +
+      oldRDDs.map(x => s"${x._1} -> ${x._2.id}").mkString(", ") + "]")
+    generatedRDDs --= oldRDDs.keys
+    if (unpersistData) {
+      logDebug("Unpersisting old RDDs: " + oldRDDs.values.map(_.id).mkString(", "))
+      oldRDDs.values.foreach { rdd =>
+        rdd.unpersist(false)
+        // Explicitly remove blocks of BlockRDD
+        rdd match {
+          case b: BlockRDD[_] =>
+            logInfo("Removing blocks of RDD " + b + " of time " + time)
+            b.removeBlocks()
+          case _ =>
+        }
+      }
+    }
+    logDebug("Cleared " + oldRDDs.size + " RDDs that were older than " +
+      (time - rememberDuration) + ": " + oldRDDs.keys.mkString(", "))
+
+    // only unpersist parent rdds that are no longer needed
+    for (oldTime <- oldRDDs.keys) {
+      for (i <- 0 until parentsNum)
+      if (cachedRddTimes(i).containsKey(oldTime)) {
+        for (parentTime <- cachedRddTimes(i).remove(oldTime)) {
+          dependencies(i).clearMetadata(parentTime)
+        }
+      }
+    }
+  }
 }

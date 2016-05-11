@@ -60,7 +60,7 @@ class CSharpRDD(
       command(i) = bytes(i)
     }
 
-    if (CSharpRDD.maxCSharpWorkerProcessCount >= 0) {
+    if (CSharpRDD.maxCSharpWorkerProcessCount > 0) {
       var workerFactoryId = CSharpRDD.getWorkerFactoryId(context.stageId())
       // change envVars to use different PythonWorkerFactory
       envVars.put("WORKER_FACTORY_ID", workerFactoryId.toString)
@@ -188,7 +188,6 @@ class CSharpRDD(
 }
 
 object CSharpRDD {
-  var currentStageId: Int = 0
   var nextSeqNum: Int = 0
 
   // long running multi-process CSharpWorker mode is enabled only when configurated explicitly
@@ -219,19 +218,11 @@ object CSharpRDD {
   //WorkerFactory launching one long running CSharpWorker process.
   private def getWorkerFactoryId(stageId: Int): Int = {
     synchronized {
-      if (stageId != currentStageId) {
-        // new stage is started
-        currentStageId = stageId
+      val workerFactoryId = nextSeqNum
+      nextSeqNum += 1
+      if (nextSeqNum >= maxCSharpWorkerProcessCount) {
         nextSeqNum = 0
       }
-      val workerFactoryId = {
-        if (maxCSharpWorkerProcessCount != 0) {
-          nextSeqNum % maxCSharpWorkerProcessCount
-        } else {
-          nextSeqNum
-        }
-      }
-      nextSeqNum += 1
       workerFactoryId
     }
   }
