@@ -3,8 +3,9 @@
 ## Prerequisites
 
 * JDK 7 or above.
-* Maven 3.3.3 or above.
+* Maven 3.0.5 or above.
 * Mono 4.2 stable or above. The download and installation instructions for Mono are available in [http://www.mono-project.com/download/#download-lin](http://www.mono-project.com/download/#download-lin).
+* F# for Mono. The download and installation instructions for the F# Mono extension are available in [http://fsharp.org/use/linux/](http://fsharp.org/use/linux/)
 * NuGet.
 * XSLTPROC
 
