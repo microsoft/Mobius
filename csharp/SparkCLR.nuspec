@@ -1,17 +1,17 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Microsoft.SparkCLR</id>
-    <version>1.6.1-SNAPSHOT</version>
+    <version>1.6.101-SNAPSHOT</version>
     <authors>Microsoft Corporation</authors>
     <owners>Microsoft Corporation</owners>
-    <licenseUrl>https://github.com/Microsoft/SparkCLR/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/Microsoft/SparkCLR</projectUrl>
+    <licenseUrl>https://github.com/Microsoft/Mobius/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Microsoft/Mobius</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>C# language binding and extensions to Apache Spark</description>
-    <releaseNotes>See release notes on GitHub https://github.com/Microsoft/SparkCLR/releases</releaseNotes>
+    <releaseNotes>See release notes on GitHub https://github.com/Microsoft/Mobius/releases</releaseNotes>
     <copyright>Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.</copyright>
-    <tags>C# .NET Apache Spark RDD DataFrame</tags>
+    <tags>C# .NET Apache Spark RDD DataFrame Streaming SparkCLR Mobius</tags>
     <dependencies>
       <dependency id="Razorvine.Pyrolite" version="4.10.0" />
       <dependency id="Razorvine.Serpent" version="1.12.0" />

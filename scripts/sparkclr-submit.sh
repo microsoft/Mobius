@@ -54,7 +54,7 @@ then
   exit 1
 fi
 
-export SPARKCLR_JAR=spark-clr_2.10-1.6.1-SNAPSHOT.jar
+export SPARKCLR_JAR=spark-clr_2.10-1.6.101-SNAPSHOT.jar
 export SPARKCLR_CLASSPATH="$SPARKCLR_HOME/lib/$SPARKCLR_JAR"
 # SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode
 [ ! "$SPARKCLR_DEBUGMODE_EXT_JARS" = "" ] && export SPARKCLR_CLASSPATH="$SPARKCLR_CLASSPATH:$SPARKCLR_DEBUGMODE_EXT_JARS"

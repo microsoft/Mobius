@@ -282,16 +282,34 @@ function Download-BuildTools
 
 function Download-ExternalDependencies
 {
-    # Downloading spark-csv package and its depenency. These packages are required for DataFrame operations in Mobius
+    $readMeStream = [System.IO.StreamWriter] "$scriptDir\..\dependencies\ReadMe.txt"
+	$readMeStream.WriteLine("The files in this folder are dependencies of Mobius Project")
+	$readMeStream.WriteLine("Refer to the following download locations for details on the jars like POM file, license etc.")
+	$readMeStream.WriteLine("")
+	
+	$readMeStream.WriteLine("------------ Dependencies for CSV parsing in Mobius DataFrame API -----------------------------")
+	# Downloading spark-csv package and its depenency. These packages are required for DataFrame operations in Mobius
 	$url = "http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.3.0/spark-csv_2.10-1.3.0.jar"
     $output="$scriptDir\..\dependencies\spark-csv_2.10-1.3.0.jar"
     Download-File $url $output
 	Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
+	$readMeStream.WriteLine("$url")
 	
 	$url = "http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar"
 	$output="$scriptDir\..\dependencies\commons-csv-1.1.jar"
 	Download-File $url $output
     Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
+	$readMeStream.WriteLine("$url")
+	$readMeStream.WriteLine("")
+	$readMeStream.WriteLine("------------ Dependencies for Kafka-based processing in Mobius Streaming API -----------------------------")
+		
+	$url = "http://search.maven.org/remotecontent?filepath=org/apache/spark/spark-streaming-kafka-assembly_2.10/1.6.1/spark-streaming-kafka-assembly_2.10-1.6.1.jar"
+	$output="$scriptDir\..\dependencies\spark-streaming-kafka-assembly_2.10-1.6.1.jar"
+	Download-File $url $output
+    Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"	
+	$readMeStream.WriteLine("$url")
+	
+	$readMeStream.close()
 	return
 }
 
@@ -355,7 +373,7 @@ function Download-RuntimeDependencies
     $winutilsExe = "$winutilsBin\winutils.exe"
     if (!(test-path $winutilsExe))
     {
-        $url = "http://public-repo-1.hortonworks.com/hdp-win-alpha/winutils.exe"
+        $url = "https://github.com/MobiusForSpark/winutils/blob/master/hadoop-2.6.0/bin/winutils.exe?raw=true"
         $output=$winutilsExe
         Download-File $url $output
     }
