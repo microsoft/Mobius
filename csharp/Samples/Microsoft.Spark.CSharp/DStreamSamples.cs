@@ -51,6 +51,11 @@ namespace Microsoft.Spark.CSharp
             });
         }
 
+        /// <summary>
+        /// To test parallel job in UpdateStateByKey:
+        ///   1. run the sample with--verbos --conf "spark.mobius.streaming.parallelJobs=1"
+        ///   2. looking for "Starting rdd $rddid" in the log indicating a parallel job being started
+        /// </summary>
         [Sample("experimental")]
         internal static void DStreamTextFileSamples()
         {
