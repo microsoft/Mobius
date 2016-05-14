@@ -234,6 +234,7 @@ class CSharpStateDStream(
 
   override val mustCheckpoint = true
 
+  private val localMode = parent.ssc.sc.getConf.get("spark.master").startsWith("local")
   private val numParallelJobs = parent.ssc.sc.getConf.getInt("spark.mobius.streaming.parallelJobs", 1)
   @transient private var jobExecutor : ThreadPoolExecutor = null
 
@@ -247,7 +248,7 @@ class CSharpStateDStream(
           lastCompletedBatch.isDefined && lastCompletedBatch.get.batchTime >= validTime - slideDuration
         logInfo(s"Last batch completed: $lastBatchCompleted")
         // if last batch already completed, no need to submit a parallel job
-        if (!lastBatchCompleted) {
+        if (!lastBatchCompleted || localMode) {
           if (jobExecutor == null) {
             jobExecutor = ThreadUtils.newDaemonFixedThreadPool(numParallelJobs, "mobius-parallel-job-executor")
           }
