@@ -220,7 +220,6 @@ namespace Microsoft.Spark.CSharp
             ssc.Start();
             ssc.AwaitTermination();
         }
-    }
 
         private static Accumulator<int> a;
         private static string result = null;
