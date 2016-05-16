@@ -51,16 +51,6 @@ namespace AdapterTest
                     ssc.UnionAsync(new DStream<string>[0]);
                 });
 
-            // change serializedMode to test the exception case
-            var serializedMode = textFile.serializedMode;
-            textFile.serializedMode = SerializedMode.Row;
-            Assert.Catch(typeof(ArgumentException),
-            delegate
-            {
-                ssc.UnionAsync(textFile, socketStream);
-            });
-            textFile.serializedMode = serializedMode;
-
             ssc.AwaitTermination();
             ssc.Stop();
         }

@@ -226,6 +226,9 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (dstreams.Select(x => x.serializedMode).Distinct().Count() > 1)
                 throw new ArgumentException("All DStreams should have same serializer");
 
+            if (dstreams.Select(x => x.SlideDuration).Distinct().Count() > 1)
+                throw new ArgumentException("All DStreams should have same slide duration");
+
             var first = dstreams.First();
             return new DStream<T>(streamingContextProxy.UnionAsync(dstreams.Select(x => x.dstreamProxy).ToArray()), this, first.serializedMode);
         }

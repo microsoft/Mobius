@@ -5,13 +5,14 @@
 
 package org.apache.spark.streaming.api.csharp
 
+import org.apache.spark.{Logging, SparkContext}
 import org.apache.spark.api.csharp._
 import org.apache.spark.api.csharp.SerDe._
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
-import java.util.{ArrayList => JArrayList}
-import java.util.concurrent.{ExecutorService, ConcurrentHashMap}
+import java.util.{ArrayList => JArrayList, UUID}
+import java.util.concurrent.{LinkedBlockingQueue, ExecutorService, ConcurrentHashMap}
 
 import org.apache.spark.util.ThreadUtils
 
@@ -328,6 +329,143 @@ class CSharpConstantInputDStream(ssc_ : StreamingContext, rdd: RDD[Array[Byte]])
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
 }
 
+/*
+ * asynchronously pre-compute input RDDs, and then output the union of them
+ */
+class AsyncRddCombiner[T](sc: SparkContext, id: String) extends Logging {
+  // Thread pool is used to pre-compute RDDs, so seqNum is assigned to RDDs at input, and we can
+  // reassemble them in output
+  @volatile private var inputRddSeqNum: Long = 0L
+  @volatile private var outputRddSeqNum: Long = 0L
+
+  // ackedSeqNum is used for back-pressure
+  @volatile private var ackedSeqNum: Long = -1L
+
+  // the element is Tuple3(rddSeqNum, userInfo, rdd)
+  private val inputRddQueue: LinkedBlockingQueue[(Long, Long, RDD[T])] =
+    new LinkedBlockingQueue[(Long, Long, RDD[T])]()
+
+  // key is rddSeqNum, value is Tuple2(userInfo, rdd)
+  private val precomputedRddMap: ConcurrentHashMap[Long, (Long, RDD[T])] = new ConcurrentHashMap()
+
+  // If RDD is not pre-computed because of back pressure, it is put in this queue for future process
+  // the element is Tuple3(rddSeqNum, userInfo, rdd)
+  private val bypassRddQueue: LinkedBlockingQueue[(Long, Long, RDD[T])] =
+    new LinkedBlockingQueue[(Long, Long, RDD[T])]()
+
+  // If rdd is not pre-computed because of back pressure, it is put in this map
+  // key is rddSeqNum, value is Tuple2(userInfo, rdd)
+  private val bypassRddMap: ConcurrentHashMap[Long, (Long, RDD[T])] = new ConcurrentHashMap()
+
+  private val maxPendingNum = sc.getConf.getInt(
+    "spark.mobius.streaming.asyncUnion.maxPendingNum", 2)
+  private val nThreads = sc.getConf.getInt(
+    "spark.mobius.streaming.asyncUnion.numThreads", maxPendingNum)
+  private var jobExecutor = ThreadUtils.newDaemonFixedThreadPool(nThreads, s"job-executor-$id")
+  private val inputQueueScheduler = ThreadUtils.newDaemonSingleThreadExecutor(
+    s"input-scheduler-$id")
+  private val bypassQueueScheduler = ThreadUtils.newDaemonSingleThreadExecutor(
+    s"bypass-scheduler-$id")
+
+  private def isPending(rddSeqNum: Long): Boolean = {
+    rddSeqNum > ackedSeqNum + maxPendingNum
+  }
+
+  private def processInputQueue(): Unit = {
+    while (true) {
+      val (rddSeqNum, userInfo, rdd) = inputRddQueue.take()
+      logInfo(s"processInputQueue[$id], rddSeqNum: $rddSeqNum, ackedSeqNum: $ackedSeqNum, " +
+        s"outputRddSeqNum: $outputRddSeqNum")
+      if (isPending(rddSeqNum)) {
+        bypassRddMap.put(rddSeqNum, (userInfo, rdd))
+        bypassRddQueue.put(rddSeqNum, userInfo, rdd)
+      } else {
+        logInfo(s"processInputQueue submitting job, rddSeqNum: $rddSeqNum, " +
+          s"ackedSeqNum: $ackedSeqNum, outputRddSeqNum: $outputRddSeqNum")
+        jobExecutor.execute(new Runnable {
+          override def run(): Unit = {
+            rdd.cache()
+            sc.setCallSite(s"runJob for [$id]")
+            sc.runJob(rdd, (iterator: Iterator[T]) => {})
+            precomputedRddMap.put(rddSeqNum, (userInfo, rdd))
+          }
+        })
+      }
+    }
+  }
+
+  private def processBypassQueue(): Unit = {
+    while (true) {
+      val (rddSeqNum, userInfo, rdd) = bypassRddQueue.take()
+      logInfo(s"processBypassQueue[$id], rddSeqNum: $rddSeqNum, ackedSeqNum: $ackedSeqNum," +
+        s" outputRddSeqNum: $outputRddSeqNum")
+      while (isPending(rddSeqNum)) {
+        Thread.sleep(500)
+      }
+      logInfo(s"processBypassQueue submitting job, rddSeqNum: $rddSeqNum, " +
+        s"ackedSeqNum: $ackedSeqNum, outputRddSeqNum: $outputRddSeqNum")
+      jobExecutor.execute(new Runnable {
+        override def run(): Unit = {
+          rdd.cache()
+          sc.setCallSite(s"runJob for [$id]")
+          sc.runJob(rdd, (iterator: Iterator[T]) => {})
+        }
+      })
+    }
+  }
+
+  inputQueueScheduler.execute(new Runnable {
+    override def run(): Unit = {
+      processInputQueue()
+    }
+  })
+
+  bypassQueueScheduler.execute(new Runnable {
+    override def run(): Unit = {
+      processBypassQueue()
+    }
+  })
+
+  // feed input RDD
+  def input(userInfo: Long, rdd: RDD[T]): Unit = {
+    logInfo(s"add input, inputRddSeqNum: $inputRddSeqNum")
+    val rddSeqNum = inputRddSeqNum
+    inputRddSeqNum += 1
+    inputRddQueue.put(rddSeqNum, userInfo, rdd)
+  }
+
+  // get pre-computed output RDDs
+  def output(): List[(Long, Long, RDD[T])] = {
+    val result = new ArrayBuffer[(Long, Long, RDD[T])]()
+    var stop = false
+    while (!stop) {
+      val rddSeqNum = outputRddSeqNum
+      if (precomputedRddMap.containsKey(rddSeqNum)) {
+        val (userInfo, rdd) = precomputedRddMap.remove(rddSeqNum)
+        result += Tuple3(rddSeqNum, userInfo, rdd)
+        outputRddSeqNum += 1
+      } else {
+        stop = true
+      }
+    }
+    if (result.isEmpty) {
+      val rddSeqNum = outputRddSeqNum
+      if (bypassRddMap.containsKey(rddSeqNum)) {
+        val (userInfo, rdd) = bypassRddMap.remove(rddSeqNum)
+        result += Tuple3(rddSeqNum, userInfo, rdd)
+        outputRddSeqNum += 1
+      }
+    }
+    result.toList
+  }
+
+  def ackSeqNum(seqNum: Long): Unit = {
+    if (ackedSeqNum < seqNum) {
+      ackedSeqNum = seqNum
+    }
+  }
+}
+
 /**
  * Similar to UnionDStream, but RDDs of parents DStream will be precomputed and cached
  * asynchronously.
@@ -345,70 +483,46 @@ class AsyncUnionDStream[T: ClassTag](parents: Array[DStream[T]])
   override def slideDuration: Duration = parents.head.slideDuration
 
   private val parentsNum = parents.length
-  @transient private var initialized: Boolean = false
-  @transient private var jobExecutors: Array[ExecutorService] = null
-  // number of threads for each job executor
-  private val nThreads = ssc.sc.getConf.getInt("spark.mobius.streaming.asyncUnion.numThreads", 1)
-  @transient private var precomputedRdds: Array[ConcurrentHashMap[Time, RDD[T]]] = null
-  @transient private var cachedRddTimes: Array[ConcurrentHashMap[Time, List[Time]]] = null
-  // Because multiple threads may used to pre-compute RDD of one parent DStream, to re-assemble the
-  // result, time of the next pre-computed rdd need to be remembered
-  @transient private var nextRddTimes: Array[Time] = null
 
-  private def init(validTime: Time): Unit = {
+  @transient private var initialized: Boolean = false
+  @transient private var rddCombiners: Array[AsyncRddCombiner[T]] = null
+
+  // for the HashMap, key is time, value is List[Tuple2(rddSeqNum, time)]
+  @transient private var mappingOfRddInfos: Array[ConcurrentHashMap[Time, List[(Long, Time)]]]
+    = null
+
+  private def init(): Unit = {
     if (!initialized) {
-      jobExecutors = new Array[ExecutorService](parentsNum)
-      precomputedRdds = new Array[ConcurrentHashMap[Time, RDD[T]]](parentsNum)
-      cachedRddTimes = new Array[ConcurrentHashMap[Time, List[Time]]](parentsNum)
-      nextRddTimes = new Array[Time](parentsNum)
+      rddCombiners = new Array[AsyncRddCombiner[T]](parentsNum)
+      mappingOfRddInfos = new Array[ConcurrentHashMap[Time, List[(Long, Time)]]](parentsNum)
       for (i <- 0 until parentsNum) {
-        jobExecutors(i) = ThreadUtils.newDaemonFixedThreadPool(nThreads, s"AsyncUnion-executor-$i")
-        precomputedRdds(i) = new ConcurrentHashMap()
-        cachedRddTimes(i) = new ConcurrentHashMap()
-        nextRddTimes(i) = validTime
+        rddCombiners(i) = new AsyncRddCombiner[T](ssc.sc, s"AsyncUnionDStream-$i")
+        mappingOfRddInfos(i) = new ConcurrentHashMap()
       }
       initialized = true
     }
   }
 
   override def compute(validTime: Time): Option[RDD[T]] = {
-    if (!initialized) init(validTime)
-
-    // submit job to pre-compute rdd
+    if (!initialized) init()
     for (i <- 0 until parentsNum) {
       val rddOption = parents(i).getOrCompute(validTime)
       if (rddOption.isDefined) {
         val rdd = rddOption.get
-        val rddTime = validTime
-        jobExecutors(i).execute(new Runnable {
-          override def run(): Unit = {
-            rdd.cache()
-            ssc.sc.setCallSite(s"runJob for parent [$i] in AsyncUnionDStream")
-            ssc.sc.runJob(rdd, (iterator: Iterator[T]) => {})
-            precomputedRdds(i).put(rddTime, rdd)
-          }
-        })
+        rddCombiners(i).input(validTime.milliseconds, rdd)
       }
     }
 
-    // get pre-computed rdds
+    // get pre-computed RDDs
     val rdds = new ArrayBuffer[RDD[T]]()
     for (i <- 0 until parentsNum) {
-      val rddTimes = new ArrayBuffer[Time]()
-      var stop = false
-      while (!stop) {
-        if (precomputedRdds(i).containsKey(nextRddTimes(i))) {
-          val rdd = precomputedRdds(i).remove(nextRddTimes(i))
-          rdds += rdd
-          rddTimes += nextRddTimes(i)
-          nextRddTimes(i) += slideDuration
-        } else {
-          stop = true
-        }
+      val rddInfos = new ArrayBuffer[(Long, Time)]()
+      for ((rddSeqNum, userInfo, rdd) <- rddCombiners(i).output()) {
+        rdds += rdd
+        rddInfos += Tuple2(rddSeqNum, Time(userInfo))
       }
-      cachedRddTimes(i).put(validTime, rddTimes.toList)
+      mappingOfRddInfos(i).put(validTime, rddInfos.toList)
     }
-
     if (rdds.nonEmpty) {
       Some(new UnionRDD(ssc.sc, rdds))
     } else {
@@ -416,7 +530,7 @@ class AsyncUnionDStream[T: ClassTag](parents: Array[DStream[T]])
     }
   }
 
-  // override this method to prevent prematurely unpersist parent rdds that are still cached
+  // override this method to prevent prematurely unpersist parent RDDs that are still cached
   override private[streaming] def clearMetadata(time: Time): Unit = {
     val unpersistData = ssc.conf.getBoolean("spark.streaming.unpersist", true)
     val oldRDDs = generatedRDDs.filter(_._1 <= (time - rememberDuration))
@@ -439,12 +553,11 @@ class AsyncUnionDStream[T: ClassTag](parents: Array[DStream[T]])
     logDebug("Cleared " + oldRDDs.size + " RDDs that were older than " +
       (time - rememberDuration) + ": " + oldRDDs.keys.mkString(", "))
 
-    // only unpersist parent rdds that are no longer needed
-    for (oldTime <- oldRDDs.keys) {
-      for (i <- 0 until parentsNum)
-      if (cachedRddTimes(i).containsKey(oldTime)) {
-        for (parentTime <- cachedRddTimes(i).remove(oldTime)) {
-          dependencies(i).clearMetadata(parentTime)
+    for (i <- 0 until parentsNum) {
+      if (mappingOfRddInfos(i).containsKey(time)) {
+        for ((rddSeqNum, rddTime) <- mappingOfRddInfos(i).remove(time)) {
+          dependencies(i).clearMetadata(rddTime)
+          rddCombiners(i).ackSeqNum(rddSeqNum)
         }
       }
     }
