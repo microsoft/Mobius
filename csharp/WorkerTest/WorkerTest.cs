@@ -371,7 +371,10 @@ namespace WorkerTest
                 SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
                 s.Flush();
 
-                Console.WriteLine(output);
+                lock (syncLock)
+                {
+                    Console.WriteLine(output.ToString());
+                }
 
                 int receivedElementIndex = 0;
                 foreach (var bytes in ReadWorker(s))
@@ -418,7 +421,10 @@ namespace WorkerTest
                 SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
                 s.Flush();
 
-                Console.WriteLine(output);
+                lock (syncLock)
+                {
+                    Console.WriteLine(output.ToString());
+                }
 
                 int count = 0;
                 Unpickler unpickler = new Unpickler();
@@ -476,7 +482,10 @@ namespace WorkerTest
                 SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
                 s.Flush();
 
-                Console.WriteLine(output);
+                lock (syncLock)
+                {
+                    Console.WriteLine(output.ToString());
+                }
 
                 int count = 0;
                 foreach (var bytes in ReadWorker(s))

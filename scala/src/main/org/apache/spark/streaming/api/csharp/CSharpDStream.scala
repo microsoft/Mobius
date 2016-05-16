@@ -11,8 +11,8 @@ import org.apache.spark.api.csharp.SerDe._
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
-import java.util.{ArrayList => JArrayList, UUID}
-import java.util.concurrent.{LinkedBlockingQueue, ExecutorService, ConcurrentHashMap}
+import java.util.{ArrayList => JArrayList}
+import java.util.concurrent.{LinkedBlockingQueue, ConcurrentHashMap}
 
 import org.apache.spark.util.ThreadUtils
 
