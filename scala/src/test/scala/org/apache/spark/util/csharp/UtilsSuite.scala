@@ -14,43 +14,23 @@ import scala.collection.JavaConversions._
 class UtilsSuite extends SparkCLRFunSuite {
 
   test("Zip&unzip files") {
-
     // create tmp dir
-    val tmpDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_" + System.currentTimeMillis())
-
+    val tmpDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     tmpDir.mkdir()
-    val str = "test string"
-    val size = 10
-
     // create some files in the tmp dir
-    for (i <- 1 to size) {
-      val f = new File(tmpDir, i + ".txt")
-      FileUtils.writeStringToFile(f, str + i)
-    }
+    generateFilesInDirectory(tmpDir, 10)
 
-    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Zip_" + System.currentTimeMillis() + ".zip")
-
+    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}.zip")
     // Compress all files under tmpDir into a zip file
     Utils.zip(tmpDir, targetZipFile)
 
-    val entries = Utils.listZipFileEntries(targetZipFile)
+    checkZipFile(targetZipFile, tmpDir)
 
-    assert(entries != null)
-    assert(entries.size == size)
-
-    entries.foreach(f => assert(f.matches("\\d+\\.txt")))
-
-    val destDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Unzip_" + System.currentTimeMillis())
-
+    val destDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     destDir.mkdir()
-
     Utils.unzip(targetZipFile, destDir)
 
-    val unzippedFiles = FileUtils.listFiles(destDir, null, true)
-
-    assert(unzippedFiles != null && unzippedFiles.size() == size)
-    unzippedFiles.foreach(f => assert(f.getName.matches("\\d+\\.txt")))
-    unzippedFiles.foreach(f => assert(FileUtils.readFileToString(f).startsWith(str)))
+    checkUnzippedFiles(tmpDir, destDir)
 
     FileUtils.deleteQuietly(tmpDir)
     FileUtils.deleteQuietly(destDir)
@@ -58,52 +38,31 @@ class UtilsSuite extends SparkCLRFunSuite {
   }
 
   test("Zip&unzip files with sub folders") {
-
     // create tmp dir
-    val tmpDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_" + System.currentTimeMillis())
-
+    val tmpDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     tmpDir.mkdir()
-    val str = "test string"
-    val size = 10
-
     // create some files in the tmp dir
-    generateFilesInDirectory(tmpDir, size)
+    generateFilesInDirectory(tmpDir, 10)
 
     val subFolder1 = new File(tmpDir, "folder1");
     subFolder1.mkdir()
-    generateFilesInDirectory(subFolder1, size)
+    generateFilesInDirectory(subFolder1, 10)
 
     val subFolder2 = new File(subFolder1, "folder2");
     subFolder2.mkdir()
-    generateFilesInDirectory(subFolder2, size)
+    generateFilesInDirectory(subFolder2, 10)
 
-
-    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Zip_" + System.currentTimeMillis() + ".zip")
-
+    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}.zip")
     // Compress all files under tmpDir into a zip file
     Utils.zip(tmpDir, targetZipFile)
 
-    val entries = Utils.listZipFileEntries(targetZipFile)
+    checkZipFile(targetZipFile, tmpDir)
 
-    assert(entries != null)
-    assert(entries.size == size * 3)
-
-    entries.foreach(f => assert(f.matches(".*?\\d+\\.txt")))
-
-    val destDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Unzip_" + System.currentTimeMillis())
-
+    val destDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     destDir.mkdir()
-
     Utils.unzip(targetZipFile, destDir)
 
-    assert(new File(destDir, "folder1").exists())
-    assert(new File(destDir + File.separator + "folder1" + File.separator + "folder2").exists())
-
-    val unzippedFiles = FileUtils.listFiles(destDir, null, true)
-
-    assert(unzippedFiles != null && unzippedFiles.size() == size * 3)
-    unzippedFiles.foreach(f => if (!f.isDirectory) assert(f.getName.matches("\\d+\\.txt")))
-    unzippedFiles.foreach(f => if (!f.isDirectory) assert(FileUtils.readFileToString(f).startsWith(str)))
+    checkUnzippedFiles(tmpDir, destDir)
 
     FileUtils.deleteQuietly(tmpDir)
     FileUtils.deleteQuietly(destDir)
@@ -111,33 +70,22 @@ class UtilsSuite extends SparkCLRFunSuite {
   }
 
   test("Unzip file to a directory where some files already exist.") {
-
     // create tmp dir
-    val tmpDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_" + System.currentTimeMillis())
-
+    val tmpDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     tmpDir.mkdir()
     val str = "test string"
     val size = 10
-
     // create some files in the tmp dir
-    for (i <- 1 to size) {
-      val f = new File(tmpDir, i + ".txt")
-      FileUtils.writeStringToFile(f, str + i)
-    }
+    generateFilesInDirectory(tmpDir, size)
 
-    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Zip_" +
-      System.currentTimeMillis() + ".zip")
+    val targetZipFile = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}.zip")
 
     // Compress all files under tmpDir into a zip file
     Utils.zip(tmpDir, targetZipFile)
 
-    val entries = Utils.listZipFileEntries(targetZipFile)
-    assert(entries != null)
-    assert(entries.size == size)
+    checkZipFile(targetZipFile, tmpDir)
 
-    entries.foreach(f => assert(f.matches("\\d+\\.txt")))
-
-    val destDir = new File(System.getProperty("java.io.tmpdir"), "UtilsSuite_Unzip_" + System.currentTimeMillis())
+    val destDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     destDir.mkdir()
 
     // create some files which names can also be found in the zip file.
@@ -160,11 +108,33 @@ class UtilsSuite extends SparkCLRFunSuite {
     FileUtils.deleteQuietly(targetZipFile)
   }
 
-  def generateFilesInDirectory(directory: File, n: Int): Unit = {
+  private def generateFilesInDirectory(directory: File, n: Int): Unit = {
     val str = "test string"
     for (i <- 1 to n) {
       val f = new File(directory, i + ".txt")
       FileUtils.writeStringToFile(f, str + i)
+    }
+  }
+
+  private def checkZipFile(zipFile: File, dir: File): Unit = {
+    val paths1 = Utils.listZipFileEntries(zipFile)
+    val base = dir.toPath()
+    val paths2 = FileUtils.listFiles(dir, null, true).map(f => base.relativize(f.toPath).toString)
+
+    assert(paths1.size() === paths2.size())
+    paths1.zip(paths2).foreach { case (p1, p2) => assert(p1 === p2) }
+  }
+
+  private def checkUnzippedFiles(dir1: File, dir2: File): Unit = {
+    val base1 = dir1.toPath
+    val base2 = dir2.toPath
+    val files1 = FileUtils.listFiles(dir1, null, true)
+    val files2 = FileUtils.listFiles(dir2, null, true)
+
+    assert(files1.size() === files2.size())
+    files1.zip(files2).foreach { case (f1, f2) =>
+      assert(base1.relativize(f1.toPath) === base2.relativize(f2.toPath))
+      assert(FileUtils.contentEquals(f1, f2))
     }
   }
 }
