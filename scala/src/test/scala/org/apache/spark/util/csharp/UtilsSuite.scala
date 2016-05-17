@@ -5,13 +5,23 @@
 package org.apache.spark.util.csharp
 
 import java.io._
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.spark.csharp.SparkCLRFunSuite
 
 import scala.collection.JavaConversions._
 
 class UtilsSuite extends SparkCLRFunSuite {
+
+  val posix755 = Set(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
+    PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_READ,
+    PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_READ,
+    PosixFilePermission.OTHERS_EXECUTE)
+
+  val posix644 = Set(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
+    PosixFilePermission.GROUP_READ,PosixFilePermission.OTHERS_READ)
 
   test("Zip&unzip files") {
     // create tmp dir
@@ -73,13 +83,10 @@ class UtilsSuite extends SparkCLRFunSuite {
     // create tmp dir
     val tmpDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     tmpDir.mkdir()
-    val str = "test string"
-    val size = 10
     // create some files in the tmp dir
-    generateFilesInDirectory(tmpDir, size)
+    generateFilesInDirectory(tmpDir, 10)
 
     val targetZipFile = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}.zip")
-
     // Compress all files under tmpDir into a zip file
     Utils.zip(tmpDir, targetZipFile)
 
@@ -87,21 +94,14 @@ class UtilsSuite extends SparkCLRFunSuite {
 
     val destDir = new File(System.getProperty("java.io.tmpdir"), s"UtilsSuite_${System.currentTimeMillis()}")
     destDir.mkdir()
-
     // create some files which names can also be found in the zip file.
     val content = "Not replaced."
     FileUtils.writeStringToFile(new File(destDir, 1 + ".txt"), content)
-
     Utils.unzip(targetZipFile, destDir)
 
-    val unzippedFiles = FileUtils.listFiles(destDir, null, true)
-
-    assert(unzippedFiles != null && unzippedFiles.size() == size)
-    unzippedFiles.foreach(f => assert(f.getName.matches("\\d+\\.txt")))
-    unzippedFiles.filter(f => f.getName.split("\\.")(0) != "1")
-      .foreach(f => assert(FileUtils.readFileToString(f).startsWith(str)))
-    unzippedFiles.filter(f => f.getName.split("\\.")(0) == "1")
-      .foreach(f => assert(FileUtils.readFileToString(f).startsWith(content)))
+    // overwrite tmpDir to expected content
+    FileUtils.writeStringToFile(new File(tmpDir, 1 + ".txt"), content)
+    checkUnzippedFiles(tmpDir, destDir)
 
     FileUtils.deleteQuietly(tmpDir)
     FileUtils.deleteQuietly(destDir)
@@ -113,11 +113,15 @@ class UtilsSuite extends SparkCLRFunSuite {
     for (i <- 1 to n) {
       val f = new File(directory, i + ".txt")
       FileUtils.writeStringToFile(f, str + i)
+      if (Utils.isPosix) {
+        if (i % 2 == 0)  Files.setPosixFilePermissions(f.toPath, posix755)
+        else Files.setPosixFilePermissions(f.toPath, posix644)
+      }
     }
   }
 
   private def checkZipFile(zipFile: File, dir: File): Unit = {
-    val paths1 = Utils.listZipFileEntries(zipFile)
+    val paths1 = Utils.listZipFileEntries(zipFile).map(FilenameUtils.separatorsToSystem)
     val base = dir.toPath()
     val paths2 = FileUtils.listFiles(dir, null, true).map(f => base.relativize(f.toPath).toString)
 
@@ -135,6 +139,9 @@ class UtilsSuite extends SparkCLRFunSuite {
     files1.zip(files2).foreach { case (f1, f2) =>
       assert(base1.relativize(f1.toPath) === base2.relativize(f2.toPath))
       assert(FileUtils.contentEquals(f1, f2))
+      if (Utils.isPosix) {
+        Files.getPosixFilePermissions(f1.toPath) === Files.getPosixFilePermissions(f2.toPath)
+      }
     }
   }
 }

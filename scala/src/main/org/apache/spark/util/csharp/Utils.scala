@@ -5,15 +5,14 @@
 package org.apache.spark.util.csharp
 
 import java.io._
-import java.util.{Timer, TimerTask}
-import scala.collection.JavaConverters._
 import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
+import java.util.{Timer, TimerTask}
 
-import org.apache.commons.compress.archivers.zip.ZipFile
-import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream}
+import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream, ZipFile}
 import org.apache.commons.io.IOUtils
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Set
 
@@ -111,7 +110,7 @@ object Utils {
         try {
           val entry = new ZipArchiveEntry(file.getPath.substring(rootDir.getPath.length + 1))
           if(isPosix) {
-            entry.setUnixMode(getUnixPermissionCode(Files.getPosixFilePermissions(Paths.get(file.getPath)).asScala))
+            entry.setUnixMode(getUnixPermissionCode(Files.getPosixFilePermissions(file.toPath).asScala))
           }
           out.putArchiveEntry(entry)
           in = new FileInputStream(file)
@@ -160,7 +159,7 @@ object Utils {
             IOUtils.closeQuietly(input)
             IOUtils.closeQuietly(output)
             if(isPosix) {
-              Files.setPosixFilePermissions(Paths.get(targetFile.getPath), getPosixPermissions(entry.getUnixMode).asJava)
+              Files.setPosixFilePermissions(targetFile.toPath, getPosixPermissions(entry.getUnixMode).asJava)
             }
           }
         }
