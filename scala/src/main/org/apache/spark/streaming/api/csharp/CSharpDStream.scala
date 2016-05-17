@@ -224,20 +224,33 @@ class CSharpStateDStream(
                           serializationMode2: String)
   extends DStream[Array[Byte]](parent.ssc) {
 
-  super.persist(StorageLevel.MEMORY_ONLY)
+  val localCheckpointEnabled = parent.ssc.sc.conf.getBoolean("spark.mobius.localCheckpoint.enabled", false)
+  logInfo("Local checkpoint is enabled: " + localCheckpointEnabled)
+
+  if(localCheckpointEnabled) {
+    val replicas = parent.ssc.sc.conf.getInt("spark.mobius.localCheckpoint.replicas", 3)
+    logInfo("spark.mobius.localCheckpoint.replicas is set to " + replicas)
+    super.persist(StorageLevel(true, true, false, false, replicas))
+  }else {
+    super.persist(StorageLevel.MEMORY_ONLY)
+  }
 
   override def dependencies: List[DStream[_]] = List(parent)
 
   override def slideDuration: Duration = parent.slideDuration
 
-  override val mustCheckpoint = true
+  override val mustCheckpoint = !localCheckpointEnabled
 
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
     val lastState = getOrCompute(validTime - slideDuration)
     val rdd = parent.getOrCompute(validTime)
     if (rdd.isDefined) {
-      CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
+      val state = CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
         List(serializationMode, serializationMode2))
+      if(localCheckpointEnabled && state.isDefined) {
+        state.get.localCheckpoint()
+      }
+      state
     } else {
       lastState
     }
