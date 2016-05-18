@@ -7,120 +7,62 @@ package org.apache.spark.util.csharp
 import java.io._
 import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.PosixFilePermission._
 import java.util.{Timer, TimerTask}
 
 import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream, ZipFile}
-import org.apache.commons.io.IOUtils
+import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.spark.Logging
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Set
+import scala.collection.Set
 
 /**
  * Utility methods used by SparkCLR.
  */
-object Utils {
+object Utils extends Logging {
+  private val posixFilePermissions = Array(
+    OWNER_READ, OWNER_WRITE, OWNER_EXECUTE,
+    GROUP_READ, GROUP_WRITE, GROUP_EXECUTE,
+    OTHERS_READ, OTHERS_WRITE, OTHERS_EXECUTE
+  )
 
-  val isPosix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix")
-  val posixPermissionToInteger: Map[PosixFilePermission, Integer] = Map(
-    PosixFilePermission.OWNER_EXECUTE -> 0100,
-    PosixFilePermission.OWNER_WRITE -> 0200,
-    PosixFilePermission.OWNER_READ -> 0400,
-
-    PosixFilePermission.GROUP_EXECUTE -> 0010,
-    PosixFilePermission.GROUP_WRITE -> 0020,
-    PosixFilePermission.GROUP_READ -> 0040,
-
-    PosixFilePermission.OTHERS_EXECUTE -> 0001,
-    PosixFilePermission.OTHERS_WRITE -> 0002,
-    PosixFilePermission.OTHERS_READ ->0004)
-
-  /**
-   * List all entries of a zip file
-    *
-    * @param file zip file
-   */
-  def listZipFileEntries(file: File): Seq[String] = {
-
-    val result = ArrayBuffer[String]()
-    val zipFile = new ZipFile(file)
-
-    try {
-      val entries = zipFile.getEntries
-      while (entries.hasMoreElements()) {
-        result.append(entries.nextElement().getName)
-      }
-    } finally {
-      zipFile.close()
-    }
-
-    result
-  }
+  val supportPosix = FileSystems.getDefault.supportedFileAttributeViews().contains("posix")
 
   /**
    * Compress all files under given directory into one zip file and drop it to the target directory
    *
-   * @param sourceDir the directory where the zip file will be created
-   * @param targetZipFile
+   * @param sourceDir source directory to zip
+   * @param targetZipFile target zip file
    */
   def zip(sourceDir: File, targetZipFile: File): Unit = {
-    if (!sourceDir.exists() || !sourceDir.isDirectory) {
-      return
-    }
     var fos: FileOutputStream = null
     var zos: ZipArchiveOutputStream = null
     try {
       fos = new FileOutputStream(targetZipFile)
       zos = new ZipArchiveOutputStream(fos)
-      zipDir(sourceDir, sourceDir, zos)
-    } catch {
-      case e: Exception => throw e
-    } finally {
-      IOUtils.closeQuietly(zos)
-      IOUtils.closeQuietly(fos)
-    }
-  }
 
-  private def getUnixPermissionCode(permissionSet: Set[PosixFilePermission]): Integer = {
-    var number = 0
-    posixPermissionToInteger.foreach { entry =>
-      if(permissionSet.contains(entry._1)) {
-        number += entry._2
-      }
-    }
-    number
-  }
-
-  private def getPosixPermissions(unixPermission: Integer): Set[PosixFilePermission] = {
-    val permissions = Set[PosixFilePermission]()
-    posixPermissionToInteger.foreach { entry =>
-      if((unixPermission & entry._2) > 0) {
-        permissions += entry._1
-      }
-    }
-    permissions
-  }
-
-  private def zipDir(rootDir: File, sourceDir: File, out: ZipArchiveOutputStream): Unit = {
-    for (file <- sourceDir.listFiles()) {
-      if (file.isDirectory()) {
-        zipDir(rootDir, new File(sourceDir, file.getName()), out)
-      } else {
+      val sourcePath = sourceDir.toPath
+      FileUtils.listFiles(sourceDir, null, true).asScala.foreach { file =>
         var in: FileInputStream = null
         try {
-          val entry = new ZipArchiveEntry(file.getPath.substring(rootDir.getPath.length + 1))
-          if(isPosix) {
-            entry.setUnixMode(getUnixPermissionCode(Files.getPosixFilePermissions(file.toPath).asScala))
+          val path = file.toPath
+          val entry = new ZipArchiveEntry(sourcePath.relativize(path).toString)
+          if (supportPosix) {
+            entry.setUnixMode(permissionsToMode(Files.getPosixFilePermissions(path).asScala))
           }
-          out.putArchiveEntry(entry)
+          zos.putArchiveEntry(entry)
+
           in = new FileInputStream(file)
-          IOUtils.copy(in, out)
-          out.closeArchiveEntry()
-        }
-        finally {
+          IOUtils.copy(in, zos)
+          zos.closeArchiveEntry()
+        } finally {
           IOUtils.closeQuietly(in)
         }
       }
+    } finally {
+      IOUtils.closeQuietly(zos)
+      IOUtils.closeQuietly(fos)
     }
   }
 
@@ -131,44 +73,37 @@ object Utils {
    * @param targetDir target directory
    */
   def unzip(file: File, targetDir: File): Unit = {
-    if (!targetDir.exists()) {
-      targetDir.mkdir()
-    }
-
-    val zipFile = new ZipFile(file)
+    var zipFile: ZipFile = null
     try {
-      val entries = zipFile.getEntries
-      while (entries.hasMoreElements()) {
-        val entry = entries.nextElement()
+      targetDir.mkdirs()
+      zipFile = new ZipFile(file)
+      zipFile.getEntries.asScala.foreach { entry =>
         val targetFile = new File(targetDir, entry.getName)
 
         if (targetFile.exists()) {
-          println(s"Warning: target file/directory $targetFile already exists," +
-            s" make sure this is expected, skip it for now.")
+          logWarning(s"Target file/directory $targetFile already exists. Skip it for now. " +
+            s"Make sure this is expected.")
         } else {
-          if (!targetFile.getParentFile.exists()) {
-            targetFile.getParentFile.mkdir()
-          }
-
           if (entry.isDirectory) {
             targetFile.mkdirs()
           } else {
+            targetFile.getParentFile.mkdirs()
             val input = zipFile.getInputStream(entry)
             val output = new FileOutputStream(targetFile)
             IOUtils.copy(input, output)
             IOUtils.closeQuietly(input)
             IOUtils.closeQuietly(output)
-            if(isPosix) {
-              Files.setPosixFilePermissions(targetFile.toPath, getPosixPermissions(entry.getUnixMode).asJava)
+            if(supportPosix) {
+              Files.setPosixFilePermissions(
+                targetFile.toPath, modeToPermissions(entry.getUnixMode).asJava)
             }
           }
         }
       }
     } catch {
-      case e: Exception => println("Error: exception caught during uncompression." + e)
-    }
-    finally {
-      zipFile.close()
+      case e: Exception => logError("exception caught during decompression:" + e)
+    } finally {
+      ZipFile.closeQuietly(zipFile)
     }
   }
 
@@ -180,9 +115,7 @@ object Utils {
    */
   def exit(status: Int, maxDelayMillis: Long) {
     try {
-      // scalastyle:off println
-      println(s"Utils.exit() with status: $status, maxDelayMillis: $maxDelayMillis")
-      // scalastyle:on println
+      logInfo(s"Utils.exit() with status: $status, maxDelayMillis: $maxDelayMillis")
 
       // setup a timer, so if nice exit fails, the nasty exit happens
       val timer = new Timer()
@@ -212,4 +145,25 @@ object Utils {
     exit(status, 1000)
   }
 
+  private[spark] def listZipFileEntries(file: File): Array[String] = {
+    var zipFile: ZipFile = null
+    try {
+      zipFile = new ZipFile(file)
+      zipFile.getEntries.asScala.map(_.getName).toArray
+    } finally {
+      ZipFile.closeQuietly(zipFile)
+    }
+  }
+
+  private[this] def permissionsToMode(permissions: Set[PosixFilePermission]): Int = {
+    posixFilePermissions.foldLeft(0) { (mode, perm) =>
+      (mode << 1) | (if (permissions.contains(perm)) 1 else 0)
+    }
+  }
+
+  private[this] def modeToPermissions(mode: Int): Set[PosixFilePermission] = {
+    posixFilePermissions.zipWithIndex
+      .filter { case (_, i) => (mode & (256 >>> i)) != 0 }
+      .map(_._1).toSet
+  }
 }
