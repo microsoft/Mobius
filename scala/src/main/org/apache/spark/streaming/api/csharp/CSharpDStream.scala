@@ -25,6 +25,10 @@ import scala.language.existentials
 
 object CSharpDStream {
 
+  // Variables for debugging
+  var debugMode = false
+  var debugRDD: Option[RDD[_]] = None
+
   /**
    * helper function for DStream.foreachRDD().
    */
@@ -38,6 +42,11 @@ object CSharpDStream {
 
   def callCSharpTransform(rdds: List[Option[RDD[_]]], time: Time, cSharpfunc: Array[Byte],
                           serializationModeList: List[String]): Option[RDD[Array[Byte]]] = {
+    //debug mode enabled
+    if(debugMode) {
+      return debugRDD.asInstanceOf[Option[RDD[Array[Byte]]]]
+    }
+
     var socket: Socket = null
     try {
       socket = CSharpBackend.callbackSockets.poll()
@@ -224,11 +233,11 @@ class CSharpStateDStream(
                           serializationMode2: String)
   extends DStream[Array[Byte]](parent.ssc) {
 
-  val localCheckpointEnabled = parent.ssc.sc.conf.getBoolean("spark.mobius.localCheckpoint.enabled", false)
+  val localCheckpointEnabled = parent.ssc.sc.conf.getBoolean("spark.mobius.streaming.localCheckpoint.enabled", false)
   logInfo("Local checkpoint is enabled: " + localCheckpointEnabled)
 
   if(localCheckpointEnabled) {
-    val replicas = parent.ssc.sc.conf.getInt("spark.mobius.localCheckpoint.replicas", 3)
+    val replicas = parent.ssc.sc.conf.getInt("spark.mobius.streaming.localCheckpoint.replicas", 3)
     logInfo("spark.mobius.localCheckpoint.replicas is set to " + replicas)
     super.persist(StorageLevel(true, true, false, false, replicas))
   }else {
