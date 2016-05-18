@@ -39,6 +39,9 @@ class CSharpDStreamSuite extends SparkCLRFunSuite with BeforeAndAfterAll with Be
     conf.set("spark.mobius.streaming.localCheckpoint.enabled", "true")
     conf.set("spark.mobius.streaming.localCheckpoint.replicas", replicas.toString)
 
+    // set reserved memory to 50M so the min system memory only needs 50M * 1.5 = 70.5M
+    conf.set("spark.testing.reservedMemory", "" + 50 * 1024 * 1024)
+
     sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc, Seconds(1))
 
