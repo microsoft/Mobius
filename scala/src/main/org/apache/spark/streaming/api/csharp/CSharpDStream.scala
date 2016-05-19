@@ -235,7 +235,7 @@ class CSharpStateDStream(
   override val mustCheckpoint = true
 
   private val numParallelJobs = parent.ssc.sc.getConf.getInt("spark.mobius.streaming.parallelJobs", 0)
-  @transient private var jobExecutor : ThreadPoolExecutor = null
+  @transient protected var jobExecutor : ThreadPoolExecutor = null
 
   private[streaming] def runParallelJob(validTime: Time, rdd: Option[RDD[Array[Byte]]]): Unit = {
     if (numParallelJobs > 0) {
