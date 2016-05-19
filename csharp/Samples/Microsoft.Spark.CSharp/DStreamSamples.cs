@@ -211,6 +211,7 @@ namespace Microsoft.Spark.CSharp
         }
     }
 
+
     // Use this helper class to test broacast variable in streaming application
     [Serializable]
     internal class UpdateStateHelper
