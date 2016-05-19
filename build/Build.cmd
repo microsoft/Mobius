@@ -79,12 +79,14 @@ IF "%APPVEYOR_REPO_TAG%" == "true" (goto :sign)
 
 :mvndone
 
+set MVN_ERRORLEVEL=%ERRORLEVEL%
+
 @rem
 @rem After uber package is created, restore Pom.xml
 @rem
 copy /y %temp%\pom.xml.original pom.xml
 
-if %ERRORLEVEL% NEQ 0 (
+if %MVN_ERRORLEVEL% NEQ 0 (
   @echo Build Mobius Scala components failed, stop building.
   popd
   goto :eof
