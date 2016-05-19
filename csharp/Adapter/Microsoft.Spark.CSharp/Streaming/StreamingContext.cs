@@ -210,5 +210,27 @@ namespace Microsoft.Spark.CSharp.Streaming
             
             return new DStream<T>(streamingContextProxy.Union(first.dstreamProxy, rest.Select(x => x.dstreamProxy).ToArray()), this, first.serializedMode);
         }
+
+        /// <summary>
+        /// Create a unified AsyncUnionDStream from multiple DStreams of the same type and same slide duration.
+        /// In AsyncUnionDStream, RDDs of parents DStream will be pre-computed and cached asynchronouly for parellel operation.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dstreams"></param>
+        /// <returns></returns>
+        public DStream<T> UnionAsync<T>(params DStream<T>[] dstreams)
+        {
+            if (dstreams == null || dstreams.Length == 0)
+                throw new ArgumentException("should have at least one DStream to UnionAsync");
+
+            if (dstreams.Select(x => x.serializedMode).Distinct().Count() > 1)
+                throw new ArgumentException("All DStreams should have same serializer");
+
+            if (dstreams.Select(x => x.SlideDuration).Distinct().Count() > 1)
+                throw new ArgumentException("All DStreams should have same slide duration");
+
+            var first = dstreams.First();
+            return new DStream<T>(streamingContextProxy.UnionAsync(dstreams.Select(x => x.dstreamProxy).ToArray()), this, first.serializedMode);
+        }
     }
 }

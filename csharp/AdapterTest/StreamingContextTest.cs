@@ -43,6 +43,14 @@ namespace AdapterTest
             var union = ssc.Union(textFile, socketStream);
             Assert.IsNotNull(union.DStreamProxy);
 
+            var unionAsync = ssc.UnionAsync(textFile, socketStream);
+            Assert.IsNotNull(unionAsync.DStreamProxy);
+
+            Assert.Catch(typeof(ArgumentException),
+                delegate {
+                    ssc.UnionAsync(new DStream<string>[0]);
+                });
+
             ssc.AwaitTermination();
             ssc.Stop();
         }
