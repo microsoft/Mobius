@@ -21,7 +21,7 @@ namespace Microsoft.Spark.CSharp
     {
         private static int count;
         private static bool stopFileServer;
-        private static void StartFileServer(string directory, string pattern, int loop, StreamingContext ssc = null)
+        private static void StartFileServer(string directory, string pattern, int loop)
         {
             string testDir = Path.Combine(directory, "test");
             if (!Directory.Exists(testDir))
@@ -44,12 +44,6 @@ namespace Microsoft.Spark.CSharp
                     System.Threading.Thread.Sleep(200);
                 }
 
-                if (ssc != null)
-                {
-                    ssc.Stop();
-                    return;
-                }
-
                 System.Threading.Thread.Sleep(3000);
 
                 foreach (var file in Directory.GetFiles(testDir, "*"))
@@ -57,11 +51,6 @@ namespace Microsoft.Spark.CSharp
             });
         }
 
-        /// <summary>
-        /// To test parallel job in UpdateStateByKey:
-        ///   1. run the sample with--verbos --conf "spark.mobius.streaming.parallelJobs=1"
-        ///   2. looking for "Starting rdd $rddid" in the log indicating a parallel job being started
-        /// </summary>
         [Sample("experimental")]
         internal static void DStreamTextFileSamples()
         {
