@@ -36,7 +36,7 @@ class CSharpDStreamSuite extends SparkCLRFunSuite {
 
   test("runParallelJob in UpdateStateByKey") {
 
-    val conf = new SparkConf().setAppName("test").setMaster("local")
+    val conf = new SparkConf().setAppName("test").setMaster("local").set("spark.testing", "true")
     val sc = new MockSparkContext(conf)
     val ssc = new StreamingContext(sc, new Duration(1000))
     val parent = ssc.binaryRecordsStream("test", 0)
