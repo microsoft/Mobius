@@ -234,41 +234,44 @@ class CSharpStateDStream(
 
   override val mustCheckpoint = true
 
-  private val localMode = parent.ssc.sc.getConf.get("spark.master").startsWith("local")
-  private val numParallelJobs = parent.ssc.sc.getConf.getInt("spark.mobius.streaming.parallelJobs", 1)
+  private val numParallelJobs = parent.ssc.sc.getConf.getInt("spark.mobius.streaming.parallelJobs", 0)
   @transient private var jobExecutor : ThreadPoolExecutor = null
+
+  private[streaming] def runParallelJob(validTime: Time, rdd: Option[RDD[Array[Byte]]]): Unit = {
+    if (numParallelJobs > 0) {
+      val lastCompletedBatch = parent.ssc.progressListener.lastCompletedBatch
+      val lastBatchCompleted = validTime - slideDuration == zeroTime ||
+        lastCompletedBatch.isDefined && lastCompletedBatch.get.batchTime >= validTime - slideDuration
+      logInfo(s"Last batch completed: $lastBatchCompleted")
+      // if last batch already completed, no need to submit a parallel job
+      if (!lastBatchCompleted) {
+        if (jobExecutor == null) {
+          jobExecutor = ThreadUtils.newDaemonFixedThreadPool(numParallelJobs, "mobius-parallel-job-executor")
+        }
+        rdd.get.cache()
+        val queue = new java.util.concurrent.LinkedBlockingQueue[Int]
+        val rddid = rdd.get.id
+        val runnable = new Runnable {
+          override def run(): Unit = {
+            logInfo(s"Starting rdd: $rddid $validTime")
+            parent.ssc.sc.runJob(rdd.get, (iterator: Iterator[Array[Byte]]) => {})
+            logInfo(s"Finished rdd: $rddid $validTime")
+            queue.put(rddid)
+          }
+        }
+        jobExecutor.execute(runnable)
+        logInfo(s"Waiting rdd: $rddid $validTime")
+        queue.take()
+        logInfo(s"Taken rdd: $rddid $validTime")
+      }
+    }
+  }
 
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
     val lastState = getOrCompute(validTime - slideDuration)
     val rdd = parent.getOrCompute(validTime)
     if (rdd.isDefined) {
-      if (numParallelJobs > 0) {
-        val lastCompletedBatch = parent.ssc.progressListener.lastCompletedBatch
-        val lastBatchCompleted = validTime - slideDuration == zeroTime ||
-          lastCompletedBatch.isDefined && lastCompletedBatch.get.batchTime >= validTime - slideDuration
-        logInfo(s"Last batch completed: $lastBatchCompleted")
-        // if last batch already completed, no need to submit a parallel job
-        if (!lastBatchCompleted || localMode) {
-          if (jobExecutor == null) {
-            jobExecutor = ThreadUtils.newDaemonFixedThreadPool(numParallelJobs, "mobius-parallel-job-executor")
-          }
-          rdd.get.cache()
-          val queue = new java.util.concurrent.LinkedBlockingQueue[Int]
-          val rddid = rdd.get.id
-          val runnable = new Runnable {
-            override def run(): Unit = {
-              logInfo(s"Starting rdd: $rddid $validTime")
-              parent.ssc.sc.runJob(rdd.get, (iterator: Iterator[Array[Byte]]) => {})
-              logInfo(s"Finished rdd: $rddid $validTime")
-              queue.put(rddid)
-            }
-          }
-          jobExecutor.execute(runnable)
-          logInfo(s"Waiting rdd: $rddid $validTime")
-          queue.take()
-          logInfo(s"Taken rdd: $rddid $validTime")
-        }
-      }
+      runParallelJob(validTime, rdd)
       CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
         List(serializationMode, serializationMode2))
     } else {
