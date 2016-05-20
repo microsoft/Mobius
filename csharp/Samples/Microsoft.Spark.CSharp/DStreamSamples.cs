@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp
                 () =>
                 {
 
-                    StreamingContext context = new StreamingContext(sc, 2000);
+                    StreamingContext context = new StreamingContext(sc, 2);
                     context.Checkpoint(checkpointPath);
 
                     var lines = context.TextFileStream(Path.Combine(directory, "test"));
@@ -140,7 +140,7 @@ namespace Microsoft.Spark.CSharp
                 () =>
                 {
                     SparkContext sc = SparkCLRSamples.SparkContext;
-                    StreamingContext context = new StreamingContext(sc, 2000);
+                    StreamingContext context = new StreamingContext(sc, 2);
                     context.Checkpoint(checkpointPath);
 
                     var kafkaParams = new Dictionary<string, string> {
@@ -188,7 +188,7 @@ namespace Microsoft.Spark.CSharp
         internal static void DStreamConstantDStreamSample()
         {
             var sc = SparkCLRSamples.SparkContext;
-            var ssc = new StreamingContext(sc, 2000);
+            var ssc = new StreamingContext(sc, 2);
 
             const int count = 100;
             const int partitions = 2;

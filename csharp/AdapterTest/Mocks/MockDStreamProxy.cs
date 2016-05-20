@@ -57,7 +57,7 @@ namespace AdapterTest.Mocks
         {
         }
 
-        public void Checkpoint(long intervalMs)
+        public void Checkpoint(int intervalSeconds)
         {
         }
 

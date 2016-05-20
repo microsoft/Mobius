@@ -43,11 +43,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             }
         }
 
-        public StreamingContextIpcProxy(SparkContext sparkContext, long durationMs)
+        public StreamingContextIpcProxy(SparkContext sparkContext, int durationSeconds)
         {
             this.sparkContext = sparkContext;
             sparkContextProxy = sparkContext.SparkContextProxy;
-            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { durationMs });
+            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { (long)durationSeconds * 1000 });
 
             JvmObjectReference jvmSparkContextReference = (sparkContextProxy as SparkContextIpcProxy).JvmSparkContextReference;
             jvmStreamingContextReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.StreamingContext", new object[] { jvmSparkContextReference, jduration });
@@ -99,9 +99,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "closeCallback");
         }
 
-        public void Remember(long durationMs)
+        public void Remember(int durationSeconds)
         {
-            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { (int)durationMs });
+            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { (long)durationSeconds * 1000 });
 
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "remember", new object[] { jduration });
         }
