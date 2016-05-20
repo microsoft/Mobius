@@ -21,7 +21,7 @@ namespace Microsoft.Spark.CSharp
     {
         private static int count;
         private static bool stopFileServer;
-        private static void StartFileServer(string directory, string pattern, int loop)
+        private static void StartFileServer(StreamingContext ssc, string directory, string pattern, int loops = 1)
         {
             string testDir = Path.Combine(directory, "test");
             if (!Directory.Exists(testDir))
@@ -33,26 +33,29 @@ namespace Microsoft.Spark.CSharp
 
             Task.Run(() =>
             {
+                int loop = 0;
                 while (!stopFileServer)
                 {
-                    DateTime now = DateTime.Now;
-                    foreach (string path in files)
+                    if (loop++ < loops)
                     {
-                        string text = File.ReadAllText(path);
-                        File.WriteAllText(testDir + "\\" + now.ToBinary() + "_" + Path.GetFileName(path), text);
+                        DateTime now = DateTime.Now;
+                        foreach (string path in files)
+                        {
+                            string text = File.ReadAllText(path);
+                            File.WriteAllText(testDir + "\\" + now.ToBinary() + "_" + Path.GetFileName(path), text);
+                        }
                     }
                     System.Threading.Thread.Sleep(200);
                 }
 
-                System.Threading.Thread.Sleep(3000);
-
-                foreach (var file in Directory.GetFiles(testDir, "*"))
-                    File.Delete(file);
+                ssc.Stop();
             });
+            
+            System.Threading.Thread.Sleep(1);
         }
 
-        [Sample("experimental")]
-        internal static void DStreamTextFileSamples()
+        [Sample]
+        internal static void DStreamTextFileSample()
         {
             count = 0;
 
@@ -78,7 +81,7 @@ namespace Microsoft.Spark.CSharp
                     // separate dstream transformations defined in CSharpDStream.scala
                     // an extra CSharpRDD is introduced in between these operations
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
-                    var join = wordCounts.Join(wordCounts, 2);
+                    var join = wordCounts.Window(2, 2).Join(wordCounts, 2);
                     var state = join.UpdateStateByKey<string, Tuple<int, int>, int>(new UpdateStateHelper(b).Execute);
 
                     state.ForeachRDD((time, rdd) =>
@@ -94,21 +97,23 @@ namespace Microsoft.Spark.CSharp
                         foreach (object record in taken)
                         {
                             Console.WriteLine(record);
+                            
+                            var countByWord = (KeyValuePair<string, int>)record;
+                            Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "lazy" || countByWord.Key == "dog" ? 92 : 88);
                         }
                         Console.WriteLine();
 
-                        stopFileServer = count++ > 100;
+                        stopFileServer = true;
                     });
 
                     return context;
                 });
 
+            StartFileServer(ssc, directory, "words.txt");
+
             ssc.Start();
 
-            StartFileServer(directory, "words.txt", 100);
-
             ssc.AwaitTermination();
-            ssc.Stop();
         }
 
         private static string brokers = ConfigurationManager.AppSettings["KafkaTestBrokers"] ?? "127.0.0.1:9092";
