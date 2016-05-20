@@ -57,7 +57,7 @@ namespace AdapterTest
             _mockSparkCLRProxy.Setup(m => m.CreateSparkConf(It.IsAny<bool>())).Returns(new MockSparkConfProxy()); // some of mocks which rarely change can be kept
 
             _mockSparkCLRProxy.Setup(m => m.CreateSparkContext(It.IsAny<ISparkConfProxy>())).Returns(_mockSparkContextProxy.Object);
-            _mockSparkCLRProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<long>())).Returns(_mockStreamingContextProxy.Object);
+            _mockSparkCLRProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<int>())).Returns(_mockStreamingContextProxy.Object);
             _mockRddProxy.Setup(m => m.CollectAndServe()).Returns(() =>
             {
                 TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
@@ -123,7 +123,7 @@ namespace AdapterTest
                     return _mockRddProxy.Object;
                 });
 
-            _streamingContext = new StreamingContext(new SparkContext("", ""), 1000);
+            _streamingContext = new StreamingContext(new SparkContext("", ""), 1);
 
         }
 

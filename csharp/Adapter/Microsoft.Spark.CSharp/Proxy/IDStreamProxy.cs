@@ -19,7 +19,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         void CallForeachRDD(byte[] func, string serializedMode);
         void Print(int num = 10);
         void Persist(StorageLevelType storageLevelType);
-        void Checkpoint(long intervalMs);
+        void Checkpoint(int intervalSeconds);
         IRDDProxy[] Slice(long fromUnixTime, long toUnixTime);
     }
 }

@@ -1951,6 +1951,11 @@
             and broadcast variables on that cluster.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.GetActiveSparkContext">
+            <summary>
+            Get existing SparkContext
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(System.String,System.String,System.String)">
             <summary>
             Initializes a SparkContext instance with a specific master, application name, and spark home 
@@ -6059,11 +6064,11 @@
             <param name="storageLevelType"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.DStream`1.Checkpoint(System.Int64)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.DStream`1.Checkpoint(System.Int32)">
             <summary>
             Enable periodic checkpointing of RDDs of this DStream
             </summary>
-            <param name="intervalMs">time in seconds, after each period of that, generated RDD will be checkpointed</param>
+            <param name="intervalSeconds">time in seconds, after each period of that, generated RDD will be checkpointed</param>
             <returns></returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.DStream`1.CountByValue(System.Int32)">
@@ -6320,7 +6325,7 @@
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32,System.Func{Microsoft.Spark.CSharp.Streaming.OffsetRange,System.Collections.Generic.IEnumerable{System.Collections.Generic.IList{System.Byte[]}}},System.Int32)">
             <summary>
             Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
             
@@ -6352,7 +6357,27 @@
                 If numPartitions = 0, repartition using original kafka partition count
                 If numPartitions > 0, repartition using this parameter
             </param>
+            <param name="readFunc">if defined, will be used to read kafka on C# side</param>
+            <param name="readTimeout">timeout for readFunc if value > 0</param>
             <returns>A DStream object</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.DirectKafkaStreamHelper.Execute(System.Int32,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Byte[],System.Byte[]}})">
+            <summary>
+            wrapping user defined kafka read function through OffsetRange interface
+            collecting and passing back dropped offset range due to timeout if defined
+            for JVM side driver to pick up and schedule a tast in next batch
+            </summary>
+            <param name="pid"></param>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.OffsetRange.op_Addition(Microsoft.Spark.CSharp.Streaming.OffsetRange,Microsoft.Spark.CSharp.Streaming.OffsetRange)">
+            <summary>
+            Accumulator friendly
+            </summary>
+            <param name="self"></param>
+            <param name="other"></param>
+            <returns></returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.MapWithStateDStream`4">
             <summary>
@@ -6724,12 +6749,12 @@
             </summary>
             <param name="streamingContextProxy"></param>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext,System.Int64)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext,System.Int32)">
             <summary>
             Initializes a new instance of StreamingContext with a existing SparkContext 
             </summary>
             <param name="sparkContext">An existing SparkContext</param>
-            <param name="durationMs">the time interval at which streaming data will be divided into batches</param>
+            <param name="durationSeconds">the time interval at which streaming data will be divided into batches</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.GetOrCreate(System.String,System.Func{Microsoft.Spark.CSharp.Streaming.StreamingContext})">
             <summary>
@@ -6752,14 +6777,14 @@
             Stop the execution of the streams.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.Remember(System.Int64)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.Remember(System.Int32)">
             <summary>
             Set each DStreams in this context to remember RDDs it generated in the last given duration.
             DStreams remember RDDs only for a limited duration of time and releases them for garbage
             collection. This method allows the developer to specify how long to remember the RDDs (
             if the developer wishes to query old data outside the DStream computation).
             </summary>
-            <param name="durationMs">Minimum duration that each DStream should remember its RDDs</param>
+            <param name="durationSeconds">Minimum duration that each DStream should remember its RDDs</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.StreamingContext.Checkpoint(System.String)">
             <summary>

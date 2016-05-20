@@ -43,11 +43,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             }
         }
 
-        public StreamingContextIpcProxy(SparkContext sparkContext, long durationMs)
+        public StreamingContextIpcProxy(SparkContext sparkContext, int durationSeconds)
         {
             this.sparkContext = sparkContext;
             sparkContextProxy = sparkContext.SparkContextProxy;
-            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { durationMs });
+            var jduration = JvmBridgeUtils.GetJavaDuration(durationSeconds);
 
             JvmObjectReference jvmSparkContextReference = (sparkContextProxy as SparkContextIpcProxy).JvmSparkContextReference;
             jvmStreamingContextReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.StreamingContext", new object[] { jvmSparkContextReference, jduration });
@@ -99,9 +99,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "closeCallback");
         }
 
-        public void Remember(long durationMs)
+        public void Remember(int durationSeconds)
         {
-            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { (int)durationMs });
+            var jduration = JvmBridgeUtils.GetJavaDuration(durationSeconds);
 
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "remember", new object[] { jduration });
         }
@@ -134,8 +134,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode)
         {
-            var windowDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { (long) windowSeconds * 1000 });
-            var slideDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { (long) slideSeconds * 1000 });
+            var windowDurationReference = JvmBridgeUtils.GetJavaDuration(windowSeconds);
+            var slideDurationReference = JvmBridgeUtils.GetJavaDuration(slideSeconds);
 
             var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpReducedWindowedDStream",
                 new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, invFunc, windowDurationReference, slideDurationReference, serializationMode });

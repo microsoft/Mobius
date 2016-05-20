@@ -16,7 +16,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         SparkContext SparkContext { get; }
         void Start();
         void Stop();
-        void Remember(long durationMs);
+        void Remember(int durationSeconds);
         void Checkpoint(string directory);
         IDStreamProxy TextFileStream(string directory);
         IDStreamProxy SocketTextStream(string hostname, int port, StorageLevelType storageLevelType);

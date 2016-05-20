@@ -26,7 +26,7 @@ namespace AdapterTest
                                 .Returns(mockDstreamProxy);
 
             var mockSparkClrProxy = new Mock<ISparkCLRProxy>();
-            mockSparkClrProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<long>()))
+            mockSparkClrProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<int>()))
                 .Returns(streamingContextProxy.Object);
             SparkCLREnvironment.SparkCLRProxy = mockSparkClrProxy.Object;
 

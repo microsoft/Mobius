@@ -16,7 +16,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         // or restore it from checkpoint. Thus this function is called before IStreamingContextProxy is initialized. So CheckpointExists()
         // should not be put to IStreamingContextProxy.
         bool CheckpointExists(string checkpointPath);
-        IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs);
+        IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, int durationSeconds);
         IStreamingContextProxy CreateStreamingContext(string checkpointPath);
     }
 }
