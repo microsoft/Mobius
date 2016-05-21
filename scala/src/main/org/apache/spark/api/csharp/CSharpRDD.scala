@@ -5,17 +5,18 @@
 
 package org.apache.spark.api.csharp
 
-import java.nio.ByteBuffer
-import java.nio.channels.{OverlappingFileLockException, FileChannel, FileLock}
-import java.util.{List => JList, Map => JMap}
 import java.io._
-import java.util.{ArrayList => JArrayList, List => JList, Map => JMap}
+import java.nio.ByteBuffer
+import java.nio.channels.{FileChannel, FileLock, OverlappingFileLockException}
+import java.nio.file.{Files, Paths}
+import java.nio.file.attribute.PosixFilePermission._
+import java.util.{List => JList, Map => JMap}
 
+import org.apache.spark._
+import org.apache.spark.api.java.JavaRDD
 import org.apache.spark.api.python.{PythonBroadcast, PythonRDD}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{TaskContext, Partition, Accumulator, SparkContext}
-import org.apache.spark.api.java.{JavaPairRDD, JavaRDD, JavaSparkContext}
 import org.apache.spark.util.csharp.{Utils => CSharpUtils}
 
 /**
@@ -39,13 +40,34 @@ class CSharpRDD(
     envVars,
     cSharpIncludes,
     preservePartitioning,
-    cSharpWorkerExecutable,
+    // hacky check
+    // TODO: fix this
+    {
+      var path = Paths.get(cSharpWorkerExecutable)
+      if (!path.isAbsolute && path.getNameCount == 1) {
+        path = Paths.get(".", path.toString)
+      }
+      path.toString
+    },
     unUsedVersionIdentifier,
     broadcastVars,
     accumulator) {
 
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
-    unzip(new File(cSharpWorkerExecutable).getAbsoluteFile.getParentFile)
+    val cSharpWorker = new File(cSharpWorkerExecutable).getAbsoluteFile
+    unzip(cSharpWorker.getParentFile)
+
+    // hacky check
+    // TODO: fix this
+    val cSharpWorkerPath = cSharpWorker.toPath
+    if (CSharpUtils.supportPosix) {
+      val permissions = Files.getPosixFilePermissions(cSharpWorkerPath)
+      permissions.add(OWNER_EXECUTE)
+      permissions.add(GROUP_EXECUTE)
+      permissions.add(OTHERS_EXECUTE)
+      Files.setPosixFilePermissions(cSharpWorkerPath, permissions)
+    }
+
     logInfo(s"compute CSharpRDD[${this.id}], stageId: ${context.stageId()}" +
       s", partitionId: ${context.partitionId()}, split_index: ${split.index}")
 
@@ -112,7 +134,7 @@ class CSharpRDD(
 
     try {
       file = new RandomAccessFile(lockFile, "rw")
-      channel = file.getChannel()
+      channel = file.getChannel
       lock = channel.tryLock()
 
       if (lock == null) {
@@ -141,14 +163,13 @@ class CSharpRDD(
       logInfo("Unzip done.")
 
     } catch {
-      case e: OverlappingFileLockException => {
+      case e: OverlappingFileLockException =>
         logInfo("Already obtained the lock.")
         waitUnzipOperationDone(doneFlag)
-      }
       case e: Exception => e.printStackTrace()
     }
     finally {
-      if (lock != null && lock.isValid()) lock.release()
+      if (lock != null && lock.isValid) lock.release()
       if (channel != null && channel.isOpen) channel.close()
       if (file != null) file.close()
     }
@@ -156,7 +177,7 @@ class CSharpRDD(
 
   /**
    * Wait until doneFlag file is created, or total waiting time exceeds threshold
-   * @param doneFlag
+   * @param doneFlag doneFlag file
    */
   private def waitUnzipOperationDone(doneFlag: File): Unit = {
     val maxSleepTimeInSeconds = 30 // max wait time
