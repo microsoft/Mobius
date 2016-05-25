@@ -54,7 +54,7 @@ namespace Microsoft.Spark.CSharp
             System.Threading.Thread.Sleep(1);
         }
 
-        [Sample]
+        [Sample("experimental")]
         internal static void DStreamTextFileSample()
         {
             count = 0;
