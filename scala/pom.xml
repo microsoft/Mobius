@@ -2,22 +2,22 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.sparkclr</groupId>
   <artifactId>spark-clr_2.10</artifactId>
-  <version>1.6.1-SNAPSHOT</version>
-  <name>SparkCLR Project</name>
+  <version>1.6.101-SNAPSHOT</version>
+  <name>Mobius Project</name>
   <description>C# language binding and extensions to Apache Spark</description>
-  <url>https://github.com/Microsoft/sparkclr</url>
+  <url>https://github.com/Microsoft/Mobius</url>
   <inceptionYear>2015</inceptionYear>
   <licenses>
     <license>
       <name>MIT License</name>
-      <url>https://github.com/Microsoft/SparkCLR/blob/master/LICENSE</url>
+      <url>https://github.com/Microsoft/Mobius/blob/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
 
   <developers>
     <developer>
-      <name>SparkCLR Team</name>
+      <name>Mobius Team</name>
       <email>sparkclrdev@microsoft.com</email>
       <organization>Microsoft</organization>
       <organizationUrl>http://www.microsoft.com</organizationUrl>
@@ -25,9 +25,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git@github.com:Microsoft/SparkCLR.git</connection>
-    <developerConnection>scm:git:git@github.com:Microsoft/SparkCLR.git</developerConnection>
-    <url>git@github.com:Microsoft/SparkCLR.git</url>
+    <connection>scm:git:git@github.com:Microsoft/Mobius.git</connection>
+    <developerConnection>scm:git:git@github.com:Microsoft/Mobius.git</developerConnection>
+    <url>git@github.com:Microsoft/Mobius.git</url>
   </scm>
 
   <properties>

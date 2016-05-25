@@ -290,9 +290,7 @@ class DynamicPartitionKafkaInputDStream[
   }
 
   override def start(): Unit = {
-    if(refreshOffsetsScheduler == null) {
-      instantiateAndStartRefreshOffsetsScheduler
-    }
+    instantiateAndStartRefreshOffsetsScheduler
   }
 
   override def stop(): Unit = {

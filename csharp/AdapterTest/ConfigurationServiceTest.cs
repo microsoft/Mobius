@@ -99,7 +99,7 @@ namespace AdapterTest
                 oldPort = SetEnviromentVariable(ConfigurationService.CSHARPBACKEND_PORT, Convert.ToString(backendPort));
 
                 Assert.AreEqual(backendPort, localConfiguration.BackendPortNumber);
-                Assert.AreEqual(ConfigurationService.ProcFileName, localConfiguration.GetCSharpWorkerExePath());
+                Assert.AreEqual(Path.Combine(".", ConfigurationService.ProcFileName), localConfiguration.GetCSharpWorkerExePath());
             }
             finally
             {
