@@ -56,11 +56,11 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// Initializes a new instance of StreamingContext with a existing SparkContext 
         /// </summary>
         /// <param name="sparkContext">An existing SparkContext</param>
-        /// <param name="durationMs">the time interval at which streaming data will be divided into batches</param>
-        public StreamingContext(SparkContext sparkContext, long durationMs)
+        /// <param name="durationSeconds">the time interval at which streaming data will be divided into batches</param>
+        public StreamingContext(SparkContext sparkContext, int durationSeconds)
         {
             this.sparkContext = sparkContext;
-            streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationMs);
+            streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationSeconds);
         }
 
         /// <summary>
@@ -106,10 +106,10 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// collection. This method allows the developer to specify how long to remember the RDDs (
         /// if the developer wishes to query old data outside the DStream computation).
         /// </summary>
-        /// <param name="durationMs">Minimum duration that each DStream should remember its RDDs</param>
-        public void Remember(long durationMs)
+        /// <param name="durationSeconds">Minimum duration that each DStream should remember its RDDs</param>
+        public void Remember(int durationSeconds)
         {
-            streamingContextProxy.Remember(durationMs);
+            streamingContextProxy.Remember(durationSeconds);
         }
 
         /// <summary>

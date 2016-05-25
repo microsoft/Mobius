@@ -11,7 +11,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{TimeUnit, ScheduledExecutorService}
 
 import kafka.common.TopicAndPartition
 import kafka.message.MessageAndMetadata
@@ -70,8 +70,7 @@ class DynamicPartitionKafkaInputDStream[
   private var hasFetchedAllFromOffsets: Boolean = false
   private var topicAndPartitions: Set[TopicAndPartition] = Set()
 
-  @transient private var refreshOffsetsScheduler =
-    ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets-" + UUID.randomUUID().toString().substring(0,8))
+  @transient private var refreshOffsetsScheduler: ScheduledExecutorService = null
 
   // reading metadata of mutilple topics from across multiple data centers takes long time to complete,
   // which impacts DStream performance and causes UI steaming tab not responsive due to mutex held by DStream
