@@ -32,6 +32,7 @@ namespace AdapterTest
             words.Slice(DateTime.MinValue, DateTime.MaxValue);
             words.Cache();
             words.Checkpoint(1);
+            words.Window(1, 1);
 
             words.Count().ForeachRDD((time, rdd) =>
             {
