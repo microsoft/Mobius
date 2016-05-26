@@ -54,13 +54,16 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { jvmStreamingContextReference });
 
             StartAccumulatorServer(sparkContext);
+            StartCallbackServer();
         }
-        
+
         public StreamingContextIpcProxy(string checkpointPath)
         {
+            sparkContext = SparkContext.GetActiveSparkContext();
+            StartCallbackServer();
+
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { checkpointPath });
             jvmStreamingContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "ssc"));
-            sparkContext = SparkContext.GetActiveSparkContext();
             if (sparkContext == null)
             {
                 JvmObjectReference jvmSparkContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "sc"));
@@ -85,9 +88,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void Start()
         {
-            int port = StartCallbackServer();
-            logger.LogInfo("Callback server port number is {0}", port);
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hardcoded in CSharpBackendHandler
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "start");
         }
 
@@ -191,7 +191,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jlevel }).ToString());
             return new DStreamIpcProxy(jstream);
         }
-        
+
         public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
         {
             JvmObjectReference jtopics = JvmBridgeUtils.GetJavaSet<string>(topics);
@@ -381,7 +381,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 }
             });
 
-            return (callbackServer.LocalEndpoint as IPEndPoint).Port;
+            int port = (callbackServer.LocalEndpoint as IPEndPoint).Port;
+            logger.LogInfo("Callback server port number is {0}", port);
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hardcoded in CSharpBackendHandler
+
+            return port;
         }
     }
 }
