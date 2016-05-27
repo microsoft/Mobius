@@ -63,7 +63,7 @@ namespace AdapterTest.Mocks
         {
         }
 
-        public void AwaitTermination(int timeout)
+        public void AwaitTerminationOrTimeout(long timeout)
         {
         }
 
