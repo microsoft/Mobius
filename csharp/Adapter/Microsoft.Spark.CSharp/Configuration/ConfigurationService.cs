@@ -114,7 +114,7 @@ namespace Microsoft.Spark.CSharp.Configuration
             /// </summary>
             internal virtual string GetCSharpWorkerExePath()
             {
-                return Path.Combine(".", ProcFileName);
+                return ProcFileName;
             }
         }
 

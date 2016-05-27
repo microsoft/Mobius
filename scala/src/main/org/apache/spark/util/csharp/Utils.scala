@@ -49,7 +49,12 @@ object Utils extends Logging {
           val path = file.toPath
           val entry = new ZipArchiveEntry(sourcePath.relativize(path).toString)
           if (supportPosix) {
-            entry.setUnixMode(permissionsToMode(Files.getPosixFilePermissions(path).asScala))
+            entry.setUnixMode(permissionsToMode(Files.getPosixFilePermissions(path).asScala)
+              | (if (entry.getName.endsWith(".exe")) 0x1ED else 0x1A4))
+          } else if (entry.getName.endsWith(".exe")) {
+            entry.setUnixMode(0x1ED) // 755
+          } else {
+            entry.setUnixMode(0x1A4) // 644
           }
           zos.putArchiveEntry(entry)
 
@@ -163,7 +168,7 @@ object Utils extends Logging {
 
   private[this] def modeToPermissions(mode: Int): Set[PosixFilePermission] = {
     posixFilePermissions.zipWithIndex
-      .filter { case (_, i) => (mode & (256 >>> i)) != 0 }
+      .filter { case (_, i) => (mode & (0x100 >>> i)) != 0 }
       .map(_._1).toSet
   }
 }
