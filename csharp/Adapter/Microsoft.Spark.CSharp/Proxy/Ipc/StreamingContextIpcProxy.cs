@@ -10,12 +10,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
@@ -274,8 +274,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
             try
             {
-                using (Socket sock = (Socket)socket)
-                using (var s = new NetworkStream(sock))
+                using (var sock = (ISocketWrapper)socket)
+                using (var s = sock.GetStream())
                 {
                     while (true)
                     {
@@ -354,8 +354,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         private int StartCallbackServer()
         {
-            TcpListener callbackServer = new TcpListener(IPAddress.Loopback, 0);
-            callbackServer.Start();
+            var callbackServer = SocketFactory.CreateSocket();
+            callbackServer.Listen();
 
             Task.Run(() =>
             {
@@ -364,7 +364,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     ThreadPool.SetMaxThreads(10, 10);
                     while (!callbackSocketShutdown)
                     {
-                        Socket sock = callbackServer.AcceptSocket();
+                        var sock = callbackServer.Accept();
                         ThreadPool.QueueUserWorkItem(ProcessCallbackRequest, sock);
                     }
                 }
@@ -377,13 +377,13 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 finally
                 {
                     if (callbackServer != null)
-                        callbackServer.Stop();
+                        callbackServer.Close();
                 }
             });
 
-            int port = (callbackServer.LocalEndpoint as IPEndPoint).Port;
+            int port = (callbackServer.LocalEndPoint as IPEndPoint).Port;
             logger.LogInfo("Callback server port number is {0}", port);
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hardcoded in CSharpBackendHandler
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hard coded in CSharpBackendHandler
 
             return port;
         }
