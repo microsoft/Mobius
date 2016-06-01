@@ -2,28 +2,23 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Specialized;
 using System.Text;
 using Microsoft.Spark.CSharp.Core;
-using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using NUnit.Framework;
 
 namespace WorkerTest
 {
     /// <summary>
-    /// Validates MultiThreadWorker by creating a TcpListener server to 
+    /// Validates MultiThreadWorker by creating a ISocketWrapper server to 
     /// simulate interactions between CSharpRDD and CSharpWorker
     /// </summary>
     [TestFixture]
@@ -106,9 +101,9 @@ namespace WorkerTest
         /// Create new socket to simulate interaction between JVM and C#
         /// </summary>
         /// <param name="s"></param>
-        private Socket CreateSocket(int serverPort)
+        private ISocketWrapper CreateSocket(int serverPort)
         {
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var socket =SocketFactory.CreateSocket();
             socket.Connect(IPAddress.Loopback, serverPort);
             return socket;
         }
@@ -198,7 +193,7 @@ namespace WorkerTest
             Console.WriteLine("serverPort: {0}", serverPort);
 
             using (var socket = CreateSocket(serverPort))
-            using (var s = new NetworkStream(socket))
+            using (var s = socket.GetStream())
             {
                 int taskRunnerId = SerDe.ReadInt(s);
                 Console.WriteLine("taskRunnerId: {0}", taskRunnerId);
@@ -245,7 +240,7 @@ namespace WorkerTest
             Console.WriteLine("serverPort: {0}", serverPort);
 
             int num = 2;
-            var sockets = new Socket[2];
+            var sockets = new ISocketWrapper[2];
             var taskRunnerIds = new int[2];
 
             for (int index = 0; index < num; index++)
@@ -255,7 +250,7 @@ namespace WorkerTest
 
             for (int index = 0; index < num; index++)
             {
-                using (var s = new NetworkStream(sockets[index]))
+                using (var s = sockets[index].GetStream())
                 {
                     taskRunnerIds[index] = SerDe.ReadInt(s);
 

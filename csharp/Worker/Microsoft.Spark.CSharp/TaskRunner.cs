@@ -2,27 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Concurrent;
-
-using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
-using Microsoft.Spark.CSharp.Sql;
-using Razorvine.Pickle;
-using Razorvine.Pickle.Objects;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -46,14 +29,14 @@ namespace Microsoft.Spark.CSharp
         }
 
         public int trId;  // task runner Id
-        private Socket socket;  // socket to communicate with JVM
+        private ISocketWrapper socket;  // socket to communicate with JVM
 
         private volatile bool stop = false;
 
         // whether the socket can be reused to run multiple Spark tasks
         private bool socketReuse;
 
-        public TaskRunner(int trId, Socket socket, bool socketReuse)
+        public TaskRunner(int trId, ISocketWrapper socket, bool socketReuse)
         {
             this.trId = trId;
             this.socket = socket;
@@ -68,7 +51,7 @@ namespace Microsoft.Spark.CSharp
             {
                 while (!stop)
                 {
-                    using (NetworkStream networkStream = new NetworkStream(socket))
+                    using (var networkStream = socket.GetStream())
                     {
                         byte[] bytes = SerDe.ReadBytes(networkStream, sizeof(int));
                         if (bytes != null)

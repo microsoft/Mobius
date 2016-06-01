@@ -8,13 +8,12 @@ using System.IO;
 using System.Net;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
 using Microsoft.Spark.CSharp.Sql;
 using Razorvine.Pickle;
@@ -71,7 +70,7 @@ namespace Microsoft.Spark.CSharp
 
                 int javaPort = int.Parse(Console.ReadLine()); //reading port number written from JVM
                 logger.LogDebug("Port number used to pipe in/out data between JVM and CLR {0}", javaPort);
-                Socket socket = InitializeSocket(javaPort);
+                var socket = InitializeSocket(javaPort);
                 TaskRunner taskRunner = new TaskRunner(0, socket, false);
                 taskRunner.Run();
             }
@@ -103,14 +102,14 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        private static Socket InitializeSocket(int javaPort)
+        private static ISocketWrapper InitializeSocket(int javaPort)
         {
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var socket = SocketFactory.CreateSocket();
             socket.Connect(IPAddress.Loopback, javaPort);
             return socket;
         }
 
-        public static bool ProcessStream(NetworkStream networkStream, int splitIndex)
+        public static bool ProcessStream(Stream networkStream, int splitIndex)
         {
             logger.LogInfo(string.Format("Start of stream processing, splitIndex: {0}", splitIndex));
             bool readComplete = true;   // Whether all input data from the socket is read though completely
@@ -195,7 +194,7 @@ namespace Microsoft.Spark.CSharp
             return readComplete;
         }
 
-        private static void ProcessIncludesItems(NetworkStream networkStream)
+        private static void ProcessIncludesItems(Stream networkStream)
         {
             // fetch names of includes - not used //TODO - complete the impl
             int numberOfIncludesItems = SerDe.ReadInt(networkStream);
@@ -210,7 +209,7 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        private static void ProcessBroadcastVariables(NetworkStream networkStream)
+        private static void ProcessBroadcastVariables(Stream networkStream)
         {
             // fetch names and values of broadcast variables
             int numBroadcastVariables = SerDe.ReadInt(networkStream);
@@ -236,7 +235,7 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        private static IFormatter ProcessCommand(NetworkStream networkStream, int splitIndex, DateTime bootTime)
+        private static IFormatter ProcessCommand(Stream networkStream, int splitIndex, DateTime bootTime)
         {
             int lengthOfCommandByteArray = SerDe.ReadInt(networkStream);
             logger.LogDebug("command length: " + lengthOfCommandByteArray);
@@ -332,7 +331,7 @@ namespace Microsoft.Spark.CSharp
             return formatter;
         }
 
-        private static void WriteOutput(NetworkStream networkStream, string serializerMode, dynamic message, IFormatter formatter)
+        private static void WriteOutput(Stream networkStream, string serializerMode, dynamic message, IFormatter formatter)
         {
             var buffer = GetSerializedMessage(serializerMode, message, formatter);
             if (buffer == null)
@@ -390,7 +389,7 @@ namespace Microsoft.Spark.CSharp
         }
 
 
-        private static int ReadDiagnosticsInfo(NetworkStream networkStream)
+        private static int ReadDiagnosticsInfo(Stream networkStream)
         {
             int rddId = SerDe.ReadInt(networkStream);
             int stageId = SerDe.ReadInt(networkStream);
@@ -399,7 +398,7 @@ namespace Microsoft.Spark.CSharp
             return stageId;
         }
 
-        private static void WriteDiagnosticsInfo(NetworkStream networkStream, DateTime bootTime, DateTime initTime)
+        private static void WriteDiagnosticsInfo(Stream networkStream, DateTime bootTime, DateTime initTime)
         {
             DateTime finishTime = DateTime.UtcNow;
             const string format = "MM/dd/yyyy hh:mm:ss.fff tt";
@@ -414,7 +413,7 @@ namespace Microsoft.Spark.CSharp
             SerDe.Write(networkStream, 0L); //shuffle.DiskBytesSpilled
         }
 
-        private static void WriteAccumulatorValues(NetworkStream networkStream, IFormatter formatter)
+        private static void WriteAccumulatorValues(Stream networkStream, IFormatter formatter)
         {
             SerDe.Write(networkStream, Accumulator.threadLocalAccumulatorRegistry.Count);
             foreach (var item in Accumulator.threadLocalAccumulatorRegistry)

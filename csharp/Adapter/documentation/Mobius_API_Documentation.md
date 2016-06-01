@@ -380,6 +380,23 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.SocketFactory</font>
+####Summary
+  
+            
+            SocketFactory is used to create ISocketWrapper instance based on a configuration and OS version.
+            
+            The ISocket instance can be RioSocket object, if the configuration is set to RioSocket and
+            only the application is running on a Windows OS that supports Registered IO socket.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateSocket</font></td><td>Creates a ISocket instance based on the configuration and OS version.</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Sql.Column</font>
 ####Summary
   
