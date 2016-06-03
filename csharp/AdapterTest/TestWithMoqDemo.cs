@@ -14,6 +14,7 @@ using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Streaming;
 using StreamingContext = Microsoft.Spark.CSharp.Streaming.StreamingContext;
 using Moq;
@@ -60,13 +61,13 @@ namespace AdapterTest
             _mockSparkCLRProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<int>())).Returns(_mockStreamingContextProxy.Object);
             _mockRddProxy.Setup(m => m.CollectAndServe()).Returns(() =>
             {
-                TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
-                listener.Start();
+                var listener = SocketFactory.CreateSocket();
+                listener.Listen();
 
                 Task.Run(() =>
                 {
-                    using (Socket socket = listener.AcceptSocket())
-                    using (Stream ns = new NetworkStream(socket))
+                    using (var socket = listener.Accept())
+                    using (var ns = socket.GetStream())
                     {
                         foreach (var item in result)
                         {
@@ -78,7 +79,7 @@ namespace AdapterTest
                         }
                     }
                 });
-                return (listener.LocalEndpoint as IPEndPoint).Port;
+                return (listener.LocalEndPoint as IPEndPoint).Port;
             });
             _mockRddProxy.Setup(m => m.RDDCollector).Returns(new RDDCollector());
 

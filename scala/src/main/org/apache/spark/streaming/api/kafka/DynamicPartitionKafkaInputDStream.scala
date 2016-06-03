@@ -5,7 +5,9 @@
 
 package org.apache.spark.streaming.kafka
 
-import java.util.UUID
+import org.apache.spark.rdd.RDD
+import org.apache.spark.streaming.api.csharp.CSharpDStream
+import org.apache.spark.streaming.scheduler.rate.RateEstimator
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -17,12 +19,11 @@ import kafka.common.TopicAndPartition
 import kafka.message.MessageAndMetadata
 import kafka.serializer.Decoder
 
-import org.apache.spark.{Logging, SparkException}
+import org.apache.spark.Logging
 import org.apache.spark.streaming.{StreamingContext, Time}
 import org.apache.spark.streaming.dstream._
 import org.apache.spark.streaming.kafka.KafkaCluster.LeaderOffset
 import org.apache.spark.streaming.scheduler.{RateController, StreamInputInfo}
-import org.apache.spark.streaming.scheduler.rate.RateEstimator
 import org.apache.spark.util.ThreadUtils
 
 /**
@@ -52,23 +53,32 @@ class DynamicPartitionKafkaInputDStream[
   T <: Decoder[V]: ClassTag,
   R: ClassTag](
     ssc_ : StreamingContext,
-    override val kafkaParams: Map[String, String],
+    val kafkaParams: Map[String, String],
     topics: Set[String],
-    override val fromOffsets: Map[TopicAndPartition, Long],
+    val fromOffsets: Map[TopicAndPartition, Long],
     messageHandler: MessageAndMetadata[K, V] => R,
-    numPartitions: Int
-  ) extends DirectKafkaInputDStream[K, V, U, T, R](ssc_, kafkaParams, fromOffsets, messageHandler) {
+    numPartitions: Int,
+    cSharpFunc: Array[Byte] = null,
+    serializationMode: String = null
+  ) extends InputDStream[R](ssc_) with Logging {
+  val maxRetries = context.sparkContext.getConf.getInt(
+    "spark.streaming.kafka.maxRetries", 1)
+
+  // Keep this consistent with how other streams are named (e.g. "Flume polling stream [2]")
+  private[streaming] override def name: String = s"Dynamic partition Kafka direct stream [$id]"
 
   protected[streaming] override val checkpointData =
     new DynamicPartitionKafkaInputDStreamCheckpointData
 
-  override protected val kc = new DynamicPartitionKafkaCluster(kafkaParams)
+  protected val kc = new DynamicPartitionKafkaCluster(kafkaParams)
+
+  @transient protected[streaming] var currentOffsets = fromOffsets
 
   private val autoOffsetReset: Option[String] =
     kafkaParams.get("auto.offset.reset").map(_.toLowerCase)
   private var hasFetchedAllPartitions: Boolean = false
   private var hasFetchedAllFromOffsets: Boolean = false
-  private var topicAndPartitions: Set[TopicAndPartition] = Set()
+  @transient private[streaming] var topicAndPartitions: Set[TopicAndPartition] = Set()
 
   @transient private var refreshOffsetsScheduler: ScheduledExecutorService = null
 
@@ -79,10 +89,10 @@ class DynamicPartitionKafkaInputDStream[
   // which is OK since batches are still generated at the same interval
   // the interval is set to half of the batch interval to make sure they're not in sync to block each other
   // TODO: configurable as performance tuning option
-  private var refreshOffsetsInterval = Math.max(slideDuration.milliseconds / 2, 50)
+  private val refreshOffsetsInterval = Math.max(slideDuration.milliseconds / 2, 50)
 
   // fromOffsets and untilOffsets for next batch
-  @volatile var offsetsRangeForNextBatch:
+  @transient @volatile var offsetsRangeForNextBatch:
   Option[(Map[TopicAndPartition, Long], Map[TopicAndPartition, LeaderOffset])] = None
 
 
@@ -214,8 +224,10 @@ class DynamicPartitionKafkaInputDStream[
       }
     }
     val leaderOffsets = getLatestLeaderOffsets(topicAndPartitions, maxRetries)
+    val leaderOffsetCount = leaderOffsets.count(_ => true)
+    logInfo(s"leaderOffsets count for stream $id: $leaderOffsetCount")
     val fromOffsets = resetFromOffsets(leaderOffsets)
-    val untilOffsets = clamp(leaderOffsets)
+    val untilOffsets = leaderOffsets
     synchronized {
       offsetsRangeForNextBatch = Some((fromOffsets, untilOffsets))
     }
@@ -226,8 +238,8 @@ class DynamicPartitionKafkaInputDStream[
     // start a new thread to refresh offsets range asynchronously
     if (refreshOffsetsScheduler == null) {
       refreshOffsetsScheduler =
-        ThreadUtils.newDaemonSingleThreadScheduledExecutor("refresh-offsets-" + UUID.randomUUID().toString().substring(0, 8))
-      logInfo("Instantiated refreshOffsetsScheduler successfully.")
+        ThreadUtils.newDaemonSingleThreadScheduledExecutor(s"refresh-offsets-$id")
+      logInfo(s"Instantiated refreshOffsetsScheduler successfully for stream $id.")
     }
     refreshOffsetsScheduler.scheduleAtFixedRate(new Runnable {
       override def run(): Unit = {
@@ -248,7 +260,14 @@ class DynamicPartitionKafkaInputDStream[
     }
   }
 
-  override def compute(validTime: Time): Option[DynamicPartitionKafkaRDD[K, V, U, T, R]] = {
+  private def callCSharpTransform(rdd: DynamicPartitionKafkaRDD[K, V, U, T, R], validTime: Time): Option[RDD[R]] = {
+    if (cSharpFunc == null)
+      Some(rdd)
+    else
+      CSharpDStream.callCSharpTransform(List(Some(rdd)), validTime, cSharpFunc, List(serializationMode)).asInstanceOf[Option[RDD[R]]]
+  }
+
+  override def compute(validTime: Time): Option[RDD[R]] = {
     var offsetsRange:
     Option[(Map[TopicAndPartition, Long], Map[TopicAndPartition, LeaderOffset])] = None
     synchronized {
@@ -266,6 +285,8 @@ class DynamicPartitionKafkaInputDStream[
 
     val rdd = DynamicPartitionKafkaRDD[K, V, U, T, R](
       context.sparkContext, kafkaParams, fromOffsets, untilOffsets, messageHandler, numPartitions)
+
+    val csharpRdd = callCSharpTransform(rdd, validTime)
 
     // Report the record number and metadata of this batch interval to InputInfoTracker.
     val offsetRanges = fromOffsets.map { case (tp, fo) =>
@@ -286,7 +307,7 @@ class DynamicPartitionKafkaInputDStream[
     val inputInfo = StreamInputInfo(id, rdd.count, metadata)
     ssc.scheduler.inputInfoTracker.reportInfo(validTime, inputInfo)
 
-    Some(rdd)
+    csharpRdd
   }
 
   override def start(): Unit = {
@@ -300,12 +321,15 @@ class DynamicPartitionKafkaInputDStream[
   }
 
   private[streaming]
-  class DynamicPartitionKafkaInputDStreamCheckpointData extends DirectKafkaInputDStreamCheckpointData {
+  class DynamicPartitionKafkaInputDStreamCheckpointData extends DStreamCheckpointData(this) {
+    def batchForTime: mutable.HashMap[Time, Array[(String, Int, Long, Long)]] = {
+      data.asInstanceOf[mutable.HashMap[Time, Array[OffsetRange.OffsetRangeTuple]]]
+    }
 
     override def update(time: Time) {
       batchForTime.clear()
       generatedRDDs.foreach { kv =>
-        val a = kv._2.asInstanceOf[DynamicPartitionKafkaRDD[K, V, U, T, R]].offsetRanges.map(_.toTuple).toArray
+        val a = (if (cSharpFunc == null) kv._2 else kv._2.firstParent[R]).asInstanceOf[DynamicPartitionKafkaRDD[K, V, U, T, R]].offsetRanges.map(_.toTuple).toArray
         batchForTime += kv._1 -> a
       }
     }
@@ -313,15 +337,23 @@ class DynamicPartitionKafkaInputDStream[
     override def cleanup(time: Time) { }
 
     override def restore() {
+      currentOffsets = batchForTime(batchForTime.keys.max).map(o => (TopicAndPartition(o._1, o._2), o._4)).toMap
       // this is assuming that the topics don't change during execution, which is true currently
-      val topics = fromOffsets.keySet
-      //val leaders = KafkaCluster.checkErrors(kc.findLeaders(topics))
-      val (err, leaders) = kc.findLeaders2(topics)
+      topicAndPartitions = currentOffsets.keySet
+      offsetsRangeForNextBatch = None
+      instantiateAndStartRefreshOffsetsScheduler()
+      // for unit test purpose only, it will not get here in prod if broker list is empty
+      val leaders = if (kafkaParams("metadata.broker.list").isEmpty)
+        Map[TopicAndPartition, (String, Int)]()
+      else
+        KafkaCluster.checkErrors(kc.findLeaders(topicAndPartitions))
+      val leaderCount = leaders.count(_ => true)
+      logInfo(s"Restoring DynamicPartitionKafkaRDD for leaders: $leaderCount $leaders")
 
       batchForTime.toSeq.sortBy(_._1)(Time.ordering).foreach { case (t, b) =>
-        logInfo(s"Restoring DynamicPartitionKafkaRDD for time $t ${b.mkString("[", ", ", "]")}")
-        generatedRDDs += t -> new DynamicPartitionKafkaRDD[K, V, U, T, R](
-          context.sparkContext, kafkaParams, b.map(OffsetRange(_)), leaders, messageHandler, numPartitions)
+        logInfo(s"Restoring DynamicPartitionKafkaRDD for id $id time $t ${b.mkString("[", ", ", "]")}")
+        generatedRDDs += t -> callCSharpTransform(new DynamicPartitionKafkaRDD[K, V, U, T, R](
+          context.sparkContext, kafkaParams, b.map(OffsetRange(_)), leaders, messageHandler, numPartitions), t).get
       }
     }
   }

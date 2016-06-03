@@ -5,12 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Core
@@ -23,10 +23,10 @@ namespace Microsoft.Spark.CSharp.Core
         public IEnumerable<dynamic> Collect(int port, SerializedMode serializedMode, Type type)
         {
             IFormatter formatter = new BinaryFormatter();
-            Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var sock = SocketFactory.CreateSocket();
             sock.Connect(IPAddress.Loopback, port);
 
-            using (NetworkStream s = new NetworkStream(sock))
+            using (var s = sock.GetStream())
             {
                 byte[] buffer;
                 while ((buffer = SerDe.ReadBytes(s)) != null && buffer.Length > 0)

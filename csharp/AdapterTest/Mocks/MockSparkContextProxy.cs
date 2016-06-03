@@ -3,21 +3,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
-using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Interop.Ipc;
-using NUnit.Framework;
+using Microsoft.Spark.CSharp.Network;
 
 namespace AdapterTest.Mocks
 {
@@ -204,13 +199,13 @@ namespace AdapterTest.Mocks
                     return ms.ToArray();
                 });
 
-            TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
+            var listener = SocketFactory.CreateSocket();
+            listener.Listen();
 
             Task.Run(() =>
             {
-                using (Socket socket = listener.AcceptSocket())
-                using (Stream ns = new NetworkStream(socket))
+                using (var socket = listener.Accept())
+                using (var ns = socket.GetStream())
                 {
                     foreach (var item in result)
                     {
@@ -219,7 +214,7 @@ namespace AdapterTest.Mocks
                     }
                 }
             });
-            return (listener.LocalEndpoint as IPEndPoint).Port;
+            return (listener.LocalEndPoint as IPEndPoint).Port;
         }
 
         public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)

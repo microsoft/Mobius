@@ -2672,7 +2672,7 @@
         <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.JvmBridge">
             <summary>
             Implementation of thread safe IPC bridge between JVM and CLR
-            throught a concourrent socket connection queue (lightweight synchronisation mechanism)
+            Using a concurrent socket connection queue (lightweight synchronization mechanism)
             supporting async JVM calls like StreamingContext.AwaitTermination()
             </summary>
         </member>
@@ -2880,6 +2880,139 @@
             </summary>
             <param name="s">The stream to write</param>
             <param name="value">The string to write</param>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper">
+            <summary>
+            A simple wrapper of System.Net.Sockets.Socket class.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Network.ISocketWrapper">
+            <summary>
+            ISocketWrapper interface defines the common methods to operate a socket (traditional socket or 
+            Windows Registered IO socket)
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Accept">
+            <summary>
+            Accepts a incoming connection request.
+            </summary>
+            <returns>A ISocket instance used to send and receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Close">
+            <summary>
+            Close the ISocket connections and releases all associated resources.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+            <summary>
+            Establishes a connection to a remote host that is specified by an IP address and a port number
+            </summary>
+            <param name="remoteaddr">The IP address of the remote host</param>
+            <param name="port">The port number of the remote host</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.GetStream">
+            <summary>
+            Returns a stream used to send and receive data.
+            </summary>
+            <returns>The underlying Stream instance that be used to send and receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Listen(System.Int32)">
+            <summary>
+            Starts listening for incoming connections requests
+            </summary>
+            <param name="backlog">The maximum length of the pending connections queue. </param>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ISocketWrapper.LocalEndPoint">
+            <summary>
+            Returns the local endpoint.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.#ctor">
+            <summary>
+            Default constructor that creates a new instance of DefaultSocket class which represents
+            a traditional socket (System.Net.Socket.Socket).
+            
+            This socket is bound to Loopback with port 0.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.#ctor(System.Net.Sockets.Socket)">
+            <summary>
+            Initializes a instance of DefaultSocket class using the specified System.Net.Socket.Socket object.
+            </summary>
+            <param name="socket">The existing socket</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Accept">
+            <summary>
+            Accepts a incoming connection request.
+            </summary>
+            <returns>A DefaultSocket instance used to send and receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Close">
+            <summary>
+            Close the socket connections and releases all associated resources.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+            <summary>
+            Establishes a connection to a remote host that is specified by an IP address and a port number
+            </summary>
+            <param name="remoteaddr">The IP address of the remote host</param>
+            <param name="port">The port number of the remote host</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.GetStream">
+            <summary>
+            Returns the NetworkStream used to send and receive data.
+            </summary>
+            <returns>The underlying Stream instance that be used to send and receive data</returns>
+            <remarks>
+            GetStream returns a NetworkStream that you can use to send and receive data. You must close/dispose
+            the NetworkStream by yourself. Closing DefaultSocketWrapper does not release the NetworkStream
+            </remarks>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Listen(System.Int32)">
+            <summary>
+            Starts listening for incoming connections requests
+            </summary>
+            <param name="backlog">The maximum length of the pending connections queue. </param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Dispose(System.Boolean)">
+            <summary>
+            Disposes the resources used by this instance of the DefaultSocket class.
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Dispose">
+            <summary>
+            Releases all resources used by the current instance of the DefaultSocket class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Finalize">
+            <summary>
+            Frees resources used by DefaultSocket class
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.LocalEndPoint">
+            <summary>
+            Returns the local endpoint.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Network.SocketFactory">
+            <summary>
+            SocketFactory is used to create ISocketWrapper instance based on a configuration and OS version.
+            
+            The ISocket instance can be RioSocket object, if the configuration is set to RioSocket and
+            only the application is running on a Windows OS that supports Registered IO socket.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.SocketFactory.CreateSocket">
+            <summary>
+            Creates a ISocket instance based on the configuration and OS version.
+            </summary>
+            <returns>
+            A RioSocket instance, if the configuration is set to RioSocket and only the application
+            is running on a Window OS that supports Registered IO socket. By default, it returns
+            DefaultSocket instance which wraps System.Net.Sockets.Socket.
+            </returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Proxy.Ipc.DataFrameIpcProxy.Intersect(Microsoft.Spark.CSharp.Proxy.IDataFrameProxy)">
             <summary>
@@ -6325,7 +6458,7 @@
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32,System.Func{Microsoft.Spark.CSharp.Streaming.OffsetRange,System.Collections.Generic.IEnumerable{System.Collections.Generic.IList{System.Byte[]}}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32)">
             <summary>
             Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
             
@@ -6357,27 +6490,7 @@
                 If numPartitions = 0, repartition using original kafka partition count
                 If numPartitions > 0, repartition using this parameter
             </param>
-            <param name="readFunc">if defined, will be used to read kafka on C# side</param>
-            <param name="readTimeout">timeout for readFunc if value > 0</param>
             <returns>A DStream object</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.DirectKafkaStreamHelper.Execute(System.Int32,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Byte[],System.Byte[]}})">
-            <summary>
-            wrapping user defined kafka read function through OffsetRange interface
-            collecting and passing back dropped offset range due to timeout if defined
-            for JVM side driver to pick up and schedule a tast in next batch
-            </summary>
-            <param name="pid"></param>
-            <param name="input"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.OffsetRange.op_Addition(Microsoft.Spark.CSharp.Streaming.OffsetRange,Microsoft.Spark.CSharp.Streaming.OffsetRange)">
-            <summary>
-            Accumulator friendly
-            </summary>
-            <param name="self"></param>
-            <param name="other"></param>
-            <returns></returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.MapWithStateDStream`4">
             <summary>
