@@ -123,13 +123,20 @@ sparkclr-submit.cmd ^
 
 ### Requirements
 * Mono
- * Installation instructions for [Ubuntu and similiar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives)
- * Installation instructions for [CentOS, OSX and similar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#centos-7-fedora-19-and-later-and-derivatives)
+ * Follow installation instructions for [Ubuntu and similiar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives) or [CentOS, OSX and similar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#centos-7-fedora-19-and-later-and-derivatives). 
+ * If you are using CentOS, OSX and similar Linux distributions, make sure Mono is added to the path using the following script
+```bash
+# update mono path if needed
+export PATH=$PATH:/opt/mono/bin
+export PKG_CONFIG_PATH=/opt/mono/lib/pkgconfig
+```
 * [Mobius release 1.6.100-PREVIEW1](https://github.com/Microsoft/Mobius/releases/tag/v1.6.101-PREVIEW-1) or above
 
 The [instructions](./running-mobius-app.md#windows-instructions) above cover running Mobius applications in Windows. With the following tweaks, the same instructions can be used to run Mobius applications in Linux.
 * Instead of `RunSamples.cmd`, use `run-samples.sh`
 * Instead of `sparkclr-submit.cmd`, use `sparkclr-submit.sh`
+
+**Note** - only client mode is support in Mobius on YARN in Linux. Support for [cluster mode](https://github.com/Microsoft/Mobius/issues/467) will be added soon.
 
 ### Mobius in Azure HDInsight Spark Cluster
 * Follow [instructions](./running-mobius-app.md#requirements) for Ubuntu
