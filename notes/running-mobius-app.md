@@ -123,8 +123,8 @@ sparkclr-submit.cmd ^
 
 ### Requirements
 * Mono
- * Installing in [Ubuntu and similiar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives)
- * Installing in [CentOS, OSX and similar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#centos-7-fedora-19-and-later-and-derivatives)
+ * Installation instructions for [Ubuntu and similiar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives)
+ * Installation instructions for [CentOS, OSX and similar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#centos-7-fedora-19-and-later-and-derivatives)
 * [Mobius release 1.6.100-PREVIEW1](https://github.com/Microsoft/Mobius/releases/tag/v1.6.101-PREVIEW-1) or above
 
 The [instructions](./running-mobius-app.md#windows-instructions) above cover running Mobius applications in Windows. With the following tweaks, the same instructions can be used to run Mobius applications in Linux.
@@ -132,10 +132,10 @@ The [instructions](./running-mobius-app.md#windows-instructions) above cover run
 * Instead of `sparkclr-submit.cmd`, use `sparkclr-submit.sh`
 
 ### Mobius in Azure HDInsight Spark Cluster
-* Follow [instructions](./running-mobius-app.md#ubuntu-and-similiar-linux-distributions) for Ubuntu
+* Follow [instructions](./running-mobius-app.md#requirements) for Ubuntu
 
 ### Mobius in Amazon Web Services EMR Spark Cluster
-* Follow [instructions](./running-mobius-app.md#centOS-OSX-and-similar-linux-distributions) for CentOS
+* Follow [instructions](./running-mobius-app.md#requirements) for CentOS
 
 ## Running Mobius Examples in Local Mode
 | Type          | Examples      |
