@@ -139,7 +139,7 @@ The [instructions](./running-mobius-app.md#windows-instructions) above cover run
 **Note** - only client mode is support in Mobius on YARN in Linux. Support for [cluster mode](https://github.com/Microsoft/Mobius/issues/467) will be added soon.
 
 ### Mobius in Azure HDInsight Spark Cluster
-* Mono version available in HDInsight cluster is 3.2. Mobius [requires](/notes/linux-instructions.md#prerequisites) 4.2 or above. So, Mono has to be upgraded in HDInsight cluster to use Mobius.
+* Mono version available in HDInsight cluster is 3.x. Mobius [requires](/notes/linux-instructions.md#prerequisites) 4.2 or above. So, Mono has to be upgraded in HDInsight cluster to use Mobius.
 * Follow [instructions](./running-mobius-app.md#requirements) for Ubuntu
 
 ### Mobius in Amazon Web Services EMR Spark Cluster
