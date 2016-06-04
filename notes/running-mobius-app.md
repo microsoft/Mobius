@@ -130,7 +130,7 @@ sparkclr-submit.cmd ^
 export PATH=$PATH:/opt/mono/bin
 export PKG_CONFIG_PATH=/opt/mono/lib/pkgconfig
 ```
-* [Mobius release 1.6.100-PREVIEW1](https://github.com/Microsoft/Mobius/releases/tag/v1.6.101-PREVIEW-1) or above
+* [Mobius release 1.6.101-PREVIEW1](https://github.com/Microsoft/Mobius/releases/tag/v1.6.101-PREVIEW-1) or above
 
 The [instructions](./running-mobius-app.md#windows-instructions) above cover running Mobius applications in Windows. With the following tweaks, the same instructions can be used to run Mobius applications in Linux.
 * Instead of `RunSamples.cmd`, use `run-samples.sh`
