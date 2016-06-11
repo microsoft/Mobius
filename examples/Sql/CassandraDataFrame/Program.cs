@@ -17,7 +17,7 @@ namespace Microsoft.Spark.CSharp.Examples
         static void Main(string[] args)
         {
             var cassandraHostName = "localhost";
-            var cassandraKeySpace = "test";
+            var cassandraKeySpace = "ks";
             var cassandraTable = "users";
 
             /*
@@ -84,7 +84,7 @@ namespace Microsoft.Spark.CSharp.Examples
                 Console.WriteLine(rddCollectedItem);
             }
 
-            Console.WriteLine("Complted running example");
+            Console.WriteLine("Completed running example");
         }
     }
 }
