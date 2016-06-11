@@ -163,10 +163,10 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <summary>
         /// Wait for the execution to stop.
         /// </summary>
-        /// <param name="timeout">time to wait in seconds</param>
-        public void AwaitTerminationOrTimeout(int timeout)
+        /// <param name="timeout">time to wait in milliseconds</param>
+        public void AwaitTerminationOrTimeout(long timeout)
         {
-            streamingContextProxy.AwaitTermination(timeout);
+            streamingContextProxy.AwaitTerminationOrTimeout(timeout);
         }
 
         /// <summary>

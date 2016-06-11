@@ -263,9 +263,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTermination");
         }
 
-        public void AwaitTermination(int timeout)
+        public void AwaitTerminationOrTimeout(long timeout)
         {
-            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTermination", new object[] { timeout });
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTerminationOrTimeout", new object[] { timeout });
         }
 
         private void ProcessCallbackRequest(object socket)

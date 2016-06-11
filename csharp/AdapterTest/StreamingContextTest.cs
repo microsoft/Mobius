@@ -46,5 +46,28 @@ namespace AdapterTest
             ssc.AwaitTermination();
             ssc.Stop();
         }
+
+        [Test]
+        public void TestStreamingAwaitTimeout()
+        {
+            var ssc = new StreamingContext(new SparkContext("", ""), 1000);
+            Assert.IsNotNull((ssc.streamingContextProxy as MockStreamingContextProxy));
+
+            ssc.Start();
+            ssc.Remember(1000);
+            ssc.Checkpoint(Path.GetTempPath());
+
+            var textFile = ssc.TextFileStream(Path.GetTempPath());
+            Assert.IsNotNull(textFile.DStreamProxy);
+
+            var socketStream = ssc.SocketTextStream(IPAddress.Loopback.ToString(), 12345);
+            Assert.IsNotNull(socketStream.DStreamProxy);
+
+            var union = ssc.Union(textFile, socketStream);
+            Assert.IsNotNull(union.DStreamProxy);
+
+            ssc.AwaitTerminationOrTimeout(3000);
+            ssc.Stop();
+        }
     }
 }
