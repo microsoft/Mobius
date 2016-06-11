@@ -17,7 +17,7 @@ namespace Microsoft.Spark.CSharp.Examples
         static void Main(string[] args)
         {
             var cassandraHostName = "localhost";
-            var cassandrakeySpace = "ks";
+            var cassandraKeySpace = "test";
             var cassandraTable = "users";
 
             /*
@@ -43,7 +43,7 @@ namespace Microsoft.Spark.CSharp.Examples
             var usersDataFrame =
                 sqlContext.Read()
                     .Format("org.apache.spark.sql.cassandra")
-                    .Options(new Dictionary<string, string> { {"keyspace", cassandrakeySpace }, { "table", cassandraTable } })
+                    .Options(new Dictionary<string, string> { {"keyspace", cassandraKeySpace }, { "table", cassandraTable } })
                     .Load();
 
             //display rows in the console
@@ -53,7 +53,7 @@ namespace Microsoft.Spark.CSharp.Examples
                 string.Format(
                     "CREATE TEMPORARY TABLE userstemp USING org.apache.spark.sql.cassandra OPTIONS(table \"{0}\", keyspace \"{1}\")", 
                     cassandraTable, 
-                    cassandrakeySpace);
+                    cassandraKeySpace);
 
             //create a temp table
             sqlContext.Sql(createTempTableStatement);
@@ -66,8 +66,23 @@ namespace Microsoft.Spark.CSharp.Examples
             //write filtered rows to another table
             filteredUsersDataFrame.Write()
                 .Format("org.apache.spark.sql.cassandra")
-                .Options(new Dictionary<string, string> { { "keyspace", cassandrakeySpace }, { "table", "filteredusers" } })
+                .Options(new Dictionary<string, string> { { "keyspace", cassandraKeySpace }, { "table", "filteredusers" } })
                 .Save();
+
+            //convert to RDD, execute map & filter and collect result
+            var rddCollectedItems = usersDataFrame.ToRDD()
+                                    .Map(
+                                        r =>
+                                            string.Format("{0},{1},{2}", r.GetAs<string>("username"), 
+                                                                         r.GetAs<string>("firstname"),
+                                                                         r.GetAs<string>("lastname")))
+                                    .Filter(s => s.Contains("SL"))
+                                    .Collect();
+
+            foreach (var rddCollectedItem in rddCollectedItems)
+            {
+                Console.WriteLine(rddCollectedItem);
+            }
 
             Console.WriteLine("Complted running example");
         }
