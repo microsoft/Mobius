@@ -82,7 +82,8 @@ namespace Microsoft.Spark.CSharp
                     // an extra CSharpRDD is introduced in between these operations
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
                     var join = wordCounts.Window(2, 2).Join(wordCounts, 2);
-                    var state = join.UpdateStateByKey<string, Tuple<int, int>, int>(new UpdateStateHelper(b).Execute);
+                    var initialStateRdd = sc.Parallelize( new[] {new KeyValuePair<string, int>("AAA", 88), new KeyValuePair<string, int>("BBB", 88)});
+                    var state = join.UpdateStateByKey(new UpdateStateHelper(b).Execute, initialStateRdd);
 
                     state.ForeachRDD((time, rdd) =>
                     {

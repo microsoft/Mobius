@@ -319,13 +319,14 @@ namespace Microsoft.Spark.CSharp.Streaming
         ///     State update function - (newValues, oldState) => newState
         ///     If this function returns None, then corresponding state key-value pair will be eliminated.
         /// </param>
+        /// <param name="initialState">Initial state value of each key</param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
         public static DStream<KeyValuePair<K, S>> UpdateStateByKey<K, V, S>(this DStream<KeyValuePair<K, V>> self,
-            Func<IEnumerable<V>, S, S> updateFunc,
+            Func<IEnumerable<V>, S, S> updateFunc, RDD<KeyValuePair<K, S>> initialState = null,
             int numPartitions = 0)
         {
-            return UpdateStateByKey<K, V, S>(self, new UpdateStateByKeyHelper<K, V, S>(updateFunc).Execute, numPartitions);
+            return UpdateStateByKey<K, V, S>(self, new UpdateStateByKeyHelper<K, V, S>(updateFunc).Execute, initialState, numPartitions);
         }
         
         /// <summary>
@@ -337,13 +338,14 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <typeparam name="S"></typeparam>
         /// <param name="self"></param>
         /// <param name="updateFunc">State update function - IEnumerable[K, [newValues, oldState]] => IEnumerable[K, newState]</param>
+        /// <param name="initialState">Initial state value of each key</param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
         public static DStream<KeyValuePair<K, S>> UpdateStateByKey<K, V, S>(this DStream<KeyValuePair<K, V>> self,
-            Func<IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> updateFunc,
+            Func<IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> updateFunc, RDD<KeyValuePair<K, S>> initialState = null,
             int numPartitions = 0)
         {
-            return UpdateStateByKey<K, V, S>(self, new MapPartitionsHelper<KeyValuePair<K, Tuple<IEnumerable<V>, S>>, KeyValuePair<K, S>>(updateFunc).Execute, numPartitions);
+            return UpdateStateByKey<K, V, S>(self, new MapPartitionsHelper<KeyValuePair<K, Tuple<IEnumerable<V>, S>>, KeyValuePair<K, S>>(updateFunc).Execute, initialState, numPartitions);
         }
         
         /// <summary>
@@ -355,18 +357,19 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <typeparam name="S"></typeparam>
         /// <param name="self"></param>
         /// <param name="updateFunc">State update function - (pid, IEnumerable[K, [newValues, oldState]]) => IEnumerable[K, newState]</param>
+        /// <param name="initialState">Initial state value of each key</param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
         public static DStream<KeyValuePair<K, S>> UpdateStateByKey<K, V, S>(this DStream<KeyValuePair<K, V>> self,
             Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> updateFunc,
-            int numPartitions = 0)
+            RDD<KeyValuePair<K, S>> initialState = null, int numPartitions = 0)
         {
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
             Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc = self.Piplinable ? (self as TransformedDStream<KeyValuePair<K, V>>).func : null;
 
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new UpdateStateByKeysHelper<K, V, S>(updateFunc, prevFunc, numPartitions).Execute;
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new UpdateStateByKeysHelper<K, V, S>(updateFunc, prevFunc, initialState, numPartitions).Execute;
 
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
@@ -656,13 +659,15 @@ namespace Microsoft.Spark.CSharp.Streaming
     {
         private readonly Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> func;
         private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+        private readonly RDD<KeyValuePair<K, S>> initialState;
         private readonly int numPartitions;
         internal UpdateStateByKeysHelper(
             Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> f, 
-            Func<double, RDD<dynamic>, RDD<dynamic>> prevF, int numPartitions)
+            Func<double, RDD<dynamic>, RDD<dynamic>> prevF, RDD<KeyValuePair<K, S>> initialState, int numPartitions)
         {
             func = f;
             prevFunc = prevF;
+            this.initialState = initialState;
             this.numPartitions = numPartitions;
         }
 
@@ -675,6 +680,18 @@ namespace Microsoft.Spark.CSharp.Streaming
                 valuesRDD = prevFunc(t, valuesRDD);
 
             var values = valuesRDD.ConvertTo<KeyValuePair<K, V>>();
+
+            if (stateRDD == null)
+            {
+                if (initialState != null)
+                {
+                    if (initialState.sparkContext == null)
+                    {
+                        initialState.sparkContext = valuesRDD.sparkContext;
+                    }
+                    stateRDD = initialState.ConvertTo<dynamic>();
+                }
+            }
 
             if (stateRDD == null)
             {

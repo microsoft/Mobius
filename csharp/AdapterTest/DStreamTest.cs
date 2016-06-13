@@ -272,16 +272,17 @@ namespace AdapterTest
             // disable pipeline to UpdateStateByKey which replys on checkpoint mock proxy doesn't support
             pairs.Cache();
 
-            var state = pairs.UpdateStateByKey<string, int, int>((v, s) => s + (v as List<int>).Count);
+            var initialStateRdd = ssc.SparkContext.Parallelize(new[] { "AAA" }).Map( w => new KeyValuePair<string, int>("AAA", 22));
+            var state = pairs.UpdateStateByKey<string, int, int>((v, s) => s + (v as List<int>).Count, initialStateRdd);
             state.ForeachRDD((time, rdd) =>
             {
                 var taken = rdd.Collect();
-                Assert.AreEqual(taken.Length, 9);
+                Assert.AreEqual(taken.Length, 10);
 
                 foreach (object record in taken)
                 {
                     KeyValuePair<string, int> countByWord = (KeyValuePair<string, int>)record;
-                    Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 24 : 23);
+                    Assert.AreEqual(countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22, countByWord.Value);
                 }
             });
         }
