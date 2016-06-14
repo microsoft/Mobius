@@ -18,10 +18,19 @@ namespace Microsoft.Spark.CSharp.Examples
         {
             var cassandraHostName = "localhost";
             var cassandraKeySpace = "ks";
-            var cassandraTable = "users";
+            var cassandraTableToRead = "users";
+            var cassandraTableToInsert = "filteredusers";
+
+            if (args.Length == 4)
+            {
+                cassandraHostName = args[0];
+                cassandraKeySpace = args[1];
+                cassandraTableToRead = args[2];
+                cassandraTableToInsert = args[3];
+            }
 
             /*
-                ** CQL used to create data in Cassandra for this example **
+                ** CQL used to create table in Cassandra for this example **
                 
                 CREATE TABLE users (
 	                username VARCHAR,
@@ -33,6 +42,13 @@ namespace Microsoft.Spark.CSharp.Examples
                 INSERT INTO ks.users (username, firstname, lastname) VALUES ('JD123', 'John', 'Doe');
                 INSERT INTO ks.users (username, firstname, lastname) VALUES ('BillJ', 'Bill', 'Jones');
                 INSERT INTO ks.users (username, firstname, lastname) VALUES ('SL', 'Steve', 'Little');
+
+                CREATE TABLE filteredusers (
+	                username VARCHAR,
+	                firstname VARCHAR,
+	                lastname VARCHAR,
+	            PRIMARY KEY (username)
+                );
              */
 
             var sparkConf = new SparkConf().Set("spark.cassandra.connection.host", cassandraHostName);
@@ -43,7 +59,7 @@ namespace Microsoft.Spark.CSharp.Examples
             var usersDataFrame =
                 sqlContext.Read()
                     .Format("org.apache.spark.sql.cassandra")
-                    .Options(new Dictionary<string, string> { {"keyspace", cassandraKeySpace }, { "table", cassandraTable } })
+                    .Options(new Dictionary<string, string> { {"keyspace", cassandraKeySpace }, { "table", cassandraTableToRead } })
                     .Load();
 
             //display rows in the console
@@ -52,7 +68,7 @@ namespace Microsoft.Spark.CSharp.Examples
             var createTempTableStatement =
                 string.Format(
                     "CREATE TEMPORARY TABLE userstemp USING org.apache.spark.sql.cassandra OPTIONS(table \"{0}\", keyspace \"{1}\")", 
-                    cassandraTable, 
+                    cassandraTableToRead, 
                     cassandraKeySpace);
 
             //create a temp table
@@ -66,7 +82,7 @@ namespace Microsoft.Spark.CSharp.Examples
             //write filtered rows to another table
             filteredUsersDataFrame.Write()
                 .Format("org.apache.spark.sql.cassandra")
-                .Options(new Dictionary<string, string> { { "keyspace", cassandraKeySpace }, { "table", "filteredusers" } })
+                .Options(new Dictionary<string, string> { { "keyspace", cassandraKeySpace }, { "table", cassandraTableToInsert } })
                 .Save();
 
             //convert to RDD, execute map & filter and collect result
