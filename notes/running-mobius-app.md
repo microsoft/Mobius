@@ -149,7 +149,7 @@ The [instructions](./running-mobius-app.md#windows-instructions) above cover run
 | Type          | Examples      |
 | ------------- |--------------|
 | Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li></ul> |
-| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li></ul> |
+| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li><li>[Cassandra](#cassandra-example-sql)</li></ul> |
 | Streaming | <ul><li>[Kafka](#kafka-example-streaming)</li><li>[EventHubs](#eventhubs-example-streaming)</li><li>[HDFS Word Count](#hdfswordcount-example-streaming)</li></ul> |
 
 The following sample commands show how to run Mobius examples in local mode. Using the instruction above, the following sample commands can be tweaked to run in other modes
@@ -180,6 +180,19 @@ Displays the number of XML elements in the input XML file provided as the first 
 `sparkclr-submit.cmd --jars <jar files used for using Hive in Spark> --exe HiveDataFrame.exe C:\Git\Mobius\examples\Sql\HiveDataFrame\bin\Debug`
 
 Reads data from a csv file, creates a Hive table and reads data from it
+
+### Cassandra Example (Sql)
+* Download following jars that are needed to use Spark with Cassandra. **Note** that you need to get the right version of the jar files depending on the versions of Spark and Cassandra. Refer to [version compatibility](https://github.com/datastax/spark-cassandra-connector#version-compatibility) table for details.
+  * [spark-cassandra-connector_2.10-1.6.0.jar](https://spark-packages.org/package/datastax/spark-cassandra-connector)
+  * cassandra-driver-core-3.0.2.jar
+  * guava-19.0.jar
+  * jsr166e-1.1.0.jar
+* Create keyspace, tables and insert data necessary for testing. Look at CassandraDataFrameExample code for CQL to setup test data.
+* `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug`
+* **Note** - If you created keyspace and tables with different names than what is in the CQL in the example or do not have Cassandra in localhost, you need to pass arguments to the example `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug <host name> <keyspace name> <users table name> <filtered users table name>`
+
+This sample reads data from a table, displays results in the console, performs filter on dataframe and writes results to another table
+
 ### EventHubs Example (Streaming)
 * Get the following jar files
   * qpid-amqp-1-0-client-0.32.jar

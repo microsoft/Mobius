@@ -9,7 +9,7 @@ using Microsoft.Spark.CSharp.Services;
 namespace Microsoft.Spark.CSharp.Examples
 {
     /// <summary>
-    /// SparkCLR Pi example
+    /// Mobius Pi example
     /// Calculate Pi
     /// Reference: https://github.com/apache/spark/blob/branch-1.5/examples/src/main/scala/org/apache/spark/examples/SparkPi.scala
     /// </summary>
