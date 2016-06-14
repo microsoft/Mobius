@@ -6,7 +6,7 @@ The following software need to be installed and appropriate environment variable
 |JDK |7u85 or 8u60 ([OpenJDK](http://www.azul.com/downloads/zulu/zulu-windows/) or [Oracle JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)) |JAVA_HOME | After setting JAVA_HOME, run `set PATH=%PATH%;%JAVA_HOME%\bin` to add java to PATH |
 |Spark |[1.5.2 or 1.6.*](http://spark.apache.org/downloads.html) | SPARK_HOME |Spark can be downloaded from Spark download website. Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `toos\spark*` directory (under [`build`](../build) directory) that can be used as SPARK_HOME  |
 |winutils.exe | see [Running Hadoop on Windows](https://wiki.apache.org/hadoop/WindowsProblems) for details |HADOOP_HOME |Spark in Windows needs this utility in `%HADOOP_HOME%\bin` directory. It can be copied over from any Hadoop distribution. Alternative, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `toos\winutils` directory (under [`build`](../build) directory) that can be used as HADOOP_HOME  |
-|Mobius |[v1.5.200](https://github.com/Microsoft/Mobius/releases) or v1.6.100-PREVIEW-1 | SPARKCLR_HOME |If you downloaded a [Mobius release](https://github.com/Microsoft/Mobius/releases), SPARKCLR_HOME should be set to the directory named `runtime` (for example, `D:\downloads\spark-clr_2.10-1.5.200\runtime`). Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `runtime` directory (under [`build`](../build) directory) that can be used as SPARKCLR_HOME. **Note** - setting SPARKCLR_HOME is _optional_ and it is set by sparkclr-submit.cmd if not set. |
+|Mobius | [v1.6.100](https://github.com/Microsoft/Mobius/releases/tag/v1.6.100) or a valid dev build or [previous release](https://github.com/Microsoft/Mobius/releases) of Mobius | SPARKCLR_HOME |If you downloaded a [Mobius release](https://github.com/Microsoft/Mobius/releases), SPARKCLR_HOME should be set to the directory named `runtime` (for example, `D:\downloads\spark-clr_2.10-1.5.200\runtime`). Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `runtime` directory (under [`build`](../build) directory) that can be used as SPARKCLR_HOME. **Note** - setting SPARKCLR_HOME is _optional_ and it is set by sparkclr-submit.cmd if not set. |
 
 ## Dependencies
 Some features in Mobius depend on classes outside of Spark and Mobius. A selected set of jar files that Mobius depends on are available in Mobius release under "runtime\dependencies" folder. These jar files are used with "--jars" parameter in Mobius (that is sparkclr-submit.cmd) and they get passed to Spark (spark-submit.cmd). 
@@ -120,15 +120,36 @@ sparkclr-submit.cmd ^
 ````
 
 ## Linux Instructions
-The instructions above cover running Mobius applications in Windows. With the following tweaks, the same instructions can be used to run Mobius applications in Linux.
+
+### Requirements
+* Mono 4.2 or above
+ * Follow installation instructions for [Ubuntu and similiar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives) or [CentOS, OSX and similar Linux distributions](http://www.mono-project.com/docs/getting-started/install/linux/#centos-7-fedora-19-and-later-and-derivatives). 
+ * If you are using CentOS, OSX and similar Linux distributions, make sure Mono is added to the path using the following script
+```bash
+# update mono path if needed
+export PATH=$PATH:/opt/mono/bin
+export PKG_CONFIG_PATH=/opt/mono/lib/pkgconfig
+```
+* [Mobius release 1.6.101-PREVIEW1](https://github.com/Microsoft/Mobius/releases/tag/v1.6.101-PREVIEW-1) or above
+
+The [instructions](./running-mobius-app.md#windows-instructions) above cover running Mobius applications in Windows. With the following tweaks, the same instructions can be used to run Mobius applications in Linux.
 * Instead of `RunSamples.cmd`, use `run-samples.sh`
 * Instead of `sparkclr-submit.cmd`, use `sparkclr-submit.sh`
+
+**Note** - only client mode is support in Mobius on YARN in Linux. Support for [cluster mode](https://github.com/Microsoft/Mobius/issues/467) will be added soon.
+
+### Mobius in Azure HDInsight Spark Cluster
+* Mono version available in HDInsight cluster is 3.x. Mobius [requires](/notes/linux-instructions.md#prerequisites) 4.2 or above. So, Mono has to be upgraded in HDInsight cluster to use Mobius.
+* Follow [instructions](./running-mobius-app.md#requirements) for Ubuntu
+
+### Mobius in Amazon Web Services EMR Spark Cluster
+* Follow [instructions](./running-mobius-app.md#requirements) for CentOS
 
 ## Running Mobius Examples in Local Mode
 | Type          | Examples      |
 | ------------- |--------------|
 | Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li></ul> |
-| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li></ul> |
+| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li><li>[Cassandra](#cassandra-example-sql)</li></ul> |
 | Streaming | <ul><li>[Kafka](#kafka-example-streaming)</li><li>[EventHubs](#eventhubs-example-streaming)</li><li>[HDFS Word Count](#hdfswordcount-example-streaming)</li></ul> |
 
 The following sample commands show how to run Mobius examples in local mode. Using the instruction above, the following sample commands can be tweaked to run in other modes
@@ -159,6 +180,19 @@ Displays the number of XML elements in the input XML file provided as the first 
 `sparkclr-submit.cmd --jars <jar files used for using Hive in Spark> --exe HiveDataFrame.exe C:\Git\Mobius\examples\Sql\HiveDataFrame\bin\Debug`
 
 Reads data from a csv file, creates a Hive table and reads data from it
+
+### Cassandra Example (Sql)
+* Download following jars that are needed to use Spark with Cassandra. **Note** that you need to get the right version of the jar files depending on the versions of Spark and Cassandra. Refer to [version compatibility](https://github.com/datastax/spark-cassandra-connector#version-compatibility) table for details.
+  * [spark-cassandra-connector_2.10-1.6.0.jar](https://spark-packages.org/package/datastax/spark-cassandra-connector)
+  * cassandra-driver-core-3.0.2.jar
+  * guava-19.0.jar
+  * jsr166e-1.1.0.jar
+* Create keyspace, tables and insert data necessary for testing. Look at CassandraDataFrameExample code for CQL to setup test data.
+* `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug`
+* **Note** - If you created keyspace and tables with different names than what is in the CQL in the example or do not have Cassandra in localhost, you need to pass arguments to the example `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug <host name> <keyspace name> <users table name> <filtered users table name>`
+
+This sample reads data from a table, displays results in the console, performs filter on dataframe and writes results to another table
+
 ### EventHubs Example (Streaming)
 * Get the following jar files
   * qpid-amqp-1-0-client-0.32.jar

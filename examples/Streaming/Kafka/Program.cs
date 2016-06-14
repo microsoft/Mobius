@@ -13,7 +13,7 @@ using Microsoft.Spark.CSharp.Streaming;
 namespace Microsoft.Spark.CSharp.Examples
 {
     /// <summary>
-    /// Sample SparkCLR application that processes events from Kafka in the format [timestamp],[loglevel],[logmessage]
+    /// Sample Mobius application that processes events from Kafka in the format [timestamp],[loglevel],[logmessage]
     /// MessagePublisher class may be used to publish sample messages to Kafka to consume in this app
     /// </summary>
     class SparkClrKafkaExample

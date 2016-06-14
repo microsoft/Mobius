@@ -112,7 +112,7 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 |Build & run unit tests |[Build in Windows](notes/windows-instructions.md#building-mobius) |[Build in Linux](notes/linux-instructions.md#building-mobius) |
 |Run samples (functional tests) in local mode |[Samples in Windows](notes/windows-instructions.md#running-samples) |[Samples in Linux](notes/linux-instructions.md#running-samples) |
 |Run examples in local mode |[Examples in Windows](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) |[Examples in Linux](notes/running-mobius-app.md#linux-instructions) |
-|Run Mobius app |<ul><li>[Standalone cluster](notes/running-mobius-app.md#standalone-cluster)</li><li>[YARN cluster](notes/running-mobius-app.md#yarn-cluster)</li></ul> |[Mobius app in Linux](notes/running-mobius-app.md#linux-instructions) |
+|Run Mobius app |<ul><li>[Standalone cluster](notes/running-mobius-app.md#standalone-cluster)</li><li>[YARN cluster](notes/running-mobius-app.md#yarn-cluster)</li></ul> |<ul><li>[Linux](notes/running-mobius-app.md#linux-instructions)</li><li>[Azure HDInsight Spark Cluster](/notes/running-mobius-app.md#mobius-in-azure-hdinsight-spark-cluster)</li><li>[AWS EMR Spark Cluster](/notes/running-mobius-app.md#mobius-in-amazon-web-services-emr-spark-cluster)</li> |
 
 ### Useful Links
 * [Configuration parameters in Mobius](/notes/configuration-mobius.md)
