@@ -182,13 +182,14 @@ Displays the number of XML elements in the input XML file provided as the first 
 Reads data from a csv file, creates a Hive table and reads data from it
 
 ### Cassandra Example (Sql)
-* Download following jars that are needed to use Spark with Cassandra. **Note** that you need to get the right version of the jar files depending on the versions of Spark and Cassandra. 
-  * spark-cassandra-connector_2.10-1.6.0.jar
+* Download following jars that are needed to use Spark with Cassandra. **Note** that you need to get the right version of the jar files depending on the versions of Spark and Cassandra. Refer to [version compatibility](https://github.com/datastax/spark-cassandra-connector#version-compatibility) table for details.
+  * [spark-cassandra-connector_2.10-1.6.0.jar](https://spark-packages.org/package/datastax/spark-cassandra-connector)
   * cassandra-driver-core-3.0.2.jar
   * guava-19.0.jar
   * jsr166e-1.1.0.jar
-* Create keyspace, tables and insert data necessary for testing. Look at CassandraDataFrameExample code for CQL to setup test data
+* Create keyspace, tables and insert data necessary for testing. Look at CassandraDataFrameExample code for CQL to setup test data.
 * `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug`
+* **Note** - If you created keyspace and tables with different names than what is in the CQL in the example or do not have Cassandra in localhost, you need to pass arguments to the example `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug <host name> <keyspace name> <users table name> <filtered users table name>`
 
 This sample reads data from a table, displays results in the console, performs filter on dataframe and writes results to another table
 
