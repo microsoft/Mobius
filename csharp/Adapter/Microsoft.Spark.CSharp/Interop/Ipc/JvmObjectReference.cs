@@ -21,6 +21,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         {
             Id = jvmReferenceId;
             creationTime = DateTime.UtcNow;
+            WeakObjectManager.AddWeakReferece(this);
         }
 
         public override string ToString()
