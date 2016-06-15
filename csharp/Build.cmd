@@ -5,11 +5,13 @@ SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
 
-@REM Set some .NET directory locations required if running from PowerShell prompt.
-if "%FrameworkDir%" == "" set FrameworkDir=%WINDIR%\Microsoft.NET\Framework
-if "%FrameworkVersion%" == "" set FrameworkVersion=v4.0.30319
+@REM Set msbuild location.
+SET VisualStudioVersion=12.0
 
-SET MSBUILDEXEDIR=%FrameworkDir%\%FrameworkVersion%
+SET MSBUILDEXEDIR=%programfiles(x86)%\MSBuild\%VisualStudioVersion%\Bin
+if NOT EXIST "%MSBUILDEXEDIR%\." SET MSBUILDEXEDIR=%programfiles%\MSBuild\%VisualStudioVersion%\Bin
+if NOT EXIST "%MSBUILDEXEDIR%\." GOTO :ErrorMSBUILD
+
 SET MSBUILDEXE=%MSBUILDEXEDIR%\MSBuild.exe
 SET MSBUILDOPT=/verbosity:minimal
 
@@ -62,6 +64,12 @@ if EXIST %PROJ_NAME%.nuspec (
 @echo ===== Build succeeded for %PROJ% =====
 
 @GOTO :EOF
+
+:ErrorMSBUILD
+set RC=1
+@echo ===== Build FAILED due to missing MSBUILD.EXE. =====
+@echo ===== Mobius requires "Developer Command Prompt for VS2013" and above =====
+exit /B %RC%
 
 :ErrorStop
 set RC=%ERRORLEVEL%
