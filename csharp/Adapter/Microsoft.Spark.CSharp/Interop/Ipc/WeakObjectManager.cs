@@ -6,13 +6,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
-    using System.Text.RegularExpressions;
-    using Services;
-
-    using ObjectAndId = KeyValuePair<WeakReference, string>;
+    using WeakReferenceObjectIdPair = KeyValuePair<WeakReference, string>;
 
     /// <summary>
     /// Release JVMObjectTracker oject reference.
@@ -28,89 +26,90 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// </summary>
     internal interface IWeakObjectManager : IDisposable
     {
+        TimeSpan CheckInterval { get; set; }
+
         void AddWeakRefereceObject(JvmObjectReference obj);
 
         /// <summary>
         /// Gets alive weak object count
         /// </summary>
-        int Count { get; }
+        int GetReferencesCount();
+
+        long GetAliveCount();
     }
 
-    internal class WeakObjectManager : IWeakObjectManager
+    internal class WeakObjectManagerImpl : IWeakObjectManager
     {
-        private const string ReleaseHandler = "SparkCLRHandler";
-        private const string ReleaseMethod = "rm";
+        private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WeakObjectManagerImpl));
 
-        private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WeakObjectManager));
+        internal static TimeSpan DefaultCheckInterval = TimeSpan.FromSeconds(60);
+        private TimeSpan checkInterval;
+
         /// <summary>
         /// Sleep time for checking thread
         /// </summary>
-        private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(60);
+        public TimeSpan CheckInterval
+        {
+            get
+            {
+                return checkInterval;
+            }
+            set
+            {
+                checkInterval = value;
+            }
+        }
 
         /// <summary>
         /// Maximum running duration for checking thread each time
         /// </summary>
         private static readonly TimeSpan MaxReleasingDuration = TimeSpan.FromMilliseconds(100);
 
+        private readonly ConcurrentQueue<WeakReferenceObjectIdPair> weakReferences = new ConcurrentQueue<WeakReferenceObjectIdPair>();
+
+        private bool shouldKeepRunning = true;
+
+        private IObjectReleaser objectReleaser = new JvmObjectReleaser();
+
+        internal IObjectReleaser ObjectReleaser
+        {
+            set { objectReleaser = value; }
+        }
+
+        private Thread releaserThread;
+
+        internal WeakObjectManagerImpl(TimeSpan checkIntervalTimeSpan)
+        {
+            checkInterval = checkIntervalTimeSpan;
+            releaserThread = new Thread(RunReleaseObjectLoop) { IsBackground = true };
+            releaserThread.Start();
+        }
+
+        internal WeakObjectManagerImpl() : this(DefaultCheckInterval) { }
+
         /// <summary>
         /// Gets alive weak object count
         /// </summary>
-        public int Count { get { return weakReferences.Count; } }
-
-        private ConcurrentQueue<ObjectAndId> weakReferences = new ConcurrentQueue<ObjectAndId>();
-
-        /// <summary>
-        /// Flag to stop checking thread when disposed
-        /// </summary>
-        private volatile bool keepRunning = true;
-
-        #region Singleton WeakObjectManager
-
-        private static IWeakObjectManager WeakObjManager = new WeakObjectManager();
-
-        public static IWeakObjectManager GetWeakObjectManager()
+        public int GetReferencesCount()
         {
-            return WeakObjManager;
+            return weakReferences.Count;
         }
 
-        public static void AddWeakReferece(JvmObjectReference obj)
+        private void RunReleaseObjectLoop()
         {
-            WeakObjManager.AddWeakRefereceObject(obj);
-        }
-
-        #endregion
-
-        private WeakObjectManager()
-        {
-            Init();
-        }
-
-        protected void Init()
-        {
-            var thread = new Thread(() =>
+            logger.LogDebug("Checking objects thread start ...");
+            while (shouldKeepRunning)
             {
-                logger.LogDebug("Checking objects thread start ...");
-                while (keepRunning)
-                {
-                    CheckReleasedObject();
-                    Thread.Sleep(CheckInterval);
-                }
+                ReleseGarbageCollectedObjects();
+                Thread.Sleep(CheckInterval);
+            }
 
-                logger.LogDebug("Checking objects thread stopped.");
-            });
-
-            thread.IsBackground = true;
-            thread.Start();
+            logger.LogDebug("Checking objects thread stopped.");
         }
 
-        ~WeakObjectManager()
+        ~WeakObjectManagerImpl()
         {
             Dispose();
-        }
-
-        protected void ReleaseObject(string objId)
-        {
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(ReleaseHandler, ReleaseMethod, objId);
         }
 
         public void AddWeakRefereceObject(JvmObjectReference obj)
@@ -121,44 +120,25 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 return;
             }
 
-            weakReferences.Enqueue(new ObjectAndId(new WeakReference(obj), obj.ToString()));
+            weakReferences.Enqueue(new WeakReferenceObjectIdPair(new WeakReference(obj), obj.ToString()));
         }
 
-        protected void CheckReleasedObject()
+        private void ReleseGarbageCollectedObjects()
         {
-            if (weakReferences.Count == 0)
+            var count = weakReferences.Count;
+            if (count == 0)
             {
-                logger.LogDebug("check begin : weakReferences.Count = {0}", weakReferences.Count);
+                logger.LogDebug("check begin : quit as weakReferences.Count = 0");
                 return;
             }
 
             var beginTime = DateTime.Now;
             var endTime = beginTime + MaxReleasingDuration;
 
-            logger.LogDebug("check begin : weakReferences.Count = {0}, will stop checking at the latest: {1}", weakReferences.Count, endTime.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+            logger.LogDebug("check begin : weakReferences.Count = {0}, will stop checking at the latest: {1}", count, endTime.ToString("yyyy-MM-dd HH:mm:ss.fff"));
 
-            var aliveList = new List<ObjectAndId>();
-            var garbageCount = 0;
-            ObjectAndId refId;
-            while (weakReferences.TryDequeue(out refId))
-            {
-                var weakRef = refId.Key;
-                if (weakRef.IsAlive)
-                {
-                    aliveList.Add(refId);
-                }
-                else
-                {
-                    ReleaseObject(refId.Value);
-                    garbageCount++;
-                }
-
-                if (DateTime.Now > endTime)
-                {
-                    logger.LogDebug("Stop releasing as exceeded allowed time : {0}", endTime.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-                    break;
-                }
-            }
+            int garbageCount;
+            var aliveList = ReleseGarbageCollectedObjects(endTime, out garbageCount);
 
             var timeReleaseGarbage = DateTime.Now;
             aliveList.ForEach(item => weakReferences.Enqueue(item));
@@ -171,10 +151,75 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 );
         }
 
+        private List<WeakReferenceObjectIdPair> ReleseGarbageCollectedObjects(DateTime endTime, out int garbageCount)
+        {
+            var aliveList = new List<WeakReferenceObjectIdPair>();
+            garbageCount = 0;
+            WeakReferenceObjectIdPair weakReferenceObjectIdPair;
+
+            while (weakReferences.TryDequeue(out weakReferenceObjectIdPair))
+            {
+                var weakRef = weakReferenceObjectIdPair.Key;
+                if (weakRef.IsAlive)
+                {
+                    aliveList.Add(weakReferenceObjectIdPair);
+                }
+                else
+                {
+                    objectReleaser.ReleaseObject(weakReferenceObjectIdPair.Value);
+                    garbageCount++;
+                }
+
+                if (DateTime.Now > endTime)
+                {
+                    logger.LogDebug("Stop releasing as exceeded allowed time : {0}", endTime.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                    break;
+                }
+            }
+
+            return aliveList;
+        }
+
+        /// <summary>
+        /// It can be an expensive operation. ** Do not use ** unless there is a real need for this method
+        /// </summary>
+        /// <returns></returns>
+        public long GetAliveCount()
+        {
+            //copying to get alive count at the time of this method call
+            var copiedList = new Queue<WeakReferenceObjectIdPair>(weakReferences);
+            var count = 0;
+            foreach (var weakReference in copiedList)
+            {
+                if (weakReference.Key.IsAlive)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         public virtual void Dispose()
         {
             logger.LogInfo("Dispose {0}", this.GetType());
-            keepRunning = false;
+            shouldKeepRunning = false;
+        }
+    }
+
+    internal interface IObjectReleaser
+    {
+        void ReleaseObject(string objId);
+    }
+
+    internal class JvmObjectReleaser : IObjectReleaser
+    {
+        private const string ReleaseHandler = "SparkCLRHandler";
+        private const string ReleaseMethod = "rm";
+
+        public void ReleaseObject(string objId)
+        {
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(ReleaseHandler, ReleaseMethod, objId);
         }
     }
 }
