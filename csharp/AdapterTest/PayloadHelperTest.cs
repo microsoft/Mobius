@@ -75,7 +75,7 @@ namespace AdapterTest
             Assert.Throws<NotSupportedException>(() => TestBuildPayload(expectedClassName, expectedMethod, expectedParams, true));
         }
 
-        class CallClassMetholdParameters
+        class CallClassMethodParameters
         {
             public bool IsStatic { get; set; }
             public string ClassName { get; set; }
@@ -83,7 +83,7 @@ namespace AdapterTest
 
             public object[] Parameters { get; set; }
 
-            public CallClassMetholdParameters(bool isStatic, string className, string method, object[] parameters)
+            public CallClassMethodParameters(bool isStatic, string className, string method, object[] parameters)
             {
                 this.IsStatic = IsStatic;
                 this.ClassName = className;
@@ -98,11 +98,11 @@ namespace AdapterTest
             // Run this test to build input byte[] for Scala unit test of CSharpBackendHandlerSuite
             // https://github.com/Microsoft/Mobius/blob/master/scala/src/test/scala/org/apache/spark/api/csharp/CSharpBackendHandlerSuite.scala
             var initMethod = "<init>";
-            var testCases = new List<CallClassMetholdParameters>
+            var testCases = new List<CallClassMethodParameters>
             {
-                new CallClassMetholdParameters(true, "org.apache.spark.SparkConf", initMethod, new object[] { true }),
-                new CallClassMetholdParameters(true, "org.apache.spark.SparkContext", initMethod, new object[] { "2" }),
-                new CallClassMetholdParameters(true, "org.apache.streaming.StreamingContext", initMethod, new object[] { 3, 5 }),
+                new CallClassMethodParameters(true, "org.apache.spark.SparkConf", initMethod, new object[] { true }),
+                new CallClassMethodParameters(true, "org.apache.spark.SparkContext", initMethod, new object[] { "2" }),
+                new CallClassMethodParameters(true, "org.apache.streaming.StreamingContext", initMethod, new object[] { 3, 5 }),
             };
 
             testCases.ForEach(cm =>

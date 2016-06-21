@@ -31,7 +31,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         void AddWeakRefereceObject(JvmObjectReference obj);
 
         /// <summary>
-        /// Gets all weak object count including non-alive object that waits for releasing.
+        /// Gets all weak object count including non-alive objects that wait for releasing.
         /// </summary>
         int GetReferencesCount();
 
