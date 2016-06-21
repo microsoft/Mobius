@@ -31,11 +31,15 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         void AddWeakRefereceObject(JvmObjectReference obj);
 
         /// <summary>
-        /// Gets alive weak object count
+        /// Gets all weak object count including non-alive object that waits for releasing.
         /// </summary>
         int GetReferencesCount();
 
-        long GetAliveCount();
+        /// <summary>
+        /// Gets alive weak object count
+        /// </summary>
+        /// <returns></returns>
+        int GetAliveCount();
     }
 
     internal class WeakObjectManagerImpl : IWeakObjectManager
@@ -87,9 +91,6 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         internal WeakObjectManagerImpl() : this(DefaultCheckInterval) { }
 
-        /// <summary>
-        /// Gets alive weak object count
-        /// </summary>
         public int GetReferencesCount()
         {
             return weakReferences.Count;
@@ -184,7 +185,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         /// It can be an expensive operation. ** Do not use ** unless there is a real need for this method
         /// </summary>
         /// <returns></returns>
-        public long GetAliveCount()
+        public int GetAliveCount()
         {
             //copying to get alive count at the time of this method call
             var copiedList = new Queue<WeakReferenceObjectIdPair>(weakReferences);
