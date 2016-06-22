@@ -93,7 +93,7 @@ class CSharpBackendHandlerSuite extends SparkCLRFunSuite with Matchers {
     def createClass(className: String, hexString: String): Unit = {
       var bytes = getBytes(hexString).drop(InitialBytesToStrip)
       println(s"Try to create object of ${className} with command call bytes[${bytes.length}]")
-      handler.readChanelMessage(bytes)
+      handler.readChannelMessage(bytes)
     }
 
     for (k <- 0 until classBytes.length) {
@@ -108,7 +108,7 @@ class CSharpBackendHandlerSuite extends SparkCLRFunSuite with Matchers {
 
     def releaseObject(id: Integer): Unit = {
       val bytes = getBytes(Top9ReleaseBytesHeader + id.toString).drop(InitialBytesToStrip)
-      handler.readChanelMessage(bytes)
+      handler.readChannelMessage(bytes)
       val obj = JVMObjectTracker.get(id.toString)
       println("Released object : id = " + id + ", now object = " + obj)
       assert(obj == None, s"object with id = ${id} must have been rleased.")
