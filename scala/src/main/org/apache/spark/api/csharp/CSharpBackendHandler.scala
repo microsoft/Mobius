@@ -27,7 +27,7 @@ import scala.collection.mutable.HashMap
 class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHandler[Array[Byte]] {
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: Array[Byte]): Unit = {
-    val reply = readChannelMessage(msg)
+    val reply = handleBackendRequest(msg)
     ctx.write(reply)
   }
 
@@ -35,7 +35,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
     ctx.flush()
   }
 
-  def readChannelMessage(msg: Array[Byte]): Array[Byte] = {
+  def handleBackendRequest(msg: Array[Byte]): Array[Byte] = {
     val bis = new ByteArrayInputStream(msg)
     val dis = new DataInputStream(bis)
 
