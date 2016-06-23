@@ -17,13 +17,17 @@ using NUnit.Framework;
 namespace AdapterTest
 {
     [SetUpFixture]
-    public class SparkCLRTestEnvironment 
+    public class SparkCLRTestEnvironment
     {
         [OneTimeSetUp]
         public static void Initialize()
         {
             SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();
             SparkCLREnvironment.ConfigurationService = new MockConfigurationService();
+            SparkCLREnvironment.WeakObjectManager = new WeakObjectManagerImpl
+            {
+                ObjectReleaser = new MockObjectReleaser(),
+            };
         }
     }
 }

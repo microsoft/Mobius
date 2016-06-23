@@ -40,5 +40,12 @@ namespace Microsoft.Spark.CSharp.Interop
                 configurationService = value;
             }
         }
+
+        private static IWeakObjectManager weakObjectManager;
+        internal static IWeakObjectManager WeakObjectManager
+        {
+            get { return weakObjectManager ?? (weakObjectManager = new WeakObjectManagerImpl()); }
+            set { weakObjectManager = value; }
+        }
     }
 }
