@@ -4,6 +4,8 @@
  */
 package org.apache.spark.streaming.kafka
 
+import java.nio.ByteBuffer
+
 import kafka.common.TopicAndPartition
 import org.apache.spark.{Partition, SparkContext, SparkConf}
 import org.apache.spark.csharp.SparkCLRFunSuite
@@ -84,6 +86,34 @@ class DynamicPartitionKafkaRDDSuite extends SparkCLRFunSuite {
         new KafkaRDDPartition(2, topic, 1, 200, 300, host1, port)
       )
       assert(testEqualityOfKafkaPartitions(partitions, rdd.getPartitions))
+    } finally {
+      sc.stop()
+    }
+  }
+
+  test("compute") {
+
+    val conf = new SparkConf().setAppName("test").setMaster("local").set("spark.testing", "true").set("spark.mobius.streaming.kafka.CSharpReader.enabled", "true")
+    val sc = new SparkContext(conf)
+
+    try {
+      assert(sc.getConf.getBoolean("spark.mobius.streaming.kafka.CSharpReader.enabled", false), s", CSharpReader.enabled expects true")
+
+      val rdd = new DynamicPartitionKafkaRDD(sc, Map("cluster.id" -> "testId"), Array(), Map(), null, 0)
+      val thePart = new KafkaRDDPartition(0, "testTopic", 1, 100, 600, null, 0)
+      val metadata = rdd.compute(thePart, null).toArray
+
+      val topicAndPartition = metadata(0).asInstanceOf[(Array[Byte], Array[Byte])]
+      val topicAndClusterId = new String(topicAndPartition._1, "UTF-8")
+      assert(topicAndClusterId == "testTopic,testId", s"expected topic and cluster id: testTopic,testId actual: $topicAndClusterId")
+      val partition = ByteBuffer.wrap(topicAndPartition._2).getInt
+      assert(partition == 1, s"expected partition: 1 actual: $partition")
+
+      val offsetRange = metadata(1).asInstanceOf[(Array[Byte], Array[Byte])]
+      val from = ByteBuffer.wrap(offsetRange._1).getLong
+      assert(from == 100, s"expected from offset: 100 actual: $from")
+      val until = ByteBuffer.wrap(offsetRange._2).getLong
+      assert(until == 600, s"expected until offset: 100 actual: $until")
     } finally {
       sc.stop()
     }

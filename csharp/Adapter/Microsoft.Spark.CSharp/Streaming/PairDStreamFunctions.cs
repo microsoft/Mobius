@@ -364,20 +364,23 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc = self.Piplinable ? (self as TransformedDStream<KeyValuePair<K, V>>).func : null;
+            // completes pipelinable dstream by adding the last pipelinable operation
+            // before transforming to CSharpStateDStream so that UpdateStateByKey's 
+            // parallel job covers all pipelinable operations before shuffling
+            var ds = self.Transform(new AddShuffleKeyHelper<K, V>(numPartitions).Execute);
 
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new UpdateStateByKeysHelper<K, V, S>(updateFunc, prevFunc, numPartitions).Execute;
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new UpdateStateByKeysHelper<K, V, S>(updateFunc, numPartitions).Execute;
 
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
             formatter.Serialize(stream, func);
 
             return new DStream<KeyValuePair<K, S>>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpStateDStream(
-                    self.Piplinable ? self.prevDStreamProxy : self.DStreamProxy,
+                    ds.DStreamProxy,
                     stream.ToArray(),
                     "CSharpStateDStream",
-                    self.serializedMode.ToString(),
-                    (self.Piplinable ? self.prevSerializedMode : self.serializedMode).ToString()),
+                    ds.serializedMode.ToString(),
+                    ds.serializedMode.ToString()),
                 self.streamingContext);
         }
 
@@ -456,6 +459,25 @@ namespace Microsoft.Spark.CSharp.Streaming
         internal RDD<KeyValuePair<K, V>> Execute(RDD<KeyValuePair<K, V>> rdd)
         {
             return rdd.PartitionBy(numPartitions);
+        }
+    }
+
+    [Serializable]
+    internal class AddShuffleKeyHelper<K, V>
+    {
+        private readonly int numPartitions;
+        internal AddShuffleKeyHelper(int numPartitions)
+        {
+            this.numPartitions = numPartitions;
+        }
+
+        internal RDD<byte[]> Execute(RDD<KeyValuePair<K, V>> rdd)
+        {
+            var keyed = rdd.MapPartitionsWithIndex(new PairRDDFunctions.AddShuffleKeyHelper<K, V>(numPartitions).Execute, true);
+            keyed.bypassSerializer = true;
+            keyed.rddProxy = keyed.RddProxy;
+
+            return keyed;
         }
     }
 
@@ -655,14 +677,11 @@ namespace Microsoft.Spark.CSharp.Streaming
     internal class UpdateStateByKeysHelper<K, V, S>
     {
         private readonly Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> func;
-        private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
         private readonly int numPartitions;
         internal UpdateStateByKeysHelper(
-            Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> f, 
-            Func<double, RDD<dynamic>, RDD<dynamic>> prevF, int numPartitions)
+            Func<int, IEnumerable<KeyValuePair<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<KeyValuePair<K, S>>> f, int numPartitions)
         {
             func = f;
-            prevFunc = prevF;
             this.numPartitions = numPartitions;
         }
 
@@ -671,10 +690,9 @@ namespace Microsoft.Spark.CSharp.Streaming
             RDD<KeyValuePair<K, S>> state = null;
             RDD<KeyValuePair<K, Tuple<IEnumerable<V>, S>>> g = null;
 
-            if (prevFunc != null)
-                valuesRDD = prevFunc(t, valuesRDD);
-
-            var values = valuesRDD.ConvertTo<KeyValuePair<K, V>>();
+            // call into scala side partitionBy directly since AddShuffleKey already applied
+            var values = new RDD<KeyValuePair<K, V>>(valuesRDD.sparkContext.SparkContextProxy.CreatePairwiseRDD(valuesRDD.rddProxy, numPartitions, 0), valuesRDD.sparkContext);
+            values.partitioner = new Partitioner(numPartitions, null);
 
             if (stateRDD == null)
             {
@@ -683,7 +701,6 @@ namespace Microsoft.Spark.CSharp.Streaming
             else
             {
                 state = stateRDD.ConvertTo<KeyValuePair<K, S>>();
-                values = values.PartitionBy(numPartitions);
                 state.partitioner = values.partitioner;
                 g = state.GroupWith(values, numPartitions).MapValues(x => new Tuple<IEnumerable<V>, S>(new List<V>(x.Item2), x.Item1.Count > 0 ? x.Item1[0] : default(S)));
             }
