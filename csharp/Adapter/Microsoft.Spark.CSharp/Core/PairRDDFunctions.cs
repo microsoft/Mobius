@@ -919,7 +919,7 @@ namespace Microsoft.Spark.CSharp.Core
         }
         
         [Serializable]
-        private class AddShuffleKeyHelper<K, V>
+        internal class AddShuffleKeyHelper<K, V>
         {
             [NonSerialized]
             private MD5 md5 = MD5.Create();
