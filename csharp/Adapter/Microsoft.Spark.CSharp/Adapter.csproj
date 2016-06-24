@@ -11,6 +11,7 @@
     <AssemblyName>Microsoft.Spark.CSharp.Adapter</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <CppDll Condition="Exists('..\..\..\cpp\x64')">HasCpp</CppDll>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -23,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -84,8 +86,17 @@
     <Compile Include="Interop\Ipc\JvmObjectReference.cs" />
     <Compile Include="Interop\Ipc\PayloadHelper.cs" />
     <Compile Include="Interop\Ipc\SerDe.cs" />
+    <Compile Include="Network\ByteBuf.cs" />
+    <Compile Include="Network\ByteBufChunk.cs" />
+    <Compile Include="Network\ByteBufChunkList.cs" />
+    <Compile Include="Network\ByteBufPool.cs" />
     <Compile Include="Network\DefaultSocketWrapper.cs" />
     <Compile Include="Network\ISocketWrapper.cs" />
+    <Compile Include="Network\RioNative.cs" />
+    <Compile Include="Network\RioSocketWrapper.cs" />
+    <Compile Include="Network\SaeaSocketWrapper.cs" />
+    <Compile Include="Network\SocketStream.cs" />
+    <Compile Include="Network\SockDataToken.cs" />
     <Compile Include="Network\SocketFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proxy\IDataFrameNaFunctionsProxy.cs" />
@@ -141,7 +152,18 @@
     <Compile Include="Streaming\StreamingContext.cs" />
     <Compile Include="Streaming\TransformedDStream.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
+    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.dll</Link>
+      <TargetPath>Riosock.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.dll</Link>
+      <TargetPath>Riosock.pdb</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

@@ -11,6 +11,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Interop.Ipc;
@@ -25,7 +26,9 @@ namespace WorkerTest
     /// Validates CSharpWorker by creating a ISocketWrapper server to 
     /// simulate interactions between CSharpRDD and CSharpWorker
     /// </summary>
-    [TestFixture]
+    [TestFixture("Normal")]
+    [TestFixture("Rio")]
+    [TestFixture("Saea")]
     public class WorkerTest
     {
         private int splitIndex = 0;
@@ -34,6 +37,29 @@ namespace WorkerTest
         private int numberOfIncludesItems = 0;
         private int numBroadcastVariables = 0;
         private readonly byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
+        private readonly string socketWrapperType;
+
+        public WorkerTest(string sockType)
+        {
+            if (sockType.Equals("Rio") && !SocketFactory.IsRioSockSupported())
+            {
+                Assert.Ignore("Omitting TestFixture due to missing Riosock.dll. It might caused by no VC++ build tool or running on an OS that not supports Windows RIO socket.");
+            }
+
+            // Set Socket wrapper for test
+            socketWrapperType = sockType;
+            Environment.SetEnvironmentVariable(ConfigurationService.CSharpSocketTypeEnvName, socketWrapperType);
+            SocketFactory.SocketWrapperType = SocketWrapperType.None;
+        }
+
+        [OneTimeTearDown]
+        public void CleanUpSocketWrapper()
+        {
+            if (socketWrapperType.Equals("Rio") && SocketFactory.IsRioSockSupported())
+            {
+                RioNative.UnloadRio();
+            }
+        }
 
         // StringBuilder is not thread-safe, it shouldn't be used concurrently from different threads.
         // http://stackoverflow.com/questions/12645351/stringbuilder-tostring-throw-an-index-out-of-range-exception
@@ -144,7 +170,10 @@ namespace WorkerTest
         /// <param name="exitCode"></param>
         private void AssertWorker(Process worker, int exitCode = 0, string assertMessage = null)
         {
-            worker.WaitForExit(3000);
+            if (!worker.WaitForExit(3000))
+            {
+                worker.Kill();
+            }
             Assert.IsTrue(worker.HasExited);
             Assert.AreEqual(exitCode, worker.ExitCode);
             string str;

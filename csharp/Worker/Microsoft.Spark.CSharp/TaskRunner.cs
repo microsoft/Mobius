@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp
     /// TaskRunner is used to run Spark task assigned by JVM side. It uses a TCP socket to
     /// communicate with JVM side. This socket may be reused to run multiple Spark tasks.
     /// </summary>
-    public class TaskRunner
+    internal class TaskRunner
     {
         private static ILoggerService logger = null;
         private ILoggerService Logger
