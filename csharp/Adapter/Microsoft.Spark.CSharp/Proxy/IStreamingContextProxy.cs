@@ -22,7 +22,8 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDStreamProxy SocketTextStream(string hostname, int port, StorageLevelType storageLevelType);
         IDStreamProxy KafkaStream(Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, StorageLevelType storageLevelType);
         IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets);
-        IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions);
+        IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets,
+            int numPartitions, byte[] readFunc, string serializationMode);
         IDStreamProxy Union(IDStreamProxy firstDStreams, IDStreamProxy[] otherDStreams);
         void AwaitTermination();
         void AwaitTerminationOrTimeout(long timeout);

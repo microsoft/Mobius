@@ -5,16 +5,19 @@
 
 package org.apache.spark.streaming.api.csharp
 
-import org.apache.spark.api.csharp._
-import org.apache.spark.api.csharp.SerDe._
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
+import scala.language.existentials
+
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 import java.util.{ArrayList => JArrayList}
-import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.{LinkedBlockingQueue, ConcurrentHashMap, ThreadPoolExecutor}
 
-import scala.collection.JavaConversions._
-import scala.language.existentials
+import org.apache.spark.{Logging, SparkContext}
+import org.apache.spark.api.csharp._
+import org.apache.spark.api.csharp.SerDe._
 import org.apache.spark.api.java._
 import org.apache.spark.rdd._
 import org.apache.spark.storage.StorageLevel
@@ -342,4 +345,148 @@ class CSharpConstantInputDStream(ssc_ : StreamingContext, rdd: RDD[Array[Byte]])
   extends ConstantInputDStream[Array[Byte]](ssc_, rdd) {
 
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
+}
+
+case class RddPreComputeRecord[T] (
+    rddSeqNum: Long,
+    rdd: RDD[T])
+
+/**
+ * Used to pre-compute and materialize the input RDDs.
+ */
+class RddPreComputeProcessor[T](
+     sc: SparkContext,
+     val id: String,
+     val maxPendingJobs: Int,
+     val numThreads: Int,
+     val outputLimit: Int,       // maximum number of records for each output
+     val storageLevel: StorageLevel) extends Logging {
+
+  // Thread pool is used to pre-compute RDDs. To preserve order, SeqNum is assigned to RDDs at
+  // input, so we can reassemble them at output
+  @volatile private var inputRddSeqNum: Long = 0L
+  @volatile private var outputRddSeqNum: Long = 0L
+
+  // ackedSeqNum is used for backpressure
+  @volatile private var ackedSeqNum: Long = -1L
+
+  private val precomputedRddMap = new ConcurrentHashMap[Long, RddPreComputeRecord[T]]()
+
+  // If RDD is not pre-computed because of backpressure, it is put in this map
+  private val bypassRddMap = new ConcurrentHashMap[Long, RddPreComputeRecord[T]]()
+
+  // If RDD is not pre-computed because of backpressure, it is also put in this queue for future process
+  private val pendingRddQueue = new LinkedBlockingQueue[RddPreComputeRecord[T]]()
+
+  private var jobExecutor = ThreadUtils.newDaemonFixedThreadPool(numThreads, s"mobius-precompute-job-executor-$id")
+  private val pendingQueueScheduler = ThreadUtils.newDaemonSingleThreadExecutor(s"mobius-precompute-pending-scheduler-$id")
+
+  private def isPending(rddSeqNum: Long): Boolean = {
+    rddSeqNum > ackedSeqNum + maxPendingJobs
+  }
+
+  private def logStatus(): Unit = {
+    logInfo(s"log status for [$id], inputRddSeqNum: $inputRddSeqNum, ackedSeqNum: $ackedSeqNum, outputRddSeqNum: $outputRddSeqNum")
+  }
+
+  private def processPendingQueue(): Unit = {
+    while (true) {
+      val record = pendingRddQueue.take()
+      logInfo(s"process pending queue [$id], rddSeqNum: ${record.rddSeqNum}")
+      logStatus()
+      while (isPending(record.rddSeqNum)) {
+        Thread.sleep(100)
+      }
+      logStatus()
+      logInfo(s"submit job from pending queue [$id], rddSeqNum: ${record.rddSeqNum}")
+      jobExecutor.execute(new Runnable {
+        override def run(): Unit = {
+          record.rdd.persist(storageLevel)
+          sc.setCallSite(s"materialize pending RDD for [$id]")
+          sc.runJob(record.rdd, (iterator: Iterator[T]) => {})
+        }
+      })
+    }
+  }
+
+  // put input RDD to processor
+  def put(rdd: RDD[T]): Unit = {
+    val rddSeqNum = inputRddSeqNum
+    inputRddSeqNum += 1
+    val record = RddPreComputeRecord[T](rddSeqNum, rdd)
+    logInfo(s"put input record [$id], rddSeqNum: ${record.rddSeqNum}")
+    logStatus()
+    if (isPending(record.rddSeqNum)) {
+      bypassRddMap.put(record.rddSeqNum, record)
+      pendingRddQueue.put(record)
+    } else {
+      logInfo(s"submit job [$id], rddSeqNum: ${record.rddSeqNum}")
+      jobExecutor.execute(new Runnable {
+        override def run(): Unit = {
+          record.rdd.persist(storageLevel)
+          sc.setCallSite(s"materialize RDD for [$id]")
+          sc.runJob(record.rdd, (iterator: Iterator[T]) => {})
+          precomputedRddMap.put(record.rddSeqNum, record)
+        }
+      })
+    }
+  }
+
+  // get output RDDs from processor
+  def get(): List[RddPreComputeRecord[T]] = {
+    val result = new ListBuffer[RddPreComputeRecord[T]]()
+    var stop = false
+    var outputNum = 0
+    while (!stop) {
+      val rddSeqNum = outputRddSeqNum
+      if (precomputedRddMap.containsKey(rddSeqNum)) {
+        result += precomputedRddMap.remove(rddSeqNum)
+        outputRddSeqNum += 1
+        outputNum += 1
+        if (outputNum > outputLimit) {
+          stop = true
+        }
+      } else {
+        stop = true
+      }
+    }
+    if (result.isEmpty) {
+      stop = false
+      outputNum = 0
+      while (!stop) {
+        val rddSeqNum = outputRddSeqNum
+        if (bypassRddMap.containsKey(rddSeqNum)) {
+          result += bypassRddMap.remove(rddSeqNum)
+          outputRddSeqNum += 1
+          outputNum += 1
+          if (outputNum > outputLimit) {
+            stop = true
+          }
+        } else {
+          stop = true
+        }
+      }
+    }
+    result.toList
+  }
+
+  // ack consumed RDDs
+  def ackRdd(rddSeqNum: Long): Unit = {
+    if (ackedSeqNum < rddSeqNum) {
+      ackedSeqNum = rddSeqNum
+    }
+  }
+
+  def start(): Unit = {
+    pendingQueueScheduler.execute(new Runnable {
+      override def run(): Unit = {
+        processPendingQueue()
+      }
+    })
+  }
+
+  def stop(): Unit = {
+    jobExecutor.shutdown()
+    pendingQueueScheduler.shutdown()
+  }
 }
