@@ -40,6 +40,14 @@ namespace AdapterTest
             var directKafkaStreamWithRepartition = KafkaUtils.CreateDirectStreamWithRepartition(ssc, new List<string> { "testTopic3" }, new Dictionary<string, string>(), new Dictionary<string, long>(), 10);
             Assert.IsNotNull(directKafkaStreamWithRepartition.DStreamProxy);
 
+            var directKafkaStreamWithRepartitionAndReadFunc = KafkaUtils.CreateDirectStreamWithRepartitionAndReadFunc(
+                ssc,
+                new List<string> { "testTopic3" },
+                new Dictionary<string, string>(), new Dictionary<string, long>(),
+                10,
+                (int pid, IEnumerable<KeyValuePair<byte[], byte[]>> input) => { return input;});
+            Assert.IsNotNull(directKafkaStreamWithRepartitionAndReadFunc.DStreamProxy);
+
             var union = ssc.Union(textFile, socketStream);
             Assert.IsNotNull(union.DStreamProxy);
 

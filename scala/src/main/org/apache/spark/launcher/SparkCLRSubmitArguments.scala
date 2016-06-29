@@ -33,7 +33,7 @@ object SparkCLRSubmitArguments {
     * Note that following special character pattern is given by an contrary set of normal characters.
     * Regex refer to : http://www.tutorialspoint.com/scala/scala_regular_expressions.htm
     */
-  private val ABNORMAL_ARG_CHARS = Pattern.compile("[^-\\.\\w/=:]")
+  private val ABNORMAL_ARG_CHARS = Pattern.compile("[^-\\.\\w/=:\\*\\\\#@\\+~,]")
 
   def main(args: Array[String]): Unit = {
     val submitArguments = new SparkCLRSubmitArguments(args, sys.env, exitFn, printStream)
@@ -48,7 +48,10 @@ object SparkCLRSubmitArguments {
     * @return argument that might added with quotes.
     */
   def quoteArg(arg: String, addNeedlessQuotes: Boolean = false): String = {
-    if (arg == null || arg.length < 1 || arg.startsWith("\"") && arg.endsWith("\"")) {
+    if (arg == null || arg.length < 1
+      || arg.startsWith("\"") && arg.endsWith("\"") // Windows style quotes
+      || arg.startsWith("'") && arg.endsWith("'") // Linux style quotes
+    ) {
       arg
     } else if (addNeedlessQuotes || ABNORMAL_ARG_CHARS.matcher(arg).find()) {
       "\"" + arg + "\""

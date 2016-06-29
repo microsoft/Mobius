@@ -5,11 +5,12 @@ SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
 
-@REM Set some .NET directory locations required if running from PowerShell prompt.
-if "%FrameworkDir%" == "" set FrameworkDir=%WINDIR%\Microsoft.NET\Framework
-if "%FrameworkVersion%" == "" set FrameworkVersion=v4.0.30319
+@REM Set msbuild location.
+SET VisualStudioVersion=12.0
 
-SET MSBUILDEXEDIR=%FrameworkDir%\%FrameworkVersion%
+SET MSBUILDEXEDIR=%programfiles(x86)%\MSBuild\%VisualStudioVersion%\Bin
+if NOT EXIST "%MSBUILDEXEDIR%\." SET MSBUILDEXEDIR=%programfiles%\MSBuild\%VisualStudioVersion%\Bin
+
 SET MSBUILDEXE=%MSBUILDEXEDIR%\MSBuild.exe
 SET MSBUILDOPT=/verbosity:minimal
 

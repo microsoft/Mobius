@@ -1,7 +1,6 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HdfsWordCount", "Streaming\HdfsWordCount\HdfsWordCount.csproj", "{6A2C7CF9-D64E-490D-9841-269EE14F7932}"
 EndProject
@@ -26,6 +25,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kafka", "Streaming\Kafka\Kafka.csproj", "{8764EAAA-9D32-4549-A64F-C7C89B014EA6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiveDataFrame", "Sql\HiveDataFrame\HiveDataFrame.csproj", "{5C97498A-C4DB-43DD-86AD-4E50DEE8D405}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CassandraDataFrame", "Sql\CassandraDataFrame\CassandraDataFrame.csproj", "{9FCC75C4-347F-44E8-9B07-C5273066DF9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +70,10 @@ Global
 		{5C97498A-C4DB-43DD-86AD-4E50DEE8D405}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C97498A-C4DB-43DD-86AD-4E50DEE8D405}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C97498A-C4DB-43DD-86AD-4E50DEE8D405}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FCC75C4-347F-44E8-9B07-C5273066DF9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FCC75C4-347F-44E8-9B07-C5273066DF9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FCC75C4-347F-44E8-9B07-C5273066DF9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FCC75C4-347F-44E8-9B07-C5273066DF9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,5 +88,6 @@ Global
 		{17B63D32-EFC8-4EF5-831A-197A4FC29F06} = {AE001E84-471E-4D02-BDDE-40B85915CEAE}
 		{8764EAAA-9D32-4549-A64F-C7C89B014EA6} = {6F90310A-2DA2-4E81-A062-8D8A9F47C25B}
 		{5C97498A-C4DB-43DD-86AD-4E50DEE8D405} = {28600A86-E011-41C9-AB41-591580EDB9F1}
+		{9FCC75C4-347F-44E8-9B07-C5273066DF9C} = {28600A86-E011-41C9-AB41-591580EDB9F1}
 	EndGlobalSection
 EndGlobal

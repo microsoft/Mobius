@@ -49,7 +49,8 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, int numPartitions)
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets,
+            int numPartitions, byte[] readFunc, string serializationMode)
         {
             return new MockDStreamProxy();
         }

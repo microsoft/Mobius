@@ -109,6 +109,7 @@
     <Compile Include="ComparableRDDTest.cs" />
     <Compile Include="DoubleRDDTest.cs" />
     <Compile Include="UserDefinedFunctionTest.cs" />
+    <Compile Include="WeakObjectManagerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">

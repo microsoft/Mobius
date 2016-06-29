@@ -109,10 +109,10 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 
 | |Windows |Linux |
 |---|:------|:----|
-|Build & run unit tests |[Build in Windows](notes/windows-instructions.md#building-mobius) |[Build in Linux](notes/linux-instructions.md#building-mobius) |
-|Run samples (functional tests) in local mode |[Samples in Windows](notes/windows-instructions.md#running-samples) |[Samples in Linux](notes/linux-instructions.md#running-samples) |
-|Run examples in local mode |[Examples in Windows](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) |[Examples in Linux](notes/running-mobius-app.md#linux-instructions) |
-|Run Mobius app |<ul><li>[Standalone cluster](notes/running-mobius-app.md#standalone-cluster)</li><li>[YARN cluster](notes/running-mobius-app.md#yarn-cluster)</li></ul> |<ul><li>[Linux](notes/running-mobius-app.md#linux-instructions)</li><li>[Azure HDInsight Spark Cluster](/notes/running-mobius-app.md#mobius-in-azure-hdinsight-spark-cluster)</li><li>[AWS EMR Spark Cluster](/notes/running-mobius-app.md#mobius-in-amazon-web-services-emr-spark-cluster)</li> |
+|Build & run unit tests |[Build in Windows](notes/windows-instructions.md#building-mobius) |[Build in Linux](notes/linux-instructions.md#building-mobius-in-linux) |
+|Run samples (functional tests) in local mode |[Samples in Windows](notes/windows-instructions.md#running-samples) |[Samples in Linux](notes/linux-instructions.md#running-mobius-samples-in-linux) |
+|Run examples in local mode |[Examples in Windows](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) |[Examples in Linux](notes/linux-instructions.md#running-mobius-examples-in-linux) |
+|Run Mobius app |<ul><li>[Standalone cluster](notes/running-mobius-app.md#standalone-cluster)</li><li>[YARN cluster](notes/running-mobius-app.md#yarn-cluster)</li></ul> |<ul><li>[Linux cluster](notes/linux-instructions.md#running-mobius-applications-in-linux)</li><li>[Azure HDInsight Spark Cluster](/notes/linux-instructions.md#mobius-in-azure-hdinsight-spark-cluster)</li><li>[AWS EMR Spark Cluster](/notes/linux-instructions.md#mobius-in-amazon-web-services-emr-spark-cluster)</li> |
 
 ### Useful Links
 * [Configuration parameters in Mobius](/notes/configuration-mobius.md)
@@ -152,3 +152,6 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
   * create post with "sparkclr" tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/sparkclr)
   * join chat at [Mobius room in Gitter](https://gitter.im/Microsoft/Mobius)
   * tweet [@MobiusForSpark](http://twitter.com/MobiusForSpark)
+
+## Code of Conduct
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
