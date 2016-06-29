@@ -285,6 +285,20 @@ namespace AdapterTest
                     Assert.AreEqual(countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22, countByWord.Value);
                 }
             });
+
+            // test when initialStateRdd is not provided
+            var state2 = pairs.UpdateStateByKey<string, int, int>((v, s) => s + (v as List<int>).Count);
+            state2.ForeachRDD((time, rdd) =>
+            {
+                var taken = rdd.Collect();
+                Assert.AreEqual(taken.Length, 9);
+
+                foreach (object record in taken)
+                {
+                    KeyValuePair<string, int> countByWord = (KeyValuePair<string, int>)record;
+                    Assert.AreEqual(countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22, countByWord.Value);
+                }
+            });
         }
 
         [Test]
