@@ -109,45 +109,21 @@ namespace Microsoft.Spark.CSharp.Configuration
                 return portNo;
             }
 
+            private string workerPath;
+
             /// <summary>
             /// The path of the CSharp external backend worker process.
             /// </summary>
             internal virtual string GetCSharpWorkerExePath()
             {
-                return ProcFileName;
-            }
-        }
-
-        /// <summary>
-        /// Configuration for SparkCLR jobs in ** Local ** mode
-        /// Needs some investigation to find out why Local mode behaves
-        /// different than standalone cluster mode for the configuration values
-        /// overridden here
-        /// </summary>
-        private class SparkCLRLocalConfiguration : SparkCLRConfiguration
-        {
-            private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRLocalConfiguration));
-            internal SparkCLRLocalConfiguration(System.Configuration.Configuration configuration)
-                : base(configuration)
-            { }
-
-            private string workerPath;
-            internal override string GetCSharpWorkerExePath()
-            {
                 // SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. 
                 // These files are available in the Spark executing directory at executor node.
-
                 if (workerPath != null) return workerPath; // Return cached value
 
-                KeyValueConfigurationElement workerPathConfig = appSettings.Settings[CSharpWorkerPathSettingKey];
+                var workerPathConfig = appSettings.Settings[CSharpWorkerPathSettingKey];
                 if (workerPathConfig == null)
                 {
-                    // Path for the CSharpWorker.exe was not specified in App.config
-                    // Try to work out where location relative to this class.
-                    // Construct path based on well-known file name + directory this class was loaded from.
-                    string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
-                    workerPath = Path.Combine(procDir, ProcFileName);
-                    logger.LogDebug("Using SparkCLR Adapter dll path to construct CSharpWorkerPath : {0}", workerPath);
+                    workerPath = GetCSharpProcFileName();
                 }
                 else
                 {
@@ -156,6 +132,33 @@ namespace Microsoft.Spark.CSharp.Configuration
                     logger.LogDebug("Using CSharpWorkerPath value from App.config : {0}", workerPath);
                 }
                 return workerPath;
+            }
+
+            internal virtual string GetCSharpProcFileName()
+            {
+                return ProcFileName;
+            }
+        }
+
+        /// <summary>
+        /// Configuration for SparkCLR jobs in ** Local ** mode
+        /// </summary>
+        private class SparkCLRLocalConfiguration : SparkCLRConfiguration
+        {
+            private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRLocalConfiguration));
+            internal SparkCLRLocalConfiguration(System.Configuration.Configuration configuration)
+                : base(configuration)
+            { }
+
+            internal override string GetCSharpProcFileName()
+            {
+                // Path for the CSharpWorker.exe was not specified in App.config
+                // Try to work out where location relative to this class.
+                // Construct path based on well-known file name + directory this class was loaded from.
+                string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
+                var procFilePath = Path.Combine(procDir, ProcFileName);
+                logger.LogDebug("Using SparkCLR Adapter dll path to construct CSharpWorkerPath : {0}", procFilePath);
+                return procFilePath;
             }
         }
 
