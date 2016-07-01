@@ -209,6 +209,82 @@ namespace Microsoft.Spark.CSharp
             ssc.Start();
             ssc.AwaitTermination();
         }
+
+        /// <summary>
+        /// when windowDuration not >= slideDuration * 5
+        /// DStreamReduceByKeyAndWindow does winodwed reduce once
+        /// </summary>
+        [Sample("experimental")]
+        internal static void DStreamReduceByKeyAndSmallWindowSample()
+        {
+            slideDuration = 6;
+            DStreamReduceByKeyAndWindowSample();
+        }
+
+        /// <summary>
+        /// when windowDuration >= slideDuration * 5
+        /// DStreamReduceByKeyAndWindow reduces twice based on previousRDD
+        /// by first invReduce on old RDDs and then reduce on new RDDs
+        /// </summary>
+        [Sample("experimental")]
+        internal static void DStreamReduceByKeyAndLargeWindowSample()
+        {
+            slideDuration = 4;
+            DStreamReduceByKeyAndWindowSample();
+        }
+
+        private static int slideDuration;
+        private static void DStreamReduceByKeyAndWindowSample()
+        {
+            count = 0;
+
+            const int bacthInterval = 2;
+            const int windowDuration = 26;
+            const int numPartitions = 2;
+
+            var sc = SparkCLRSamples.SparkContext;
+            var ssc = new StreamingContext(sc, bacthInterval);
+
+            // create the RDD
+            var seedRDD = sc.Parallelize(Enumerable.Range(0, 100), numPartitions);
+            var numbers = new ConstantInputDStream<int>(seedRDD, ssc);
+            var pairs = numbers.Map(n => new KeyValuePair<int, int>(n % numPartitions, n));
+            var reduced = pairs.ReduceByKeyAndWindow(
+                    (int x, int y) => (x + y),
+                    (int x, int y) => (x - y),
+                    windowDuration,
+                    slideDuration,
+                    numPartitions
+                );
+
+            reduced.ForeachRDD((time, rdd) =>
+            {
+                count++;
+                var taken = rdd.Collect();
+                int partitions = rdd.GetNumPartitions();
+
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Time: {0}", time);
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Batch: " + count);
+                Console.WriteLine("Count: " + taken.Length);
+                Console.WriteLine("Partitions: " + partitions);
+
+                Assert.AreEqual(taken.Length, 2);
+                Assert.AreEqual(partitions, numPartitions);
+
+                foreach (object record in taken)
+                {
+                    KeyValuePair<int, int> sum = (KeyValuePair<int, int>)record;
+                    Console.WriteLine("Key: {0}, Value: {1}", sum.Key, sum.Value);
+                    // when batch count reaches window size, sum of even/odd number stay at windowDuration / slideDuration * (2450, 2500) respectively
+                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / bacthInterval * (sum.Key == 0 ? 2450 : 2500));
+                }
+            });
+
+            ssc.Start();
+            ssc.AwaitTermination();
+        }
     }
 
 
