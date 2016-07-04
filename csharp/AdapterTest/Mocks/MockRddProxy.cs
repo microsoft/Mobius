@@ -18,6 +18,7 @@ using NUnit.Framework;
 
 namespace AdapterTest.Mocks
 {
+    [Serializable]
     internal class MockRddProxy : IRDDProxy
     {
         internal IEnumerable<dynamic> result;
