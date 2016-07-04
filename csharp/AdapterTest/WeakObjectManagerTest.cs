@@ -24,7 +24,7 @@ namespace AdapterTest
             //no items added
             Assert.AreEqual(0, weakObjectManager.GetReferencesCount());
 
-            var totalItemCount = 200;
+            var totalItemCount = 10;
             for (var k = 1; k <= totalItemCount; k++)
             {
                 //each object adds itself to WeakObjectManager
@@ -56,8 +56,26 @@ namespace AdapterTest
             Assert.IsTrue(countAfterReleasingObjects < totalItemCount);
             //validate that unreleased items are alive items
             Assert.AreEqual(0, countAfterReleasingObjects - aliveCount);
+        }
 
 
+        [Test]
+        public void TestWeakReferenceCheckCountController()
+        {
+            WeakReferenceCheckCountController checkCountController = new WeakReferenceCheckCountController(10, 1000);
+            int checkCount;
+
+            checkCount = checkCountController.AdjustCheckCount(900);
+            Assert.AreEqual(10, checkCount);
+
+            checkCount = checkCountController.AdjustCheckCount(2000);
+            Assert.AreEqual(20, checkCount);
+
+            checkCount = checkCountController.AdjustCheckCount(2000);
+            Assert.AreEqual(20, checkCount);
+
+            checkCount = checkCountController.AdjustCheckCount(2500);
+            Assert.AreEqual(40, checkCount);
         }
     }
 

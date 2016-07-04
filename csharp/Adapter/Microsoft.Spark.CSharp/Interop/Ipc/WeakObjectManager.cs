@@ -42,12 +42,48 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         int GetAliveCount();
     }
 
+    /// <summary>
+    /// adaptively control the number of weak objects that should be checked for each interval
+    /// <summary>
+    internal class WeakReferenceCheckCountController
+    {
+        private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WeakReferenceCheckCountController));
+
+        private int checkCount;
+        private int referencesCountBenchmark;
+
+        public WeakReferenceCheckCountController(int initialCheckCount, int initialReferencesCountBenchmark)
+        {
+            checkCount = initialCheckCount;
+            referencesCountBenchmark = initialReferencesCountBenchmark;
+        }
+
+        /// <summary>
+        /// Adjust checkCount adaptively according to current weak reference objects count
+        /// </summary>
+        public int AdjustCheckCount(int currentReferenceCount)
+        {
+            if (currentReferenceCount > (referencesCountBenchmark + referencesCountBenchmark / 2))
+            {
+                int previousCheckCount = checkCount;
+                int previousReferencesCountBenchmark = referencesCountBenchmark;
+                checkCount *= 2;
+                referencesCountBenchmark = referencesCountBenchmark + referencesCountBenchmark / 2;
+                logger.LogInfo("Adjust checkCount from {0} to {1}, referencesCountBenchmark from {2} to {3}",
+                    previousCheckCount, checkCount, previousReferencesCountBenchmark, referencesCountBenchmark);
+            }
+            return checkCount;
+        }
+    }
+
     internal class WeakObjectManagerImpl : IWeakObjectManager
     {
         private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WeakObjectManagerImpl));
 
-        internal static TimeSpan DefaultCheckInterval = TimeSpan.FromSeconds(60);
+        internal static TimeSpan DefaultCheckInterval = TimeSpan.FromSeconds(3);
         private TimeSpan checkInterval;
+
+        private WeakReferenceCheckCountController checkCountController = new WeakReferenceCheckCountController(10, 1000);
 
         /// <summary>
         /// Sleep time for checking thread
@@ -98,7 +134,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         private void RunReleaseObjectLoop()
         {
-            logger.LogDebug("Checking objects thread start ...");
+            logger.LogInfo("Checking objects thread start ...");
             while (shouldKeepRunning)
             {
                 ReleseGarbageCollectedObjects();
@@ -126,20 +162,18 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         private void ReleseGarbageCollectedObjects()
         {
-            var count = weakReferences.Count;
-            if (count == 0)
+            int referencesCount = weakReferences.Count;
+            if (referencesCount == 0)
             {
                 logger.LogDebug("check begin : quit as weakReferences.Count = 0");
                 return;
             }
 
             var beginTime = DateTime.Now;
-            var endTime = beginTime + MaxReleasingDuration;
-
-            logger.LogDebug("check begin : weakReferences.Count = {0}, will stop checking at the latest: {1}", count, endTime.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-
+            int checkCount = checkCountController.AdjustCheckCount(referencesCount);
+            logger.LogDebug("check begin : weakReferences.Count = {0}, checkCount: {1}", referencesCount, checkCount);
             int garbageCount;
-            var aliveList = ReleseGarbageCollectedObjects(endTime, out garbageCount);
+            var aliveList = ReleseGarbageCollectedObjects(checkCount, out garbageCount);
 
             var timeReleaseGarbage = DateTime.Now;
             aliveList.ForEach(item => weakReferences.Enqueue(item));
@@ -152,12 +186,12 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 );
         }
 
-        private List<WeakReferenceObjectIdPair> ReleseGarbageCollectedObjects(DateTime endTime, out int garbageCount)
+        private List<WeakReferenceObjectIdPair> ReleseGarbageCollectedObjects(int checkCount, out int garbageCount)
         {
             var aliveList = new List<WeakReferenceObjectIdPair>();
             garbageCount = 0;
+            int i = 0;
             WeakReferenceObjectIdPair weakReferenceObjectIdPair;
-
             while (weakReferences.TryDequeue(out weakReferenceObjectIdPair))
             {
                 var weakRef = weakReferenceObjectIdPair.Key;
@@ -171,9 +205,10 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                     garbageCount++;
                 }
 
-                if (DateTime.Now > endTime)
+                i++;
+                if (i >= checkCount)
                 {
-                    logger.LogDebug("Stop releasing as exceeded allowed time : {0}", endTime.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                    logger.LogDebug("Stop releasing as exceeded allowed checkCount: {0}", checkCount);
                     break;
                 }
             }
