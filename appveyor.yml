@@ -1,4 +1,4 @@
-version: 1.6.1-SNAPSHOT.{build}
+version: 1.6.2-SNAPSHOT.{build}
 
 environment:
   securefile:          
