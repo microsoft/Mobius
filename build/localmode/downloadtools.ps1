@@ -213,11 +213,11 @@ function Download-BuildTools
     }
     
     # Apache Maven
-	$mvnVer = "apache-maven-3.3.3"
+	$mvnVer = "apache-maven-3.3.9"
     $mvnCmd = "$toolsDir\$mvnVer\bin\mvn.cmd"
     if (!(test-path $mvnCmd))
     {
-        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.3/binaries/$mvnVer-bin.tar.gz"
+        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.9/binaries/$mvnVer-bin.tar.gz"
         $output="$toolsDir\$mvnVer-bin.tar.gz"
         Download-File $url $output
         Untar-File $output $toolsDir
