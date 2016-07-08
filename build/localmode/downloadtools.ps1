@@ -195,6 +195,27 @@ function Untar-File($tarFile, $targetDir)
     Write-Output "[downloadtools.Untar-File] Extraction completed. Time taken: $howlong"
 }
 
+function Download-Winutils
+{
+    $winutilsBin = "$toolsDir\winutils\bin"
+    if (!(test-path "$winutilsBin"))
+    {
+        New-Item -ItemType Directory -Force -Path $winutilsBin | Out-Null
+    }
+
+    $winutilsExe = "$winutilsBin\winutils.exe"
+    if (!(test-path $winutilsExe))
+    {
+        $url = "https://github.com/MobiusForSpark/winutils/blob/master/hadoop-2.6.0/bin/winutils.exe?raw=true"
+        $output=$winutilsExe
+        Download-File $url $output
+    }
+    else
+    {
+        Write-Output "[downloadtools.Download-RuntimeDependencies] $winutilsExe exists already. No download and extraction needed"
+    }
+}
+
 function Download-BuildTools
 {
     # Create a cmd file to update environment variable
@@ -286,6 +307,10 @@ function Download-BuildTools
     	}
     }
 
+    # Download winutils.exe
+    Download-Winutils
+    $envStream.WriteLine("set HADOOP_HOME=$toolsDir\winutils");
+
     $envStream.close()
 }
 
@@ -372,26 +397,8 @@ function Download-RuntimeDependencies
     }
 
     # Download winutils.exe
-    $H_HOME = "$toolsDir\winutils"
-    $winutilsBin = "$H_HOME\bin"
-    if (!(test-path "$winutilsBin"))
-    {
-        New-Item -ItemType Directory -Force -Path $winutilsBin | Out-Null
-    }
-
-    $winutilsExe = "$winutilsBin\winutils.exe"
-    if (!(test-path $winutilsExe))
-    {
-        $url = "https://github.com/MobiusForSpark/winutils/blob/master/hadoop-2.6.0/bin/winutils.exe?raw=true"
-        $output=$winutilsExe
-        Download-File $url $output
-    }
-    else
-    {
-        Write-Output "[downloadtools.Download-RuntimeDependencies] $winutilsExe exists already. No download and extraction needed"
-    }
-
-    $envStream.WriteLine("set HADOOP_HOME=$H_HOME");
+    Download-Winutils
+    $envStream.WriteLine("set HADOOP_HOME=$toolsDir\winutils");
 
     $envStream.close()
 

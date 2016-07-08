@@ -116,6 +116,7 @@ class DynamicPartitionKafkaInputDStream[
     case n if n > replayBatches => n
     case _: Int => replayBatches
   }
+  @transient private[streaming] var needToReplayOffsetRanges = false
 
   if (enableOffsetCheckpoint && fs != null) {
     if (!fs.exists(offsetCheckpointDir)) {
@@ -406,7 +407,13 @@ class DynamicPartitionKafkaInputDStream[
     }
 
     if (enableOffsetCheckpoint && offsetCheckpointDir != null) {
-      commitCheckpoint(offsetCheckpointDir, time, new Duration(replayBatches * slideDuration.milliseconds), maxRetainedOffsetCheckpoints, fs)
+      // When offset ranges checkpoint enabled, the 1st batch is used to replay the checkpointed offsets,
+      // in this case don't need to commit the offsets
+      if (needToReplayOffsetRanges) {
+        needToReplayOffsetRanges = false
+      } else {
+        commitCheckpoint(offsetCheckpointDir, time, new Duration(replayBatches * slideDuration.milliseconds), maxRetainedOffsetCheckpoints, fs)
+      }
     }
 
     super.clearMetadata(time)
@@ -423,6 +430,11 @@ class DynamicPartitionKafkaInputDStream[
       if (!offsetRanges.isEmpty) {
         val leaders = if (kafkaParams("metadata.broker.list").isEmpty)
           Map[TopicAndPartition, (String, Int)]()
+        else if (kafkaParams.contains("metadata.leader.list")) // this piece of code is for test purpose only
+          kafkaParams("metadata.leader.list").split("\\|").map { l =>
+            val s = l.split(",")
+            TopicAndPartition(s(0), s(1).toInt) -> (s(2), s(3).toInt)
+          }.toMap
         else
           KafkaCluster.checkErrors(kc.findLeaders(offsetRanges.keySet))
 
@@ -434,6 +446,7 @@ class DynamicPartitionKafkaInputDStream[
           }
         )
         logInfo(s"Loaded offset range from checkpoint, topics: $topics, dc: $dc")
+        needToReplayOffsetRanges = true
       }
       // remove all *staging directories
       deleteUncommittedCheckpoint(offsetCheckpointDir, fs)
@@ -514,9 +527,7 @@ private[streaming] object OffsetRangeCheckpointHandler extends Logging {
     logInfo("Attempt to commit offsets checkpoint, batchTime:" + batchTime)
     LOCK.synchronized {
       Utils.tryWithSafeFinally {
-        // When offset ranges checkpoint enabled, the 1st batch is to replay the checkpointed offsets,
-        // in this case don't need to commit the offsets
-        if (lastCommittedBatchTim == null || batchTime == lastCommittedBatchTim) {
+        if (batchTime == lastCommittedBatchTim) {
           return
         }
 
@@ -560,17 +571,16 @@ private[streaming] object OffsetRangeCheckpointHandler extends Logging {
 
     val bo = new BufferedWriter(new OutputStreamWriter(fs.create(offsetCheckpointPath), "UTF-8"))
     Utils.tryWithSafeFinally {
-      offsetRanges.sortBy(_.fromOffset).foreach { kv =>
-        offsetRanges.foreach { range =>
-          //schema: {topic}\t{patition}\t{fromOffset}\t{untilOffset}
-          bo.write(s"$topic$SEP${range.partition}$SEP${range.fromOffset}$SEP${range.untilOffset}")
-          bo.newLine
-        }
+      offsetRanges.sortBy(_.fromOffset).foreach { range =>
+        //schema: {topic}\t{patition}\t{fromOffset}\t{untilOffset}
+        bo.write(s"$topic$SEP${range.partition}$SEP${range.fromOffset}$SEP${range.untilOffset}")
+        bo.newLine
       }
       logInfo(s"Checkpointed offset ranges for dc $dc time $batchTime offsetRange ${offsetRanges.size}")
     } {
       bo.close
     }
+
     offsetCheckpointPath
   }
 
