@@ -30,6 +30,10 @@ import scala.language.existentials
 
 object CSharpDStream {
 
+  // Variables for debugging
+  var debugMode = false
+  var debugRDD: Option[RDD[_]] = None
+
   /**
    * helper function for DStream.foreachRDD().
    */
@@ -43,6 +47,11 @@ object CSharpDStream {
 
   def callCSharpTransform(rdds: List[Option[RDD[_]]], time: Time, cSharpfunc: Array[Byte],
                           serializationModeList: List[String]): Option[RDD[Array[Byte]]] = {
+    //debug mode enabled
+    if (debugMode) {
+      return debugRDD.asInstanceOf[Option[RDD[Array[Byte]]]]
+    }
+
     var socket: Socket = null
     try {
       socket = CSharpBackend.callbackSockets.poll()
@@ -229,13 +238,22 @@ class CSharpStateDStream(
                           serializationMode2: String)
   extends DStream[Array[Byte]](parent.ssc) {
 
-  super.persist(StorageLevel.MEMORY_ONLY)
+  val localCheckpointEnabled = context.sc.conf.getBoolean("spark.mobius.streaming.localCheckpoint.enabled", false)
+  logInfo("Local checkpoint is enabled: " + localCheckpointEnabled)
+
+  if (localCheckpointEnabled) {
+    val replicas = context.sc.conf.getInt("spark.mobius.streaming.localCheckpoint.replicas", 3)
+    logInfo("spark.mobius.localCheckpoint.replicas is set to " + replicas)
+    super.persist(StorageLevel(true, true, false, false, replicas))
+  } else {
+    super.persist(StorageLevel.MEMORY_ONLY)
+  }
 
   override def dependencies: List[DStream[_]] = List(parent)
 
   override def slideDuration: Duration = parent.slideDuration
 
-  override val mustCheckpoint = true
+  override val mustCheckpoint = !localCheckpointEnabled
 
   private val numParallelJobs = parent.ssc.sc.getConf.getInt("spark.mobius.streaming.parallelJobs", 0)
   @transient private[streaming] var jobExecutor : ThreadPoolExecutor = null
@@ -275,8 +293,12 @@ class CSharpStateDStream(
     val rdd = parent.getOrCompute(validTime)
     if (rdd.isDefined) {
       runParallelJob(validTime, rdd)
-      CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
+      val state = CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
         List(serializationMode, serializationMode2))
+      if(localCheckpointEnabled && state.isDefined) {
+        state.get.localCheckpoint()
+      }
+      state
     } else {
       lastState
     }
