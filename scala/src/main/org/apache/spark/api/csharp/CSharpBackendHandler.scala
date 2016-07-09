@@ -11,22 +11,31 @@ import java.net.Socket
 
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+
 // TODO - work with SparkR devs to make this configurable and reuse RBackendHandler
 import org.apache.spark.api.csharp.SerDe._
 
 import scala.collection.mutable.HashMap
 
 /**
- * Handler for CSharpBackend.
- * This implementation is identical to RBackendHandler and that can be reused
- * in SparkCLR if SerDe is made pluggable
- */
+  * Handler for CSharpBackend.
+  * This implementation is identical to RBackendHandler and that can be reused
+  * in SparkCLR if SerDe is made pluggable
+  */
 // Since SparkCLR is a package to Spark and not a part of spark-core, it mirrors the implementation
 // of selected parts from RBackend with SparkCLR customizations
-@Sharable
 class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHandler[Array[Byte]] {
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: Array[Byte]): Unit = {
+    val reply = handleBackendRequest(msg)
+    ctx.write(reply)
+  }
+
+  override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
+    ctx.flush()
+  }
+
+  def handleBackendRequest(msg: Array[Byte]): Array[Byte] = {
     val bis = new ByteArrayInputStream(msg)
     val dis = new DataInputStream(bis)
 
@@ -63,13 +72,13 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           assert(t == 'i')
           val port = readInt(dis)
           // scalastyle:off println
-          println("Connecting to a callback server at port " + port)
+          println("[CSharpBackendHandler] Connecting to a callback server at port " + port)
           CSharpBackend.callbackPort = port
           writeInt(dos, 0)
           writeType(dos, "void")
         case "closeCallback" =>
           // Send close to CSharp callback server.
-          println("Requesting to close all call back sockets.")
+          println("[CSharpBackendHandler] Requesting to close all call back sockets.")
           // scalastyle:on
           var socket: Socket = null
           do {
@@ -94,13 +103,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
       handleMethodCall(isStatic, objId, methodName, numArgs, dis, dos)
     }
 
-    val reply = bos.toByteArray
-    ctx.write(reply)
-
-  }
-
-  override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
-    ctx.flush()
+    bos.toByteArray
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
@@ -150,7 +153,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           throw new Exception(s"No matched method found for $cls.$methodName")
         }
 
-        val ret = methods.head.invoke(obj, args : _*)
+        val ret = methods.head.invoke(obj, args: _*)
 
         // Write status bit
         writeInt(dos, 0)
@@ -161,7 +164,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           matchMethod(numArgs, args, x.getParameterTypes)
         }.head
 
-        val obj = ctor.newInstance(args : _*)
+        val obj = ctor.newInstance(args: _*)
 
         writeInt(dos, 0)
         writeObject(dos, obj.asInstanceOf[AnyRef])
@@ -172,13 +175,12 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
       case e: Exception =>
         // TODO - logError does not work now..fix //logError(s"$methodName on $objId failed", e)
         val jvmObj = JVMObjectTracker.get(objId)
-        val jvmObjName = jvmObj match
-        {
+        val jvmObjName = jvmObj match {
           case Some(jObj) => jObj.getClass.getName
           case None => "NullObject"
         }
         // scalastyle:off println
-        println(s"$methodName on object of type $jvmObjName failed")
+        println(s"[CSharpBackendHandler] $methodName on object of type $jvmObjName failed")
         println(e.getMessage)
         println(e.printStackTrace())
         if (methods != null) {
@@ -257,6 +259,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
   def logWarning(id: String) {
     println(id)
   }
+
   // scalastyle:on println
 
   def logError(id: String, e: Exception): Unit = {
@@ -265,35 +268,40 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
 }
 
 /**
- * Tracks JVM objects returned to C# which is useful for invoking calls from C# to JVM objects
- */
+  * Tracks JVM objects returned to C# which is useful for invoking calls from C# to JVM objects
+  */
 private object JVMObjectTracker {
 
-  // TODO: This map should be thread-safe if we want to support multiple
-  // connections at the same time
+  // Muliple threads may access objMap and increase objCounter. Because get method return Option,
+  // it is convenient to use a Scala map instead of java.util.concurrent.ConcurrentHashMap.
   private[this] val objMap = new HashMap[String, Object]
-
-  // TODO: We support only one connection now, so an integer is fine.
-  // Investigate using use atomic integer in the future.
   private[this] var objCounter: Int = 1
 
   def getObject(id: String): Object = {
-    objMap(id)
+    synchronized {
+      objMap(id)
+    }
   }
 
   def get(id: String): Option[Object] = {
-    objMap.get(id)
+    synchronized {
+      objMap.get(id)
+    }
   }
 
   def put(obj: Object): String = {
-    val objId = objCounter.toString
-    objCounter = objCounter + 1
-    objMap.put(objId, obj)
-    objId
+    synchronized {
+      val objId = objCounter.toString
+      objCounter = objCounter + 1
+      objMap.put(objId, obj)
+      objId
+    }
   }
 
   def remove(id: String): Option[Object] = {
-    objMap.remove(id)
+    synchronized {
+      objMap.remove(id)
+    }
   }
 
 }

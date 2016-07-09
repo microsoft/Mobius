@@ -146,12 +146,12 @@ namespace AdapterTest.Mocks
 
         public IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, string[] joinColumnNames)
         {
-            throw new NotImplementedException();
+            return new MockDataFrameProxy(new object[] { otherScalaDataFrameReference, joinColumnNames }, SqlContextProxy);
         }
 
         public IDataFrameProxy Join(IDataFrameProxy otherScalaDataFrameReference, IColumnProxy scalaColumnReference, string joinType)
         {
-            throw new NotImplementedException();
+            return new MockDataFrameProxy(new object[] { otherScalaDataFrameReference, scalaColumnReference, joinType }, SqlContextProxy);
         }
 
         public bool IsLocal
@@ -326,6 +326,21 @@ namespace AdapterTest.Mocks
         }
 
         public void Drop(IColumnProxy column)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Repartition(int numPartitions, IColumnProxy[] columns)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy Repartition(IColumnProxy[] columns)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDataFrameProxy SortWithinPartitions(IColumnProxy[] columns)
         {
             throw new NotImplementedException();
         }

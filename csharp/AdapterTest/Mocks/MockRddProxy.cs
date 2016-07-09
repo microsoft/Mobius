@@ -18,6 +18,7 @@ using NUnit.Framework;
 
 namespace AdapterTest.Mocks
 {
+    [Serializable]
     internal class MockRddProxy : IRDDProxy
     {
         internal IEnumerable<dynamic> result;
@@ -62,11 +63,6 @@ namespace AdapterTest.Mocks
         public int CollectAndServe()
         {
             return MockSparkContextProxy.RunJob(this);
-        }
-
-        public int PartitionLength()
-        {
-            return 1;
         }
 
         public void Cache()

@@ -406,4 +406,19 @@ class SparkCLRSubmitArgumentsSuite extends SparkCLRFunSuite with Matchers with T
         " " +
         args.mkString(" ")
   }
+
+  test("Quote command line args test") {
+    def SameAfterQuoted(arg: String, addNeedlessQuote: Boolean = false): Boolean = {
+      val quoted = SparkCLRSubmitArguments.quoteArg(arg, addNeedlessQuote)
+      quoted == arg
+    }
+
+    SameAfterQuoted("jdbc:mysql://localhost:3306/lzdb?user=guest&password=abc123") shouldBe (false)
+    SameAfterQuoted("jdbc:sqlserver://127.0.0.1:1433;databaseName=lzdb;user=guest;password=abc123") shouldBe (false)
+    SameAfterQuoted("not-need_quote") shouldBe (true)
+    SameAfterQuoted("not-need-quote", true) shouldBe (false)
+    SameAfterQuoted("need quote has spaces") shouldBe (false)
+    SameAfterQuoted("need quote has special char^") shouldBe (false)
+    SameAfterQuoted("not-need-as-acceptable-chars-.:/") shouldBe (true)
+  }
 }

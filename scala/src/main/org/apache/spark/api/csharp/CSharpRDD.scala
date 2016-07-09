@@ -5,18 +5,22 @@
 
 package org.apache.spark.api.csharp
 
-import java.nio.ByteBuffer
-import java.nio.channels.{OverlappingFileLockException, FileChannel, FileLock}
-import java.util.{List => JList, Map => JMap}
 import java.io._
-import java.util.{ArrayList => JArrayList, List => JList, Map => JMap}
+import java.nio.ByteBuffer
+import java.nio.channels.{FileChannel, FileLock, OverlappingFileLockException}
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.attribute.PosixFilePermission._
+import java.util.{List => JList, Map => JMap}
 
+import org.apache.hadoop.io.compress.CompressionCodec
+import org.apache.spark._
+import org.apache.spark.api.java.JavaRDD
 import org.apache.spark.api.python.{PythonBroadcast, PythonRDD}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{TaskContext, Partition, Accumulator, SparkContext}
-import org.apache.spark.api.java.{JavaPairRDD, JavaRDD, JavaSparkContext}
 import org.apache.spark.util.csharp.{Utils => CSharpUtils}
+import org.apache.spark.api.python.PythonRunner
 
 /**
  * RDD used for forking an external C# process and pipe in & out the data
@@ -45,7 +49,9 @@ class CSharpRDD(
     accumulator) {
 
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
-    unzip(new File(cSharpWorkerExecutable).getAbsoluteFile.getParentFile)
+    val cSharpWorker = new File(cSharpWorkerExecutable).getAbsoluteFile
+    unzip(cSharpWorker.getParentFile)
+
     logInfo(s"compute CSharpRDD[${this.id}], stageId: ${context.stageId()}" +
       s", partitionId: ${context.partitionId()}, split_index: ${split.index}")
 
@@ -59,7 +65,17 @@ class CSharpRDD(
       command(i) = bytes(i)
     }
 
-    super.compute(split, context)
+    if (CSharpRDD.maxCSharpWorkerProcessCount >= 0) {
+      val workerFactoryId = CSharpRDD.getWorkerFactoryId(context.stageId())
+      // change envVars to use different PythonWorkerFactory
+      envVars.put("WORKER_FACTORY_ID", workerFactoryId.toString)
+      logInfo(s"workerFactoryId: $workerFactoryId")
+    }
+
+    val runner = new PythonRunner(
+      command, envVars, cSharpIncludes, cSharpWorker.getAbsolutePath, unUsedVersionIdentifier,
+      broadcastVars, accumulator, bufferSize, reuse_worker)
+    runner.compute(firstParent.iterator(split, context), split.index, context)
   }
 
   /**
@@ -112,7 +128,7 @@ class CSharpRDD(
 
     try {
       file = new RandomAccessFile(lockFile, "rw")
-      channel = file.getChannel()
+      channel = file.getChannel
       lock = channel.tryLock()
 
       if (lock == null) {
@@ -141,14 +157,13 @@ class CSharpRDD(
       logInfo("Unzip done.")
 
     } catch {
-      case e: OverlappingFileLockException => {
+      case e: OverlappingFileLockException =>
         logInfo("Already obtained the lock.")
         waitUnzipOperationDone(doneFlag)
-      }
       case e: Exception => e.printStackTrace()
     }
     finally {
-      if (lock != null && lock.isValid()) lock.release()
+      if (lock != null && lock.isValid) lock.release()
       if (channel != null && channel.isOpen) channel.close()
       if (file != null) file.close()
     }
@@ -156,7 +171,7 @@ class CSharpRDD(
 
   /**
    * Wait until doneFlag file is created, or total waiting time exceeds threshold
-   * @param doneFlag
+   * @param doneFlag doneFlag file
    */
   private def waitUnzipOperationDone(doneFlag: File): Unit = {
     val maxSleepTimeInSeconds = 30 // max wait time
@@ -180,10 +195,54 @@ class CSharpRDD(
 }
 
 object CSharpRDD {
+  var currentStageId: Int = 0
+  var nextSeqNum: Int = 0
+
+  // long running multi-process CSharpWorker mode is enabled only when configurated explicitly
+  var maxCSharpWorkerProcessCount: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.maxProcessCount", -1)
+
   def createRDDFromArray(
       sc: SparkContext,
       arr: Array[Array[Byte]],
       numSlices: Int): JavaRDD[Array[Byte]] = {
     JavaRDD.fromRDD(sc.parallelize(arr, numSlices))
+  }
+  
+  // this method is called when saveAsTextFile is called on RDD<string>
+  // calling saveAsTextFile() on CSharpRDDs result in bytes written to text file
+  // - this method converts bytes to string before writing to file
+  def saveStringRddAsTextFile(javaRdd: JavaRDD[Array[Byte]], path: String): Unit = {
+    val stringRdd = JavaRDD.toRDD(javaRdd).map(s => new String(s, "UTF-8"))
+    stringRdd.saveAsTextFile(path)
+  }
+
+  // this method is called when saveAsTextFile is called on RDD<string>
+  // calling saveAsTextFile() on CSharpRDDs result in bytes written to text file
+  // - this method converts bytes to string before writing to file
+  def saveStringRddAsTextFile(
+    javaRdd: JavaRDD[Array[Byte]], path: String, codec: Class[_ <: CompressionCodec]): Unit = {
+    val stringRdd = JavaRDD.toRDD(javaRdd).map(s => new String(s, "UTF-8"))
+    stringRdd.saveAsTextFile(path, codec)
+  }
+
+  // In long runing multi-process CSharpWorker mode, multiple WorkerFactory is created, with each
+  // WorkerFactory launching one long running CSharpWorker process.
+  private def getWorkerFactoryId(stageId: Int): Int = {
+    synchronized {
+      if (stageId != currentStageId) {
+        // new stage is started
+        currentStageId = stageId
+        nextSeqNum = 0
+      }
+      val workerFactoryId = {
+        if (maxCSharpWorkerProcessCount != 0) {
+          nextSeqNum % maxCSharpWorkerProcessCount
+        } else {
+          nextSeqNum
+        }
+      }
+      nextSeqNum += 1
+      workerFactoryId
+    }
   }
 }

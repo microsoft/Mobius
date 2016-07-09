@@ -1,21 +1,14 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net;
-using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 
 using Microsoft.Spark.CSharp.Core;
-using Microsoft.Spark.CSharp.Interop;
-using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 
 using NUnit.Framework;
-using Moq;
 using AdapterTest.Mocks;
+using Microsoft.Spark.CSharp.Network;
 
 namespace AdapterTest
 {
@@ -27,7 +20,7 @@ namespace AdapterTest
     public class AccumulatorTest
     {
         private SparkContext sc;
-        private Socket sock;
+        private ISocketWrapper sock;
 
 
         [SetUp]
@@ -38,7 +31,7 @@ namespace AdapterTest
 
             // get accumulator server port and connect to accumuator server
             int serverPort = (sc.SparkContextProxy as MockSparkContextProxy).AccumulatorServerPort;
-            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock = SocketFactory.CreateSocket();
             sock.Connect(IPAddress.Loopback, serverPort);
         }
 
@@ -49,29 +42,31 @@ namespace AdapterTest
 
             try
             {
-                using (var s = new NetworkStream(sock))
+                using (var s = sock.GetStream())
                 {
                     int numUpdates = 0;
                     SerDe.Write(s, numUpdates);
                 }
-
-                sock.Close();
             }
             catch
             {
                 // do nothing here
             }
+            finally
+            {
+                sock.Close();
+            }
         }
 
         /// <summary>
-        /// test when no errors, accumuator server receives data as expected and exit with 0
+        /// test when no errors, accumulator server receives data as expected and exit with 0
         /// </summary>
         [Test]
         public void TestAccumuatorSuccess()
         {
             Accumulator<int> accumulator = sc.Accumulator<int>(0);
 
-            using (var s = new NetworkStream(sock))
+            using (var s = sock.GetStream())
             {
                 // write numUpdates
                 int numUpdates = 1;
@@ -102,7 +97,7 @@ namespace AdapterTest
         [Test]
         public void TestUndefinedAccumuator()
         {
-            using (var s = new NetworkStream(sock))
+            using (var s = sock.GetStream())
             {
                 // write numUpdates
                 int numUpdates = 1;

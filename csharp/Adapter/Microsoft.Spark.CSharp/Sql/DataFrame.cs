@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -18,6 +19,9 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     public class DataFrame
     {
+        [NonSerialized]
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(DataFrame));
+
         [NonSerialized]
         private readonly IDataFrameProxy dataFrameProxy;
         [NonSerialized]
@@ -33,6 +37,9 @@ namespace Microsoft.Spark.CSharp.Sql
         [NonSerialized]
         private readonly Random random = new Random();
 
+        /// <summary>
+        /// Represents the content of the DataFrame as an RDD of Rows.
+        /// </summary>
         public RDD<Row> Rdd
         {
             get
@@ -59,6 +66,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Returns true if the collect and take methods can be run locally (without any Spark executors).
+        /// </summary>
         public bool IsLocal
         {
             get
@@ -84,11 +94,18 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return dataFrameProxy;  }
         }
 
+        /// <summary>
+        /// Returns the schema of this DataFrame.
+        /// </summary>
         public StructType Schema
         {
             get { return schema ?? (schema = new StructType(dataFrameProxy.GetSchema())); }
         }
 
+        /// <summary>
+        /// Returns a column for a given column name.
+        /// </summary>
+        /// <param name="columnName">The name of column</param>
         public Column this[string columnName]
         {
             get
@@ -119,6 +136,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns>row count</returns>
         public long Count()
         {
+            logger.LogInfo("Calculating the number of rows in the dataframe");
             return dataFrameProxy.Count();
         }
 
@@ -129,6 +147,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="truncate">Indicates if strings more than 20 characters long will be truncated</param>
         public void Show(int numberOfRows = 20, bool truncate = true)
         {
+            logger.LogInfo("Writing {0} rows in the DataFrame to Console output", numberOfRows);
             Console.WriteLine(dataFrameProxy.GetShowString(numberOfRows, truncate));
         }
 
@@ -138,6 +157,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public void ShowSchema()
         {
             var nameTypeList = Schema.Fields.Select(structField => structField.SimpleString);
+            logger.LogInfo("Writing Schema to Console output");
             Console.WriteLine(string.Join(", ", nameTypeList));
         }
 
@@ -641,17 +661,67 @@ namespace Microsoft.Spark.CSharp.Sql
             }
             if (ascending != null)
             {
-                if(columns.Length != ascending.Length)
-                    throw new ArgumentException("ascending should have the same length with columns");
-
-                var columnsWithOrder = new Column[columns.Length];
-                for (var i = 0; i < columns.Length; i++)
-                {
-                    columnsWithOrder[i] = ascending[i] ? columns[i].Asc() : columns[i].Desc();
-                }
-                return new DataFrame(dataFrameProxy.Sort(columnsWithOrder.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+                var sortedColumns = SortColumns(columns, ascending);
+                return new DataFrame(dataFrameProxy.Sort(sortedColumns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
             }
             return new DataFrame(dataFrameProxy.Sort(columns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame sorted by the specified column(s).
+        /// Reference to https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py, sortWithinPartitions(self, *cols, **kwargs)
+        /// </summary>
+        /// <param name="columns">List of Columns to sort by</param>
+        /// <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending.
+        /// if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
+        /// <returns>A new DataFrame sorted by the specified column(s)</returns>
+        public DataFrame SortWithinPartitions(string[] columns, bool[] ascending = null)
+        {
+            if (columns == null || columns.Length == 0)
+            {
+                throw new ArgumentException("should sort by at least one column.");
+            }
+            if (ascending != null)
+            {
+                var sortedColumns = SortColumns(columns.Select(c => this[c]).ToArray(), ascending);
+                return new DataFrame(dataFrameProxy.SortWithinPartitions(sortedColumns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+            }
+            return new DataFrame(dataFrameProxy.SortWithinPartitions(columns.Select(c => this[c].ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new DataFrame sorted by the specified column(s).
+        /// Reference to https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py, sortWithinPartitions(self, *cols, **kwargs)
+        /// </summary>
+        /// <param name="columns">List of Columns to sort by</param>
+        /// <param name="ascending">List of boolean to specify multiple sort orders for <paramref name="columns"/>, TRUE for ascending, FALSE for descending.
+        /// if not null, it will overwrite the order specified by Column.Asc() or Column Desc() in <paramref name="columns"/>, </param>
+        /// <returns>A new DataFrame sorted by the specified column(s)</returns>
+        public DataFrame SortWithinPartition(Column[] columns, bool[] ascending = null)
+        {
+            if (columns == null || columns.Length == 0)
+            {
+                throw new ArgumentException("should sort by at least one column.");
+            }
+            if (ascending != null)
+            {
+                var sortedColumns = SortColumns(columns, ascending);
+                return new DataFrame(dataFrameProxy.SortWithinPartitions(sortedColumns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+            }
+            return new DataFrame(dataFrameProxy.SortWithinPartitions(columns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+        }
+
+        private Column[] SortColumns(Column[] columns, bool[] ascending)
+        {
+            if (columns.Length != ascending.Length)
+                throw new ArgumentException("ascending should have the same length with columns");
+
+            var columnsWithOrder = new Column[columns.Length];
+            for (var i = 0; i < columns.Length; i++)
+            {
+                columnsWithOrder[i] = ascending[i] ? columns[i].Asc() : columns[i].Desc();
+            }
+            return columnsWithOrder;
         }
 
         /// <summary>
@@ -878,6 +948,32 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         /// <summary>
+        /// Returns a new [[DataFrame]] partitioned by the given partitioning columns into <paramref name="numPartitions"/>. The resulting DataFrame is hash partitioned.
+        /// <param name="columns"></param>
+        /// <param name="numPartitions">optional. If not specified, keep current partitions.</param>
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py repartition(self, numPartitions)
+        public DataFrame Repartition(string[] columns, int numPartitions = 0)
+        {
+            return numPartitions == 0 ?
+                new DataFrame(dataFrameProxy.Repartition(columns.Select(c => this[c].ColumnProxy).ToArray()), sparkContext) :
+                new DataFrame(dataFrameProxy.Repartition(numPartitions, columns.Select(c => this[c].ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
+        /// Returns a new [[DataFrame]] partitioned by the given partitioning columns into <paramref name="numPartitions"/>. The resulting DataFrame is hash partitioned.
+        /// <param name="columns"></param>
+        /// <param name="numPartitions">optional. If not specified, keep current partitions.</param>
+        /// </summary>
+        // Python API: https://github.com/apache/spark/blob/branch-1.6/python/pyspark/sql/dataframe.py repartition(self, numPartitions)
+        public DataFrame Repartition(Column[] columns, int numPartitions = 0)
+        {
+            return numPartitions == 0 ?
+                new DataFrame(dataFrameProxy.Repartition(columns.Select(c => c.ColumnProxy).ToArray()), sparkContext) :
+                new DataFrame(dataFrameProxy.Repartition(numPartitions, columns.Select(c => c.ColumnProxy).ToArray()), sparkContext);
+        }
+
+        /// <summary>
         /// Returns a new DataFrame by sampling a fraction of rows.
         /// </summary>
         /// <param name="withReplacement"> Sample with replacement or not. </param>
@@ -954,6 +1050,7 @@ namespace Microsoft.Spark.CSharp.Sql
         // write(self)
         public DataFrameWriter Write()
         {
+            logger.LogInfo("Using DataFrameWriter to write output data to external data storage");
             return new DataFrameWriter(dataFrameProxy.Write());
         }
 
@@ -1059,8 +1156,14 @@ namespace Microsoft.Spark.CSharp.Sql
         } 
     }
 
+    /// <summary>
+    /// The type of join operation for DataFrame
+    /// </summary>
     public class JoinType
     {
+        /// <summary>
+        /// Get the string that represents a join type
+        /// </summary>
         public string Value { get; private set; }
         private JoinType(string value)
         {
@@ -1073,6 +1176,9 @@ namespace Microsoft.Spark.CSharp.Sql
         private static readonly JoinType RightOuterJoinType = new JoinType("right_outer");
         private static readonly JoinType LeftSemiJoinType = new JoinType("leftsemi");
 
+        /// <summary>
+        /// Inner join
+        /// </summary>
         public static JoinType Inner
         {
             get
@@ -1081,6 +1187,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Outer join
+        /// </summary>
         public static JoinType Outer
         {
             get
@@ -1089,6 +1198,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Left outer join
+        /// </summary>
         public static JoinType LeftOuter
         {
             get
@@ -1097,6 +1209,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Right outer join
+        /// </summary>
         public static JoinType RightOuter
         {
             get
@@ -1105,6 +1220,9 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
+        /// <summary>
+        /// Left semi join
+        /// </summary>
         public static JoinType LeftSemi
         {
             get
@@ -1114,6 +1232,9 @@ namespace Microsoft.Spark.CSharp.Sql
         }
     }
 
+    /// <summary>
+    /// A set of methods for aggregations on a DataFrame, created by DataFrame.groupBy.
+    /// </summary>
     public class GroupedData
     {
         internal IGroupedDataProxy GroupedDataProxy
@@ -1130,36 +1251,79 @@ namespace Microsoft.Spark.CSharp.Sql
             this.dataFrame = dataFrame;
         }
 
+        /// <summary>
+        /// Compute aggregates by specifying a dictionary from column name to aggregate methods.
+        /// The available aggregate methods are avg, max, min, sum, count.
+        /// </summary>
+        /// <param name="columnNameAggFunctionDictionary">The dictionary of column name to aggregate method</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Agg(Dictionary<string, string> columnNameAggFunctionDictionary)
         {
             return new DataFrame(dataFrame.DataFrameProxy.Agg(groupedDataProxy, columnNameAggFunctionDictionary), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Count the number of rows for each group.
+        /// </summary>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Count()
         {
             return new DataFrame(groupedDataProxy.Count(), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the average value for each numeric columns for each group.
+        /// This is an alias for avg.
+        /// When specified columns are given, only compute the average values for them. 
+        /// </summary>
+        /// <param name="columns">The name of columns to be computed.</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Mean(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Mean(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the max value for each numeric columns for each group.
+        /// When specified columns are given, only compute the max values for them.
+        /// </summary>
+        /// <param name="columns"> The name of columns to be computed.</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Max(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Max(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the min value for each numeric column for each group.
+        /// </summary>
+        /// <param name="columns">
+        /// The name of columns to be computed. When specified columns are
+        /// given, only compute the min values for them. 
+        /// </param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Min(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Min(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the mean value for each numeric columns for each group.
+        /// When specified columns are given, only compute the mean values for them. 
+        /// </summary>
+        /// <param name="columns">The name of columns to be computed</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Avg(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Avg(columns), dataFrame.SparkContext);
         }
 
+        /// <summary>
+        /// Compute the sum for each numeric columns for each group.
+        /// When specified columns are given, only compute the sum for them.
+        /// </summary>
+        /// <param name="columns">The name of columns to be computed</param>
+        /// <returns>The DataFrame object that contains the grouping columns.</returns>
         public DataFrame Sum(params string[] columns)
         {
             return new DataFrame(groupedDataProxy.Sum(columns), dataFrame.SparkContext);

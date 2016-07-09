@@ -2,15 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Configuration
@@ -91,7 +87,7 @@ namespace Microsoft.Spark.CSharp.Configuration
         {
             protected readonly AppSettingsSection appSettings;
             protected readonly string sparkCLRHome = Environment.GetEnvironmentVariable(SPARKCLR_HOME); //set by sparkclr-submit.cmd
-            protected readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRConfiguration));
+            private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRConfiguration));
 
             internal SparkCLRConfiguration(System.Configuration.Configuration configuration)
             {
@@ -109,14 +105,36 @@ namespace Microsoft.Spark.CSharp.Configuration
                     throw new Exception("Environment variable " + CSHARPBACKEND_PORT + " not set");
                 }
 
-                logger.LogInfo("CSharpBackend successfully read from environment variable " + CSHARPBACKEND_PORT);
+                logger.LogInfo("CSharpBackend successfully read from environment variable {0}", CSHARPBACKEND_PORT);
                 return portNo;
             }
+
+            private string workerPath;
 
             /// <summary>
             /// The path of the CSharp external backend worker process.
             /// </summary>
             internal virtual string GetCSharpWorkerExePath()
+            {
+                // SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. 
+                // These files are available in the Spark executing directory at executor node.
+                if (workerPath != null) return workerPath; // Return cached value
+
+                var workerPathConfig = appSettings.Settings[CSharpWorkerPathSettingKey];
+                if (workerPathConfig == null)
+                {
+                    workerPath = GetCSharpProcFileName();
+                }
+                else
+                {
+                    // Explicit path for the CSharpWorker.exe was listed in App.config
+                    workerPath = workerPathConfig.Value;
+                    logger.LogDebug("Using CSharpWorkerPath value from App.config : {0}", workerPath);
+                }
+                return workerPath;
+            }
+
+            internal virtual string GetCSharpProcFileName()
             {
                 return ProcFileName;
             }
@@ -124,50 +142,33 @@ namespace Microsoft.Spark.CSharp.Configuration
 
         /// <summary>
         /// Configuration for SparkCLR jobs in ** Local ** mode
-        /// Needs some investigation to find out why Local mode behaves
-        /// different than standalone cluster mode for the configuration values
-        /// overridden here
         /// </summary>
         private class SparkCLRLocalConfiguration : SparkCLRConfiguration
         {
+            private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRLocalConfiguration));
             internal SparkCLRLocalConfiguration(System.Configuration.Configuration configuration)
                 : base(configuration)
             { }
 
-            private string workerPath;
-            internal override string GetCSharpWorkerExePath()
+            internal override string GetCSharpProcFileName()
             {
-                // SparkCLR jar and driver, worker & dependencies are shipped using Spark file server. 
-                // These files are available in the Spark executing directory at executor node.
-
-                if (workerPath != null) return workerPath; // Return cached value
-
-                KeyValueConfigurationElement workerPathConfig = appSettings.Settings[CSharpWorkerPathSettingKey];
-                if (workerPathConfig == null)
-                {
-                    // Path for the CSharpWorker.exe was not specified in App.config
-                    // Try to work out where location relative to this class.
-                    // Construct path based on well-known file name + directory this class was loaded from.
-                    string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
-                    workerPath = Path.Combine(procDir, ProcFileName);
-                    logger.LogDebug("Using synthesized value for CSharpWorkerPath : " + workerPath);
-                }
-                else
-                {
-                    // Explicit path for the CSharpWorker.exe was listed in App.config
-                    workerPath = workerPathConfig.Value;
-                    logger.LogDebug("Using CSharpWorkerPath value from App.config : " + workerPath);
-                }
-                return workerPath;
+                // Path for the CSharpWorker.exe was not specified in App.config
+                // Try to work out where location relative to this class.
+                // Construct path based on well-known file name + directory this class was loaded from.
+                string procDir = Path.GetDirectoryName(GetType().Assembly.Location);
+                var procFilePath = Path.Combine(procDir, ProcFileName);
+                logger.LogDebug("Using SparkCLR Adapter dll path to construct CSharpWorkerPath : {0}", procFilePath);
+                return procFilePath;
             }
         }
 
         /// <summary>
         /// Configuration mode for debug mode
-        /// This configuration exists only to make SparkCLR development & debugging easier
+        /// This configuration exists only to make SparkCLR development and debugging easier
         /// </summary>
         private class SparkCLRDebugConfiguration : SparkCLRLocalConfiguration
         {
+            private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRDebugConfiguration));
             internal SparkCLRDebugConfiguration(System.Configuration.Configuration configuration)
                 : base(configuration)
             {}
@@ -192,9 +193,14 @@ namespace Microsoft.Spark.CSharp.Configuration
                 KeyValueConfigurationElement workerPathConfig = appSettings.Settings[CSharpWorkerPathSettingKey];
                 if (workerPathConfig != null)
                 {
+                    logger.LogInfo("Worker path read from setting {0} in app config", CSharpWorkerPathSettingKey);
                     return workerPathConfig.Value;
                 }
-                return GetSparkCLRArtifactsPath("bin", ProcFileName);
+                
+                var path = GetSparkCLRArtifactsPath("bin", ProcFileName);
+                logger.LogInfo("Worker path {0} constructed using {1} environment variable", path, SPARKCLR_HOME);
+
+                return path;
             }
 
             private string GetSparkCLRArtifactsPath(string sparkCLRSubFolderName, string fileName)
@@ -209,14 +215,31 @@ namespace Microsoft.Spark.CSharp.Configuration
         }
     }
 
+    /// <summary>
+    /// The running mode used by Configuration Service
+    /// </summary>
     public enum RunMode
     {
+        /// <summary>
+        /// Unknown running mode
+        /// </summary>
         UNKNOWN,
-        DEBUG, //not a Spark mode but exists for dev debugging purpose
+        /// <summary>
+        /// Debug mode, not a Spark mode but exists for develop debugging purpose
+        /// </summary>
+        DEBUG,
+        /// <summary>
+        /// Indicates service is running in local
+        /// </summary>
         LOCAL,
+        /// <summary>
+        /// Indicates service is running in cluster
+        /// </summary>
         CLUSTER,
-        YARN,
-        //following are not currently supported
-        MESOS
+        /// <summary>
+        /// Indicates service is running in Yarn
+        /// </summary>
+        YARN
+        //MESOS //not currently supported
     }
 }

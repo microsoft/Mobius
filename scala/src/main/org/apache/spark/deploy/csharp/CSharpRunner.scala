@@ -6,14 +6,15 @@
 package org.apache.spark.deploy.csharp
 
 import java.io.File
+import java.nio.file.Paths
 import java.util.concurrent.{Semaphore, TimeUnit}
 
 import org.apache.hadoop.fs.Path
 import org.apache.spark.SparkConf
 import org.apache.spark.SecurityManager
 import org.apache.spark.api.csharp.CSharpBackend
-import org.apache.spark.deploy.{SparkHadoopUtil, SparkSubmitArguments, PythonRunner}
-import org.apache.spark.util.{Utils, RedirectThread}
+import org.apache.spark.deploy.{PythonRunner, SparkHadoopUtil, SparkSubmitArguments}
+import org.apache.spark.util.{RedirectThread, Utils}
 import org.apache.spark.util.csharp.{Utils => CSharpSparkUtils}
 
 /**
@@ -70,8 +71,8 @@ object CSharpRunner {
         otherArgs = args.slice(1, args.length)
     }
 
-    var processParameters = new java.util.ArrayList[String]()
-    processParameters.add(csharpExecutable)
+    var processParameters = new java.util.ArrayList[String]
+    processParameters.add(formatPath(csharpExecutable))
     otherArgs.foreach( arg => processParameters.add(arg) )
 
     println("[CSharpRunner.main] Starting CSharpBackend!")
@@ -139,6 +140,18 @@ object CSharpRunner {
         + backendTimeout + " seconds")
       CSharpSparkUtils.exit(-1)
     }
+  }
+
+  // when executing in YARN cluster mode, the name of the
+  // executable is single-part (just the exe name)
+  // this method will add "." to it
+  def formatPath(csharpExecutable: String): String = {
+    var formattedCSharpExecutable = csharpExecutable
+    var path = Paths.get(csharpExecutable)
+    if (!path.isAbsolute && path.getNameCount == 1) {
+      formattedCSharpExecutable = Paths.get(".", path.toString).toString
+    }
+    formattedCSharpExecutable
   }
 
   /**

@@ -1,27 +1,10 @@
 #
-# This script takes in "version" and "targetDir" (optional) parameters, update SparkCLR Nuget package 
+# This script takes in "version" and "targetDir" (optional) parameters, update Mobius Nuget package 
 # version reference in all *.csproj and packages.config under "dir". 
 #
 # "targetDir" parameter is default to current directory where this script is located, when not provided.
 #
-Param([string]$targetDir, [string]$version)
-
-function Get-ScriptDirectory
-{
-    $Invocation = (Get-Variable MyInvocation -Scope 1).Value;
-    if($Invocation.PSScriptRoot)
-    {
-        $Invocation.PSScriptRoot;
-    }
-    Elseif($Invocation.MyCommand.Path)
-    {
-        Split-Path $Invocation.MyCommand.Path
-    }
-    else
-    {
-        $Invocation.InvocationName.Substring(0,$Invocation.InvocationName.LastIndexOf("\"));
-    }
-}
+Param([string]$targetDir, [string]$version, [string]$nuspecDir, [string]$mode)
 
 function Update-Csproj($targetDir, $version)
 {
@@ -34,7 +17,7 @@ function Update-Csproj($targetDir, $version)
     Write-Output "[SetSparkClrPackageVersion.Update-Csproj] Start setting *.csproj under $targetDir to version=$version"
 
     # 
-    # Update SparkCLR package version to this release. Example in *.csproj:  
+    # Update Mobius package version to this release. Example in *.csproj:  
     #     <HintPath>..\packages\Microsoft.SparkCLR.1.5.2-SNAPSHOT\lib\net45\CSharpWorker.exe</HintPath>
     # 
     Get-ChildItem $targetDir -filter "*.csproj" -recurs | % { 
@@ -56,7 +39,7 @@ function Update-PackageConfig($targetDir, $version)
     Write-Output "[SetSparkClrPackageVersion.Update-PackageConfig] Start setting packages.config under $targetDir to version=$version"
 
     # 
-    #  Update SparkCLR package version to this release. Example in packages.config:  
+    #  Update Mobius package version to this release. Example in packages.config:  
     #      <package id="Microsoft.SparkCLR" version="1.5.2-SNAPSHOT" targetFramework="net45" />
     # 
     Get-ChildItem $targetDir -filter "packages.config" -recurs | % { 
@@ -65,6 +48,28 @@ function Update-PackageConfig($targetDir, $version)
     }
 
     Write-Output "[SetSparkClrPackageVersion.Update-PackageConfig] Done setting *.csproj under $targetDir to version=$version"
+}
+
+function Update_NuSpec($nuspecDir, $version)
+{
+    if (!(test-path $nuspecDir))
+    {
+        Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] WARNING!!! $nuspecDir does not exist. Please provide a valid directory name !"
+        return
+    }
+
+    Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] Start setting SparkCLR.nuspec under $nuspecDir to version=$version"
+
+    # 
+    #  Update Mobius package version to this release. Example in SparkCLR.nuspec:  
+    #      <version>1.5.2-SNAPSHOT</version>
+    # 
+    Get-ChildItem $nuspecDir -filter "SparkCLR.nuspec" | % { 
+        Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] updating $($_.FullName)"
+        ((Get-Content $_.FullName) -replace "<version>\s*\S*</version>", "<version>$version</version>") | Set-Content -Encoding UTF8 -Path $_.FullName -force
+    }
+
+    Write-Output "[SetSparkClrPackageVersion.Update-NuSpec] Done setting SparkCLR.nuspec under $nuspecDir to version=$version"
 }
 
 function Print-Usage
@@ -76,8 +81,11 @@ function Print-Usage
     Write-Output ''
     Write-Output '    "targetDir" parameter is default to current directory where this script is located. '
     Write-Output ''
+    Write-Output '    "mode" parameter is used to update version in Example projects or core artifacts like nuspec.'
+	Write-Output '    Mode options are "examples" and "core" respectively'
+    Write-Output ''	
     Write-Output '    Example usage - '
-    Write-Output '        powershell -f SetSparkClrPackageVersion.ps1 -version 1.5.200-preview-1'
+    Write-Output '        powershell -f SetSparkClrPackageVersion.ps1 -version 1.5.200-preview-1' -mode [core|examples]
     Write-Output ''
     Write-Output '====================================================================================================='
 }
@@ -87,15 +95,31 @@ function Print-Usage
 #
 if (!$PSBoundParameters.ContainsKey('version') -or [string]::IsNullOrEmpty($version))
 {
-    Print-Usage
+	Print-Usage
     return
 }
 
 if (!$PSBoundParameters.ContainsKey('targetDir') -or [string]::IsNullOrEmpty($targetDir))
 {
-    $targetDir = Get-ScriptDirectory
-    Write-Output "[SetSparkClrPackageVersion] targetDir is set to $targetDir"
+	Print-Usage
+    return
 }
 
-Update-Csproj $targetDir $version
-Update-PackageConfig $targetDir $version
+if (!$PSBoundParameters.ContainsKey('nuspecDir') -or [string]::IsNullOrEmpty($nuspecDir))
+{
+	Print-Usage
+    return
+}
+
+if (!$PSBoundParameters.ContainsKey('mode') -or [string]::IsNullOrEmpty($mode))
+{
+	Print-Usage
+    return
+}
+
+if ($mode -eq "examples") {
+	Update-Csproj $targetDir $version
+	Update-PackageConfig $targetDir $version
+} elseif ($mode -eq "core") {
+	Update_NuSpec $nuspecDir $version
+}

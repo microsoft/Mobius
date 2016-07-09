@@ -52,10 +52,15 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.streamingContextProxy = streamingContextProxy;
         }
 
-        public StreamingContext(SparkContext sparkContext, long durationMs)
+        /// <summary>
+        /// Initializes a new instance of StreamingContext with a existing SparkContext 
+        /// </summary>
+        /// <param name="sparkContext">An existing SparkContext</param>
+        /// <param name="durationSeconds">the time interval at which streaming data will be divided into batches</param>
+        public StreamingContext(SparkContext sparkContext, int durationSeconds)
         {
             this.sparkContext = sparkContext;
-            streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationMs);
+            streamingContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(sparkContext, durationSeconds);
         }
 
         /// <summary>
@@ -79,11 +84,17 @@ namespace Microsoft.Spark.CSharp.Streaming
             return new StreamingContext(SparkCLREnvironment.SparkCLRProxy.CreateStreamingContext(checkpointPath));
         }
 
+        /// <summary>
+        /// Start the execution of the streams. 
+        /// </summary>
         public void Start()
         {
             streamingContextProxy.Start();
         }
 
+        /// <summary>
+        /// Stop the execution of the streams.
+        /// </summary>
         public void Stop()
         {
             streamingContextProxy.Stop();
@@ -95,10 +106,10 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// collection. This method allows the developer to specify how long to remember the RDDs (
         /// if the developer wishes to query old data outside the DStream computation).
         /// </summary>
-        /// <param name="durationMs">Minimum duration that each DStream should remember its RDDs</param>
-        public void Remember(long durationMs)
+        /// <param name="durationSeconds">Minimum duration that each DStream should remember its RDDs</param>
+        public void Remember(int durationSeconds)
         {
-            streamingContextProxy.Remember(durationMs);
+            streamingContextProxy.Remember(durationSeconds);
         }
 
         /// <summary>
@@ -152,10 +163,10 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <summary>
         /// Wait for the execution to stop.
         /// </summary>
-        /// <param name="timeout">time to wait in seconds</param>
-        public void AwaitTerminationOrTimeout(int timeout)
+        /// <param name="timeout">time to wait in milliseconds</param>
+        public void AwaitTerminationOrTimeout(long timeout)
         {
-            streamingContextProxy.AwaitTermination(timeout);
+            streamingContextProxy.AwaitTerminationOrTimeout(timeout);
         }
 
         /// <summary>

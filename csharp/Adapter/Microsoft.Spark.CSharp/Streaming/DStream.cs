@@ -221,12 +221,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <summary>
         /// Enable periodic checkpointing of RDDs of this DStream
         /// </summary>
-        /// <param name="intervalMs">time in seconds, after each period of that, generated RDD will be checkpointed</param>
+        /// <param name="intervalSeconds">time in seconds, after each period of that, generated RDD will be checkpointed</param>
         /// <returns></returns>
-        public DStream<T> Checkpoint(long intervalMs)
+        public DStream<T> Checkpoint(int intervalSeconds)
         {
             isCheckpointed = true;
-            DStreamProxy.Checkpoint(intervalMs);
+            DStreamProxy.Checkpoint(intervalSeconds);
             return this;
         }
 
@@ -373,7 +373,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             return DStreamProxy.Slice(fromUnixTime, toUnixTime).Select(r => new RDD<T>(r, streamingContext.SparkContext, serializedMode)).ToArray();
         }
 
-        internal void ValidatWindowParam(int windowSeconds, int slideSeconds)
+        internal void ValidateWindowParam(int windowSeconds, int slideSeconds)
         {
             int duration = SlideDuration;
 
@@ -403,7 +403,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public DStream<T> Window(int windowSeconds, int slideSeconds)
         {
-            ValidatWindowParam(windowSeconds, slideSeconds);
+            ValidateWindowParam(windowSeconds, slideSeconds);
             return new DStream<T>(DStreamProxy.Window(windowSeconds, slideSeconds), streamingContext, serializedMode);
         }
 

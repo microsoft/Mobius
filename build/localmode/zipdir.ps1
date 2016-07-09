@@ -1,6 +1,9 @@
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
 #
 # This script takes in "dir" and "target" parameters, zips all files under dir to the target file
 #
+
 Param([string]$dir, [string]$target)
 
 function Get-ScriptDirectory

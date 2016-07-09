@@ -10,12 +10,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
@@ -26,7 +26,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal class StreamingContextIpcProxy : IStreamingContextProxy
     {
-        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkConf));
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(StreamingContextIpcProxy));
         internal readonly JvmObjectReference jvmStreamingContextReference;
         private readonly JvmObjectReference jvmJavaStreamingReference;
         private readonly ISparkContextProxy sparkContextProxy;
@@ -43,36 +43,51 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             }
         }
 
-        public StreamingContextIpcProxy(SparkContext sparkContext, long durationMs)
+        public StreamingContextIpcProxy(SparkContext sparkContext, int durationSeconds)
         {
             this.sparkContext = sparkContext;
             sparkContextProxy = sparkContext.SparkContextProxy;
-            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { durationMs });
+            var jduration = JvmBridgeUtils.GetJavaDuration(durationSeconds);
 
             JvmObjectReference jvmSparkContextReference = (sparkContextProxy as SparkContextIpcProxy).JvmSparkContextReference;
             jvmStreamingContextReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.StreamingContext", new object[] { jvmSparkContextReference, jduration });
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { jvmStreamingContextReference });
+
+            StartAccumulatorServer(sparkContext);
+            StartCallbackServer();
         }
-        
+
         public StreamingContextIpcProxy(string checkpointPath)
         {
+            sparkContext = SparkContext.GetActiveSparkContext();
+            StartCallbackServer();
+
             jvmJavaStreamingReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.java.JavaStreamingContext", new object[] { checkpointPath });
             jvmStreamingContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "ssc"));
-            JvmObjectReference jvmSparkContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "sc"));
-            JvmObjectReference jvmSparkConfReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "conf"));
-            JvmObjectReference jvmJavaContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "sparkContext"));
-            sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
-            var sparkConfProxy = new SparkConfIpcProxy(jvmSparkConfReference);
-            sparkContext = new SparkContext(sparkContextProxy, new SparkConf(sparkConfProxy));
+            if (sparkContext == null)
+            {
+                JvmObjectReference jvmSparkContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "sc"));
+                JvmObjectReference jvmSparkConfReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "conf"));
+                JvmObjectReference jvmJavaContextReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "sparkContext"));
+                sparkContextProxy = new SparkContextIpcProxy(jvmSparkContextReference, jvmJavaContextReference);
+                var sparkConfProxy = new SparkConfIpcProxy(jvmSparkConfReference);
+                sparkContext = new SparkContext(sparkContextProxy, new SparkConf(sparkConfProxy));
+            }
+            else
+            {
+                sparkContextProxy = sparkContext.SparkContextProxy;
+            }
+            StartAccumulatorServer(sparkContext);
+        }
 
+        private void StartAccumulatorServer(SparkContext sparkContext)
+        {
             // TODO: We don't know whether accumulator variable is used before restart. We just start accumuator server for safety.
             sparkContext.StartAccumulatorServer();
         }
 
         public void Start()
         {
-            int port = StartCallback();
-            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hardcoded in CSharpBackendHandler
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "start");
         }
 
@@ -84,9 +99,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "closeCallback");
         }
 
-        public void Remember(long durationMs)
+        public void Remember(int durationSeconds)
         {
-            var jduration = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { (int)durationMs });
+            var jduration = JvmBridgeUtils.GetJavaDuration(durationSeconds);
 
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "remember", new object[] { jduration });
         }
@@ -119,8 +134,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode)
         {
-            var windowDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { windowSeconds * 1000 });
-            var slideDurationReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { slideSeconds * 1000 });
+            var windowDurationReference = JvmBridgeUtils.GetJavaDuration(windowSeconds);
+            var slideDurationReference = JvmBridgeUtils.GetJavaDuration(slideSeconds);
 
             var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.api.csharp.CSharpReducedWindowedDStream",
                 new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, invFunc, windowDurationReference, slideDurationReference, serializationMode });
@@ -135,6 +150,21 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 new object[] { (jdstream as DStreamIpcProxy).jvmDStreamReference, func, serializationMode, serializationMode2 });
 
             var javaDStreamReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+            return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
+        public IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy)
+        {
+            var rddReference =
+                new JvmObjectReference(
+                    (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(((RDDIpcProxy)rddProxy).JvmRddReference, "rdd"));
+
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor(
+                "org.apache.spark.streaming.api.csharp.CSharpConstantInputDStream", jvmStreamingContextReference, rddReference);
+
+            var javaDStreamReference =
+                new JvmObjectReference((String)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
         }
 
@@ -153,19 +183,19 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public IDStreamProxy KafkaStream(Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, StorageLevelType storageLevelType)
         {
-            JvmObjectReference jtopics = SparkContextIpcProxy.GetJavaMap<string, int>(topics);
-            JvmObjectReference jkafkaParams = SparkContextIpcProxy.GetJavaMap<string, string>(kafkaParams);
+            JvmObjectReference jtopics = JvmBridgeUtils.GetJavaMap<string, int>(topics);
+            JvmObjectReference jkafkaParams = JvmBridgeUtils.GetJavaMap<string, string>(kafkaParams);
             JvmObjectReference jlevel = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
             // KafkaUtilsPythonHelper: external/kafka/src/main/scala/org/apache/spark/streaming/kafka/KafkaUtils.scala
             JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsPythonHelper", new object[] { });
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createStream", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jlevel }).ToString());
             return new DStreamIpcProxy(jstream);
         }
-        
+
         public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
         {
-            JvmObjectReference jtopics = SparkContextIpcProxy.GetJavaSet<string>(topics);
-            JvmObjectReference jkafkaParams = SparkContextIpcProxy.GetJavaMap<string, string>(kafkaParams);
+            JvmObjectReference jtopics = JvmBridgeUtils.GetJavaSet<string>(topics);
+            JvmObjectReference jkafkaParams = JvmBridgeUtils.GetJavaMap<string, string>(kafkaParams);
 
             var jTopicAndPartitions = fromOffsets.Select(x =>
                 new KeyValuePair<JvmObjectReference, long>
@@ -175,13 +205,48 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 )
             );
 
-            JvmObjectReference jfromOffsets = SparkContextIpcProxy.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
+            JvmObjectReference jfromOffsets = JvmBridgeUtils.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
             // KafkaUtilsPythonHelper: external/kafka/src/main/scala/org/apache/spark/streaming/kafka/KafkaUtils.scala
             JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsPythonHelper", new object[] { });
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createDirectStreamWithoutMessageHandler", new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jfromOffsets }).ToString());
             return new DStreamIpcProxy(jstream);
         }
-        
+
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams,
+            Dictionary<string, long> fromOffsets, int numPartitions, byte[] readFunc, string serializationMode)
+        {
+            JvmObjectReference jtopics = JvmBridgeUtils.GetJavaSet<string>(topics);
+            JvmObjectReference jkafkaParams = JvmBridgeUtils.GetJavaMap<string, string>(kafkaParams);
+
+            var jTopicAndPartitions = fromOffsets.Select(x =>
+                new KeyValuePair<JvmObjectReference, long>
+                (
+                    SparkCLRIpcProxy.JvmBridge.CallConstructor("kafka.common.TopicAndPartition", new object[] { x.Key.Split(':')[0], int.Parse(x.Key.Split(':')[1]) }),
+                    x.Value
+                )
+            );
+
+            JvmObjectReference jfromOffsets = JvmBridgeUtils.GetJavaMap<JvmObjectReference, long>(jTopicAndPartitions);
+            // SparkCLR\scala\src\main\org\apache\spark\streaming\api\kafka\KafkaUtilsCSharpHelper.scala
+            JvmObjectReference jhelper = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.kafka.KafkaUtilsCSharpHelper", new object[] { });
+            var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jhelper, "createDirectStreamWithoutMessageHandler",
+                new object[] { jvmJavaStreamingReference, jkafkaParams, jtopics, jfromOffsets, (int)numPartitions, readFunc, serializationMode }).ToString());
+            return new DStreamIpcProxy(jstream);
+        }
+
+        public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
+        {
+            JvmObjectReference eventHubsParamsReference = JvmBridgeUtils.GetScalaMutableMap<string, string>(eventHubsParams);
+            JvmObjectReference storageLevelTypeReference = SparkContextIpcProxy.GetJavaStorageLevel(storageLevelType);
+            return
+                new DStreamIpcProxy(
+                    new JvmObjectReference(
+                        SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod(
+                            "org.apache.spark.streaming.api.csharp.EventHubsUtils", "createUnionStream",
+                            new object[] { jvmJavaStreamingReference, eventHubsParamsReference, storageLevelTypeReference })
+                            .ToString()));
+        }
+
         public IDStreamProxy Union(IDStreamProxy firstDStream, IDStreamProxy[] otherDStreams)
         {
             return new DStreamIpcProxy(
@@ -190,7 +255,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         new object[] 
                         { 
                             (firstDStream as DStreamIpcProxy).javaDStreamReference,
-                            SparkContextIpcProxy.GetJavaList<JvmObjectReference>(otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
+                            JvmBridgeUtils.GetJavaList<JvmObjectReference>(otherDStreams.Select(x => (x as DStreamIpcProxy).javaDStreamReference))
                         }
                     )));
         }
@@ -200,19 +265,19 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTermination");
         }
 
-        public void AwaitTermination(int timeout)
+        public void AwaitTerminationOrTimeout(long timeout)
         {
-            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTermination", new object[] { timeout });
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmStreamingContextReference, "awaitTerminationOrTimeout", new object[] { timeout });
         }
 
         private void ProcessCallbackRequest(object socket)
         {
-            logger.LogDebug("new thread created to process callback request");
+            logger.LogDebug("New thread (id={0}) created to process callback request", Thread.CurrentThread.ManagedThreadId);
 
             try
             {
-                using (Socket sock = (Socket)socket)
-                using (var s = new NetworkStream(sock))
+                using (var sock = (ISocketWrapper)socket)
+                using (var s = sock.GetStream())
                 {
                     while (true)
                     {
@@ -268,6 +333,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                             //log exception only when callback socket is not shutdown explicitly
                             if (!callbackSocketShutdown)
                             {
+                                logger.LogError("Exception processing call back request. Thread id {0}", Thread.CurrentThread.ManagedThreadId);
                                 logger.LogException(e);
 
                                 // exit when exception happens
@@ -281,16 +347,17 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             }
             catch (Exception e)
             {
+                logger.LogError("Exception in callback. Thread id {0}", Thread.CurrentThread.ManagedThreadId);
                 logger.LogException(e);
             }
 
-            logger.LogDebug("thread to process callback request exit");
+            logger.LogDebug("Thread (id={0}) to process callback request exiting", Thread.CurrentThread.ManagedThreadId);
         }
 
-        public int StartCallback()
+        private int StartCallbackServer()
         {
-            TcpListener callbackServer = new TcpListener(IPAddress.Loopback, 0);
-            callbackServer.Start();
+            var callbackServer = SocketFactory.CreateSocket();
+            callbackServer.Listen();
 
             Task.Run(() =>
             {
@@ -299,23 +366,28 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     ThreadPool.SetMaxThreads(10, 10);
                     while (!callbackSocketShutdown)
                     {
-                        Socket sock = callbackServer.AcceptSocket();
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessCallbackRequest), sock);
+                        var sock = callbackServer.Accept();
+                        ThreadPool.QueueUserWorkItem(ProcessCallbackRequest, sock);
                     }
                 }
                 catch (Exception e)
                 {
+                    logger.LogError("Exception starting callback server");
                     logger.LogException(e);
                     throw;
                 }
                 finally
                 {
                     if (callbackServer != null)
-                        callbackServer.Stop();
+                        callbackServer.Close();
                 }
             });
 
-            return (callbackServer.LocalEndpoint as IPEndPoint).Port;
+            int port = (callbackServer.LocalEndPoint as IPEndPoint).Port;
+            logger.LogInfo("Callback server port number is {0}", port);
+            SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("SparkCLRHandler", "connectCallback", port); //className and methodName hard coded in CSharpBackendHandler
+
+            return port;
         }
     }
 }

@@ -1,36 +1,28 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
  */
 
 package org.apache.spark.streaming.api.csharp
 
-import org.apache.spark.api.csharp._
-import org.apache.spark.api.csharp.SerDe._
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
+import scala.language.existentials
 
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 import java.util.{ArrayList => JArrayList}
-import scala.collection.JavaConversions._
-import scala.language.existentials
+import java.util.concurrent.{LinkedBlockingQueue, ConcurrentHashMap, ThreadPoolExecutor}
 
+import org.apache.spark.{Logging, SparkContext}
+import org.apache.spark.api.csharp._
+import org.apache.spark.api.csharp.SerDe._
 import org.apache.spark.api.java._
 import org.apache.spark.rdd._
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.streaming.{Duration, Interval, Time}
+import org.apache.spark.util.ThreadUtils
+import org.apache.spark.streaming.{Duration, Interval, StreamingContext, Time}
 import org.apache.spark.streaming.dstream._
 import org.apache.spark.streaming.api.java._
 
@@ -113,8 +105,8 @@ class CSharpDStream(
   override def slideDuration: Duration = parent.slideDuration
 
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
-    val rdd = parent.compute(validTime)
-    if (rdd.isDefined) {
+    val rdd = parent.getOrCompute(validTime)
+    if (rdd.isDefined && cSharpFunc != null && !cSharpFunc.isEmpty) {
       CSharpDStream.callCSharpTransform(List(rdd), validTime, cSharpFunc, List(serializationMode))
     } else {
       None
@@ -155,8 +147,8 @@ class CSharpTransformed2DStream(
  */
 class CSharpReducedWindowedDStream(
                                     parent: DStream[Array[Byte]],
-                                    rreduceFunc: Array[Byte],
-                                    rinvReduceFunc: Array[Byte],
+                                    csharpReduceFunc: Array[Byte],
+                                    csharpInvReduceFunc: Array[Byte],
                                     _windowDuration: Duration,
                                     _slideDuration: Duration,
                                     serializationMode: String)
@@ -192,14 +184,14 @@ class CSharpReducedWindowedDStream(
     val previousRDD = getOrCompute(previous.endTime)
 
     // for small window, reduce once will be better than twice
-    if (rinvReduceFunc != null && previousRDD.isDefined
+    if (csharpInvReduceFunc != null && previousRDD.isDefined
       && windowDuration >= slideDuration * 5) {
 
       // subtract the values from old RDDs
       val oldRDDs = parent.slice(previous.beginTime + parent.slideDuration, current.beginTime)
       val subtracted = if (oldRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(previousRDD, Some(ssc.sc.union(oldRDDs))),
-          validTime, rinvReduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpInvReduceFunc, List(serializationMode, serializationMode))
       } else {
         previousRDD
       }
@@ -208,7 +200,7 @@ class CSharpReducedWindowedDStream(
       val newRDDs = parent.slice(previous.endTime + parent.slideDuration, current.endTime)
       if (newRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(subtracted, Some(ssc.sc.union(newRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         subtracted
       }
@@ -217,7 +209,7 @@ class CSharpReducedWindowedDStream(
       val currentRDDs = parent.slice(current.beginTime + parent.slideDuration, current.endTime)
       if (currentRDDs.size > 0) {
         CSharpDStream.callCSharpTransform(List(None, Some(ssc.sc.union(currentRDDs))),
-          validTime, rreduceFunc, List(serializationMode, serializationMode))
+          validTime, csharpReduceFunc, List(serializationMode, serializationMode))
       } else {
         None
       }
@@ -245,10 +237,44 @@ class CSharpStateDStream(
 
   override val mustCheckpoint = true
 
+  private val numParallelJobs = parent.ssc.sc.getConf.getInt("spark.mobius.streaming.parallelJobs", 0)
+  @transient private[streaming] var jobExecutor : ThreadPoolExecutor = null
+
+  private[streaming] def runParallelJob(validTime: Time, rdd: Option[RDD[Array[Byte]]]): Unit = {
+    if (numParallelJobs > 0) {
+      val lastCompletedBatch = parent.ssc.progressListener.lastCompletedBatch
+      val lastBatchCompleted = validTime - slideDuration == zeroTime ||
+        lastCompletedBatch.isDefined && lastCompletedBatch.get.batchTime >= validTime - slideDuration
+      logInfo(s"Last batch completed: $lastBatchCompleted")
+      // if last batch already completed, no need to submit a parallel job
+      if (!lastBatchCompleted) {
+        if (jobExecutor == null) {
+          jobExecutor = ThreadUtils.newDaemonFixedThreadPool(numParallelJobs, "mobius-parallel-job-executor")
+        }
+        rdd.get.cache()
+        val queue = new java.util.concurrent.LinkedBlockingQueue[Int]
+        val rddid = rdd.get.id
+        val runnable = new Runnable {
+          override def run(): Unit = {
+            logInfo(s"Starting rdd: $rddid $validTime")
+            parent.ssc.sc.runJob(rdd.get, (iterator: Iterator[Array[Byte]]) => {})
+            logInfo(s"Finished rdd: $rddid $validTime")
+            queue.put(rddid)
+          }
+        }
+        jobExecutor.execute(runnable)
+        logInfo(s"Waiting rdd: $rddid $validTime")
+        queue.take()
+        logInfo(s"Taken rdd: $rddid $validTime")
+      }
+    }
+  }
+
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
     val lastState = getOrCompute(validTime - slideDuration)
     val rdd = parent.getOrCompute(validTime)
     if (rdd.isDefined) {
+      runParallelJob(validTime, rdd)
       CSharpDStream.callCSharpTransform(List(lastState, rdd), validTime, reduceFunc,
         List(serializationMode, serializationMode2))
     } else {
@@ -309,5 +335,158 @@ class InternalMapWithStateDStream(
     } else {
       lastState
     }
+  }
+}
+
+/**
+  * An input stream that always returns the same RDD on each timestep. Useful for testing.
+  */
+class CSharpConstantInputDStream(ssc_ : StreamingContext, rdd: RDD[Array[Byte]])
+  extends ConstantInputDStream[Array[Byte]](ssc_, rdd) {
+
+  val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
+}
+
+case class RddPreComputeRecord[T] (
+    rddSeqNum: Long,
+    rdd: RDD[T])
+
+/**
+ * Used to pre-compute and materialize the input RDDs.
+ */
+class RddPreComputeProcessor[T](
+     sc: SparkContext,
+     val id: String,
+     val maxPendingJobs: Int,
+     val numThreads: Int,
+     val outputLimit: Int,       // maximum number of records for each output
+     val storageLevel: StorageLevel) extends Logging {
+
+  // Thread pool is used to pre-compute RDDs. To preserve order, SeqNum is assigned to RDDs at
+  // input, so we can reassemble them at output
+  @volatile private var inputRddSeqNum: Long = 0L
+  @volatile private var outputRddSeqNum: Long = 0L
+
+  // ackedSeqNum is used for backpressure
+  @volatile private var ackedSeqNum: Long = -1L
+
+  private val precomputedRddMap = new ConcurrentHashMap[Long, RddPreComputeRecord[T]]()
+
+  // If RDD is not pre-computed because of backpressure, it is put in this map
+  private val bypassRddMap = new ConcurrentHashMap[Long, RddPreComputeRecord[T]]()
+
+  // If RDD is not pre-computed because of backpressure, it is also put in this queue for future process
+  private val pendingRddQueue = new LinkedBlockingQueue[RddPreComputeRecord[T]]()
+
+  private var jobExecutor = ThreadUtils.newDaemonFixedThreadPool(numThreads, s"mobius-precompute-job-executor-$id")
+  private val pendingQueueScheduler = ThreadUtils.newDaemonSingleThreadExecutor(s"mobius-precompute-pending-scheduler-$id")
+
+  private def isPending(rddSeqNum: Long): Boolean = {
+    rddSeqNum > ackedSeqNum + maxPendingJobs
+  }
+
+  private def logStatus(): Unit = {
+    logInfo(s"log status for [$id], inputRddSeqNum: $inputRddSeqNum, ackedSeqNum: $ackedSeqNum, outputRddSeqNum: $outputRddSeqNum")
+  }
+
+  private def processPendingQueue(): Unit = {
+    while (true) {
+      val record = pendingRddQueue.take()
+      logInfo(s"process pending queue [$id], rddSeqNum: ${record.rddSeqNum}")
+      logStatus()
+      while (isPending(record.rddSeqNum)) {
+        Thread.sleep(100)
+      }
+      logStatus()
+      logInfo(s"submit job from pending queue [$id], rddSeqNum: ${record.rddSeqNum}")
+      jobExecutor.execute(new Runnable {
+        override def run(): Unit = {
+          record.rdd.persist(storageLevel)
+          sc.setCallSite(s"materialize pending RDD for [$id]")
+          sc.runJob(record.rdd, (iterator: Iterator[T]) => {})
+        }
+      })
+    }
+  }
+
+  // put input RDD to processor
+  def put(rdd: RDD[T]): Unit = {
+    val rddSeqNum = inputRddSeqNum
+    inputRddSeqNum += 1
+    val record = RddPreComputeRecord[T](rddSeqNum, rdd)
+    logInfo(s"put input record [$id], rddSeqNum: ${record.rddSeqNum}")
+    logStatus()
+    if (isPending(record.rddSeqNum)) {
+      bypassRddMap.put(record.rddSeqNum, record)
+      pendingRddQueue.put(record)
+    } else {
+      logInfo(s"submit job [$id], rddSeqNum: ${record.rddSeqNum}")
+      jobExecutor.execute(new Runnable {
+        override def run(): Unit = {
+          record.rdd.persist(storageLevel)
+          sc.setCallSite(s"materialize RDD for [$id]")
+          sc.runJob(record.rdd, (iterator: Iterator[T]) => {})
+          precomputedRddMap.put(record.rddSeqNum, record)
+        }
+      })
+    }
+  }
+
+  // get output RDDs from processor
+  def get(): List[RddPreComputeRecord[T]] = {
+    val result = new ListBuffer[RddPreComputeRecord[T]]()
+    var stop = false
+    var outputNum = 0
+    while (!stop) {
+      val rddSeqNum = outputRddSeqNum
+      if (precomputedRddMap.containsKey(rddSeqNum)) {
+        result += precomputedRddMap.remove(rddSeqNum)
+        outputRddSeqNum += 1
+        outputNum += 1
+        if (outputNum > outputLimit) {
+          stop = true
+        }
+      } else {
+        stop = true
+      }
+    }
+    if (result.isEmpty) {
+      stop = false
+      outputNum = 0
+      while (!stop) {
+        val rddSeqNum = outputRddSeqNum
+        if (bypassRddMap.containsKey(rddSeqNum)) {
+          result += bypassRddMap.remove(rddSeqNum)
+          outputRddSeqNum += 1
+          outputNum += 1
+          if (outputNum > outputLimit) {
+            stop = true
+          }
+        } else {
+          stop = true
+        }
+      }
+    }
+    result.toList
+  }
+
+  // ack consumed RDDs
+  def ackRdd(rddSeqNum: Long): Unit = {
+    if (ackedSeqNum < rddSeqNum) {
+      ackedSeqNum = rddSeqNum
+    }
+  }
+
+  def start(): Unit = {
+    pendingQueueScheduler.execute(new Runnable {
+      override def run(): Unit = {
+        processPendingQueue()
+      }
+    })
+  }
+
+  def stop(): Unit = {
+    jobExecutor.shutdown()
+    pendingQueueScheduler.shutdown()
   }
 }

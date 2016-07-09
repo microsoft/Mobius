@@ -12,6 +12,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
 
 [assembly: InternalsVisibleTo("CSharpWorker")]
@@ -35,10 +36,26 @@ namespace Microsoft.Spark.CSharp.Core
     {
         internal static Dictionary<int, Accumulator> accumulatorRegistry = new Dictionary<int, Accumulator>();
 
+        [ThreadStatic] // Thread safe is needed when running in C# worker
+        internal static Dictionary<int, Accumulator> threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
+
+        /// <summary>
+        /// The identity of the accumulator 
+        /// </summary>
         protected int accumulatorId;
+
+        /// <summary>
+        /// Indicates whether the accumulator is on driver side.
+        /// When deserialized on worker side, isDriver is false by default.
+        /// </summary>
         [NonSerialized]
-        protected bool deserialized = true;
+        protected bool isDriver = false;
     }
+
+    /// <summary>
+    /// A generic version of <see cref="Accumulator"/> where the element type is specified by the driver program.
+    /// </summary>
+    /// <typeparam name="T">The type of element in the accumulator.</typeparam>
     [Serializable]
     public class Accumulator<T> : Accumulator
     {
@@ -46,20 +63,42 @@ namespace Microsoft.Spark.CSharp.Core
         internal T value;
         private readonly AccumulatorParam<T> accumulatorParam = new AccumulatorParam<T>();
 
+        /// <summary>
+        /// Initializes a new instance of the Accumulator class with a specified identity and a value.
+        /// </summary>
+        /// <param name="accumulatorId">The Identity of the accumulator</param>
+        /// <param name="value">The value of the accumulator</param>
         public Accumulator(int accumulatorId, T value)
         {
             this.accumulatorId = accumulatorId;
             this.value = value;
-            deserialized = false;
+            isDriver = true;
             accumulatorRegistry[accumulatorId] = this;
         }
 
+        [OnDeserialized()]
+        internal void OnDeserializedMethod(System.Runtime.Serialization.StreamingContext context)
+        {
+            if (threadLocalAccumulatorRegistry == null)
+            {
+                threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
+            }
+            if (!threadLocalAccumulatorRegistry.ContainsKey(accumulatorId))
+            {
+                threadLocalAccumulatorRegistry[accumulatorId] = this;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the value of the accumulator; only usable in driver program
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public T Value
         {
             // Get the accumulator's value; only usable in driver program
             get
             {
-                if (deserialized)
+                if (!isDriver)
                 {
                     throw new ArgumentException("Accumulator.value cannot be accessed inside tasks");
                 }
@@ -68,7 +107,7 @@ namespace Microsoft.Spark.CSharp.Core
             // Sets the accumulator's value; only usable in driver program
             set
             {
-                if (deserialized)
+                if (!isDriver)
                 {
                     throw new ArgumentException("Accumulator.value cannot be accessed inside tasks");
                 }
@@ -94,14 +133,14 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static Accumulator<T> operator +(Accumulator<T> self, T term)
         {
-            if (!accumulatorRegistry.ContainsKey(self.accumulatorId))
-            {
-                accumulatorRegistry[self.accumulatorId] = self;
-            }
             self.Add(term);
             return self;
         }
 
+        /// <summary>
+        /// Creates and returns a string representation of the current accumulator
+        /// </summary>
+        /// <returns>A string representation of the current accumulator</returns>
         public override string ToString()
         {
             return string.Format("Accumulator<id={0}, value={1}>", accumulatorId, value);
@@ -143,33 +182,33 @@ namespace Microsoft.Spark.CSharp.Core
     /// A simple TCP server that intercepts shutdown() in order to interrupt
     /// our continuous polling on the handler.
     /// </summary>
-    internal class AccumulatorServer : System.Net.Sockets.TcpListener
+    internal class AccumulatorServer
     {
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(AccumulatorServer));
         private volatile bool serverShutdown;
+        private ISocketWrapper innerSocket;
 
         internal AccumulatorServer()
-            : base(IPAddress.Loopback, 0)
         {
-
+            innerSocket = SocketFactory.CreateSocket();
         }
 
         internal void Shutdown()
         {
             serverShutdown = true;
-            base.Stop();
+            innerSocket.Close();
         }
 
         internal int StartUpdateServer()
         {
-            base.Start();
+            innerSocket.Listen();
             Task.Run(() =>
             {
                 try
                 {
                     IFormatter formatter = new BinaryFormatter();
-                    using (Socket s = AcceptSocket())
-                    using (var ns = new NetworkStream(s))
+                    using (var s = innerSocket.Accept())
+                    using (var ns = s.GetStream())
                     {
                         while (!serverShutdown)
                         {
@@ -199,7 +238,7 @@ namespace Microsoft.Spark.CSharp.Core
                 }
                 catch (SocketException e)
                 {
-                    if (e.ErrorCode != 10004)   // A blocking operation was interrupted by a call to WSACancelBlockingCall - TcpListener.Stop cancelled AccepSocket as expected
+                    if (e.ErrorCode != 10004)   // A blocking operation was interrupted by a call to WSACancelBlockingCall - ISocketWrapper.Close canceled Accep() as expected
                         throw e;
                 }
                 catch (Exception e)
@@ -209,7 +248,7 @@ namespace Microsoft.Spark.CSharp.Core
                 }
             });
             
-            return (base.LocalEndpoint as IPEndPoint).Port;
+            return (innerSocket.LocalEndPoint as IPEndPoint).Port;
         }
     }
 }

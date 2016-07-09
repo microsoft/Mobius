@@ -18,20 +18,16 @@ namespace AdapterTest.Mocks
     {
         private IFormatter formatter = new BinaryFormatter();
         public void Start()
-        {
-        }
+        {}
 
         public void Stop()
-        {
-        }
+        {}
 
-        public void Remember(long durationMs)
-        {
-        }
+        public void Remember(int durationSeconds)
+        {}
 
         public void Checkpoint(string directory)
-        {
-        }
+        {}
 
         public IDStreamProxy TextFileStream(string directory)
         {
@@ -53,6 +49,12 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets,
+            int numPartitions, byte[] readFunc, string serializationMode)
+        {
+            return new MockDStreamProxy();
+        }
+
         public IDStreamProxy Union(IDStreamProxy firstDStreams, IDStreamProxy[] otherDStreams)
         {
             return new MockDStreamProxy();
@@ -62,7 +64,7 @@ namespace AdapterTest.Mocks
         {
         }
 
-        public void AwaitTermination(int timeout)
+        public void AwaitTerminationOrTimeout(long timeout)
         {
         }
 
@@ -102,10 +104,24 @@ namespace AdapterTest.Mocks
         {
             Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
             RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,
-                new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")),
+                null,
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
             return new MockDStreamProxy(rdd.RddProxy);
         }
 
+        public IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy)
+        {
+            return new MockDStreamProxy();
+        }
+
+        public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDStreamProxy KafkaMetaStream(byte[] metaParams, uint numPartitions)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -28,7 +28,7 @@ if "%1" == "" (
     @rem TODO: this check will fail if "--exe" only exists in the argument list of user application.
     if "%1" == "--exe" (
         set USER_EXE="true"
-        @echo [RunSamples.cmd] Run user specified application, instead of SparkCLR samples.
+        @echo [RunSamples.cmd] Run user specified application, instead of Mobius samples.
     )
 
     rem - shift the arguments and examine %1 again
@@ -47,16 +47,14 @@ if "%precheck%" == "bad" (goto :EOF)
 @rem 
 @rem setup Hadoop and Spark versions
 @rem
-set SPARK_VERSION=1.6.0
+set SPARK_VERSION=1.6.2
 set HADOOP_VERSION=2.6
 @echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
 
-@rem Windows 7/8/10 may not allow powershell scripts by default
-powershell -Command Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
-
 @rem download runtime dependencies
 pushd "%CMDHOME%"
-powershell -f downloadtools.ps1 run !VERBOSE!
+@rem Windows 7/8/10 may not allow powershell scripts by default
+powershell -ExecutionPolicy Unrestricted -File downloadtools.ps1 run !VERBOSE!
 @echo [RunSamples.cmd] UpdateRuntime.cmd
 type ..\tools\updateruntime.cmd
 call ..\tools\updateruntime.cmd
@@ -67,7 +65,12 @@ if defined ProjectVersion (
 )
 
 set SPARKCLR_HOME=%CMDHOME%\..\runtime
-set SPARKCSV_JARS=
+
+@rem spark-csv package and its depenedency are required for DataFrame operations in Mobius
+set SPARKCLR_EXT_PATH=%SPARKCLR_HOME%\dependencies
+set SPARKCSV_JAR1PATH=%SPARKCLR_EXT_PATH%\spark-csv_2.10-1.3.0.jar
+set SPARKCSV_JAR2PATH=%SPARKCLR_EXT_PATH%\commons-csv-1.1.jar
+set SPARKCLR_EXT_JARS=%SPARKCSV_JAR1PATH%,%SPARKCSV_JAR2PATH%
 
 @rem RunSamples.cmd is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
 set HADOOP_CONF_DIR=
@@ -81,7 +84,7 @@ set SAMPLES_DIR=%SPARKCLR_HOME%\samples
 @echo [RunSamples.cmd] JAVA_HOME=%JAVA_HOME%
 @echo [RunSamples.cmd] SPARK_HOME=%SPARK_HOME%
 @echo [RunSamples.cmd] SPARKCLR_HOME=%SPARKCLR_HOME%
-@echo [RunSamples.cmd] SPARKCSV_JARS=%SPARKCSV_JARS%
+@echo [RunSamples.cmd] SPARKCLR_EXT_JARS=%SPARKCLR_EXT_JARS%
 
 pushd "%SPARKCLR_HOME%\scripts"
 @echo [RunSamples.cmd] CWD=
@@ -93,8 +96,8 @@ if !INTERACTIVE! == "interactive" (
 	call sparkclr-repl.cmd
 ) else (
     if "!USER_EXE!"=="" (
-        @echo [RunSamples.cmd] call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
-        call sparkclr-submit.cmd --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+        @echo [RunSamples.cmd] call sparkclr-submit.cmd --jars %SPARKCLR_EXT_JARS% -exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+        call sparkclr-submit.cmd --jars %SPARKCLR_EXT_JARS% --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
     ) else (
         @echo [RunSamples.cmd] call sparkclr-submit.cmd %*
         call sparkclr-submit.cmd %*

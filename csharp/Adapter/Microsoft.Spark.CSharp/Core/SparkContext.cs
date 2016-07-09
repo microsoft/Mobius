@@ -10,13 +10,30 @@ using System.Text;
 
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Core
 {
+    /// <summary>
+    /// Main entry point for Spark functionality. A SparkContext represents the 
+    /// connection to a Spark cluster, and can be used to create RDDs, accumulators 
+    /// and broadcast variables on that cluster.
+    /// </summary>
     public class SparkContext
     {
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkContext));
         internal ISparkContextProxy SparkContextProxy { get; private set; }
         internal SparkConf SparkConf { get; private set; }
+
+        private static SparkContext _activeSparkContext = null;
+
+        /// <summary>
+        /// Get existing SparkContext
+        /// </summary>
+        internal static SparkContext GetActiveSparkContext()
+        {
+                return _activeSparkContext;
+        }
 
         private AccumulatorServer accumulatorServer;
         private int nextAccumulatorId;
@@ -63,20 +80,32 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         public StatusTracker StatusTracker { get { return new StatusTracker(SparkContextProxy.StatusTracker); } }
 
+        /// <summary>
+        /// Initializes a SparkContext instance with a specific master, application name, and spark home 
+        /// </summary>
+        /// <param name="master">Cluster URL to connect to (e.g. mesos://host:port, spark://host:port, local)</param>
+        /// <param name="appName">A name for your application, to display on the cluster web UI</param>
+        /// <param name="sparkHome">the path that holds spark bits</param>
         public SparkContext(string master, string appName, string sparkHome)
             : this(master, appName, sparkHome, null)
-        {
-        }
+        {}
 
+        /// <summary>
+        /// Initializes a SparkContext instance with a specific master and application name.
+        /// </summary>
+        /// <param name="master"></param>
+        /// <param name="appName"></param>
         public SparkContext(string master, string appName)
             : this(master, appName, null, null)
-        {
-        }
+        {}
 
+        /// <summary>
+        /// Initializes a SparkContext instance with a specific spark config.
+        /// </summary>
+        /// <param name="conf">A SparkConf object that represents the settings for spark</param>
         public SparkContext(SparkConf conf)
             : this(null, null, null, conf)
-        {
-        }
+        {}
 
         /// <summary>
         /// when created from checkpoint
@@ -100,6 +129,7 @@ namespace Microsoft.Spark.CSharp.Core
                 SparkConf.SetSparkHome(sparkHome);
 
             SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
+            _activeSparkContext = this;
         }
 
         internal void StartAccumulatorServer()
@@ -112,8 +142,15 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
 
+        /// <summary>
+        /// Read a text file from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI, and return it as an RDD of Strings.
+        /// </summary>
+        /// <param name="filePath">The path of file to be read</param>
+        /// <param name="minPartitions">A suggestion value of the minimal splitting number for input data</param>
+        /// <returns>an RDD of Strings</returns>
         public RDD<string> TextFile(string filePath, int minPartitions = 0)
         {
+            logger.LogInfo("Reading text file {0} as RDD<string> with {1} partitions", filePath, minPartitions);
             return new RDD<string>(SparkContextProxy.TextFile(filePath, minPartitions), this, SerializedMode.String);
         }
 
@@ -142,6 +179,7 @@ namespace Microsoft.Spark.CSharp.Core
             if (numSlices < 1)
                 numSlices = 1;
 
+            logger.LogInfo("Parallelizing {0} items to form RDD in the cluster with {1} partitions", collectionOfByteRepresentationOfObjects.Count, numSlices);
             return new RDD<T>(SparkContextProxy.Parallelize(collectionOfByteRepresentationOfObjects, numSlices), this);
         }
 
@@ -170,7 +208,7 @@ namespace Microsoft.Spark.CSharp.Core
         ///
         /// Do
         /// {{{
-        ///   <see cref="RDD{KeyValuePair{string, string}}"/> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
+        ///   RDD&lt;KeyValuePair&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
         /// }}}
         ///
         /// then `rdd` contains
@@ -208,7 +246,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// }}}
         ///
         /// Do
-        /// <see cref="RDD{KeyValuePair{string, byte[]}}"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+        /// RDD&lt;KeyValuePair&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
         ///
         /// then `rdd` contains
         /// {{{
@@ -401,9 +439,16 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         public void Stop()
         {
+            logger.LogInfo("Stopping SparkContext");
+            logger.LogInfo("Note that there might be error in Spark logs on the failure to delete userFiles directory " +
+                           "under Spark temp directory (spark.local.dir config value in local mode)");
+            logger.LogInfo("This error may be ignored for now. See https://issues.apache.org/jira/browse/SPARK-8333 for details");
+
             if (accumulatorServer != null)
                 accumulatorServer.Shutdown();
+
             SparkContextProxy.Stop();
+
         }
 
         /// <summary>

@@ -19,7 +19,7 @@ namespace Microsoft.Spark.CSharp.Core
 
     /// <summary>
     /// Wraps C#-based transformations that can be executed within a stage. It helps avoid unnecessary Ser/De of data between
-    /// JVM & CLR to execute C# transformations and pipelines them
+    /// JVM and CLR to execute C# transformations and pipelines them
     /// </summary>
     /// <typeparam name="U"></typeparam>
     [Serializable]
@@ -29,6 +29,14 @@ namespace Microsoft.Spark.CSharp.Core
         internal bool preservesPartitioning;
 
         //TODO - give generic types a better id
+        /// <summary>
+        /// Return a new RDD by applying a function to each partition of this RDD,
+        /// while tracking the index of the original partition.
+        /// </summary>
+        /// <typeparam name="U1">The element type</typeparam>
+        /// <param name="newFunc">The function to be applied to each partition</param>
+        /// <param name="preservesPartitioningParam">Indicates if it preserves partition parameters</param>
+        /// <returns>A new RDD</returns>
         public override RDD<U1> MapPartitionsWithIndex<U1>(Func<int, IEnumerable<U>, IEnumerable<U1>> newFunc, bool preservesPartitioningParam = false)
         {
             if (IsPipelinable())

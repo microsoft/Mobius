@@ -72,6 +72,7 @@
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
+    <Compile Include="EventHubsUtilsTest.cs" />
     <Compile Include="JsonSerDeTest.cs" />
     <Compile Include="FunctionsTest.cs" />
     <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RowTest.cs" />
     <Compile Include="SerDeTest.cs" />
+    <Compile Include="HiveContextTest.cs" />
     <Compile Include="StatusTrackerTest.cs" />
     <Compile Include="TestWithMoqDemo.cs" />
     <Compile Include="Mocks\MockStructTypeProxy.cs" />
@@ -107,11 +109,16 @@
     <Compile Include="ComparableRDDTest.cs" />
     <Compile Include="DoubleRDDTest.cs" />
     <Compile Include="UserDefinedFunctionTest.cs" />
+    <Compile Include="WeakObjectManagerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
       <Project>{ce999a96-f42b-4e80-b208-709d7f49a77c}</Project>
       <Name>Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests.Common\Tests.Common.csproj">
+      <Project>{e4479c4c-e106-4b90-bf0c-319561cea9c4}</Project>
+      <Name>Tests.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

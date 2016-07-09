@@ -44,17 +44,14 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandlineArgumentProcessor.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="DataFrameSamples.cs" />
     <Compile Include="DStreamSamples.cs" />
+    <Compile Include="DStreamStateSample.cs" />
     <Compile Include="MiscSamples.cs" />
     <Compile Include="DoubleRDDSamples.cs" />
     <Compile Include="Program.cs" />
@@ -103,6 +100,10 @@
     <ProjectReference Include="..\..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
       <Project>{ce999a96-f42b-4e80-b208-709d7f49a77c}</Project>
       <Name>Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Utils\Microsoft.Spark.CSharp\Utils.csproj">
+      <Project>{6a118b6b-42f2-4017-b0f5-2fa15007b159}</Project>
+      <Name>Utils</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Worker\Microsoft.Spark.CSharp\Worker.csproj">
       <Project>{82c9d3b2-e4fb-4713-b980-948c1e96a10a}</Project>

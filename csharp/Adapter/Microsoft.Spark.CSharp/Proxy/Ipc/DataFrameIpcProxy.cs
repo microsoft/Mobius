@@ -14,6 +14,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
     internal class DataFrameIpcProxy : IDataFrameProxy
     {
         private readonly JvmObjectReference jvmDataFrameReference;
+
+        internal JvmObjectReference JvmDataFrameReference
+        {
+            get { return jvmDataFrameReference; }
+        }
+
         private readonly ISqlContextProxy sqlContextProxy;
 
         private readonly DataFrameNaFunctions na;
@@ -406,6 +412,20 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         }
 
         /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.6/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, sortWithinPartitions(sortExprs: Column*): DataFrame
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        public IDataFrameProxy SortWithinPartitions(IColumnProxy[] columns)
+        {
+            var columnsSeq = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
+                        "toSeq", new object[] { columns.Select(c => (c as ColumnIpcProxy).ScalaColumnReference).ToArray() }));
+
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "sortWithinPartitions", columnsSeq).ToString()), sqlContextProxy);
+        }
+
+        /// <summary>
         /// Call https://github.com/apache/spark/blob/branch-1.4/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, as(alias: String): DataFrame
         /// </summary>
         /// <param name="alias"></param>
@@ -515,6 +535,35 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                     SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                         jvmDataFrameReference, "repartition",
                         new object[] { numPartitions }).ToString()), sqlContextProxy);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.6/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, repartition(numPartitions: Int, partitionExprs: Column*): DataFrame
+        /// </summary>
+        /// <param name="numPartitions"></param>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        public IDataFrameProxy Repartition(int numPartitions, IColumnProxy[] columns)
+        {
+            var columnsSeq = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
+                        "toSeq", new object[] { columns.Select(c => (c as ColumnIpcProxy).ScalaColumnReference).ToArray() }));
+
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "repartition", new object[] { numPartitions, columnsSeq }).ToString()), sqlContextProxy);
+        }
+
+        /// <summary>
+        /// Call https://github.com/apache/spark/blob/branch-1.6/sql/core/src/main/scala/org/apache/spark/sql/DataFrame.scala, repartition(partitionExprs: Column*): DataFrame
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        public IDataFrameProxy Repartition(IColumnProxy[] columns)
+        {
+            var columnsSeq = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils",
+                        "toSeq", new object[] { columns.Select(c => (c as ColumnIpcProxy).ScalaColumnReference).ToArray() }));
+
+            return new DataFrameIpcProxy(new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
+                        jvmDataFrameReference, "repartition", new object[] { columnsSeq }).ToString()), sqlContextProxy);
         }
 
         public IDataFrameProxy Sample(bool withReplacement, double fraction, long seed)
