@@ -20,6 +20,7 @@ namespace Microsoft.Spark.CSharp.Configuration
         public const string ProcFileName = "CSharpWorker.exe";
         public const string CSharpWorkerPathSettingKey = "CSharpWorkerPath";
         public const string CSharpBackendPortNumberSettingKey = "CSharpBackendPortNumber";
+        public const string CSharpSocketTypeEnvName = "spark.mobius.CSharp.socketType";
         public const string SPARKCLR_HOME = "SPARKCLR_HOME";
         public const string SPARK_MASTER = "spark.master";
         public const string CSHARPBACKEND_PORT = "CSHARPBACKEND_PORT";
@@ -169,9 +170,11 @@ namespace Microsoft.Spark.CSharp.Configuration
         private class SparkCLRDebugConfiguration : SparkCLRLocalConfiguration
         {
             private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkCLRDebugConfiguration));
+
             internal SparkCLRDebugConfiguration(System.Configuration.Configuration configuration)
                 : base(configuration)
-            {}
+            {
+            }
 
             internal override int GetPortNumber()
             {

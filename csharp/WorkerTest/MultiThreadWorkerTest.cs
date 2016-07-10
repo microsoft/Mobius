@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
+using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
@@ -21,7 +22,9 @@ namespace WorkerTest
     /// Validates MultiThreadWorker by creating a ISocketWrapper server to 
     /// simulate interactions between CSharpRDD and CSharpWorker
     /// </summary>
-    [TestFixture]
+    [TestFixture("Normal")]
+    [TestFixture("Rio")]
+    [TestFixture("Saea")]
     class MultiThreadWorkerTest
     {
         private int splitIndex = 0;
@@ -30,6 +33,18 @@ namespace WorkerTest
         private int numberOfIncludesItems = 0;
         private int numBroadcastVariables = 0;
         private readonly byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
+
+        public MultiThreadWorkerTest(string sockType)
+        {
+            if (sockType.Equals("Rio") && !SocketFactory.IsRioSockSupported())
+            {
+                Assert.Ignore("Omitting TestFixture due to missing Riosock.dll. It might caused by no VC++ build tool or running on an OS that not supports Windows RIO socket.");
+            }
+
+            // Set Socket wrapper for test
+            Environment.SetEnvironmentVariable(ConfigurationService.CSharpSocketTypeEnvName, sockType);
+            SocketFactory.SocketWrapperType = SocketWrapperType.None;
+        }
 
         // StringBuilder is not thread-safe, it shouldn't be used concurrently from different threads.
         // http://stackoverflow.com/questions/12645351/stringbuilder-tostring-throw-an-index-out-of-range-exception
@@ -168,7 +183,10 @@ namespace WorkerTest
         /// <param name="exitCode"></param>
         private void AssertWorker(Process worker, int exitCode = 0, string errorMessage = null)
         {
-            worker.WaitForExit(3000);
+            if (!worker.WaitForExit(3000))
+            {
+                worker.Kill();
+            }
             string str;
             lock (syncLock)
             {

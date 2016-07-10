@@ -11,7 +11,7 @@ namespace Microsoft.Spark.CSharp.Network
     /// <summary>
     /// A simple wrapper of System.Net.Sockets.Socket class.
     /// </summary>
-    public class DefaultSocketWrapper : ISocketWrapper
+    internal class DefaultSocketWrapper : ISocketWrapper
     {
         private readonly Socket innerSocket;
 
@@ -83,9 +83,31 @@ namespace Microsoft.Spark.CSharp.Network
         /// Starts listening for incoming connections requests
         /// </summary>
         /// <param name="backlog">The maximum length of the pending connections queue. </param>
-        public void Listen(int backlog = (int)SocketOptionName.MaxConnections)
+        public void Listen(int backlog = 16)
         {
             innerSocket.Listen(backlog);
+        }
+
+        /// <summary>
+        /// Receives network data from this socket, and returns a ByteBuf that contains the received data.
+        /// 
+        /// The DefaultSocketWrapper does not support this function.
+        /// </summary>
+        /// <returns>A ByteBuf object that contains received data.</returns>
+        public ByteBuf Receive()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Sends data to this socket with a ByteBuf object that contains data to be sent.
+        /// 
+        /// The DefaultSocketWrapper does not support this function.
+        /// </summary>
+        /// <param name="data">A ByteBuf object that contains data to be sent</param>
+        public void Send(ByteBuf data)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -117,14 +139,18 @@ namespace Microsoft.Spark.CSharp.Network
         }
 
         /// <summary>
+        /// Indicates whether there are data that has been received from the network and is available to be read.
+        /// </summary>
+        public bool HasData { get { return innerSocket.Available > 0; } }
+
+        /// <summary>
         /// Returns the local endpoint.
         /// </summary>
-        public EndPoint LocalEndPoint
-        {
-            get
-            {
-                return innerSocket.LocalEndPoint;
-            }
-        }
+        public EndPoint LocalEndPoint { get { return innerSocket.LocalEndPoint; } }
+
+        /// <summary>
+        /// Returns the remote endpoint if it has one.
+        /// </summary>
+        public EndPoint RemoteEndPoint { get { return innerSocket.RemoteEndPoint; } }
     }
 }

@@ -44,7 +44,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
     /// <summary>
     /// adaptively control the number of weak objects that should be checked for each interval
-    /// <summary>
+    /// </summary>
     internal class WeakReferenceCheckCountController
     {
         private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WeakReferenceCheckCountController));
