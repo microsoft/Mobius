@@ -11,7 +11,7 @@ namespace Microsoft.Spark.CSharp.Services
     /// </summary>
     public class LoggerServiceFactory
     {
-        private static ILoggerService loggerService = DefaultLoggerService.Instance;
+        private static ILoggerService loggerService = Log4NetLoggerService.Instance;
         
         /// <summary>
         /// Overrides an existing logger by a given logger service instance
