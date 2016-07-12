@@ -168,6 +168,23 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
         }
 
+        public IDStreamProxy CreateCSharpInputDStream(byte[] func, string serializationMode)
+        {
+            var jvmDStreamReference = SparkCLRIpcProxy.JvmBridge.CallConstructor(
+                "org.apache.spark.streaming.api.csharp.CSharpInputDStream",
+                new object[]
+                {
+                    jvmStreamingContextReference,
+                    func,
+                    serializationMode
+                });
+
+            var javaDStreamReference =
+                new JvmObjectReference((String)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "asJavaDStream"));
+
+            return new DStreamIpcProxy(javaDStreamReference, jvmDStreamReference);
+        }
+
         public IDStreamProxy TextFileStream(string directory)
         {
             var jstream = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaStreamingReference, "textFileStream", new object[] { directory }).ToString());

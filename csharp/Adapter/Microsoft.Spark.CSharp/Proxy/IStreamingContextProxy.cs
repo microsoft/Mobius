@@ -32,6 +32,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode);
         IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string className, string serializationMode, string serializationMode2);
         IDStreamProxy CreateConstantInputDStream(IRDDProxy rddProxy);
+        IDStreamProxy CreateCSharpInputDStream(byte[] func, string serializationMode);
         IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType);
 
     }
