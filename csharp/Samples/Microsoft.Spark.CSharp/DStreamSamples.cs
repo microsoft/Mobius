@@ -238,7 +238,7 @@ namespace Microsoft.Spark.CSharp
         {
             count = 0;
 
-            const int bacthInterval = 2;
+            const int bacthInterval = 2000;
             const int windowDuration = 26;
             const int numPartitions = 2;
 
@@ -278,7 +278,7 @@ namespace Microsoft.Spark.CSharp
                     KeyValuePair<int, int> sum = (KeyValuePair<int, int>)record;
                     Console.WriteLine("Key: {0}, Value: {1}", sum.Key, sum.Value);
                     // when batch count reaches window size, sum of even/odd number stay at windowDuration / slideDuration * (2450, 2500) respectively
-                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / bacthInterval * (sum.Key == 0 ? 2450 : 2500));
+                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / (bacthInterval / 1000) * (sum.Key == 0 ? 2450 : 2500));
                 }
             });
 
