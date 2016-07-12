@@ -4,13 +4,17 @@
  */
 package org.apache.spark.streaming.api.csharp
 
-import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.scheduler.{BatchInfo, StreamingListenerBatchCompleted}
-import org.apache.spark.streaming.{StreamingContext, Duration, Time}
-import org.apache.spark.streaming.dstream.DStream
-import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.spark.csharp.SparkCLRFunSuite
+import java.util.concurrent.atomic.AtomicInteger
 
+import org.apache.spark.csharp.SparkCLRFunSuite
+import org.apache.spark.rdd.{LocalRDDCheckpointData, RDD}
+import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.scheduler.{BatchInfo, StreamingListenerBatchCompleted}
+import org.apache.spark.streaming.{Duration, Seconds, StreamingContext, Time}
+import org.apache.spark.{SparkConf, SparkContext}
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
+
+import scala.collection.mutable.{ArrayBuffer, Queue}
 import scala.reflect.ClassTag
 
 private class MockSparkContext(config: SparkConf) extends SparkContext(config) {
@@ -32,7 +36,72 @@ private class MockCSharpStateDStream(
   override def slideDuration: Duration = new Duration(1000)
 }
 
-class CSharpDStreamSuite extends SparkCLRFunSuite {
+class CSharpDStreamSuite extends SparkCLRFunSuite with BeforeAndAfterAll with BeforeAndAfter {
+  private var conf: SparkConf = null
+  private var sc: SparkContext = null
+
+  before {
+    StreamingContext.getActive().foreach { _.stop(stopSparkContext = false) }
+    if (sc != null && !sc.stopped.get) {
+      sc.stop()
+    }
+  }
+
+  after {
+    StreamingContext.getActive().foreach { _.stop(stopSparkContext = false) }
+    if (sc != null && !sc.stopped.get) {
+      sc.stop()
+    }
+  }
+
+  test("CSharpStateDStream - local checkpoint enabled") {
+    val replicas = 2
+    conf = new SparkConf().setMaster("local[*]").setAppName("CSharpStateDStream")
+    conf.set("spark.mobius.streaming.localCheckpoint.enabled", "true")
+    conf.set("spark.mobius.streaming.localCheckpoint.replicas", replicas.toString)
+
+    // set reserved memory to 50M so the min system memory only needs 50M * 1.5 = 70.5M
+    conf.set("spark.testing.reservedMemory", "" + 50 * 1024 * 1024)
+
+    sc = new SparkContext(conf)
+    val ssc = new StreamingContext(sc, Seconds(1))
+
+    // Set up CSharpDStream
+    val expectedRDD = sc.makeRDD(ArrayBuffer.fill(10)("a".getBytes))
+    CSharpDStream.debugMode = true
+    CSharpDStream.debugRDD = Some(expectedRDD)
+
+    // Construct CSharpStateDStream
+    val parentDStream = ssc.queueStream[Array[Byte]](Queue(sc.makeRDD(ArrayBuffer.fill(10)("a".getBytes))), true)
+    val stateDStream = new CSharpStateDStream(parentDStream, new Array[Byte](0), "byte", "byte")
+    stateDStream.register()
+
+    val rddCount = new AtomicInteger(0) // counter to indicate how many batches have finished
+
+    stateDStream.foreachRDD { stateRDD =>
+      rddCount.incrementAndGet()
+      println(stateRDD.count())
+      // asserts
+      assert(stateRDD.checkpointData.get.isInstanceOf[LocalRDDCheckpointData[Array[Byte]]])
+      assert(stateRDD.getStorageLevel.replication == replicas)
+    }
+    ssc.start()
+
+    // check whether first batch finished
+    val startWaitingTimeInMills = System.currentTimeMillis()
+    val maxWaitingTimeInSecs = 20
+    while(rddCount.get() < 1) {
+      Thread.sleep(100)
+      if((System.currentTimeMillis() - startWaitingTimeInMills) > maxWaitingTimeInSecs * 1000) {
+        // if waiting time exceeds `maxWaitingTimeInSecs` secs, will fail current test.
+        fail(s"Total running time exceeds $maxWaitingTimeInSecs, fail current test.")
+      }
+    }
+
+    ssc.stop(false)
+    sc.stop
+    assert(rddCount.get() >= 1)
+  }
 
   test("runParallelJob in UpdateStateByKey") {
 
