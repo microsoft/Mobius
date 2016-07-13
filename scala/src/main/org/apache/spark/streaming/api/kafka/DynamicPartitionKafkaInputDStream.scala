@@ -5,26 +5,29 @@
 
 package org.apache.spark.streaming.kafka
 
-import scala.annotation.tailrec
-import scala.collection.mutable
-import scala.reflect.ClassTag
-
-import java.util.concurrent.{ConcurrentHashMap, TimeUnit, ScheduledExecutorService}
+import java.beans.Transient
+import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter}
+import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService, TimeUnit}
 
 import kafka.common.TopicAndPartition
 import kafka.message.MessageAndMetadata
 import kafka.serializer.Decoder
-
-import org.apache.spark.rdd.{EmptyRDD, UnionRDD, RDD}
+import org.apache.hadoop.fs.{FileSystem, Path, PathFilter}
+import org.apache.spark.deploy.SparkHadoopUtil
+import org.apache.spark.rdd.{EmptyRDD, RDD, UnionRDD}
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.Logging
-import org.apache.spark.streaming.{StreamingContext, Time}
+import org.apache.spark.streaming.api.csharp.{CSharpDStream, RddPreComputeProcessor, RddPreComputeRecord}
 import org.apache.spark.streaming.dstream._
 import org.apache.spark.streaming.kafka.KafkaCluster.LeaderOffset
 import org.apache.spark.streaming.scheduler.StreamInputInfo
-import org.apache.spark.util.ThreadUtils
+import org.apache.spark.streaming.{Duration, StreamingContext, Time}
+import org.apache.spark.util.{ThreadUtils, Utils}
+import org.apache.spark.{Logging, SparkException}
 
-import org.apache.spark.streaming.api.csharp.{RddPreComputeRecord, RddPreComputeProcessor, CSharpDStream}
+import scala.annotation.tailrec
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+import scala.reflect.ClassTag
 
 /**
  * A stream of the new DynamicPartitionKafkaRDD to support where
@@ -36,7 +39,8 @@ import org.apache.spark.streaming.api.csharp.{RddPreComputeRecord, RddPreCompute
  * so that you can control exactly-once semantics.
  * For an easy interface to Kafka-managed offsets,
  *  see {@link org.apache.spark.streaming.kafka.KafkaCluster}
- * @param kafkaParams Kafka <a href="http://kafka.apache.org/documentation.html#configuration">
+  *
+  * @param kafkaParams Kafka <a href="http://kafka.apache.org/documentation.html#configuration">
  * configuration parameters</a>.
  *   Requires "metadata.broker.list" or "bootstrap.servers" to be set with Kafka broker(s),
  *   NOT zookeeper servers, specified in host1:port1,host2:port2 form.
@@ -102,6 +106,27 @@ class DynamicPartitionKafkaInputDStream[
   // according to time it is referenced.
   @transient private[streaming] var preComputeOutputMap: ConcurrentHashMap[Time, List[RddPreComputeRecord[R]]] = null
   @transient private var rddPreComputeProcessor: RddPreComputeProcessor[R] = null
+
+  @transient private val dc = kafkaParams.getOrElse("cluster.id", "unknown_cluster").replace(" ", "_")
+  @transient private val enableOffsetCheckpoint = context.sparkContext.getConf.getBoolean("spark.mobius.streaming.kafka.enableOffsetCheckpoint", false)
+  @transient private val offsetCheckpointDir: Path = if(enableOffsetCheckpoint && context.sparkContext.checkpointDir.isDefined) new Path(new Path(context.sparkContext.checkpointDir.get).getParent, "kafka-checkpoint") else null
+  @transient private lazy val fs: FileSystem = if(enableOffsetCheckpoint && offsetCheckpointDir != null) offsetCheckpointDir.getFileSystem(SparkHadoopUtil.get.conf) else null
+  @transient private val replayBatches = context.sparkContext.getConf.getInt("spark.mobius.streaming.kafka.replayBatches", 0)
+  @transient private val maxRetainedOffsetCheckpoints = context.sparkContext.getConf.getInt("spark.mobius.streaming.kafka.maxRetainedOffsetCheckpoints", 0) match {
+    case n if n > replayBatches => n
+    case _: Int => replayBatches
+  }
+  @transient private[streaming] var needToReplayOffsetRanges = false
+
+  if (enableOffsetCheckpoint && fs != null) {
+    if (!fs.exists(offsetCheckpointDir)) {
+      fs.mkdirs(offsetCheckpointDir)
+    } else if (!fs.isDirectory(offsetCheckpointDir)) {
+      throw new SparkException("Offset checkpoint dir: " + offsetCheckpointDir + " is not a directory.")
+    }
+  }
+
+  import OffsetRangeCheckpointHandler._
 
   private def refreshPartitions(): Unit = {
     if (!hasFetchedAllPartitions) {
@@ -299,10 +324,22 @@ class DynamicPartitionKafkaInputDStream[
       offsetsRangeForNextBatch = None
       tmpOffsetsRange
     }
+
     offsetsRange.flatMap({
       case (from, until) =>
         val rdd = DynamicPartitionKafkaRDD[K, V, U, T, R](
           context.sparkContext, kafkaParams, from, until, messageHandler, numPartitions)
+
+        if(enableOffsetCheckpoint) {
+          val offsetRanges = from.map { case (tp, fo) =>
+            val uo = until(tp)
+            OffsetRange(tp.topic, tp.partition, fo, uo.offset)
+          }
+          // Save offset ranges to staging directory
+          logInfo(s"Save offset range to HDFS, time: $validTime, topic: $topics, path: $offsetCheckpointDir")
+          offsetRanges.groupBy(_.topic).foreach{ case (topic, ranges) => writeCheckpoint(validTime, ranges.toList, topic, dc, offsetCheckpointDir, fs) }
+        }
+
         Some(callCSharpTransform(rdd, validTime))
     })
   }
@@ -369,10 +406,52 @@ class DynamicPartitionKafkaInputDStream[
       }
     }
 
+    if (enableOffsetCheckpoint && offsetCheckpointDir != null) {
+      // When offset ranges checkpoint enabled, the 1st batch is used to replay the checkpointed offsets,
+      // in this case don't need to commit the offsets
+      if (needToReplayOffsetRanges) {
+        needToReplayOffsetRanges = false
+      } else {
+        commitCheckpoint(offsetCheckpointDir, time, new Duration(replayBatches * slideDuration.milliseconds), maxRetainedOffsetCheckpoints, fs)
+      }
+    }
+
     super.clearMetadata(time)
   }
 
   override def start(): Unit = {
+    if (enableOffsetCheckpoint && offsetCheckpointDir != null) {
+      logInfo("Offset range checkpoint is enabled.")
+      val offsetRanges = topics.flatMap(readCheckpoint(offsetCheckpointDir, new Duration(replayBatches * slideDuration.milliseconds), _, dc, fs))
+        .flatten.groupBy(range => range.topicAndPartition())
+        .map { case (tp, ranges) => tp ->(ranges.minBy(_.fromOffset).fromOffset, ranges.maxBy(_.untilOffset).untilOffset) }
+      logInfo("Find " + offsetRanges.size + " offset ranges for topics:" + topics + ", dc:" + dc)
+
+      if (!offsetRanges.isEmpty) {
+        val leaders = if (kafkaParams("metadata.broker.list").isEmpty)
+          Map[TopicAndPartition, (String, Int)]()
+        else if (kafkaParams.contains("metadata.leader.list")) // this piece of code is for test purpose only
+          kafkaParams("metadata.leader.list").split("\\|").map { l =>
+            val s = l.split(",")
+            TopicAndPartition(s(0), s(1).toInt) -> (s(2), s(3).toInt)
+          }.toMap
+        else
+          KafkaCluster.checkErrors(kc.findLeaders(offsetRanges.keySet))
+
+        // remove those topics which don't have leaders
+        val filteredOffsetRanges = offsetRanges.filterKeys(leaders.contains(_))
+        offsetsRangeForNextBatch = Some(
+          filteredOffsetRanges.map { case (tp, (minFromOffset, maxUntilOffset)) => tp -> minFromOffset },
+          filteredOffsetRanges.map { case (tp, (minFromOffset, maxUntilOffset)) => tp -> new LeaderOffset(leaders(tp)._1, leaders(tp)._2, maxUntilOffset)
+          }
+        )
+        logInfo(s"Loaded offset range from checkpoint, topics: $topics, dc: $dc")
+        needToReplayOffsetRanges = true
+      }
+      // remove all *staging directories
+      deleteUncommittedCheckpoint(offsetCheckpointDir, fs)
+    }
+
     initializeReceiver()
     instantiateAndStartRefreshOffsetsScheduler()
   }
@@ -426,3 +505,141 @@ class DynamicPartitionKafkaInputDStream[
     }
   }
 }
+
+private[streaming] object OffsetRangeCheckpointHandler extends Logging {
+  val LOCK = new Object()
+  val PREFIX = "offsets-"
+  val REGEX = (PREFIX + """([\d]+)$""").r
+  val STAGING_REGEX = (PREFIX + """([\d]+)\.staging$""").r
+  val SEP = "\t"
+
+  @Transient var lastCommittedBatchTim: Time = null
+
+  def checkpointDirForBatch(checkpointPath: Path, time: Time)(implicit staging: Boolean = false): Path = {
+    if (staging) new Path(checkpointPath, PREFIX + time.milliseconds + ".staging") else new Path(checkpointPath, PREFIX + time.milliseconds)
+  }
+
+  def checkpointPath(time: Time, topic: String, dc: String, checkpointDir: Path, staging: Boolean): Path = {
+    new Path(checkpointDirForBatch(checkpointDir, time)(staging), s"$dc-$topic")
+  }
+
+  def commitCheckpoint(checkpointDir: Path, batchTime: Time, replayDuration: Duration, maxRetainedCheckpoints: Int, fs: FileSystem): Unit = {
+    logInfo("Attempt to commit offsets checkpoint, batchTime:" + batchTime)
+    LOCK.synchronized {
+      Utils.tryWithSafeFinally {
+        if (batchTime == lastCommittedBatchTim) {
+          return
+        }
+
+        val offsetsCheckpointDir = checkpointDirForBatch(checkpointDir, batchTime)
+        if (fs.exists(offsetsCheckpointDir)) {
+          logInfo(s"Checkpoint directory for time: $batchTime already exists: $offsetsCheckpointDir")
+        } else {
+          val stagingDir = checkpointDirForBatch(checkpointDir, batchTime)(true)
+          if (!fs.exists(stagingDir)) {
+            logError(s"Checkpoint staging directory for time: $batchTime does not exists, path: $stagingDir.")
+          } else {
+            fs.rename(stagingDir, offsetsCheckpointDir)
+            logInfo(s"Successfully commit offset ranges for time: $batchTime, path: $offsetsCheckpointDir")
+          }
+        }
+      } {
+        lastCommittedBatchTim = batchTime
+      }
+
+      //remove expired offset checkpoint
+      fs.listStatus(checkpointDir, new PathFilter() {
+        def accept(path: Path): Boolean = {
+          REGEX.findFirstIn(path.getName).nonEmpty
+        }
+      }).sortBy(_.getPath.getName).reverse.drop(maxRetainedCheckpoints).foreach(s => {
+        fs.delete(s.getPath, true)
+        logWarning("Deleted offset checkpoint: " + s.getPath)
+      }
+      )
+    }
+  }
+
+  def writeCheckpoint(batchTime: Time, offsetRanges: List[OffsetRange], topic: String, dc: String, checkpointDir: Path, fs: FileSystem): Path = {
+    // Remove existing staging directory first
+    val offsetCheckpointPath = checkpointPath(batchTime, topic, dc, checkpointDir, true)
+    // Write checkpoint file
+    if (fs.exists(offsetCheckpointPath)) {
+      logError("Offset checkpoint file " + offsetCheckpointPath.toString + "already exists, this should not happen, delete it.")
+      fs.delete(offsetCheckpointPath, true)
+    }
+
+    val bo = new BufferedWriter(new OutputStreamWriter(fs.create(offsetCheckpointPath), "UTF-8"))
+    Utils.tryWithSafeFinally {
+      offsetRanges.sortBy(_.fromOffset).foreach { range =>
+        //schema: {topic}\t{patition}\t{fromOffset}\t{untilOffset}
+        bo.write(s"$topic$SEP${range.partition}$SEP${range.fromOffset}$SEP${range.untilOffset}")
+        bo.newLine
+      }
+      logInfo(s"Checkpointed offset ranges for dc $dc time $batchTime offsetRange ${offsetRanges.size}")
+    } {
+      bo.close
+    }
+
+    offsetCheckpointPath
+  }
+
+  def readOffsets(path: Path, fs: FileSystem): Seq[OffsetRange] = {
+    logInfo("Trying to read offsets from " + path)
+    val br = new BufferedReader(new InputStreamReader(fs.open(path), "UTF-8"))
+    Utils.tryWithSafeFinally {
+      val offsetRanges = Iterator.continually(br.readLine()).takeWhile(_ != null).map(_.split(SEP)).map(r => OffsetRange(r(0), r(1).toInt, r(2).toLong, r(3).toLong)).toSeq
+      logInfo(s"Read offset ranges from $path partitions ${offsetRanges.length}")
+      offsetRanges
+    } {
+      br.close
+    }
+  }
+
+  def readCheckpoint(checkpointPath: Path, replayDuration: Duration, topic: String, dc: String, fs: FileSystem): Option[Seq[OffsetRange]] = {
+    // Try to find offset checkpoint files
+    val checkpointFiles = fs.listStatus(checkpointPath, new PathFilter() {
+      def accept(path: Path): Boolean = {
+        REGEX.findFirstIn(path.getName).nonEmpty
+      }
+    }).map(_.getPath).sortBy(_.getName).reverse
+
+    if (checkpointFiles.isEmpty) {
+      logInfo("Could not find any offset checkpoint files.")
+      return None
+    }
+
+    val offsetRanges = new ListBuffer[OffsetRange]()
+    val latestReplayBatchTime = new Time(checkpointFiles.head.getName.substring(PREFIX.length).toLong)
+    logInfo("Batch time for the latest offset checkpoint file is: " + latestReplayBatchTime.milliseconds)
+    val earliestReplayBatchTime = latestReplayBatchTime - replayDuration
+    logInfo("Batch time for the earliest offset checkpoint file is: " + earliestReplayBatchTime.milliseconds)
+
+    checkpointFiles.filter(p => new Time(p.getName.substring(PREFIX.length).toLong) > earliestReplayBatchTime).foreach(path => {
+      logInfo("Attempting to load checkpoint from directory " + path)
+      val statues = fs.listStatus(path)
+      if (statues != null) {
+        val paths = statues.map(_.getPath).filter(_.getName.endsWith(s"$dc-$topic"))
+        paths.foreach(p => offsetRanges.appendAll(readOffsets(p, fs)))
+      } else {
+        logWarning("Listing " + path + "returned null")
+      }
+    })
+    logInfo(s"Read offsets with topic: $topic, dc: $dc, ranges: " + offsetRanges)
+    Some(offsetRanges)
+  }
+
+  def deleteUncommittedCheckpoint(checkpointPath: Path, fs: FileSystem): Unit = {
+    LOCK.synchronized {
+      fs.listStatus(checkpointPath, new PathFilter() {
+        def accept(path: Path): Boolean = {
+          STAGING_REGEX.findFirstIn(path.getName).nonEmpty
+        }
+      }).foreach { p =>
+        fs.delete(p.getPath, true)
+        logInfo("Delete staging directory: " + p.getPath)
+      }
+    }
+  }
+}
+
