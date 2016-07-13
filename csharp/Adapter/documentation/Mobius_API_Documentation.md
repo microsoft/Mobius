@@ -142,13 +142,6 @@
             Used for collect operation on RDD
             
         
-###<font color="#68228B">Microsoft.Spark.CSharp.Core.IRDDCollector</font>
-####Summary
-  
-            
-            Interface for collect operation on RDD
-            
-        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.DoubleRDDFunctions</font>
 ####Summary
   
@@ -163,6 +156,13 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.IRDDCollector</font>
+####Summary
+  
+            
+            Interface for collect operation on RDD
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.OrderedRDDFunctions</font>
 ####Summary
   
@@ -210,6 +210,13 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.Profiler</font>
+####Summary
+  
+            
+            A class represents a profiler
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.RDD`1</font>
 ####Summary
   
@@ -228,13 +235,6 @@
 ---
   
   
-###<font color="#68228B">Microsoft.Spark.CSharp.Core.Profiler</font>
-####Summary
-  
-            
-            A class represents a profiler
-            
-        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.StringRDDFunctions</font>
 ####Summary
   
@@ -380,6 +380,125 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBuf</font>
+####Summary
+  
+            
+            ByteBuf delimits a section of a ByteBufChunk.
+            It is the smallest unit to be allocated.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Clear</font></td><td>Sets the readerIndex and writerIndex of this buffer to 0.</td></tr><tr><td><font color="blue">IsReadable</font></td><td>Is this ByteSegment readable if and only if the buffer contains equal or more than the specified number of elements</td></tr><tr><td><font color="blue">IsWritable</font></td><td>Returns true if and only if the buffer has enough Capacity to accommodate size additional bytes.</td></tr><tr><td><font color="blue">ReadByte</font></td><td>Gets a byte at the current readerIndex and increases the readerIndex by 1 in this buffer.</td></tr><tr><td><font color="blue">ReadBytes</font></td><td>Reads a block of bytes from the ByteBuf and writes the data to a buffer.</td></tr><tr><td><font color="blue">Release</font></td><td>Release the ByteBuf back to the ByteBufPool</td></tr><tr><td><font color="blue">WriteBytes</font></td><td>Writes a block of bytes to the ByteBuf using data read from a buffer.</td></tr><tr><td><font color="blue">GetInputRioBuf</font></td><td>Returns a RioBuf object for input (receive)</td></tr><tr><td><font color="blue">GetOutputRioBuf</font></td><td>Returns a RioBuf object for output (send).</td></tr><tr><td><font color="blue">NewErrorStatusByteBuf</font></td><td>Creates an empty ByteBuf with error status.</td></tr><tr><td><font color="blue"></font></td><td>Finalizer.</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteChunk.</td></tr><tr><td><font color="blue"></font></td><td>Release all resources</td></tr><tr><td><font color="blue"></font></td><td>Releases the ByteBuf back to this ByteChunk</td></tr><tr><td><font color="blue"></font></td><td>Returns a readable string for the ByteBufChunk</td></tr><tr><td><font color="blue"></font></td><td>Static method to create a new ByteBufChunk with given segment and chunk size. If isUnsafe is true, it allocates memory from the process's heap.</td></tr><tr><td><font color="blue"></font></td><td>Wraps HeapFree to process heap.</td></tr><tr><td><font color="blue"></font></td><td>Implementation of the Dispose pattern.</td></tr><tr><td><font color="blue"></font></td><td>Add the ByteBufChunk to this ByteBufChunkList linked-list based on ByteBufChunk's usage. So it will be moved to the right ByteBufChunkList that has the correct minUsage/maxUsage.</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteBufChunkList if it is not empty.</td></tr><tr><td><font color="blue"></font></td><td>Releases the segment back to its ByteBufChunk.</td></tr><tr><td><font color="blue"></font></td><td>Adds the ByteBufChunk to this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Moves the ByteBufChunk down the ByteBufChunkList linked-list so it will end up in the right ByteBufChunkList that has the correct minUsage/maxUsage in respect to ByteBufChunk.Usage.</td></tr><tr><td><font color="blue"></font></td><td>Remove the ByteBufChunk from this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Returns a readable string for this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteBufPool to use.</td></tr><tr><td><font color="blue"></font></td><td>Deallocates a ByteBuf back to this ByteBufPool.</td></tr><tr><td><font color="blue"></font></td><td>Gets a readable string for this ByteBufPool</td></tr><tr><td><font color="blue"></font></td><td>Returns the chunk numbers in each queue.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufChunk</font>
+####Summary
+  
+            
+            ByteBufChunk represents a memory blocks that can be allocated from 
+            .Net heap (managed code) or process heap(unsafe code)
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Finalize</font></td><td>Finalizer.</td></tr><tr><td><font color="blue">Allocate</font></td><td>Allocates a ByteBuf from this ByteChunk.</td></tr><tr><td><font color="blue">Dispose</font></td><td>Release all resources</td></tr><tr><td><font color="blue">Free</font></td><td>Releases the ByteBuf back to this ByteChunk</td></tr><tr><td><font color="blue">ToString</font></td><td>Returns a readable string for the ByteBufChunk</td></tr><tr><td><font color="blue">NewChunk</font></td><td>Static method to create a new ByteBufChunk with given segment and chunk size. If isUnsafe is true, it allocates memory from the process's heap.</td></tr><tr><td><font color="blue">FreeToProcessHeap</font></td><td>Wraps HeapFree to process heap.</td></tr><tr><td><font color="blue">Dispose</font></td><td>Implementation of the Dispose pattern.</td></tr><tr><td><font color="blue"></font></td><td>Add the ByteBufChunk to this ByteBufChunkList linked-list based on ByteBufChunk's usage. So it will be moved to the right ByteBufChunkList that has the correct minUsage/maxUsage.</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteBufChunkList if it is not empty.</td></tr><tr><td><font color="blue"></font></td><td>Releases the segment back to its ByteBufChunk.</td></tr><tr><td><font color="blue"></font></td><td>Adds the ByteBufChunk to this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Moves the ByteBufChunk down the ByteBufChunkList linked-list so it will end up in the right ByteBufChunkList that has the correct minUsage/maxUsage in respect to ByteBufChunk.Usage.</td></tr><tr><td><font color="blue"></font></td><td>Remove the ByteBufChunk from this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Returns a readable string for this ByteBufChunkList</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufChunk.Segment</font>
+####Summary
+  
+            
+            Segment struct delimits a section of a byte chunk.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufChunkList</font>
+####Summary
+  
+            
+            ByteBufChunkList class represents a simple linked like list used to store ByteBufChunk objects
+            based on its usage.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Add</font></td><td>Add the ByteBufChunk to this ByteBufChunkList linked-list based on ByteBufChunk's usage. So it will be moved to the right ByteBufChunkList that has the correct minUsage/maxUsage.</td></tr><tr><td><font color="blue">Allocate</font></td><td>Allocates a ByteBuf from this ByteBufChunkList if it is not empty.</td></tr><tr><td><font color="blue">Free</font></td><td>Releases the segment back to its ByteBufChunk.</td></tr><tr><td><font color="blue">AddInternal</font></td><td>Adds the ByteBufChunk to this ByteBufChunkList</td></tr><tr><td><font color="blue">MoveInternal</font></td><td>Moves the ByteBufChunk down the ByteBufChunkList linked-list so it will end up in the right ByteBufChunkList that has the correct minUsage/maxUsage in respect to ByteBufChunk.Usage.</td></tr><tr><td><font color="blue">Remove</font></td><td>Remove the ByteBufChunk from this ByteBufChunkList</td></tr><tr><td><font color="blue">ToString</font></td><td>Returns a readable string for this ByteBufChunkList</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufPool</font>
+####Summary
+  
+            
+            ByteBufPool class is used to manage the ByteBuf pool that allocate and free pooled memory buffer.
+            We borrows some ideas from Netty buffer memory management.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Allocate</font></td><td>Allocates a ByteBuf from this ByteBufPool to use.</td></tr><tr><td><font color="blue">Free</font></td><td>Deallocates a ByteBuf back to this ByteBufPool.</td></tr><tr><td><font color="blue">ToString</font></td><td>Gets a readable string for this ByteBufPool</td></tr><tr><td><font color="blue">GetUsages</font></td><td>Returns the chunk numbers in each queue.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.RioNative</font>
+####Summary
+  
+            
+            RioNative class imports and initializes RIOSock.dll for use with RIO socket APIs.
+            It also provided a simple thread pool that retrieves the results from IO completion port.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Finalize</font></td><td>Finalizer</td></tr><tr><td><font color="blue">Dispose</font></td><td>Release all resources.</td></tr><tr><td><font color="blue">SetUseThreadPool</font></td><td>Sets whether use thread pool to query RIO socket results, it must be called before calling EnsureRioLoaded()</td></tr><tr><td><font color="blue">EnsureRioLoaded</font></td><td>Ensures that the native dll of RIO socket is loaded and initialized.</td></tr><tr><td><font color="blue">UnloadRio</font></td><td>Explicitly unload the native dll of RIO socket, and release resources.</td></tr><tr><td><font color="blue">Init</font></td><td>Initializes RIOSock native library.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.RioResult</font>
+####Summary
+  
+            
+            The RioResult structure contains data used to indicate request completion results used with RIO socket
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.SocketStream</font>
+####Summary
+  
+            
+            Provides the underlying stream of data for network access.
+            Just like a NetworkStream.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Flush</font></td><td>Flushes data from the stream. This is meaningless for us, so it does nothing.</td></tr><tr><td><font color="blue">Seek</font></td><td>Seeks a specific position in the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">SetLength</font></td><td>Sets the length of the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">ReadByte</font></td><td>Reads a byte from the stream and advances the position within the stream by one byte, or returns -1 if at the end of the stream.</td></tr><tr><td><font color="blue">Read</font></td><td>Reads data from the stream.</td></tr><tr><td><font color="blue">Write</font></td><td>Writes data to the stream.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.SockDataToken</font>
+####Summary
+  
+            
+            SockDataToken class is used to associate with the SocketAsyncEventArgs object.
+            Primarily, it is a way to pass state to the event handler.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Reset</font></td><td>Reset this token</td></tr><tr><td><font color="blue">DetachData</font></td><td>Detach the data ownership.</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Network.SocketFactory</font>
 ####Summary
   
@@ -392,7 +511,7 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateSocket</font></td><td>Creates a ISocket instance based on the configuration and OS version.</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateSocket</font></td><td>Creates a ISocket instance based on the configuration and OS version.</td></tr><tr><td><font color="blue">IsRioSockSupported</font></td><td>Indicates whether current OS supports RIO socket.</td></tr></table>
 
 ---
   
@@ -510,21 +629,6 @@
 ---
   
   
-###<font color="#68228B">Microsoft.Spark.CSharp.Sql.SqlContext</font>
-####Summary
-  
-            
-            The entry point for working with structured data (rows and columns) in Spark.  
-            Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
-            
-        
-####Methods
-
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetOrCreate</font></td><td>Get the existing SQLContext or create a new one with given SparkContext.</td></tr><tr><td><font color="blue">NewSession</font></td><td>Returns a new SQLContext as new session, that has separate SQLConf, registered temporary tables and UDFs, but shared SparkContext and table cache.</td></tr><tr><td><font color="blue">GetConf</font></td><td>Returns the value of Spark SQL configuration property for the given key. If the key is not set, returns defaultValue.</td></tr><tr><td><font color="blue">SetConf</font></td><td>Sets the given Spark SQL configuration property.</td></tr><tr><td><font color="blue">Read</font></td><td>Returns a DataFrameReader that can be used to read data in as a DataFrame.</td></tr><tr><td><font color="blue">ReadDataFrame</font></td><td>Loads a dataframe the source path using the given schema and options</td></tr><tr><td><font color="blue">CreateDataFrame</font></td><td>Creates a from a RDD containing array of object using the given schema.</td></tr><tr><td><font color="blue">RegisterDataFrameAsTable</font></td><td>Registers the given as a temporary table in the catalog. Temporary tables exist only during the lifetime of this instance of SqlContext.</td></tr><tr><td><font color="blue">DropTempTable</font></td><td>Remove the temp table from catalog.</td></tr><tr><td><font color="blue">Table</font></td><td>Returns the specified table as a</td></tr><tr><td><font color="blue">Tables</font></td><td>Returns a containing names of tables in the given database. If is not specified, the current database will be used. The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool type indicating if a table is a temporary one or not).</td></tr><tr><td><font color="blue">TableNames</font></td><td>Returns a list of names of tables in the database</td></tr><tr><td><font color="blue">CacheTable</font></td><td>Caches the specified table in-memory.</td></tr><tr><td><font color="blue">UncacheTable</font></td><td>Removes the specified table from the in-memory cache.</td></tr><tr><td><font color="blue">ClearCache</font></td><td>Removes all cached tables from the in-memory cache.</td></tr><tr><td><font color="blue">IsCached</font></td><td>Returns true if the table is currently cached in-memory.</td></tr><tr><td><font color="blue">Sql</font></td><td>Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line), returning the result as a DataFrame It goes through the entire dataset once to determine the schema.</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line) and applies the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads text file with the specific column delimited using the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads a text file (one object per line), returning the result as a DataFrame</td></tr><tr><td><font color="blue">RegisterFunction``1</font></td><td>Register UDF with no input argument, e.g: SqlContext.RegisterFunction&lt;bool&gt;("MyFilter", () =&gt; true); sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");</td></tr><tr><td><font color="blue">RegisterFunction``2</font></td><td>Register UDF with 1 input argument, e.g: SqlContext.RegisterFunction&lt;bool, string&gt;("MyFilter", (arg1) =&gt; arg1 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");</td></tr><tr><td><font color="blue">RegisterFunction``3</font></td><td>Register UDF with 2 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string&gt;("MyFilter", (arg1, arg2) =&gt; arg1 != null &amp;&amp; arg2 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");</td></tr><tr><td><font color="blue">RegisterFunction``4</font></td><td>Register UDF with 3 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, string&gt;("MyFilter", (arg1, arg2, arg3) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");</td></tr><tr><td><font color="blue">RegisterFunction``5</font></td><td>Register UDF with 4 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg4) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");</td></tr><tr><td><font color="blue">RegisterFunction``6</font></td><td>Register UDF with 5 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg5) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");</td></tr><tr><td><font color="blue">RegisterFunction``7</font></td><td>Register UDF with 6 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg6) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");</td></tr><tr><td><font color="blue">RegisterFunction``8</font></td><td>Register UDF with 7 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg7) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");</td></tr><tr><td><font color="blue">RegisterFunction``9</font></td><td>Register UDF with 8 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg8) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");</td></tr><tr><td><font color="blue">RegisterFunction``10</font></td><td>Register UDF with 9 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg9) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");</td></tr><tr><td><font color="blue">RegisterFunction``11</font></td><td>Register UDF with 10 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg10) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");</td></tr></table>
-
----
-  
-  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Sql.PythonSerDe</font>
 ####Summary
   
@@ -605,6 +709,21 @@
 ####Methods
 
 <table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetStringValue</font></td><td>Gets the string for the value of SaveMode</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.SqlContext</font>
+####Summary
+  
+            
+            The entry point for working with structured data (rows and columns) in Spark.  
+            Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetOrCreate</font></td><td>Get the existing SQLContext or create a new one with given SparkContext.</td></tr><tr><td><font color="blue">NewSession</font></td><td>Returns a new SQLContext as new session, that has separate SQLConf, registered temporary tables and UDFs, but shared SparkContext and table cache.</td></tr><tr><td><font color="blue">GetConf</font></td><td>Returns the value of Spark SQL configuration property for the given key. If the key is not set, returns defaultValue.</td></tr><tr><td><font color="blue">SetConf</font></td><td>Sets the given Spark SQL configuration property.</td></tr><tr><td><font color="blue">Read</font></td><td>Returns a DataFrameReader that can be used to read data in as a DataFrame.</td></tr><tr><td><font color="blue">ReadDataFrame</font></td><td>Loads a dataframe the source path using the given schema and options</td></tr><tr><td><font color="blue">CreateDataFrame</font></td><td>Creates a from a RDD containing array of object using the given schema.</td></tr><tr><td><font color="blue">RegisterDataFrameAsTable</font></td><td>Registers the given as a temporary table in the catalog. Temporary tables exist only during the lifetime of this instance of SqlContext.</td></tr><tr><td><font color="blue">DropTempTable</font></td><td>Remove the temp table from catalog.</td></tr><tr><td><font color="blue">Table</font></td><td>Returns the specified table as a</td></tr><tr><td><font color="blue">Tables</font></td><td>Returns a containing names of tables in the given database. If is not specified, the current database will be used. The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool type indicating if a table is a temporary one or not).</td></tr><tr><td><font color="blue">TableNames</font></td><td>Returns a list of names of tables in the database</td></tr><tr><td><font color="blue">CacheTable</font></td><td>Caches the specified table in-memory.</td></tr><tr><td><font color="blue">UncacheTable</font></td><td>Removes the specified table from the in-memory cache.</td></tr><tr><td><font color="blue">ClearCache</font></td><td>Removes all cached tables from the in-memory cache.</td></tr><tr><td><font color="blue">IsCached</font></td><td>Returns true if the table is currently cached in-memory.</td></tr><tr><td><font color="blue">Sql</font></td><td>Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line), returning the result as a DataFrame It goes through the entire dataset once to determine the schema.</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line) and applies the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads text file with the specific column delimited using the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads a text file (one object per line), returning the result as a DataFrame</td></tr><tr><td><font color="blue">RegisterFunction``1</font></td><td>Register UDF with no input argument, e.g: SqlContext.RegisterFunction&lt;bool&gt;("MyFilter", () =&gt; true); sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");</td></tr><tr><td><font color="blue">RegisterFunction``2</font></td><td>Register UDF with 1 input argument, e.g: SqlContext.RegisterFunction&lt;bool, string&gt;("MyFilter", (arg1) =&gt; arg1 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");</td></tr><tr><td><font color="blue">RegisterFunction``3</font></td><td>Register UDF with 2 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string&gt;("MyFilter", (arg1, arg2) =&gt; arg1 != null &amp;&amp; arg2 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");</td></tr><tr><td><font color="blue">RegisterFunction``4</font></td><td>Register UDF with 3 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, string&gt;("MyFilter", (arg1, arg2, arg3) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");</td></tr><tr><td><font color="blue">RegisterFunction``5</font></td><td>Register UDF with 4 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg4) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");</td></tr><tr><td><font color="blue">RegisterFunction``6</font></td><td>Register UDF with 5 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg5) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");</td></tr><tr><td><font color="blue">RegisterFunction``7</font></td><td>Register UDF with 6 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg6) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");</td></tr><tr><td><font color="blue">RegisterFunction``8</font></td><td>Register UDF with 7 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg7) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");</td></tr><tr><td><font color="blue">RegisterFunction``9</font></td><td>Register UDF with 8 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg8) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");</td></tr><tr><td><font color="blue">RegisterFunction``10</font></td><td>Register UDF with 9 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg9) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");</td></tr><tr><td><font color="blue">RegisterFunction``11</font></td><td>Register UDF with 10 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg10) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");</td></tr></table>
 
 ---
   
@@ -866,7 +985,7 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateDirectStream</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStreamWithRepartition</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateDirectStream</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStreamWithRepartition</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStreamWithRepartitionAndReadFunc``1</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr></table>
 
 ---
   

@@ -23,6 +23,9 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
     ///     6. predicate (MID)
     ///     7. object (MID/Literal)
     ///     8. language_code
+    /// 
+    /// Note: You can add an additional column with any size data, if you want to increase
+    /// the size for each line.
     /// </summary>
     class FreebaseDeletionsBenchmark
     {

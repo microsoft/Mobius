@@ -43,9 +43,10 @@ namespace Microsoft.Spark.CSharp
             // can't initialize logger early because in MultiThreadWorker mode, JVM will read C#'s stdout via
             // pipe. When initialize logger, some unwanted info will be flushed to stdout. But we can still
             // use stderr
-            Console.Error.WriteLine("input args: [{0}]", string.Join(" ", args));
+            Console.Error.WriteLine("input args: [{0}] SocketWrapper: [{1}]",
+                string.Join(" ", args), SocketFactory.SocketWrapperType);
 
-            if (args.Count() != 2)
+            if (args.Length != 2)
             {
                 Console.Error.WriteLine("Wrong number of args: {0}, will exit", args.Count());
                 Environment.Exit(-1);
@@ -53,6 +54,14 @@ namespace Microsoft.Spark.CSharp
 
             if ("pyspark.daemon".Equals(args[1]))
             {
+                if (SocketFactory.SocketWrapperType == SocketWrapperType.Rio)
+                {
+                    // In daemon mode, the socket will be used as server.
+                    // Use ThreadPool to retrieve RIO socket results has good performance
+                    // than a single thread.
+                    RioNative.SetUseThreadPool(true);
+                }
+                
                 var multiThreadWorker = new MultiThreadWorker();
                 multiThreadWorker.Run();
             }

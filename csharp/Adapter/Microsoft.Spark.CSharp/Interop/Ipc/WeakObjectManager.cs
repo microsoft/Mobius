@@ -44,7 +44,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
     /// <summary>
     /// adaptively control the number of weak objects that should be checked for each interval
-    /// <summary>
+    /// </summary>
     internal class WeakReferenceCheckCountController
     {
         private static readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(WeakReferenceCheckCountController));
@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 int previousReferencesCountBenchmark = referencesCountBenchmark;
                 checkCount *= 2;
                 referencesCountBenchmark = referencesCountBenchmark + referencesCountBenchmark / 2;
-                logger.LogInfo("Adjust checkCount from {0} to {1}, referencesCountBenchmark from {2} to {3}",
+                logger.LogDebug("Adjust checkCount from {0} to {1}, referencesCountBenchmark from {2} to {3}",
                     previousCheckCount, checkCount, previousReferencesCountBenchmark, referencesCountBenchmark);
             }
             return checkCount;
@@ -134,7 +134,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         private void RunReleaseObjectLoop()
         {
-            logger.LogInfo("Checking objects thread start ...");
+            logger.LogDebug("Checking objects thread start ...");
             while (shouldKeepRunning)
             {
                 ReleseGarbageCollectedObjects();
@@ -179,7 +179,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             aliveList.ForEach(item => weakReferences.Enqueue(item));
             var timeStoreAlive = DateTime.Now;
 
-            logger.LogInfo("check end : released {0} garbage, remain {1} alive, used {2} ms : release garbage used {3} ms, store alive used {4} ms",
+            logger.LogDebug("check end : released {0} garbage, remain {1} alive, used {2} ms : release garbage used {3} ms, store alive used {4} ms",
                     garbageCount, weakReferences.Count, (DateTime.Now - beginTime).TotalMilliseconds,
                     (timeReleaseGarbage - beginTime).TotalMilliseconds,
                     (timeStoreAlive - timeReleaseGarbage).TotalMilliseconds
