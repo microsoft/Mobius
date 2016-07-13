@@ -4,6 +4,7 @@
 *.user
 *.csproj.user
 *.iml
+*.VC.*
 
 # Compiled source #
 ###################
@@ -27,6 +28,10 @@
 **/packages/
 **/target/
 **/.idea/
+**/x64/
+**/debug/
+**/release/
+**/TestResults/
 scala/dependency-reduced-pom.xml
 build/runtime/
 build/tools/

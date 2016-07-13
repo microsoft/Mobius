@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 
 namespace Microsoft.Spark.CSharp.Network
 {
@@ -12,7 +11,7 @@ namespace Microsoft.Spark.CSharp.Network
     /// ISocketWrapper interface defines the common methods to operate a socket (traditional socket or 
     /// Windows Registered IO socket)
     /// </summary>
-    public interface ISocketWrapper : IDisposable
+    internal interface ISocketWrapper : IDisposable
     {
         /// <summary>
         /// Accepts a incoming connection request.
@@ -42,11 +41,33 @@ namespace Microsoft.Spark.CSharp.Network
         /// Starts listening for incoming connections requests
         /// </summary>
         /// <param name="backlog">The maximum length of the pending connections queue. </param>
-        void Listen(int backlog = (int)SocketOptionName.MaxConnections);
+        void Listen(int backlog = 16);
+
+        /// <summary>
+        /// Receives network data from this socket, and returns a ByteBuf that contains the received data.
+        /// </summary>
+        /// <returns>A ByteBuf object that contains received data.</returns>
+        ByteBuf Receive();
+
+        /// <summary>
+        /// Sends data to this socket with a ByteBuf object that contains data to be sent.
+        /// </summary>
+        /// <param name="data">A ByteBuf object that contains data to be sent</param>
+        void Send(ByteBuf data);
+
+        /// <summary>
+        /// Indicates whether there are data that has been received from the network and is available to be read.
+        /// </summary>
+        bool HasData { get ; }
 
         /// <summary>
         /// Returns the local endpoint.
         /// </summary>
         EndPoint LocalEndPoint { get; }
+
+        /// <summary>
+        /// Returns the remote endpoint
+        /// </summary>
+        EndPoint RemoteEndPoint { get; }
     }
 }

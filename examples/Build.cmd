@@ -7,6 +7,7 @@ set CMDHOME=%CMDHOME:~0,-1%
 
 @REM Set msbuild location.
 SET VisualStudioVersion=12.0
+if EXIST "%VS140COMNTOOLS%" SET VisualStudioVersion=14.0
 
 SET MSBUILDEXEDIR=%programfiles(x86)%\MSBuild\%VisualStudioVersion%\Bin
 if NOT EXIST "%MSBUILDEXEDIR%\." SET MSBUILDEXEDIR=%programfiles%\MSBuild\%VisualStudioVersion%\Bin

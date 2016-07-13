@@ -7,5 +7,6 @@
 |Streaming (Kafka)  |spark.mobius.streaming.kafka.fetchRate  |Set the number of Kafka metadata fetch operation per batch |
 |Streaming (Kafka)  |spark.mobius.streaming.kafka.numReceivers  |Set the number of threads used to materialize the RDD created by applying the user read function to the original KafkaRDD. |
 |Streaming (UpdateStateByKey)  |spark.mobius.streaming.parallelJobs  |Sets 0-based max number of parallel jobs for UpdateStateByKey so that next N batches can start its tasks on time even if previous batch not completed yet. default: 0, recommended: 1. It's a special version of spark.streaming.concurrentJobs which does not observe UpdateStateByKey's state ordering properly  |
+|Worker  |spark.mobius.CSharp.socketType  |Sets the socket type that will be used in IPC for csharp code. default: Normal, if no any configuration. Normal means use default .Net Socket class for IPC; Rio, use Windows RIO socket for IPC; Saea, use .Net Socket class with SocketAsyncEventArgs class for IPC.  Riosocket and SaeaSocket has better performance on dealing larger data transmission than traditional .Net Socket. You can switch the socket type when you has large data transmission (we can see the performance improvement for over 4KB per transmission in average) between JVM and CLR.  |
 
 

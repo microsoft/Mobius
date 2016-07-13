@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Configuration;
+using Microsoft.Spark.CSharp.Network;
 
 namespace AdapterTest.Mocks
 {
@@ -24,6 +25,11 @@ namespace AdapterTest.Mocks
         public string GetCSharpWorkerExePath()
         {
             return workerPath;
+        }
+
+        public SocketWrapperType GetCSharpSocketType()
+        {
+            return SocketWrapperType.Normal;
         }
 
         public int BackendPortNumber

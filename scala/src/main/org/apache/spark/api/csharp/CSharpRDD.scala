@@ -72,6 +72,11 @@ class CSharpRDD(
       logInfo(s"workerFactoryId: $workerFactoryId")
     }
 
+    if (!CSharpRDD.csharpWorkerSocketType.isEmpty) {
+      envVars.put("spark.mobius.CSharp.socketType", CSharpRDD.csharpWorkerSocketType)
+      logInfo(s"CSharpWorker socket type: $CSharpRDD.csharpWorkerSocketType")
+    }
+
     val runner = new PythonRunner(
       command, envVars, cSharpIncludes, cSharpWorker.getAbsolutePath, unUsedVersionIdentifier,
       broadcastVars, accumulator, bufferSize, reuse_worker)
@@ -200,6 +205,8 @@ object CSharpRDD {
 
   // long running multi-process CSharpWorker mode is enabled only when configurated explicitly
   var maxCSharpWorkerProcessCount: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.maxProcessCount", -1)
+  // socket type for CSharpWorker
+  var csharpWorkerSocketType: String = SparkEnv.get.conf.get("spark.mobius.CSharp.socketType", "")
 
   def createRDDFromArray(
       sc: SparkContext,

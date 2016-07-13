@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+export CppDll=NoCpp
 export XBUILDOPT=/verbosity:minimal
 
 if [ -z $builduri ];
@@ -37,7 +37,7 @@ export CONFIGURATION=$STEP
 
 export STEP=$CONFIGURATION
 
-xbuild /p:Configuration=$CONFIGURATION $XBUILDOPT $PROJ
+xbuild "/p:Configuration=$CONFIGURATION;AllowUnsafeBlocks=true" $XBUILDOPT $PROJ
 export RC=$? && [ $RC -ne 0 ] && error_exit
 echo "BUILD ok for $CONFIGURATION $PROJ"
 
@@ -46,7 +46,7 @@ export STEP=Release
 
 export CONFIGURATION=$STEP
 
-xbuild /p:Configuration=$CONFIGURATION $XBUILDOPT $PROJ
+xbuild "/p:Configuration=$CONFIGURATION;AllowUnsafeBlocks=true" $XBUILDOPT $PROJ
 export RC=$? && [ $RC -ne 0 ] && error_exit
 echo "BUILD ok for $CONFIGURATION $PROJ"
 

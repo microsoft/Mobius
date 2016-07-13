@@ -65,6 +65,7 @@ function Replace-VariableInFile($variable, $value, $sourceFile, $targetFile)
 
 function Download-File($url, $output)
 {
+    $output = [System.IO.Path]::GetFullPath($output)
     if (test-path $output)
     {
         Write-Output "[downloadtools.Download-File] $output exists. No need to download."
@@ -83,7 +84,13 @@ function Download-File($url, $output)
         -SourceIdentifier Web.DownloadProgressChanged -Action {
         $Global:Data = $event
     }
-    $wc.DownloadFileAsync($url, $output)
+    
+    $tmpOutput = $output + ".tmp.download"
+    if (test-path $tmpOutput) {
+        Remove-Item $tmpOutput
+    }
+    
+    $wc.DownloadFileAsync($url, $tmpOutput)
     While (!($Global:downloadComplete)) {
         $percent = $Global:Data.SourceArgs.ProgressPercentage
         $totalBytes = $Global:Data.SourceArgs.TotalBytesToReceive
@@ -92,6 +99,8 @@ function Download-File($url, $output)
             Write-Progress -Activity ("Downloading file to {0} from {1}" -f $output,$url) -Status ("{0} bytes \ {1} bytes" -f $receivedBytes,$totalBytes)  -PercentComplete $percent
         }
     }
+    
+    Rename-Item $tmpOutput -NewName $output
     Write-Progress -Activity ("Downloading file to {0} from {1}" -f $output, $url) -Status ("{0} bytes \ {1} bytes" -f $receivedBytes,$totalBytes)  -Completed
     Unregister-Event -SourceIdentifier Web.DownloadFileCompleted
     Unregister-Event -SourceIdentifier Web.DownloadProgressChanged
@@ -186,6 +195,27 @@ function Untar-File($tarFile, $targetDir)
     Write-Output "[downloadtools.Untar-File] Extraction completed. Time taken: $howlong"
 }
 
+function Download-Winutils
+{
+    $winutilsBin = "$toolsDir\winutils\bin"
+    if (!(test-path "$winutilsBin"))
+    {
+        New-Item -ItemType Directory -Force -Path $winutilsBin | Out-Null
+    }
+
+    $winutilsExe = "$winutilsBin\winutils.exe"
+    if (!(test-path $winutilsExe))
+    {
+        $url = "https://github.com/MobiusForSpark/winutils/blob/master/hadoop-2.6.0/bin/winutils.exe?raw=true"
+        $output=$winutilsExe
+        Download-File $url $output
+    }
+    else
+    {
+        Write-Output "[downloadtools.Download-RuntimeDependencies] $winutilsExe exists already. No download and extraction needed"
+    }
+}
+
 function Download-BuildTools
 {
     # Create a cmd file to update environment variable
@@ -213,11 +243,11 @@ function Download-BuildTools
     }
     
     # Apache Maven
-	$mvnVer = "apache-maven-3.3.3"
+	$mvnVer = "apache-maven-3.3.9"
     $mvnCmd = "$toolsDir\$mvnVer\bin\mvn.cmd"
     if (!(test-path $mvnCmd))
     {
-        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.3/binaries/$mvnVer-bin.tar.gz"
+        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.9/binaries/$mvnVer-bin.tar.gz"
         $output="$toolsDir\$mvnVer-bin.tar.gz"
         Download-File $url $output
         Untar-File $output $toolsDir
@@ -276,6 +306,10 @@ function Download-BuildTools
             $envStream.WriteLine("set path=$gpgBin\;%path%");
     	}
     }
+
+    # Download winutils.exe
+    Download-Winutils
+    $envStream.WriteLine("set HADOOP_HOME=$toolsDir\winutils");
 
     $envStream.close()
 }
@@ -363,26 +397,8 @@ function Download-RuntimeDependencies
     }
 
     # Download winutils.exe
-    $H_HOME = "$toolsDir\winutils"
-    $winutilsBin = "$H_HOME\bin"
-    if (!(test-path "$winutilsBin"))
-    {
-        New-Item -ItemType Directory -Force -Path $winutilsBin | Out-Null
-    }
-
-    $winutilsExe = "$winutilsBin\winutils.exe"
-    if (!(test-path $winutilsExe))
-    {
-        $url = "https://github.com/MobiusForSpark/winutils/blob/master/hadoop-2.6.0/bin/winutils.exe?raw=true"
-        $output=$winutilsExe
-        Download-File $url $output
-    }
-    else
-    {
-        Write-Output "[downloadtools.Download-RuntimeDependencies] $winutilsExe exists already. No download and extraction needed"
-    }
-
-    $envStream.WriteLine("set HADOOP_HOME=$H_HOME");
+    Download-Winutils
+    $envStream.WriteLine("set HADOOP_HOME=$toolsDir\winutils");
 
     $envStream.close()
 
