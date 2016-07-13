@@ -437,5 +437,34 @@ namespace AdapterTest
             Assert.IsNotNull(constantInputDStream);
             Assert.AreEqual(ssc, constantInputDStream.streamingContext);     
         }
+
+        [Test]
+        public void TestCSharpInputDStream()
+        {
+            // test create CSharpInputDStream
+            var sc = new SparkContext("", "");
+            var ssc = new StreamingContext(sc, 1);
+            Func<double, int, IEnumerable<string>> func =
+                (double time, int pid) =>
+                {
+                    var list = new List<string>() { string.Format("PluggableInputDStream-{0}-{1}", pid, time) };
+                    return list.AsEnumerable();
+                };
+            const int numPartitions = 5;
+            var inputDStream = CSharpInputDStreamUtils.CreateStream<string>(
+                ssc,
+                numPartitions,
+                func);
+            Assert.IsNotNull(inputDStream);
+            Assert.AreEqual(ssc, inputDStream.streamingContext);
+
+            // test CSharpInputDStreamMapPartitionWithIndexHelper
+            int[] array = new int[numPartitions];
+            int partitionIndex = 0;
+            new CSharpInputDStreamMapPartitionWithIndexHelper<string>(0.0, func).Execute(partitionIndex, array.AsEnumerable());
+
+            // test CSharpInputDStreamGenerateRDDHelper
+            new CSharpInputDStreamGenerateRDDHelper<string>(numPartitions, func).Execute(0.0);
+        }
     }
 }

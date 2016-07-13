@@ -361,8 +361,11 @@ class CSharpInputDStream(
   override def stop(): Unit = {}
 
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
-    val rddOption = CSharpDStream.callCSharpTransform(List(None), validTime, cSharpFunc, List(serializationMode))
-    rddOption
+    if (cSharpFunc != null && !cSharpFunc.isEmpty) {
+      CSharpDStream.callCSharpTransform(List(None), validTime, cSharpFunc, List(serializationMode))
+    } else {
+      None
+    }
   }
 
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
