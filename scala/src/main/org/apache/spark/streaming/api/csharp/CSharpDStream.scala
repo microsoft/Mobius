@@ -100,8 +100,8 @@ class CSharpDStream(
   override def slideDuration: Duration = parent.slideDuration
 
   override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
-    val rdd = parent.compute(validTime)
-    if (rdd.isDefined) {
+    val rdd = parent.getOrCompute(validTime)
+    if (rdd.isDefined && cSharpFunc != null && !cSharpFunc.isEmpty) {
       CSharpDStream.callCSharpTransform(List(rdd), validTime, cSharpFunc, List(serializationMode))
     } else {
       None
