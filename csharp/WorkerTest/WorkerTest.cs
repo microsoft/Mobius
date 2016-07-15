@@ -59,6 +59,10 @@ namespace WorkerTest
             {
                 RioNative.UnloadRio();
             }
+
+            // Reset Socket wrapper to default
+            Environment.SetEnvironmentVariable(ConfigurationService.CSharpSocketTypeEnvName, "Normal");
+            SocketFactory.SocketWrapperType = SocketWrapperType.None;
         }
 
         // StringBuilder is not thread-safe, it shouldn't be used concurrently from different threads.
@@ -170,18 +174,21 @@ namespace WorkerTest
         /// <param name="exitCode"></param>
         private void AssertWorker(Process worker, int exitCode = 0, string assertMessage = null)
         {
-            if (!worker.WaitForExit(3000))
+            if (!worker.WaitForExit(6000))
             {
+                Console.WriteLine("Time out for worker.WaitForExit(). Force to kill worker process.");
                 worker.Kill();
             }
-            Assert.IsTrue(worker.HasExited);
-            Assert.AreEqual(exitCode, worker.ExitCode);
+
             string str;
             lock (syncLock)
             {
                 str = output.ToString();
             }
-            Assert.IsTrue(assertMessage == null || str.Contains(assertMessage));
+            Assert.IsTrue(assertMessage == null || str.Contains(assertMessage),
+                string.Format("Actual output from worker: {0}{1}", Environment.NewLine, str));
+            Assert.IsTrue(worker.HasExited);
+            Assert.AreEqual(exitCode, worker.ExitCode);
         }
 
         /// <summary>

@@ -499,6 +499,13 @@ namespace Microsoft.Spark.CSharp.Network
                 return;
             }
 
+            if (status == 0 && byteTransferred == 0)
+            {
+                // The remote has gracefully closed the connection
+                logger.LogDebug("ProcessReceive() with status(0) and byteTransferred(0). The connection has been gracefully closed.");
+                return;
+            }
+
             // Posts another receive operation
             DoReceive();
         }

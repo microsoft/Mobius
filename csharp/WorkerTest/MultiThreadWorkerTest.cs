@@ -183,19 +183,21 @@ namespace WorkerTest
         /// <param name="exitCode"></param>
         private void AssertWorker(Process worker, int exitCode = 0, string errorMessage = null)
         {
-            if (!worker.WaitForExit(3000))
+            if (!worker.WaitForExit(30000))
             {
+                Console.WriteLine("Time out for worker.WaitForExit(). Force to kill worker process.");
                 worker.Kill();
             }
+
             string str;
             lock (syncLock)
             {
                 str = output.ToString();
-                Console.WriteLine("output from server: {0}", str);
             }
+            Assert.IsTrue(errorMessage == null || str.Contains(errorMessage),
+                string.Format("Actual output from worker: {0}{1}", Environment.NewLine, str));
             Assert.IsTrue(worker.HasExited);
             Assert.AreEqual(exitCode, worker.ExitCode);
-            Assert.IsTrue(errorMessage == null || str.Contains(errorMessage));
         }
 
 
