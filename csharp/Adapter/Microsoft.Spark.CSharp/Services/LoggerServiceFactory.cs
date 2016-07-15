@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,12 +35,13 @@ namespace Microsoft.Spark.CSharp.Services
         }
 
         /// <summary>
-        /// if there exists exe.config file, then use log4net
+        /// if there exists xxx.exe.config file and log4net settings, then use log4net
         /// </summary>
         /// <returns></returns>
         private static ILoggerService GetDefaultLogger()
         {
-            if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile))
+            if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile)
+                && ConfigurationManager.GetSection("log4net") != null)
             {
                 return Log4NetLoggerService.Instance;
             }
