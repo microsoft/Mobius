@@ -119,14 +119,22 @@ namespace Microsoft.Spark.CSharp.Network
             }
 
             // Add a new chunk and allocate a segment from it.
-            var chunk = ByteBufChunk.NewChunk(this, SegmentSize, ChunkSize, isUnsafe);
-            if (!chunk.Allocate(out byteBuf))
+            try
             {
-                logger.LogError("Failed to allocate a ByteBuf from a new ByteBufChunk. {0}", chunk);
+                var chunk = ByteBufChunk.NewChunk(this, SegmentSize, ChunkSize, isUnsafe);
+                if (!chunk.Allocate(out byteBuf))
+                {
+                    logger.LogError("Failed to allocate a ByteBuf from a new ByteBufChunk - isUnsafe [{0}].", isUnsafe);
+                    return null;
+                }
+                qInit.Add(chunk);
+                return byteBuf;
+            }
+            catch (Exception e)
+            {
+                logger.LogException(e);
                 return null;
             }
-            qInit.Add(chunk);
-            return byteBuf;
         }
 
         /// <summary>

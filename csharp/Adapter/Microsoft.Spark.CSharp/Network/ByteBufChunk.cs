@@ -234,7 +234,7 @@ namespace Microsoft.Spark.CSharp.Network
             var token = HeapAlloc(GetProcessHeap(), 0, chunkSize);
             if (token == IntPtr.Zero)
             {
-                throw new OutOfMemoryException();
+                throw new OutOfMemoryException("Failed to allocate memory by calling HeapAlloc()");
             }
 
             // register this heap buffer to RIO buffer
@@ -242,7 +242,7 @@ namespace Microsoft.Spark.CSharp.Network
             if (bufferId == IntPtr.Zero)
             {
                 FreeToProcessHeap(token);
-                throw new Exception("Failed to register RIO buffer");
+                throw new Exception(string.Format("Failed to register RIO buffer with error code {0}", Marshal.GetLastWin32Error()));
             }
 
             try
