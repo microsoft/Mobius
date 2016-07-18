@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,17 +13,15 @@ namespace Microsoft.Spark.CSharp.Services
     /// </summary>
     public class LoggerServiceFactory
     {
-        private static ILoggerService loggerService = DefaultLoggerService.Instance;
-        
+        private static Lazy<ILoggerService> loggerService = new Lazy<ILoggerService>(() => GetDefaultLogger());
+
         /// <summary>
         /// Overrides an existing logger by a given logger service instance
         /// </summary>
         /// <param name="loggerServiceOverride">The logger service instance used to overrides</param>
         public static void SetLoggerService(ILoggerService loggerServiceOverride)
         {
-            loggerService = loggerServiceOverride;
-            var logger = GetLogger(typeof(LoggerServiceFactory));
-            logger.LogInfo("Logger service configured to use {0}", logger.GetType().Name);
+            loggerService = new Lazy<ILoggerService>(() => loggerServiceOverride);
         }
 
         /// <summary>
@@ -31,7 +31,22 @@ namespace Microsoft.Spark.CSharp.Services
         /// <returns>An instance of logger service</returns>
         public static ILoggerService GetLogger(Type type)
         {
-            return  loggerService.GetLoggerInstance(type);
+            return loggerService.Value.GetLoggerInstance(type);
+        }
+
+        /// <summary>
+        /// if there exists xxx.exe.config file and log4net settings, then use log4net
+        /// </summary>
+        /// <returns></returns>
+        private static ILoggerService GetDefaultLogger()
+        {
+            if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile)
+                && ConfigurationManager.GetSection("log4net") != null)
+            {
+                return Log4NetLoggerService.Instance;
+            }
+
+            return DefaultLoggerService.Instance;
         }
     }
 }

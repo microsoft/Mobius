@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace Microsoft.Spark.CSharp.Network
 {
@@ -119,7 +119,7 @@ namespace Microsoft.Spark.CSharp.Network
         /// </returns>
         public override int ReadByte()
         {
-            if (!recvDataCache.IsReadable())
+            if (recvDataCache == null || !recvDataCache.IsReadable())
             {
                 recvDataCache = streamSocket.Receive();
             }
@@ -136,30 +136,48 @@ namespace Microsoft.Spark.CSharp.Network
         /// <returns>Number of bytes we read.</returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int bytesRemaining = count;
-
-            if (recvDataCache == null || !recvDataCache.IsReadable())
+            try
             {
-                recvDataCache = streamSocket.Receive();
-            }
+                if (recvDataCache == null)
+                {
+                    recvDataCache = streamSocket.Receive();
+                }
 
-            while (recvDataCache.IsReadable() && bytesRemaining > 0)
-            {
-                var bytesToRead = Math.Min(bytesRemaining, recvDataCache.ReadableBytes);
-                var n = recvDataCache.ReadBytes(buffer, offset + count - bytesRemaining, bytesToRead);
                 if (!recvDataCache.IsReadable())
                 {
                     recvDataCache.Release();
+                    recvDataCache = null;
+                    return 0;
+                }
+
+                var bytesRemaining = count;
+                while (recvDataCache != null && recvDataCache.IsReadable() && bytesRemaining > 0)
+                {
+                    var bytesToRead = Math.Min(bytesRemaining, recvDataCache.ReadableBytes);
+                    bytesRemaining -= recvDataCache.ReadBytes(buffer, offset + count - bytesRemaining, bytesToRead);
+                    if (recvDataCache.IsReadable()) continue;
+
+                    recvDataCache.Release();
+                    recvDataCache = null;
                     if (streamSocket.HasData)
                     {
                         recvDataCache = streamSocket.Receive();
                     }
                 }
 
-                bytesRemaining -= n;
+                return count - bytesRemaining;
             }
+            catch (Exception e)
+            {
+                if (e is ThreadAbortException || e is StackOverflowException || e is OutOfMemoryException)
+                {
+                    throw;
+                }
 
-            return count - bytesRemaining;
+                // some sort of error occurred on the socket call,
+                // set the SocketException as InnerException and throw
+                throw new IOException(string.Format("Unable to read data from the transport connection: {0}.", e.Message), e);
+            }
         }
 
         /// <summary>
@@ -170,14 +188,28 @@ namespace Microsoft.Spark.CSharp.Network
         /// <param name="count">Number of bytes to write.</param>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var remainingBytes = count;
-            while (0 < remainingBytes)
+            try
             {
-                var sendBuffer = bufPool.Allocate();
-                var sendCount = Math.Min(sendBuffer.WritableBytes, remainingBytes);
-                sendBuffer.WriteBytes(buffer, offset, sendCount);
-                streamSocket.Send(sendBuffer);
-                remainingBytes -= sendCount;
+                var remainingBytes = count;
+                while (0 < remainingBytes)
+                {
+                    var sendBuffer = bufPool.Allocate();
+                    var sendCount = Math.Min(sendBuffer.WritableBytes, remainingBytes);
+                    sendBuffer.WriteBytes(buffer, offset, sendCount);
+                    streamSocket.Send(sendBuffer);
+                    remainingBytes -= sendCount;
+                }
+            }
+            catch (Exception e)
+            {
+                if (e is ThreadAbortException || e is StackOverflowException || e is OutOfMemoryException)
+                {
+                    throw;
+                }
+
+                // some sort of error occurred on the socked call,
+                // set the SocketException as InnerException and throw
+                throw new IOException(string.Format("Unable to write data to the transport connection: {0}.", e.Message), e);
             }
         }
     }

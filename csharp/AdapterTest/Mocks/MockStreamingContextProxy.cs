@@ -114,6 +114,11 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
+        public IDStreamProxy CreateCSharpInputDStream(byte[] func, string serializationMode)
+        {
+            return new MockDStreamProxy();
+        }
+
         public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
         {
             throw new NotImplementedException();
