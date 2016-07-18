@@ -163,3 +163,23 @@ class CSharpDStreamSuite extends SparkCLRFunSuite with BeforeAndAfterAll with Be
     }
   }
 }
+
+class CSharpInputDStreamSuite extends SparkCLRFunSuite {
+
+  test("create CSharpInputDStream") {
+    val conf = new SparkConf().setAppName("CSharpInputDStreamTest").setMaster("local").set("spark.testing", "true")
+    val sc = new SparkContext(conf)
+    val ssc = new StreamingContext(sc, new Duration(1000))
+    try {
+      val dStream = new CSharpInputDStream(ssc, null, "None")
+      assert(null != dStream)
+      dStream.start()
+      val rdd = dStream.compute(new Time(0))
+      assert(rdd.isEmpty)
+      assert(null != dStream.asJavaDStream)
+      dStream.stop()
+    } finally {
+      sc.stop()
+    }
+  }
+}

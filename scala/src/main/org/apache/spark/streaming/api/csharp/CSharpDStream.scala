@@ -369,6 +369,30 @@ class CSharpConstantInputDStream(ssc_ : StreamingContext, rdd: RDD[Array[Byte]])
   val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
 }
 
+/**
+ * An pluggalbe input stream that user can control the data injection by C# code
+ */
+class CSharpInputDStream(
+    ssc_ : StreamingContext,
+    cSharpFunc: Array[Byte],
+    serializationMode: String
+) extends InputDStream[Array[Byte]](ssc_) {
+
+  override def start(): Unit = {}
+
+  override def stop(): Unit = {}
+
+  override def compute(validTime: Time): Option[RDD[Array[Byte]]] = {
+    if (cSharpFunc != null && !cSharpFunc.isEmpty) {
+      CSharpDStream.callCSharpTransform(List(None), validTime, cSharpFunc, List(serializationMode))
+    } else {
+      None
+    }
+  }
+
+  val asJavaDStream: JavaDStream[Array[Byte]] = JavaDStream.fromDStream(this)
+}
+
 case class RddPreComputeRecord[T] (
     rddSeqNum: Long,
     rdd: RDD[T])

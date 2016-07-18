@@ -291,6 +291,45 @@ namespace Microsoft.Spark.CSharp
             ssc.Start();
             ssc.AwaitTermination();
         }
+
+        [Sample("experimental")]
+        internal static void DStreamCSharpInputSample()
+        {
+            const int bacthInterval = 2;
+            const int numPartitions = 5;
+
+            var sc = SparkCLRSamples.SparkContext;
+            var ssc = new StreamingContext(sc, bacthInterval);
+
+            var inputDStream = CSharpInputDStreamUtils.CreateStream<string>(
+                ssc,
+                numPartitions,
+                (double time, int pid) =>
+                {
+                    var list = new List<string>() { string.Format("PluggableInputDStream-{0}-{1}", pid, time) };
+                    return list.AsEnumerable();
+                });
+
+            inputDStream.ForeachRDD((time, rdd) =>
+            {
+                var taken = rdd.Collect();
+                int partitions = rdd.GetNumPartitions();
+
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Time: {0}", time);
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Count: " + taken.Length);
+                Console.WriteLine("Partitions: " + partitions);
+
+                foreach (object record in taken)
+                {
+                    Console.WriteLine(record);
+                }
+            });
+
+            ssc.Start();
+            ssc.AwaitTermination();
+        }
     }
 
 
