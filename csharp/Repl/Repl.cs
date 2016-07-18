@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,21 +31,38 @@ namespace Microsoft.Spark.CSharp
         private static string dllDumpDirectory;
 
         private static SparkConf sparkConf;
+        private static SparkContext sc;
         private static SparkCLRHost host;
 
         static CSharpScriptEngine()
         {
             sparkConf = new SparkConf();
+            sc = new SparkContext(sparkConf);
+            host = new SparkCLRHost
+            {
+                sc = sc,
+                sqlContext = new SqlContext(sc)
+            };
+
             var sparkLocalDir = sparkConf.Get("spark.local.dir", Path.GetTempPath());
             dllDumpDirectory = Path.Combine(sparkLocalDir, Path.GetRandomFileName());
             Directory.CreateDirectory(dllDumpDirectory);
         }
 
-        internal static bool IsCompleteSubmission(string code)
+        internal static Script<object> CreateScript(string code)
         {
-            var options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Diagnose, SourceCodeKind.Script);
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options);
-            return SyntaxFactory.IsCompleteSubmission(syntaxTree);
+            var scriptOptions = ScriptOptions.Default
+                                .AddReferences("System")
+                                .AddReferences("System.Core")
+                                .AddReferences("Microsoft.CSharp")
+                                .AddReferences(typeof(SparkContext).Assembly)
+                                .AddReferences(typeof(Pickler).Assembly)
+                                .AddReferences(typeof(Parser).Assembly);
+
+            // var extraAssemblies = sc.Files.Where(f => f.ToLower().EndsWith(".dll") && !f.ToLower().StartsWith("hdfs://")).Select(Assembly.LoadFrom);
+            // if (extraAssemblies.Any()) scriptOptions.AddReferences(extraAssemblies);
+
+            return CSharpScript.Create(code, globalsType: typeof(SparkCLRHost)).WithOptions(scriptOptions);
         }
 
         internal static object Execute(string code)
@@ -52,17 +70,13 @@ namespace Microsoft.Spark.CSharp
             Script<object> script;
             if (previousState == null)
             {
-                script = CSharpScript.Create(code, globalsType: typeof(SparkCLRHost)).WithOptions(
-                    ScriptOptions.Default
-                    .AddReferences("System")
-                    .AddReferences("System.Core")
-                    .AddReferences("Microsoft.CSharp")
-                    .AddReferences(typeof(SparkContext).Assembly)
-                    .AddReferences(typeof(Pickler).Assembly)
-                    .AddReferences(typeof(Parser).Assembly));
+                script = CreateScript(code);
 
-                Environment.SetEnvironmentVariable("SPARKCLR_RUN_MODE", "shell");
-                Environment.SetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR", dllDumpDirectory);
+                Environment.SetEnvironmentVariable("SPARKCLR_RUN_MODE", "R");
+                if (sparkConf.Get("spark.master", "local").StartsWith("local", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Environment.SetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR", dllDumpDirectory);
+                }
             }
             else
             {
@@ -78,16 +92,12 @@ namespace Microsoft.Spark.CSharp
                 return null;
             }
 
-            PersistCompilation(script.GetCompilation());
-            if (host == null)
+            var compilationDump = DumpCompilation(script.GetCompilation());
+            if (new FileInfo(compilationDump).Length > 0)
             {
-                var sc = new SparkContext(sparkConf);
-                host = new SparkCLRHost
-                {
-                    sc = sc,
-                    sqlContext = new SqlContext(sc)
-                };
+                sc.AddFile(new Uri(compilationDump).ToString());
             }
+
             ScriptState<object> endState = null;
             if (previousState == null)
             {
@@ -111,6 +121,13 @@ namespace Microsoft.Spark.CSharp
             return endState.ReturnValue;
         }
 
+        internal static bool IsCompleteSubmission(string code)
+        {
+            var options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Diagnose, SourceCodeKind.Script);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options);
+            return SyntaxFactory.IsCompleteSubmission(syntaxTree);
+        }
+
         private static void DisplayErrors(IEnumerable<Diagnostic> diagnostics)
         {
             // refer to http://source.roslyn.io/#Microsoft.CodeAnalysis.Scripting/Hosting/CommandLine/CommandLineRunner.cs,268
@@ -128,11 +145,13 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        private static void PersistCompilation(Compilation compilation)
+        private static string DumpCompilation(Compilation compilation)
         {
-            using (FileStream stream = new FileStream(string.Format(@"{0}\{1}.dll", dllDumpDirectory, seq++), FileMode.CreateNew))
+            var dump = string.Format(@"{0}\ReplCompilation.{1}", dllDumpDirectory, seq++);
+            using (FileStream stream = new FileStream(dump, FileMode.CreateNew))
             {
                 compilation.Emit(stream);
+                return dump;
             }
         }
 
@@ -165,7 +184,7 @@ namespace Microsoft.Spark.CSharp
                 Console.Write("> ");
                 var inputLines = new StringBuilder();
                 bool cancelSubmission = false;
- 
+
                 while (true)
                 {
                     var line = Console.ReadLine();
@@ -180,7 +199,7 @@ namespace Microsoft.Spark.CSharp
                     {
                         CSharpScriptEngine.DeleteTempFiles();
                         return;
-                    }    
+                    }
 
                     inputLines.AppendLine(line);
 

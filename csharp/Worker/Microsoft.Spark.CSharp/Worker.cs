@@ -21,6 +21,45 @@ using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp
 {
+    internal class SparkCLRAssemblyHandler
+    {
+        private readonly ConcurrentDictionary<string, Assembly> assemblyDict = new ConcurrentDictionary<string, Assembly>();
+        private readonly ConcurrentDictionary<string, bool> loadedFiles = new ConcurrentDictionary<string, bool>();
+
+        public void SetAssemblies(Assembly[] assemblies)
+        {
+            foreach (var assembly in assemblies)
+            {
+                assemblyDict[assembly.FullName] = assembly;
+            }
+        }
+
+        public void LoadAssemblies(string[] files)
+        {
+            foreach (var assembly in from f in files.Where(f => new FileInfo(f).Length > 0).Select(Path.GetFullPath) where loadedFiles.TryAdd(f, true) select Assembly.Load(File.ReadAllBytes(f)))
+            {
+                if (!assemblyDict.ContainsKey(assembly.FullName))
+                {
+                    assemblyDict[assembly.FullName] = assembly;
+                }
+                else
+                {
+                    Console.Error.WriteLine("Already loaded assebmly " + assembly.FullName);
+                }
+            }
+        }
+
+        public Assembly Handle(object source, ResolveEventArgs e)
+        {
+            if (assemblyDict.ContainsKey(e.Name))
+            {
+                return assemblyDict[e.Name];
+            }
+
+            return null;
+        }
+    }
+
     /// <summary>
     /// Worker implementation for SparkCLR. The implementation is identical to the 
     /// worker used in PySpark. The RDD implementation to fork an external process
@@ -34,19 +73,19 @@ namespace Microsoft.Spark.CSharp
 
         private static ILoggerService logger = null;
 
-        private static SparkCLRAssemblyHandler assemblyHandler = new SparkCLRAssemblyHandler();
+        private static SparkCLRAssemblyHandler assemblyHandler = null;
 
         public static void Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += assemblyHandler.Handler;
+            assemblyHandler = new SparkCLRAssemblyHandler();
+            AppDomain.CurrentDomain.AssemblyResolve += assemblyHandler.Handle;
 
             // can't initialize logger early because in MultiThreadWorker mode, JVM will read C#'s stdout via
             // pipe. When initialize logger, some unwanted info will be flushed to stdout. But we can still
             // use stderr
-            Console.Error.WriteLine("input args: [{0}] SocketWrapper: [{1}]",
-                string.Join(" ", args), SocketFactory.SocketWrapperType);
+            Console.Error.WriteLine("input args: [{0}]", string.Join(" ", args));
 
-            if (args.Length != 2)
+            if (args.Count() != 2)
             {
                 Console.Error.WriteLine("Wrong number of args: {0}, will exit", args.Count());
                 Environment.Exit(-1);
@@ -54,14 +93,6 @@ namespace Microsoft.Spark.CSharp
 
             if ("pyspark.daemon".Equals(args[1]))
             {
-                if (SocketFactory.SocketWrapperType == SocketWrapperType.Rio)
-                {
-                    // In daemon mode, the socket will be used as server.
-                    // Use ThreadPool to retrieve RIO socket results has good performance
-                    // than a single thread.
-                    RioNative.SetUseThreadPool(true);
-                }
-                
                 var multiThreadWorker = new MultiThreadWorker();
                 multiThreadWorker.Run();
             }
@@ -271,20 +302,12 @@ namespace Microsoft.Spark.CSharp
                 logger.LogDebug("Serializer mode: " + serializerMode);
 
                 string runMode = SerDe.ReadString(networkStream);
-                logger.LogInfo("Run mode: " + runMode);
-
-                if (runMode.Equals("shell", StringComparison.InvariantCultureIgnoreCase))
+                if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    int assembliesCount = SerDe.ReadInt(networkStream);
-                    logger.LogInfo("Total received assemblies count: " + assembliesCount);
-                    var assemblies = new Assembly[assembliesCount];
-                    for (var i = 0; i < assembliesCount; i++)
-                    {
-                        assemblies[i] = Assembly.Load(SerDe.ReadBytes(networkStream, SerDe.ReadInt(networkStream)));
-                    }
-                    assemblyHandler.SetAssemblies(assemblies);
+                    var compilationDumpDir = SerDe.ReadString(networkStream);
+                    assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*", SearchOption.TopDirectoryOnly));
                 }
-
+    
                 byte[] command = SerDe.ReadBytes(networkStream);
 
                 logger.LogDebug("command bytes read: " + command.Length);
@@ -654,30 +677,6 @@ namespace Microsoft.Spark.CSharp
             }
 
             return result;
-        }
-    }
-
-    internal class SparkCLRAssemblyHandler
-    {
-
-        private readonly ConcurrentDictionary<string, Assembly> assemblyDict = new ConcurrentDictionary<string, Assembly>();
-
-        public void SetAssemblies(Assembly[] assemblies)
-        {
-            foreach (var assembly in assemblies)
-            {
-                assemblyDict[assembly.FullName] = assembly;
-            }
-        }
-
-        public Assembly Handler(object source, ResolveEventArgs e)
-        {
-            if (assemblyDict.ContainsKey(e.Name))
-            {
-                return assemblyDict[e.Name];
-            }
-
-            return null;
         }
     }
 }

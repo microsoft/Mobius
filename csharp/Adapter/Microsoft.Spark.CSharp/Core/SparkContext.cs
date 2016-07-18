@@ -32,7 +32,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         internal static SparkContext GetActiveSparkContext()
         {
-                return _activeSparkContext;
+            return _activeSparkContext;
         }
 
         private AccumulatorServer accumulatorServer;
@@ -88,7 +88,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="sparkHome">the path that holds spark bits</param>
         public SparkContext(string master, string appName, string sparkHome)
             : this(master, appName, sparkHome, null)
-        {}
+        { }
 
         /// <summary>
         /// Initializes a SparkContext instance with a specific master and application name.
@@ -97,7 +97,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="appName"></param>
         public SparkContext(string master, string appName)
             : this(master, appName, null, null)
-        {}
+        { }
 
         /// <summary>
         /// Initializes a SparkContext instance with a specific spark config.
@@ -105,7 +105,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="conf">A SparkConf object that represents the settings for spark</param>
         public SparkContext(SparkConf conf)
             : this(null, null, null, conf)
-        {}
+        { }
 
         /// <summary>
         /// when created from checkpoint
@@ -558,9 +558,7 @@ namespace Microsoft.Spark.CSharp.Core
         internal static byte[] BuildCommand(CSharpWorkerFunc workerFunc, SerializedMode deserializerMode = SerializedMode.Byte, SerializedMode serializerMode = SerializedMode.Byte)
         {
             var formatter = new BinaryFormatter();
-            formatter.AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple;
             var stream = new MemoryStream();
-            Console.WriteLine("WorkerFunc:" + workerFunc);
             formatter.Serialize(stream, workerFunc);
             List<byte[]> commandPayloadBytesList = new List<byte[]>();
 
@@ -587,26 +585,24 @@ namespace Microsoft.Spark.CSharp.Core
             commandPayloadBytesList.Add(lengthAsBytes);
             commandPayloadBytesList.Add(modeBytes);
 
-            // run mode
-            var runMode = Environment.GetEnvironmentVariable("SPARKCLR_RUN_MODE");
-            if (string.IsNullOrEmpty(runMode))
-            {
-                runMode = "normal";
-            }
-            Console.WriteLine("Runmode:" + runMode);
-            AppendRunMode(commandPayloadBytesList, runMode);
+            // add run mode
+            // N - normal
+            // R - repl
+            var runMode = Environment.GetEnvironmentVariable("SPARKCLR_RUN_MODE") ?? "N";
+            var runModeBytes = Encoding.UTF8.GetBytes(runMode);
+            lengthAsBytes = BitConverter.GetBytes(runModeBytes.Length);
+            Array.Reverse(lengthAsBytes);
+            commandPayloadBytesList.Add(lengthAsBytes);
+            commandPayloadBytesList.Add(runModeBytes);
 
-            // add assembly when run mode is shell
-            if (runMode.Equals("shell", StringComparison.InvariantCultureIgnoreCase))
+            if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
             {
-                const string compilationDir = "SPARKCLR_SCRIPT_COMPILATION_DIR";
-                var dllDir = Environment.GetEnvironmentVariable(compilationDir);
-                if (string.IsNullOrEmpty(dllDir))
-                {
-                    throw new Exception("Env variable '" + compilationDir + "' not set.");
-                }
-
-                AppendAssemblies(commandPayloadBytesList, dllDir);
+                // add compilation dump directory
+                var compilationDumpDirBytes = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR")?? ".");
+                lengthAsBytes = BitConverter.GetBytes(compilationDumpDirBytes.Length);
+                Array.Reverse(lengthAsBytes);
+                commandPayloadBytesList.Add(lengthAsBytes);
+                commandPayloadBytesList.Add(compilationDumpDirBytes);
             }
 
             // add func
@@ -616,38 +612,6 @@ namespace Microsoft.Spark.CSharp.Core
             commandPayloadBytesList.Add(funcBytesLengthAsBytes);
             commandPayloadBytesList.Add(funcBytes);
             return commandPayloadBytesList.SelectMany(byteArray => byteArray).ToArray();
-        }
-
-        internal static void AppendRunMode(List<byte[]> commandPayloadBytesList, string runMode)
-        {
-            var runModeBytes = Encoding.UTF8.GetBytes(runMode);
-            AppendToCommandPayload(commandPayloadBytesList, runModeBytes);
-        }
-
-        internal static void AppendAssemblies(List<byte[]> commandPayloadBytesList, string dllDir)
-        {
-            List<byte[]> payloads = Directory.GetFiles(dllDir).Select(File.ReadAllBytes).Where(bytes => bytes.Length > 0).ToList();
-            AppendToCommandPayload(commandPayloadBytesList, payloads.Count);
-            foreach (var p in payloads)
-            {
-                AppendToCommandPayload(commandPayloadBytesList, p);
-            }
-        }
-
-        internal static void AppendToCommandPayload(List<byte[]> commandPayloadBytesList, int num)
-        {
-            var numAsBytes = BitConverter.GetBytes(num);
-            Array.Reverse(numAsBytes);
-            commandPayloadBytesList.Add(numAsBytes);
-        }
-
-        internal static void AppendToCommandPayload(List<byte[]> commandPayloadBytesList, byte[] bytes)
-        {
-            var length = bytes.Length;
-            var lengthAsBytes = BitConverter.GetBytes(length);
-            Array.Reverse(lengthAsBytes);
-            commandPayloadBytesList.Add(lengthAsBytes);
-            commandPayloadBytesList.Add(bytes);
         }
     }
 }
