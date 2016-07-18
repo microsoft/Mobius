@@ -27,14 +27,17 @@ namespace Microsoft.Spark.CSharp
     {
         private static ScriptState<object> previousState;
         private static int seq = 0;
-        private static string dllDirectory;
+        private static string dllDumpDirectory;
+
+        private static SparkConf sparkConf;
         private static SparkCLRHost host;
 
         static CSharpScriptEngine()
         {
-            // TODO: honor spark.local.dir setting
-            dllDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(dllDirectory);
+            sparkConf = new SparkConf();
+            var sparkLocalDir = sparkConf.Get("spark.local.dir", Path.GetTempPath());
+            dllDumpDirectory = Path.Combine(sparkLocalDir, Path.GetRandomFileName());
+            Directory.CreateDirectory(dllDumpDirectory);
         }
 
         internal static bool IsCompleteSubmission(string code)
@@ -59,7 +62,7 @@ namespace Microsoft.Spark.CSharp
                     .AddReferences(typeof(Parser).Assembly));
 
                 Environment.SetEnvironmentVariable("SPARKCLR_RUN_MODE", "shell");
-                Environment.SetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR", dllDirectory);
+                Environment.SetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR", dllDumpDirectory);
             }
             else
             {
@@ -78,8 +81,7 @@ namespace Microsoft.Spark.CSharp
             PersistCompilation(script.GetCompilation());
             if (host == null)
             {
-                var conf = new SparkConf();
-                var sc = new SparkContext(conf);
+                var sc = new SparkContext(sparkConf);
                 host = new SparkCLRHost
                 {
                     sc = sc,
@@ -128,9 +130,18 @@ namespace Microsoft.Spark.CSharp
 
         private static void PersistCompilation(Compilation compilation)
         {
-            using (FileStream stream = new FileStream(string.Format(@"{0}\{1}.dll", dllDirectory, seq++), FileMode.CreateNew))
+            using (FileStream stream = new FileStream(string.Format(@"{0}\{1}.dll", dllDumpDirectory, seq++), FileMode.CreateNew))
             {
                 compilation.Emit(stream);
+            }
+        }
+
+        public static void DeleteTempFiles()
+        {
+            // delete DLLs dump directory on exit
+            if (Directory.Exists(dllDumpDirectory))
+            {
+                Directory.Delete(dllDumpDirectory, true);
             }
         }
     }
@@ -167,6 +178,7 @@ namespace Microsoft.Spark.CSharp
 
                     if (line.Trim().Equals(":quit", StringComparison.InvariantCultureIgnoreCase))
                     {
+                        CSharpScriptEngine.DeleteTempFiles();
                         return;
                     }    
 
