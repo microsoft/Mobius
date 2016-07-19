@@ -69,8 +69,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IScriptEngine.cs" />
     <Compile Include="Repl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RoslynScriptEngine.cs" />
+    <Compile Include="ScriptResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
