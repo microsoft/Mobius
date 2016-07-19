@@ -140,7 +140,8 @@ namespace Microsoft.Spark.CSharp
             StreamingContext ssc = StreamingContext.GetOrCreate(checkpointPath,
                 () =>
                 {
-                    SparkContext sc = SparkCLRSamples.SparkContext;
+                    var conf = new SparkConf();
+                    SparkContext sc = new SparkContext(conf);
                     StreamingContext context = new StreamingContext(sc, 2000L);
                     context.Checkpoint(checkpointPath);
 
@@ -149,7 +150,8 @@ namespace Microsoft.Spark.CSharp
                         {"auto.offset.reset", "smallest"}
                     };
 
-                    var dstream = KafkaUtils.CreateDirectStreamWithRepartition(context, new List<string> { topic }, kafkaParams, new Dictionary<string, long>(), partitions);
+                    conf.Set("spark.mobius.streaming.kafka.numPartitions." + topic, partitions.ToString());
+                    var dstream = KafkaUtils.CreateDirectStream(context, new List<string> { topic }, kafkaParams, new Dictionary<string, long>());
 
                     dstream.ForeachRDD((time, rdd) => 
                         {
