@@ -58,7 +58,7 @@ namespace AdapterTest.Mocks
             return false;
         }
 
-        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, int durationSeconds)
+        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
         {
             streamingContextProxy = new MockStreamingContextProxy();
             return streamingContextProxy;

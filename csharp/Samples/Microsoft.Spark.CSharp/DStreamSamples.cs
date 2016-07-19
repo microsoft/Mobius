@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp
                 () =>
                 {
 
-                    StreamingContext context = new StreamingContext(sc, 2);
+                    StreamingContext context = new StreamingContext(sc, 2000);
                     context.Checkpoint(checkpointPath);
 
                     var lines = context.TextFileStream(Path.Combine(directory, "test"));
@@ -141,7 +141,7 @@ namespace Microsoft.Spark.CSharp
                 () =>
                 {
                     SparkContext sc = SparkCLRSamples.SparkContext;
-                    StreamingContext context = new StreamingContext(sc, 2);
+                    StreamingContext context = new StreamingContext(sc, 2000);
                     context.Checkpoint(checkpointPath);
 
                     var kafkaParams = new Dictionary<string, string> {
@@ -189,7 +189,7 @@ namespace Microsoft.Spark.CSharp
         internal static void DStreamConstantDStreamSample()
         {
             var sc = SparkCLRSamples.SparkContext;
-            var ssc = new StreamingContext(sc, 2);
+            var ssc = new StreamingContext(sc, 2000);
 
             const int count = 100;
             const int partitions = 2;
@@ -244,7 +244,7 @@ namespace Microsoft.Spark.CSharp
         {
             count = 0;
 
-            const int bacthInterval = 2;
+            const long bacthInterval = 2000;
             const int windowDuration = 26;
             const int numPartitions = 2;
 
@@ -284,7 +284,7 @@ namespace Microsoft.Spark.CSharp
                     KeyValuePair<int, int> sum = (KeyValuePair<int, int>)record;
                     Console.WriteLine("Key: {0}, Value: {1}", sum.Key, sum.Value);
                     // when batch count reaches window size, sum of even/odd number stay at windowDuration / slideDuration * (2450, 2500) respectively
-                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / bacthInterval * (sum.Key == 0 ? 2450 : 2500));
+                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / (bacthInterval / 1000) * (sum.Key == 0 ? 2450 : 2500));
                 }
             });
 
@@ -295,11 +295,10 @@ namespace Microsoft.Spark.CSharp
         [Sample("experimental")]
         internal static void DStreamCSharpInputSample()
         {
-            const int bacthInterval = 2;
             const int numPartitions = 5;
 
             var sc = SparkCLRSamples.SparkContext;
-            var ssc = new StreamingContext(sc, bacthInterval);
+            var ssc = new StreamingContext(sc, 2000);
 
             var inputDStream = CSharpInputDStreamUtils.CreateStream<string>(
                 ssc,

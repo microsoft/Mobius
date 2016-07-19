@@ -23,7 +23,7 @@ namespace AdapterTest.Mocks
         public void Stop()
         {}
 
-        public void Remember(int durationSeconds)
+        public void Remember(long durationMs)
         {}
 
         public void Checkpoint(string directory)

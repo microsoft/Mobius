@@ -18,11 +18,11 @@ namespace AdapterTest
         [Test]
         public void TestStreamingContext()
         {
-            var ssc = new StreamingContext(new SparkContext("", ""), 1);
+            var ssc = new StreamingContext(new SparkContext("", ""), 1000);
             Assert.IsNotNull((ssc.streamingContextProxy as MockStreamingContextProxy));
 
             ssc.Start();
-            ssc.Remember(1);
+            ssc.Remember(1000);
             ssc.Checkpoint(Path.GetTempPath());
 
             var textFile = ssc.TextFileStream(Path.GetTempPath());

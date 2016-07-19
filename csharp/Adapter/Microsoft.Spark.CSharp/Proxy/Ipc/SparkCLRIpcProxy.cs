@@ -80,9 +80,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(fs, "listStatus", path) != null;
         }
 
-        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, int durationSeconds)
+        public IStreamingContextProxy CreateStreamingContext(SparkContext sparkContext, long durationMs)
         {
-            streamingContextIpcProxy = new StreamingContextIpcProxy(sparkContext, durationSeconds);
+            streamingContextIpcProxy = new StreamingContextIpcProxy(sparkContext, durationMs);
             return streamingContextIpcProxy;
         }
 
