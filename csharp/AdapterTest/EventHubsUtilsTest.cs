@@ -26,12 +26,12 @@ namespace AdapterTest
                                 .Returns(mockDstreamProxy);
 
             var mockSparkClrProxy = new Mock<ISparkCLRProxy>();
-            mockSparkClrProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<int>()))
+            mockSparkClrProxy.Setup(m => m.CreateStreamingContext(It.IsAny<SparkContext>(), It.IsAny<long>()))
                 .Returns(streamingContextProxy.Object);
             SparkCLREnvironment.SparkCLRProxy = mockSparkClrProxy.Object;
 
             var sparkContext = new SparkContext(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy, new SparkConf(new Mock<ISparkConfProxy>().Object));
-            var streamingContext = new StreamingContext(sparkContext, 123);
+            var streamingContext = new StreamingContext(sparkContext, 123L);
             var dstream = EventHubsUtils.CreateUnionStream(streamingContext, new Dictionary<string, string>());
             Assert.AreEqual(mockDstreamProxy, dstream.DStreamProxy);
         }

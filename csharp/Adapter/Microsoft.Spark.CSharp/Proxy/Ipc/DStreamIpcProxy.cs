@@ -40,7 +40,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public IDStreamProxy Window(int windowSeconds, int slideSeconds = 0)
         {
             string windowId = null;
-            var windowDurationReference = JvmBridgeUtils.GetJavaDuration(windowSeconds);
+            var windowDurationReference = JvmBridgeUtils.GetJavaDuration((long)windowSeconds * 1000);
 
             if (slideSeconds <= 0)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 return new DStreamIpcProxy(new JvmObjectReference(windowId));
             }
 
-            var slideDurationReference = JvmBridgeUtils.GetJavaDuration(slideSeconds);
+            var slideDurationReference = JvmBridgeUtils.GetJavaDuration((long)slideSeconds * 1000);
             windowId = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(javaDStreamReference, "window", new object[] { windowDurationReference, slideDurationReference });
 
             return new DStreamIpcProxy(new JvmObjectReference(windowId));
@@ -77,9 +77,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "persist", new object[] { jstorageLevel });
         }
 
-        public void Checkpoint(int intervalSeconds)
+        public void Checkpoint(long intervalMs)
         {
-            var jinterval = JvmBridgeUtils.GetJavaDuration(intervalSeconds);
+            var jinterval = JvmBridgeUtils.GetJavaDuration(intervalMs);
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDStreamReference, "checkpoint", new object[] { jinterval });
         }
 
