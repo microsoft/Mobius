@@ -124,7 +124,7 @@ namespace AdapterTest
                     return _mockRddProxy.Object;
                 });
 
-            _streamingContext = new StreamingContext(new SparkContext("", ""), 1000);
+            _streamingContext = new StreamingContext(new SparkContext("", ""), 1000L);
 
         }
 

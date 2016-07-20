@@ -69,7 +69,7 @@ namespace Microsoft.Spark.CSharp
                 () =>
                 {
 
-                    StreamingContext context = new StreamingContext(sc, 2000);
+                    StreamingContext context = new StreamingContext(sc, 2000L); // batch interval is in milliseconds
                     context.Checkpoint(checkpointPath);
 
                     var lines = context.TextFileStream(Path.Combine(directory, "test"));
@@ -141,7 +141,7 @@ namespace Microsoft.Spark.CSharp
                 () =>
                 {
                     SparkContext sc = SparkCLRSamples.SparkContext;
-                    StreamingContext context = new StreamingContext(sc, 2000);
+                    StreamingContext context = new StreamingContext(sc, 2000L);
                     context.Checkpoint(checkpointPath);
 
                     var kafkaParams = new Dictionary<string, string> {
@@ -189,7 +189,7 @@ namespace Microsoft.Spark.CSharp
         internal static void DStreamConstantDStreamSample()
         {
             var sc = SparkCLRSamples.SparkContext;
-            var ssc = new StreamingContext(sc, 2000);
+            var ssc = new StreamingContext(sc, 2000L);
 
             const int count = 100;
             const int partitions = 2;
@@ -244,12 +244,12 @@ namespace Microsoft.Spark.CSharp
         {
             count = 0;
 
-            const long bacthInterval = 2000;
-            const int windowDuration = 26;
+            const long bacthIntervalMs = 2000; // batch interval is in milliseconds
+            const int windowDuration = 26;     // window duration in seconds
             const int numPartitions = 2;
 
             var sc = SparkCLRSamples.SparkContext;
-            var ssc = new StreamingContext(sc, bacthInterval);
+            var ssc = new StreamingContext(sc, bacthIntervalMs);
 
             // create the RDD
             var seedRDD = sc.Parallelize(Enumerable.Range(0, 100), numPartitions);
@@ -284,7 +284,7 @@ namespace Microsoft.Spark.CSharp
                     KeyValuePair<int, int> sum = (KeyValuePair<int, int>)record;
                     Console.WriteLine("Key: {0}, Value: {1}", sum.Key, sum.Value);
                     // when batch count reaches window size, sum of even/odd number stay at windowDuration / slideDuration * (2450, 2500) respectively
-                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / (bacthInterval / 1000) * (sum.Key == 0 ? 2450 : 2500));
+                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / (bacthIntervalMs / 1000) * (sum.Key == 0 ? 2450 : 2500));
                 }
             });
 
@@ -298,7 +298,7 @@ namespace Microsoft.Spark.CSharp
             const int numPartitions = 5;
 
             var sc = SparkCLRSamples.SparkContext;
-            var ssc = new StreamingContext(sc, 2000);
+            var ssc = new StreamingContext(sc, 2000L); // batch interval is in milliseconds
 
             var inputDStream = CSharpInputDStreamUtils.CreateStream<string>(
                 ssc,
