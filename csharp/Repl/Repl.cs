@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Text;
 using Microsoft.Spark.CSharp.Core;
 
@@ -73,6 +76,9 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
+        /// <summary>
+        /// Diplay exception on Console
+        /// </summary>
         internal static void DisplayException(Exception e)
         {
             try

@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Runtime.ExceptionServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp
 {
     public class ScriptResult
     {
         public static readonly ScriptResult Incomplete = new ScriptResult { IsCompleteSubmission = false };
-
-        public static readonly ScriptResult Empty = new ScriptResult();
-
+        
         public ScriptResult(
             object returnValue = null,
             Exception executionException = null,

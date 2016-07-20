@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,12 +19,18 @@ using Razorvine.Serpent;
 
 namespace Microsoft.Spark.CSharp
 {
+    /// <summary>
+    /// Class that holds all objects shared in Roslyn runtime context.
+    /// </summary>
     public class SparkCLRHost
     {
         public SparkContext sc;
         public SqlContext sqlContext;
     }
 
+    /// <summary>
+    /// A C# script engine based on Roslyn(https://github.com/dotnet/roslyn).
+    /// </summary>
     public class RoslynScriptEngine : IScriptEngine
     {
         private ScriptState<object> previousState;
@@ -57,8 +66,6 @@ namespace Microsoft.Spark.CSharp
                                 .AddReferences(typeof(Pickler).Assembly)
                                 .AddReferences(typeof(Parser).Assembly);
 
-            // var extraAssemblies = sc.Files.Where(f => f.ToLower().EndsWith(".dll") && !f.ToLower().StartsWith("hdfs://")).Select(Assembly.LoadFrom);
-            // if (extraAssemblies.Any()) scriptOptions.AddReferences(extraAssemblies);
             return CSharpScript.Create(code, globalsType: typeof(SparkCLRHost)).WithOptions(scriptOptions);
         }
 
@@ -102,28 +109,25 @@ namespace Microsoft.Spark.CSharp
             var compilationDump = DumpCompilation(script.GetCompilation());
             if (new FileInfo(compilationDump).Length > 0)
             {
+                // Ship compilation binary to executor side leveraging sparkContext.AddFile() method.
                 sc.AddFile(new Uri(compilationDump).ToString());
             }
 
-            ScriptState<object> endState = null;
             try
             {
+                ScriptState<object> endState = null;
                 if (previousState == null)
                 {
                     endState = script.RunAsync(host).Result;
                 }
                 else
                 {
-                    // "ContinueAsync" is a internal methold now, might be public in 1.2.0(https://github.com/dotnet/roslyn/issues/6612)
+                    // Currently "ContinueAsync" is a internal methold, might go public in 1.2.0(https://github.com/dotnet/roslyn/issues/6612)
                     const string methodName = "ContinueAsync";
-                    var m = script.GetType()
-                        .GetMethod(methodName,
-                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var m = script.GetType().GetMethod(methodName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (m != null)
                     {
-                        endState =
-                            ((Task<ScriptState<object>>)
-                                m.Invoke(script, new object[] {previousState, default(CancellationToken)})).Result;
+                        endState = ((Task<ScriptState<object>>)m.Invoke(script, new object[] { previousState, default(CancellationToken) })).Result;
                     }
                     else
                     {
@@ -156,6 +160,9 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
+        /// <summary>
+        /// Check whether the given code is a complete submission
+        /// </summary>
         internal bool IsCompleteSubmission(string code)
         {
             var options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Diagnose, SourceCodeKind.Script);
@@ -163,6 +170,11 @@ namespace Microsoft.Spark.CSharp
             return SyntaxFactory.IsCompleteSubmission(syntaxTree);
         }
 
+        /// <summary>
+        /// Dump generated compilation binary to dump directory for further use.
+        /// </summary>
+        /// <param name="compilation"></param>
+        /// <returns></returns>
         private string DumpCompilation(Compilation compilation)
         {
             var dump = string.Format(@"{0}\ReplCompilation.{1}", compilationDumpDirectory, seq++);
@@ -173,6 +185,9 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
+        /// <summary>
+        /// Clean up compilation dump directory.
+        /// </summary>
         public void Clear()
         {
             // delete DLLs dump directory on exit
