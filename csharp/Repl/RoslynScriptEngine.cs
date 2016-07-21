@@ -100,13 +100,8 @@ namespace Microsoft.Spark.CSharp
 
             if (hasErrors)
             {
-                DisplayDiagnostics(diagnostics);
-                var message = new StringBuilder();
-                foreach (var diagnostic in diagnostics)
-                {
-                    message.Append("[").Append(diagnostic.Severity).Append("] ").Append(": ").Append(diagnostic).Append("\r\n");
-                }
-                return new ScriptResult(compilationException: new Exception(message.ToString()));
+                var diagnosticMessages = diagnostics.Select(diagnostic => "[" + diagnostic.Severity + "] " + diagnostic).ToList();
+                return new ScriptResult(compilationException: new Exception(string.Join("\r\n", diagnosticMessages)));
             }
 
             var compilationDump = DumpCompilation(script.GetCompilation());
@@ -143,23 +138,6 @@ namespace Microsoft.Spark.CSharp
             catch (Exception e)
             {
                 return new ScriptResult(executionException: e);
-            }
-        }
-
-        internal void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)
-        {
-            // refer to http://source.roslyn.io/#Microsoft.CodeAnalysis.Scripting/Hosting/CommandLine/CommandLineRunner.cs,268
-            try
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    Console.ForegroundColor = (diagnostic.Severity == DiagnosticSeverity.Error) ? ConsoleColor.Red : ConsoleColor.Yellow;
-                    Console.WriteLine(diagnostic.ToString());
-                }
-            }
-            finally
-            {
-                Console.ResetColor();
             }
         }
 
