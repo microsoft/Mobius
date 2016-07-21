@@ -33,9 +33,9 @@ namespace Microsoft.Spark.CSharp
             IsCompleteSubmission = true;
         }
 
-        public object ReturnValue { get; private set; }
-
         public bool IsCompleteSubmission { get; private set; }
+
+        public object ReturnValue { get; private set; }
 
         public ExceptionDispatchInfo ExecuteExceptionInfo { get; private set; }
 
