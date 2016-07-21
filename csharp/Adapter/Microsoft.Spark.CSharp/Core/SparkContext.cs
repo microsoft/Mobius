@@ -39,6 +39,14 @@ namespace Microsoft.Spark.CSharp.Core
         private int nextAccumulatorId;
 
         /// <summary>
+        /// Return a copy of this JavaSparkContext's configuration. The configuration ''cannot'' be changed at runtime.
+        /// </summary>
+        public SparkConf GetConf()
+        {
+            return new SparkConf(SparkContextProxy.GetConf());
+        }
+
+        /// <summary>
         /// The version of Spark on which this application is running.
         /// </summary>
         public string Version

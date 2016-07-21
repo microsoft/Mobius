@@ -9,6 +9,8 @@ namespace Microsoft.Spark.CSharp
     public class ScriptResult
     {
         public static readonly ScriptResult Incomplete = new ScriptResult { IsCompleteSubmission = false };
+
+        public static readonly ScriptResult Empty = new ScriptResult();
         
         public ScriptResult(
             object returnValue = null,
@@ -33,9 +35,9 @@ namespace Microsoft.Spark.CSharp
             IsCompleteSubmission = true;
         }
 
-        public object ReturnValue { get; private set; }
-
         public bool IsCompleteSubmission { get; private set; }
+
+        public object ReturnValue { get; private set; }
 
         public ExceptionDispatchInfo ExecuteExceptionInfo { get; private set; }
 

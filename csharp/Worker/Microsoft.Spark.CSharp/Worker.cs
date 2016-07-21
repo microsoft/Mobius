@@ -305,7 +305,15 @@ namespace Microsoft.Spark.CSharp
                 if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
                 {
                     var compilationDumpDir = SerDe.ReadString(networkStream);
-                    assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*", SearchOption.TopDirectoryOnly));
+                    if (Directory.Exists(compilationDumpDir))
+                    {
+                        assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*",
+                            SearchOption.TopDirectoryOnly));
+                    }
+                    else
+                    {
+                        logger.LogError("Directory " + compilationDumpDir + " dose not exist.");
+                    }
                 }
     
                 byte[] command = SerDe.ReadBytes(networkStream);

@@ -6,5 +6,7 @@ namespace Microsoft.Spark.CSharp
     public interface IScriptEngine
     {
         ScriptResult Execute(string code);
+
+        void Cleanup();
     }
 }

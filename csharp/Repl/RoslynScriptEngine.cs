@@ -40,11 +40,12 @@ namespace Microsoft.Spark.CSharp
         private readonly SparkConf sparkConf;
         private readonly SparkContext sc;
         private readonly SparkCLRHost host;
+        private readonly ParseOptions options;
 
-        public RoslynScriptEngine(SparkConf sparkConf, SparkContext sc)
+        public RoslynScriptEngine(SparkContext sc)
         {
-            this.sparkConf = sparkConf;
             this.sc = sc;
+            sparkConf = sc.GetConf();
             host = new SparkCLRHost
             {
                 sc = sc,
@@ -54,6 +55,8 @@ namespace Microsoft.Spark.CSharp
             var sparkLocalDir = sparkConf.Get("spark.local.dir", Path.GetTempPath());
             compilationDumpDirectory = Path.Combine(sparkLocalDir, Path.GetRandomFileName());
             Directory.CreateDirectory(compilationDumpDirectory);
+
+            options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Parse, SourceCodeKind.Script);
         }
 
         internal Script<object> CreateScript(string code)
@@ -103,7 +106,7 @@ namespace Microsoft.Spark.CSharp
                 {
                     message.Append("[").Append(diagnostic.Severity).Append("] ").Append(": ").Append(diagnostic).Append("\r\n");
                 }
-                return new ScriptResult(null, null, new Exception(message.ToString()));
+                return new ScriptResult(compilationException: new Exception(message.ToString()));
             }
 
             var compilationDump = DumpCompilation(script.GetCompilation());
@@ -135,11 +138,11 @@ namespace Microsoft.Spark.CSharp
                     }
                 }
                 previousState = endState;
-                return new ScriptResult(endState.ReturnValue, null, null);
+                return new ScriptResult(returnValue: endState.ReturnValue);
             }
             catch (Exception e)
             {
-                return new ScriptResult(null, e, null);
+                return new ScriptResult(executionException: e);
             }
         }
 
@@ -165,7 +168,6 @@ namespace Microsoft.Spark.CSharp
         /// </summary>
         internal bool IsCompleteSubmission(string code)
         {
-            var options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Diagnose, SourceCodeKind.Script);
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options);
             return SyntaxFactory.IsCompleteSubmission(syntaxTree);
         }
@@ -188,7 +190,7 @@ namespace Microsoft.Spark.CSharp
         /// <summary>
         /// Clean up compilation dump directory.
         /// </summary>
-        public void Clear()
+        public void Cleanup()
         {
             // delete DLLs dump directory on exit
             if (Directory.Exists(compilationDumpDirectory))

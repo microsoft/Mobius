@@ -111,6 +111,13 @@ namespace AdapterTest
 
                         SerDe.ReadString(s);
                         SerDe.ReadString(s);
+
+                        string runMode = SerDe.ReadString(s);
+                        if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            string compilationDumpDir = SerDe.ReadString(s);
+                        }
+
                         CSharpWorkerFunc workerFunc = (CSharpWorkerFunc)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
                         var func = workerFunc.Func;
                         result = func(default(int), input);

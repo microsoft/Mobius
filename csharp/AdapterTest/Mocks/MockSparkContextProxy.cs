@@ -65,6 +65,13 @@ namespace AdapterTest.Mocks
 
                 string deserializerMode = SerDe.ReadString(s);
                 string serializerMode = SerDe.ReadString(s);
+
+                string runMode = SerDe.ReadString(s);
+                if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    string compilationDumpDir = SerDe.ReadString(s);
+                }
+
                 CSharpWorkerFunc workerFunc = (CSharpWorkerFunc)formatter.Deserialize(new MemoryStream(SerDe.ReadBytes(s)));
                 var func = workerFunc.Func;
                 IEnumerable<dynamic> output = func(default(int), input);
@@ -271,6 +278,11 @@ namespace AdapterTest.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public ISparkConfProxy GetConf()
+        {
+            return new MockSparkConfProxy();
+        }  
 
         public ISqlContextProxy CreateSqlContext()
         {
