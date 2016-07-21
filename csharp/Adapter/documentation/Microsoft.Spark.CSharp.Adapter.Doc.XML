@@ -7455,7 +7455,7 @@
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartition(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStream``1(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Func{System.Int32,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Byte[],System.Byte[]}},System.Collections.Generic.IEnumerable{``0}})">
             <summary>
             Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
             
@@ -7479,50 +7479,61 @@
                 with Kafka broker(s) (NOT zookeeper servers), specified in host1:port1,host2:port2 form.        
             </param>
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
-            <param name="numPartitions">
-                user hint on how many kafka RDD partitions to create instead of aligning with kafka partitions,
-                unbalanced kafka partitions and/or under-distributed data will be redistributed evenly across 
-                a probably larger number of RDD partitions
-                If numPartitions = -1, either repartition based on spark.streaming.kafka.maxRatePerTask or do nothing if config not defined
-                If numPartitions = 0, repartition using original kafka partition count
-                If numPartitions > 0, repartition using this parameter
-            </param>
-            <returns>A DStream object</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStreamWithRepartitionAndReadFunc``1(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Int32,System.Func{System.Int32,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Byte[],System.Byte[]}},System.Collections.Generic.IEnumerable{``0}})">
-            <summary>
-            Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
-            
-            This is not a receiver based Kafka input stream, it directly pulls the message from Kafka
-            in each batch duration and processed without storing.
-            
-            This does not use Zookeeper to store offsets. The consumed offsets are tracked
-            by the stream itself. For interoperability with Kafka monitoring tools that depend on
-            Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application.
-            You can access the offsets used in each batch from the generated RDDs (see
-            [[org.apache.spark.streaming.kafka.HasOffsetRanges]]).
-            To recover from driver failures, you have to enable checkpointing in the StreamingContext.
-            The information on consumed offset can be recovered from the checkpoint.
-            See the programming guide for details (constraints, etc.).
-            
-            </summary>
-            <param name="ssc">Spark Streaming Context</param>
-            <param name="topics">list of topic_name to consume.</param>
-            <param name="kafkaParams">
-                Additional params for Kafka. Requires "metadata.broker.list" or "bootstrap.servers" to be set
-                with Kafka broker(s) (NOT zookeeper servers), specified in host1:port1,host2:port2 form.        
-            </param>
-            <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
-            <param name="numPartitions">
-                user hint on how many kafka RDD partitions to create instead of aligning with kafka partitions,
-                unbalanced kafka partitions and/or under-distributed data will be redistributed evenly across 
-                a probably larger number of RDD partitions
-                If numPartitions = -1, either repartition based on spark.streaming.kafka.maxRatePerTask or do nothing if config not defined
-                If numPartitions = 0, repartition using original kafka partition count
-                If numPartitions > 0, repartition using this parameter
-            </param>
             <param name="readFunc">user function to process the kafka data.</param>
             <returns>A DStream object</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.GetOffsetRange(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Byte[],System.Byte[]}})">
+            <summary>
+            create offset range from kafka messages when CSharpReader is enabled
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.GetNumPartitionsFromConfig(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            topics should contain only one topic if choose to repartitions to a configured numPartitions
+            TODO: move to scala and merge into DynamicPartitionKafkaRDD.getPartitions to remove above limitation
+            </summary>
+            <param name="ssc"></param>
+            <param name="topics"></param>
+            <param name="kafkaParams"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Streaming.OffsetRange">
+            <summary>
+            Kafka offset range
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.OffsetRange.Topic">
+            <summary>
+            Topic
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.OffsetRange.ClusterId">
+            <summary>
+            ClusterId
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.OffsetRange.Partition">
+            <summary>
+            Partition
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.OffsetRange.FromOffset">
+            <summary>
+            FromOffset
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.OffsetRange.UntilOffset">
+            <summary>
+            Until Offset
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.OffsetRange.ToString">
+            <summary>
+            OffsetRange string format
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.MapWithStateDStream`4">
             <summary>
