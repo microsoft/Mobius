@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +19,7 @@ using Microsoft.Spark.CSharp.Sql;
 using Razorvine.Pickle;
 using Razorvine.Serpent;
 
+[assembly: InternalsVisibleTo("ReplTest")]
 namespace Microsoft.Spark.CSharp
 {
     /// <summary>
@@ -33,14 +36,14 @@ namespace Microsoft.Spark.CSharp
     /// </summary>
     public class RoslynScriptEngine : IScriptEngine
     {
+        private int dumpSeq = 0;
         private ScriptState<object> previousState;
-        private int seq = 0;
-        private readonly string compilationDumpDirectory;
-
         private readonly SparkConf sparkConf;
         private readonly SparkContext sc;
         private readonly SparkCLRHost host;
         private readonly ParseOptions options;
+
+        internal readonly string compilationDumpDirectory;
 
         public RoslynScriptEngine(SparkContext sc)
         {
@@ -56,7 +59,7 @@ namespace Microsoft.Spark.CSharp
             compilationDumpDirectory = Path.Combine(sparkLocalDir, Path.GetRandomFileName());
             Directory.CreateDirectory(compilationDumpDirectory);
 
-            options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Parse, SourceCodeKind.Script);
+            options = new CSharpParseOptions(LanguageVersion.CSharp6, DocumentationMode.Parse, SourceCodeKind.Script);   
         }
 
         internal Script<object> CreateScript(string code)
@@ -68,8 +71,19 @@ namespace Microsoft.Spark.CSharp
                                 .AddReferences(typeof(SparkContext).Assembly)
                                 .AddReferences(typeof(Pickler).Assembly)
                                 .AddReferences(typeof(Parser).Assembly);
-
             return CSharpScript.Create(code, globalsType: typeof(SparkCLRHost)).WithOptions(scriptOptions);
+        }
+
+        public bool AddReference(string localPath)
+        {
+            if (!File.Exists(localPath))
+            {
+                return false;
+            }
+
+            Execute("#r \"" + localPath + "\"");
+            sc.AddFile(new Uri(localPath).ToString());
+            return true;
         }
 
         public ScriptResult Execute(string code)
@@ -150,6 +164,11 @@ namespace Microsoft.Spark.CSharp
             return SyntaxFactory.IsCompleteSubmission(syntaxTree);
         }
 
+        internal string CompilationDumpPath(int seqId)
+        {
+            return Path.Combine(compilationDumpDirectory, "ReplCompilation." + seqId);
+        }
+
         /// <summary>
         /// Dump generated compilation binary to dump directory for further use.
         /// </summary>
@@ -157,7 +176,7 @@ namespace Microsoft.Spark.CSharp
         /// <returns></returns>
         private string DumpCompilation(Compilation compilation)
         {
-            var dump = string.Format(@"{0}\ReplCompilation.{1}", compilationDumpDirectory, seq++);
+            var dump = CompilationDumpPath(dumpSeq++);
             using (var stream = new FileStream(dump, FileMode.CreateNew))
             {
                 compilation.Emit(stream);

@@ -61,6 +61,8 @@ namespace ReplTest
             var thread = new Thread(() => { repl.Run();}) { IsBackground = false };
             thread.Start();
 
+            Thread.Sleep(1000);
+            
             Assert.IsTrue(ioHandler.output.Any());
             Assert.AreEqual("> ", ioHandler.output.Last());
 
@@ -72,29 +74,63 @@ namespace ReplTest
             // incomplete code block
             ioHandler.input.Add("if (true) {");
             ioHandler.input.Add("return 1024; }");
+
             // execution exception
             ioHandler.input.Add("new Exception(\"Test\")");
+
             // compile exception
             ioHandler.input.Add("var a=;");
+
+            // load non-exist library
+            ioHandler.input.Add(":load \"non-exist.dll\"");
+
+            // load library
+            var sampleDLL = scriptEngine.CompilationDumpPath(0);
+            ioHandler.input.Add(":load \"" + sampleDLL + "\"");
+
+            // invalid :load directive
+            ioHandler.input.Add(":load x");
 
             // quit REPL
             ioHandler.input.Add(":quit");
             thread.Join();
             scriptEngine.Cleanup();
 
-            Console.WriteLine(string.Join("\r\n", ioHandler.output));
-            // Assert.AreEqual(1, ioHandler.output.Count);
-            Assert.AreEqual("> ", ioHandler.output[0]);
-            Assert.AreEqual(". ", ioHandler.output[1]);
-            Assert.AreEqual("1024", ioHandler.output[2]);
-            Assert.AreEqual("> ", ioHandler.output[3]);
+            // Console.WriteLine(string.Join("\r\n", ioHandler.output));
+            var seq = 0;
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+            Assert.AreEqual(". ", ioHandler.output[seq++]);
+            Assert.AreEqual("1024", ioHandler.output[seq++]);
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
 
             // execution exception
-            Assert.IsTrue(ioHandler.output[4].Contains("System.Exception: Test"));
-            Assert.AreEqual("> ", ioHandler.output[5]);
+            Assert.IsTrue(ioHandler.output[seq++].Contains("System.Exception: Test"));
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+
             // compile exception
-            Assert.IsTrue(ioHandler.output[6].Contains("Exception"));
-            Assert.AreEqual("> ", ioHandler.output[7]);
+            Assert.IsTrue(ioHandler.output[seq++].Contains("Exception"));
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+
+            // load non-exist library
+            Assert.IsTrue(ioHandler.output[seq++].Contains("Failed to load assebmly"));
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+
+            // load library
+            Assert.IsTrue(ioHandler.output[seq++].Contains("Loaded assebmly"));
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+
+            // invalid :load directive
+            Assert.IsTrue(ioHandler.output[seq++].Contains("Invalid :load directive"));
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+        }
+
+        [Test]
+        public void TestConsoleIoHandler()
+        {
+            var handler = new ConsoleIoHandler();
+            handler.WriteLine("line1");
+            handler.Write("> ");
+            handler.WriteException(new Exception("Message1"));
         }
     }
 }

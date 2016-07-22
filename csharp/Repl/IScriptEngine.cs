@@ -5,6 +5,8 @@ namespace Microsoft.Spark.CSharp
 {
     public interface IScriptEngine
     {
+        bool AddReference(string localPath);
+
         ScriptResult Execute(string code);
 
         void Cleanup();

@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
 
 namespace Microsoft.Spark.CSharp
@@ -106,9 +107,17 @@ namespace Microsoft.Spark.CSharp
                         break;
                     }
 
+                    // quit
                     if (line.Trim().Equals(":quit", StringComparison.InvariantCultureIgnoreCase))
                     {
                         return;
+                    }
+
+                    // load DLL
+                    if (line.Trim().StartsWith(":load", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        LoadAssebmly(line);
+                        break;
                     }
 
                     inputLines.AppendLine(line);
@@ -121,7 +130,7 @@ namespace Microsoft.Spark.CSharp
                     ioHandler.Write(". ");
                 }
 
-                if (cancelSubmission)
+                if (cancelSubmission || scriptResult == null)
                 {
                     continue;
                 }
@@ -141,7 +150,27 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        
+        internal void LoadAssebmly(string directive)
+        {
+            var match = Regex.Match(directive.Trim(), ":load\\s+\"(.*?)\"");
+            if (match.Success)
+            {
+                var assebmlyPath = match.Groups[1].Value;
+                if (scriptEngine.AddReference(assebmlyPath))
+                {
+                    ioHandler.WriteLine("Loaded assebmly from " + assebmlyPath);
+                }
+                else
+                {
+                    ioHandler.WriteLine("Failed to load assebmly from " + assebmlyPath);
+                }
+
+            }
+            else
+            {
+                ioHandler.WriteLine("[Error] Invalid :load directive.");
+            }
+        }
 
         static void Main(string[] args)
         {
