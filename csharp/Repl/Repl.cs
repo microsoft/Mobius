@@ -137,7 +137,7 @@ namespace Microsoft.Spark.CSharp
 
         internal bool IsDirective(string line)
         {
-            return Regex.Match(line.Trim(), ":\\S+").Success;
+            return Regex.Match(line.Trim(), "^:\\S+").Success;
         }
 
         internal void ProcessDirective(string directive, ref bool terminated)
