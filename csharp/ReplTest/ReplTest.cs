@@ -96,7 +96,7 @@ namespace ReplTest
             thread.Join();
             scriptEngine.Cleanup();
 
-            // Console.WriteLine(string.Join("\r\n", ioHandler.output));
+            Console.WriteLine(string.Join("\r\n", ioHandler.output));
             var seq = 0;
             Assert.AreEqual("> ", ioHandler.output[seq++]);
             Assert.AreEqual(". ", ioHandler.output[seq++]);

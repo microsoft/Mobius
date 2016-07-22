@@ -87,36 +87,33 @@ namespace Microsoft.Spark.CSharp
             ioHandler.WriteLine("Spark context available as sc.");
             ioHandler.WriteLine("SQL context available as sqlContext.");
             ioHandler.WriteLine("Use :quit to exit.");
+            ioHandler.WriteLine("Type \":help\" for more information.");
         }
 
         public void Run()
         {
+            var terminated = false;
+
             while (true)
             {
                 ioHandler.Write("> ");
                 var inputLines = new StringBuilder();
-                bool cancelSubmission = false;
+                var cancelSubmission = false;
                 ScriptResult scriptResult = null;
 
                 while (true)
                 {
                     var line = ioHandler.ReadLine();
+
                     if (string.IsNullOrWhiteSpace(line))
                     {
                         cancelSubmission = true;
                         break;
                     }
 
-                    // quit
-                    if (line.Trim().Equals(":quit", StringComparison.InvariantCultureIgnoreCase))
+                    if (IsDirective(line))
                     {
-                        return;
-                    }
-
-                    // load DLL
-                    if (line.Trim().StartsWith(":load", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        LoadAssebmly(line);
+                        ProcessDirective(line, ref terminated);
                         break;
                     }
 
@@ -130,23 +127,55 @@ namespace Microsoft.Spark.CSharp
                     ioHandler.Write(". ");
                 }
 
-                if (cancelSubmission || scriptResult == null)
-                {
-                    continue;
-                }
+                if (terminated) break;
 
-                if (scriptResult.CompileExceptionInfo != null)
-                {
-                    ioHandler.WriteException(scriptResult.CompileExceptionInfo.SourceException);
-                }
-                else if (scriptResult.ExecuteExceptionInfo != null)
-                {
-                    ioHandler.WriteException(scriptResult.ExecuteExceptionInfo.SourceException);
-                } 
-                else if (scriptResult.ReturnValue != null)
-                {
-                    ioHandler.WriteLine(scriptResult.ReturnValue);
-                }
+                if (cancelSubmission || scriptResult == null) continue;
+
+                ProcessExecutionResult(scriptResult);
+            }
+        }
+
+        internal bool IsDirective(string line)
+        {
+            return Regex.Match(line.Trim(), ":\\S+").Success;
+        }
+
+        internal void ProcessDirective(string directive, ref bool terminated)
+        {
+            var verb = directive.Split(new[] {" "}, StringSplitOptions.RemoveEmptyEntries)[0];
+            switch (verb)
+            {
+                case ":quit": // quit
+                    terminated = true;
+                    break;
+
+                case ":load": // load DLL
+                    LoadAssebmly(directive);
+                    break;
+
+                case ":help": // display help message
+                    Help();
+                    break;
+
+                default:
+                    ioHandler.WriteException(new Exception("Invalid directive." + verb));
+                    break;
+            }
+        }
+
+        internal void ProcessExecutionResult(ScriptResult scriptResult)
+        {
+            if (scriptResult.CompileExceptionInfo != null)
+            {
+                ioHandler.WriteException(scriptResult.CompileExceptionInfo.SourceException);
+            }
+            else if (scriptResult.ExecuteExceptionInfo != null)
+            {
+                ioHandler.WriteException(scriptResult.ExecuteExceptionInfo.SourceException);
+            }
+            else if (scriptResult.ReturnValue != null)
+            {
+                ioHandler.WriteLine(scriptResult.ReturnValue);
             }
         }
 
@@ -170,6 +199,12 @@ namespace Microsoft.Spark.CSharp
             {
                 ioHandler.WriteLine("[Error] Invalid :load directive.");
             }
+        }
+
+        internal void Help()
+        {
+            const string helps = "Commands:\r\n  :help\t\tDisplay help on available commands.\r\n  :load\t\tLoad extra library to current execution context, e.g. :load \"myLib.dll\".\r\n  :quit\t\tcd loExit REPL.";
+            ioHandler.WriteLine(helps);
         }
 
         static void Main(string[] args)
