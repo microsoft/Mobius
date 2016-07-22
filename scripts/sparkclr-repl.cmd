@@ -1,7 +1,4 @@
-pushd %~dp0
+rem Copyright (c) Microsoft. All rights reserved.
+rem Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-set MICROSOFT_NET_COMPILERS_VERSION=1.1.1
-
-sparkclr-submit.cmd --conf spark.local.dir=%temp% --name SparkCLR_REPL %* --exe Repl.exe %SPARKCLR_HOME%\repl
-
-popd
+%SPARKCLR_HOME%\scripts\sparkclr-submit.cmd --name MobiusShell %* --exe Repl.exe %SPARKCLR_HOME%\repl
