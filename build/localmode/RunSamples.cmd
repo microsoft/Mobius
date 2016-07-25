@@ -92,8 +92,8 @@ pushd "%SPARKCLR_HOME%\scripts"
 @dir /s "%SPARKCLR_HOME%"
 
 if !INTERACTIVE! == "interactive" (
-	@echo [RunSamples.cmd] call sparkclr-repl.cmd %*
-	call sparkclr-repl.cmd
+	@echo [RunSamples.cmd] call sparkclr-shell.cmd %*
+	call sparkclr-shell.cmd
 ) else (
     if "!USER_EXE!"=="" (
         @echo [RunSamples.cmd] call sparkclr-submit.cmd --jars %SPARKCLR_EXT_JARS% -exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
