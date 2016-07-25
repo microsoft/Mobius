@@ -45,14 +45,14 @@ namespace Microsoft.Spark.CSharp
 
         internal readonly string compilationDumpDirectory;
 
-        public RoslynScriptEngine(SparkContext sc)
+        public RoslynScriptEngine(SparkContext sc, SqlContext sqlContext)
         {
             this.sc = sc;
             sparkConf = sc.GetConf();
             host = new SparkCLRHost
             {
                 sc = sc,
-                sqlContext = new SqlContext(sc)
+                sqlContext = sqlContext
             };
 
             var sparkLocalDir = sparkConf.Get("spark.local.dir", Path.GetTempPath());

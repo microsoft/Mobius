@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -203,7 +204,7 @@ namespace Microsoft.Spark.CSharp
 
         internal void Help()
         {
-            const string helps = "Commands:\r\n  :help\t\tDisplay help on available commands.\r\n  :load\t\tLoad extra library to current execution context, e.g. :load \"myLib.dll\".\r\n  :quit\t\tcd loExit REPL.";
+            const string helps = "Commands:\r\n  :help\t\tDisplay help on available commands.\r\n  :load\t\tLoad extra library to current execution context, e.g. :load \"myLib.dll\".\r\n  :quit\t\tExit REPL.";
             ioHandler.WriteLine(helps);
         }
 
@@ -211,7 +212,8 @@ namespace Microsoft.Spark.CSharp
         {
             SparkConf sparkConf = new SparkConf();
             SparkContext sc = new SparkContext(sparkConf);
-            var scriptEngine = new RoslynScriptEngine(sc);
+            SqlContext sqlContext = new SqlContext(sc);
+            var scriptEngine = new RoslynScriptEngine(sc, sqlContext);
             var repl = new Repl(scriptEngine, new ConsoleIoHandler());
             repl.Init();
             repl.Run();

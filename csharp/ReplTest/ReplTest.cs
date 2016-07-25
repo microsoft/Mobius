@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Sql;
 using Moq;
 using NUnit.Framework;
 
@@ -51,8 +52,9 @@ namespace ReplTest
         public void Test()
         {
             var sc = new SparkContext("", "");
+            var sqlContext = new SqlContext(sc);
  
-            var scriptEngine = new RoslynScriptEngine(sc);
+            var scriptEngine = new RoslynScriptEngine(sc, sqlContext);
             var ioHandler = new TestIoHandler();
 
             var repl = new Repl(scriptEngine, ioHandler);
