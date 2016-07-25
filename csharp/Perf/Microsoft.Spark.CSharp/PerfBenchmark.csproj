@@ -11,6 +11,7 @@
     <AssemblyName>SparkCLRPerf</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <CppDll Condition="Exists('..\..\..\cpp\x64')">HasCpp</CppDll>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -21,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -42,8 +44,20 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="data\deletionbenchmarktestdata.csv" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
+    <None Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.dll</Link>
+    </None>
+    <None Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.pdb</Link>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">

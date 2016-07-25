@@ -293,7 +293,7 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">TextFile</font></td><td>Read a text file from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI, and return it as an RDD of Strings.</td></tr><tr><td><font color="blue">Parallelize``1</font></td><td>Distribute a local collection to form an RDD. sc.Parallelize(new int[] {0, 2, 3, 4, 6}, 5).Glom().Collect() [[0], [2], [3], [4], [6]]</td></tr><tr><td><font color="blue">EmptyRDD</font></td><td>Create an RDD that has no partitions or elements.</td></tr><tr><td><font color="blue">WholeTextFiles</font></td><td>Read a directory of text files from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. Each file is read as a single record and returned in a key-value pair, where the key is the path of each file, the value is the content of each file. For example, if you have the following files: {{{ hdfs://a-hdfs-path/part-00000 hdfs://a-hdfs-path/part-00001 ... hdfs://a-hdfs-path/part-nnnnn }}} Do {{{ RDD&lt;KeyValuePair&lt;string, string&gt;&gt; rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path") }}} then `rdd` contains {{{ (a-hdfs-path/part-00000, its content) (a-hdfs-path/part-00001, its content) ... (a-hdfs-path/part-nnnnn, its content) }}} Small files are preferred, large file is also allowable, but may cause bad performance. minPartitions A suggestion value of the minimal splitting number for input data.</td></tr><tr><td><font color="blue">BinaryFiles</font></td><td>Read a directory of binary files from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI as a byte array. Each file is read as a single record and returned in a key-value pair, where the key is the path of each file, the value is the content of each file. For example, if you have the following files: {{{ hdfs://a-hdfs-path/part-00000 hdfs://a-hdfs-path/part-00001 ... hdfs://a-hdfs-path/part-nnnnn }}} Do RDD&lt;KeyValuePair&lt;string, byte[]&gt;&gt;"/&gt; rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`, then `rdd` contains {{{ (a-hdfs-path/part-00000, its content) (a-hdfs-path/part-00001, its content) ... (a-hdfs-path/part-nnnnn, its content) }}} @note Small files are preferred; very large files but may cause bad performance. @param minPartitions A suggestion value of the minimal splitting number for input data.</td></tr><tr><td><font color="blue">SequenceFile</font></td><td>Read a Hadoop SequenceFile with arbitrary key and value Writable class from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. The mechanism is as follows: 1. A Java RDD is created from the SequenceFile or other InputFormat, and the key and value Writable classes 2. Serialization is attempted via Pyrolite pickling 3. If this fails, the fallback is to call 'toString' on each key and value 4. PickleSerializer is used to deserialize pickled objects on the Python side</td></tr><tr><td><font color="blue">NewAPIHadoopFile</font></td><td>Read a 'new API' Hadoop InputFormat with arbitrary key and value class from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. The mechanism is the same as for sc.sequenceFile. A Hadoop configuration can be passed in as a Python dict. This will be converted into a Configuration in Java</td></tr><tr><td><font color="blue">NewAPIHadoopRDD</font></td><td>Read a 'new API' Hadoop InputFormat with arbitrary key and value class, from an arbitrary Hadoop configuration, which is passed in as a Python dict. This will be converted into a Configuration in Java. The mechanism is the same as for sc.sequenceFile.</td></tr><tr><td><font color="blue">HadoopFile</font></td><td>Read an 'old' Hadoop InputFormat with arbitrary key and value class from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. The mechanism is the same as for sc.sequenceFile. A Hadoop configuration can be passed in as a Python dict. This will be converted into a Configuration in Java.</td></tr><tr><td><font color="blue">HadoopRDD</font></td><td>Read an 'old' Hadoop InputFormat with arbitrary key and value class, from an arbitrary Hadoop configuration, which is passed in as a Python dict. This will be converted into a Configuration in Java. The mechanism is the same as for sc.sequenceFile.</td></tr><tr><td><font color="blue">Union``1</font></td><td>Build the union of a list of RDDs. This supports unions() of RDDs with different serialized formats, although this forces them to be reserialized using the default serializer: &gt;&gt;&gt; path = os.path.join(tempdir, "union-text.txt") &gt;&gt;&gt; with open(path, "w") as testFile: ... _ = testFile.write("Hello") &gt;&gt;&gt; textFile = sc.textFile(path) &gt;&gt;&gt; textFile.collect() [u'Hello'] &gt;&gt;&gt; parallelized = sc.parallelize(["World!"]) &gt;&gt;&gt; sorted(sc.union([textFile, parallelized]).collect()) [u'Hello', 'World!']</td></tr><tr><td><font color="blue">Broadcast``1</font></td><td>Broadcast a read-only variable to the cluster, returning a Broadcast object for reading it in distributed functions. The variable will be sent to each cluster only once.</td></tr><tr><td><font color="blue">Accumulator``1</font></td><td>Create an with the given initial value, using a given helper object to define how to add values of the data type if provided. Default AccumulatorParams are used for integers and floating-point numbers if you do not provide one. For other types, a custom AccumulatorParam can be used.</td></tr><tr><td><font color="blue">Stop</font></td><td>Shut down the SparkContext.</td></tr><tr><td><font color="blue">AddFile</font></td><td>Add a file to be downloaded with this Spark job on every node. The `path` passed can be either a local file, a file in HDFS (or other Hadoop-supported filesystems), or an HTTP, HTTPS or FTP URI. To access the file in Spark jobs, use `SparkFiles.get(fileName)` to find its download location.</td></tr><tr><td><font color="blue">SetCheckpointDir</font></td><td>Set the directory under which RDDs are going to be checkpointed. The directory must be a HDFS path if running on a cluster.</td></tr><tr><td><font color="blue">SetJobGroup</font></td><td>Assigns a group ID to all the jobs started by this thread until the group ID is set to a different value or cleared. Often, a unit of execution in an application consists of multiple Spark actions or jobs. Application programmers can use this method to group all those jobs together and give a group description. Once set, the Spark web UI will associate such jobs with this group. The application can also use [[org.apache.spark.api.java.JavaSparkContext.cancelJobGroup]] to cancel all running jobs in this group. For example, {{{ // In the main thread: sc.setJobGroup("some_job_to_cancel", "some job description"); rdd.map(...).count(); // In a separate thread: sc.cancelJobGroup("some_job_to_cancel"); }}} If interruptOnCancel is set to true for the job group, then job cancellation will result in Thread.interrupt() being called on the job's executor threads. This is useful to help ensure that the tasks are actually stopped in a timely manner, but is off by default due to HDFS-1208, where HDFS may respond to Thread.interrupt() by marking nodes as dead.</td></tr><tr><td><font color="blue">SetLocalProperty</font></td><td>Set a local property that affects jobs submitted from this thread, such as the Spark fair scheduler pool.</td></tr><tr><td><font color="blue">GetLocalProperty</font></td><td>Get a local property set in this thread, or null if it is missing. See [[org.apache.spark.api.java.JavaSparkContext.setLocalProperty]].</td></tr><tr><td><font color="blue">SetLogLevel</font></td><td>Control our logLevel. This overrides any user-defined log settings. @param logLevel The desired log level as a string. Valid log levels include: ALL, DEBUG, ERROR, FATAL, INFO, OFF, TRACE, WARN</td></tr><tr><td><font color="blue">CancelJobGroup</font></td><td>Cancel active jobs for the specified group. See for more information.</td></tr><tr><td><font color="blue">CancelAllJobs</font></td><td>Cancel all jobs that have been scheduled or are running.</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetActiveSparkContext</font></td><td>Get existing SparkContext</td></tr><tr><td><font color="blue">TextFile</font></td><td>Read a text file from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI, and return it as an RDD of Strings.</td></tr><tr><td><font color="blue">Parallelize``1</font></td><td>Distribute a local collection to form an RDD. sc.Parallelize(new int[] {0, 2, 3, 4, 6}, 5).Glom().Collect() [[0], [2], [3], [4], [6]]</td></tr><tr><td><font color="blue">EmptyRDD</font></td><td>Create an RDD that has no partitions or elements.</td></tr><tr><td><font color="blue">WholeTextFiles</font></td><td>Read a directory of text files from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. Each file is read as a single record and returned in a key-value pair, where the key is the path of each file, the value is the content of each file. For example, if you have the following files: {{{ hdfs://a-hdfs-path/part-00000 hdfs://a-hdfs-path/part-00001 ... hdfs://a-hdfs-path/part-nnnnn }}} Do {{{ RDD&lt;KeyValuePair&lt;string, string&gt;&gt; rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path") }}} then `rdd` contains {{{ (a-hdfs-path/part-00000, its content) (a-hdfs-path/part-00001, its content) ... (a-hdfs-path/part-nnnnn, its content) }}} Small files are preferred, large file is also allowable, but may cause bad performance. minPartitions A suggestion value of the minimal splitting number for input data.</td></tr><tr><td><font color="blue">BinaryFiles</font></td><td>Read a directory of binary files from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI as a byte array. Each file is read as a single record and returned in a key-value pair, where the key is the path of each file, the value is the content of each file. For example, if you have the following files: {{{ hdfs://a-hdfs-path/part-00000 hdfs://a-hdfs-path/part-00001 ... hdfs://a-hdfs-path/part-nnnnn }}} Do RDD&lt;KeyValuePair&lt;string, byte[]&gt;&gt;"/&gt; rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`, then `rdd` contains {{{ (a-hdfs-path/part-00000, its content) (a-hdfs-path/part-00001, its content) ... (a-hdfs-path/part-nnnnn, its content) }}} @note Small files are preferred; very large files but may cause bad performance. @param minPartitions A suggestion value of the minimal splitting number for input data.</td></tr><tr><td><font color="blue">SequenceFile</font></td><td>Read a Hadoop SequenceFile with arbitrary key and value Writable class from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. The mechanism is as follows: 1. A Java RDD is created from the SequenceFile or other InputFormat, and the key and value Writable classes 2. Serialization is attempted via Pyrolite pickling 3. If this fails, the fallback is to call 'toString' on each key and value 4. PickleSerializer is used to deserialize pickled objects on the Python side</td></tr><tr><td><font color="blue">NewAPIHadoopFile</font></td><td>Read a 'new API' Hadoop InputFormat with arbitrary key and value class from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. The mechanism is the same as for sc.sequenceFile. A Hadoop configuration can be passed in as a Python dict. This will be converted into a Configuration in Java</td></tr><tr><td><font color="blue">NewAPIHadoopRDD</font></td><td>Read a 'new API' Hadoop InputFormat with arbitrary key and value class, from an arbitrary Hadoop configuration, which is passed in as a Python dict. This will be converted into a Configuration in Java. The mechanism is the same as for sc.sequenceFile.</td></tr><tr><td><font color="blue">HadoopFile</font></td><td>Read an 'old' Hadoop InputFormat with arbitrary key and value class from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI. The mechanism is the same as for sc.sequenceFile. A Hadoop configuration can be passed in as a Python dict. This will be converted into a Configuration in Java.</td></tr><tr><td><font color="blue">HadoopRDD</font></td><td>Read an 'old' Hadoop InputFormat with arbitrary key and value class, from an arbitrary Hadoop configuration, which is passed in as a Python dict. This will be converted into a Configuration in Java. The mechanism is the same as for sc.sequenceFile.</td></tr><tr><td><font color="blue">Union``1</font></td><td>Build the union of a list of RDDs. This supports unions() of RDDs with different serialized formats, although this forces them to be reserialized using the default serializer: &gt;&gt;&gt; path = os.path.join(tempdir, "union-text.txt") &gt;&gt;&gt; with open(path, "w") as testFile: ... _ = testFile.write("Hello") &gt;&gt;&gt; textFile = sc.textFile(path) &gt;&gt;&gt; textFile.collect() [u'Hello'] &gt;&gt;&gt; parallelized = sc.parallelize(["World!"]) &gt;&gt;&gt; sorted(sc.union([textFile, parallelized]).collect()) [u'Hello', 'World!']</td></tr><tr><td><font color="blue">Broadcast``1</font></td><td>Broadcast a read-only variable to the cluster, returning a Broadcast object for reading it in distributed functions. The variable will be sent to each cluster only once.</td></tr><tr><td><font color="blue">Accumulator``1</font></td><td>Create an with the given initial value, using a given helper object to define how to add values of the data type if provided. Default AccumulatorParams are used for integers and floating-point numbers if you do not provide one. For other types, a custom AccumulatorParam can be used.</td></tr><tr><td><font color="blue">Stop</font></td><td>Shut down the SparkContext.</td></tr><tr><td><font color="blue">AddFile</font></td><td>Add a file to be downloaded with this Spark job on every node. The `path` passed can be either a local file, a file in HDFS (or other Hadoop-supported filesystems), or an HTTP, HTTPS or FTP URI. To access the file in Spark jobs, use `SparkFiles.get(fileName)` to find its download location.</td></tr><tr><td><font color="blue">SetCheckpointDir</font></td><td>Set the directory under which RDDs are going to be checkpointed. The directory must be a HDFS path if running on a cluster.</td></tr><tr><td><font color="blue">SetJobGroup</font></td><td>Assigns a group ID to all the jobs started by this thread until the group ID is set to a different value or cleared. Often, a unit of execution in an application consists of multiple Spark actions or jobs. Application programmers can use this method to group all those jobs together and give a group description. Once set, the Spark web UI will associate such jobs with this group. The application can also use [[org.apache.spark.api.java.JavaSparkContext.cancelJobGroup]] to cancel all running jobs in this group. For example, {{{ // In the main thread: sc.setJobGroup("some_job_to_cancel", "some job description"); rdd.map(...).count(); // In a separate thread: sc.cancelJobGroup("some_job_to_cancel"); }}} If interruptOnCancel is set to true for the job group, then job cancellation will result in Thread.interrupt() being called on the job's executor threads. This is useful to help ensure that the tasks are actually stopped in a timely manner, but is off by default due to HDFS-1208, where HDFS may respond to Thread.interrupt() by marking nodes as dead.</td></tr><tr><td><font color="blue">SetLocalProperty</font></td><td>Set a local property that affects jobs submitted from this thread, such as the Spark fair scheduler pool.</td></tr><tr><td><font color="blue">GetLocalProperty</font></td><td>Get a local property set in this thread, or null if it is missing. See [[org.apache.spark.api.java.JavaSparkContext.setLocalProperty]].</td></tr><tr><td><font color="blue">SetLogLevel</font></td><td>Control our logLevel. This overrides any user-defined log settings. @param logLevel The desired log level as a string. Valid log levels include: ALL, DEBUG, ERROR, FATAL, INFO, OFF, TRACE, WARN</td></tr><tr><td><font color="blue">CancelJobGroup</font></td><td>Cancel active jobs for the specified group. See for more information.</td></tr><tr><td><font color="blue">CancelAllJobs</font></td><td>Cancel all jobs that have been scheduled or are running.</td></tr></table>
 
 ---
   
@@ -376,6 +376,142 @@
 ####Methods
 
 <table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ToString</font></td><td>Returns a readable string that represents the type</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBuf</font>
+####Summary
+  
+            
+            ByteBuf delimits a section of a ByteBufChunk.
+            It is the smallest unit to be allocated.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Clear</font></td><td>Sets the readerIndex and writerIndex of this buffer to 0.</td></tr><tr><td><font color="blue">IsReadable</font></td><td>Is this ByteSegment readable if and only if the buffer contains equal or more than the specified number of elements</td></tr><tr><td><font color="blue">IsWritable</font></td><td>Returns true if and only if the buffer has enough Capacity to accommodate size additional bytes.</td></tr><tr><td><font color="blue">ReadByte</font></td><td>Gets a byte at the current readerIndex and increases the readerIndex by 1 in this buffer.</td></tr><tr><td><font color="blue">ReadBytes</font></td><td>Reads a block of bytes from the ByteBuf and writes the data to a buffer.</td></tr><tr><td><font color="blue">Release</font></td><td>Release the ByteBuf back to the ByteBufPool</td></tr><tr><td><font color="blue">WriteBytes</font></td><td>Writes a block of bytes to the ByteBuf using data read from a buffer.</td></tr><tr><td><font color="blue">GetInputRioBuf</font></td><td>Returns a RioBuf object for input (receive)</td></tr><tr><td><font color="blue">GetOutputRioBuf</font></td><td>Returns a RioBuf object for output (send).</td></tr><tr><td><font color="blue">NewErrorStatusByteBuf</font></td><td>Creates an empty ByteBuf with error status.</td></tr><tr><td><font color="blue"></font></td><td>Finalizer.</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteChunk.</td></tr><tr><td><font color="blue"></font></td><td>Release all resources</td></tr><tr><td><font color="blue"></font></td><td>Releases the ByteBuf back to this ByteChunk</td></tr><tr><td><font color="blue"></font></td><td>Returns a readable string for the ByteBufChunk</td></tr><tr><td><font color="blue"></font></td><td>Static method to create a new ByteBufChunk with given segment and chunk size. If isUnsafe is true, it allocates memory from the process's heap.</td></tr><tr><td><font color="blue"></font></td><td>Wraps HeapFree to process heap.</td></tr><tr><td><font color="blue"></font></td><td>Implementation of the Dispose pattern.</td></tr><tr><td><font color="blue"></font></td><td>Add the ByteBufChunk to this ByteBufChunkList linked-list based on ByteBufChunk's usage. So it will be moved to the right ByteBufChunkList that has the correct minUsage/maxUsage.</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteBufChunkList if it is not empty.</td></tr><tr><td><font color="blue"></font></td><td>Releases the segment back to its ByteBufChunk.</td></tr><tr><td><font color="blue"></font></td><td>Adds the ByteBufChunk to this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Moves the ByteBufChunk down the ByteBufChunkList linked-list so it will end up in the right ByteBufChunkList that has the correct minUsage/maxUsage in respect to ByteBufChunk.Usage.</td></tr><tr><td><font color="blue"></font></td><td>Remove the ByteBufChunk from this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Returns a readable string for this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteBufPool to use.</td></tr><tr><td><font color="blue"></font></td><td>Deallocates a ByteBuf back to this ByteBufPool.</td></tr><tr><td><font color="blue"></font></td><td>Gets a readable string for this ByteBufPool</td></tr><tr><td><font color="blue"></font></td><td>Returns the chunk numbers in each queue.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufChunk</font>
+####Summary
+  
+            
+            ByteBufChunk represents a memory blocks that can be allocated from 
+            .Net heap (managed code) or process heap(unsafe code)
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Finalize</font></td><td>Finalizer.</td></tr><tr><td><font color="blue">Allocate</font></td><td>Allocates a ByteBuf from this ByteChunk.</td></tr><tr><td><font color="blue">Dispose</font></td><td>Release all resources</td></tr><tr><td><font color="blue">Free</font></td><td>Releases the ByteBuf back to this ByteChunk</td></tr><tr><td><font color="blue">ToString</font></td><td>Returns a readable string for the ByteBufChunk</td></tr><tr><td><font color="blue">NewChunk</font></td><td>Static method to create a new ByteBufChunk with given segment and chunk size. If isUnsafe is true, it allocates memory from the process's heap.</td></tr><tr><td><font color="blue">FreeToProcessHeap</font></td><td>Wraps HeapFree to process heap.</td></tr><tr><td><font color="blue">Dispose</font></td><td>Implementation of the Dispose pattern.</td></tr><tr><td><font color="blue"></font></td><td>Add the ByteBufChunk to this ByteBufChunkList linked-list based on ByteBufChunk's usage. So it will be moved to the right ByteBufChunkList that has the correct minUsage/maxUsage.</td></tr><tr><td><font color="blue"></font></td><td>Allocates a ByteBuf from this ByteBufChunkList if it is not empty.</td></tr><tr><td><font color="blue"></font></td><td>Releases the segment back to its ByteBufChunk.</td></tr><tr><td><font color="blue"></font></td><td>Adds the ByteBufChunk to this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Moves the ByteBufChunk down the ByteBufChunkList linked-list so it will end up in the right ByteBufChunkList that has the correct minUsage/maxUsage in respect to ByteBufChunk.Usage.</td></tr><tr><td><font color="blue"></font></td><td>Remove the ByteBufChunk from this ByteBufChunkList</td></tr><tr><td><font color="blue"></font></td><td>Returns a readable string for this ByteBufChunkList</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufChunk.Segment</font>
+####Summary
+  
+            
+            Segment struct delimits a section of a byte chunk.
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufChunkList</font>
+####Summary
+  
+            
+            ByteBufChunkList class represents a simple linked like list used to store ByteBufChunk objects
+            based on its usage.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Add</font></td><td>Add the ByteBufChunk to this ByteBufChunkList linked-list based on ByteBufChunk's usage. So it will be moved to the right ByteBufChunkList that has the correct minUsage/maxUsage.</td></tr><tr><td><font color="blue">Allocate</font></td><td>Allocates a ByteBuf from this ByteBufChunkList if it is not empty.</td></tr><tr><td><font color="blue">Free</font></td><td>Releases the segment back to its ByteBufChunk.</td></tr><tr><td><font color="blue">AddInternal</font></td><td>Adds the ByteBufChunk to this ByteBufChunkList</td></tr><tr><td><font color="blue">MoveInternal</font></td><td>Moves the ByteBufChunk down the ByteBufChunkList linked-list so it will end up in the right ByteBufChunkList that has the correct minUsage/maxUsage in respect to ByteBufChunk.Usage.</td></tr><tr><td><font color="blue">Remove</font></td><td>Remove the ByteBufChunk from this ByteBufChunkList</td></tr><tr><td><font color="blue">ToString</font></td><td>Returns a readable string for this ByteBufChunkList</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.ByteBufPool</font>
+####Summary
+  
+            
+            ByteBufPool class is used to manage the ByteBuf pool that allocate and free pooled memory buffer.
+            We borrows some ideas from Netty buffer memory management.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Allocate</font></td><td>Allocates a ByteBuf from this ByteBufPool to use.</td></tr><tr><td><font color="blue">Free</font></td><td>Deallocates a ByteBuf back to this ByteBufPool.</td></tr><tr><td><font color="blue">ToString</font></td><td>Gets a readable string for this ByteBufPool</td></tr><tr><td><font color="blue">GetUsages</font></td><td>Returns the chunk numbers in each queue.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.RioNative</font>
+####Summary
+  
+            
+            RioNative class imports and initializes RIOSock.dll for use with RIO socket APIs.
+            It also provided a simple thread pool that retrieves the results from IO completion port.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Finalize</font></td><td>Finalizer</td></tr><tr><td><font color="blue">Dispose</font></td><td>Release all resources.</td></tr><tr><td><font color="blue">SetUseThreadPool</font></td><td>Sets whether use thread pool to query RIO socket results, it must be called before calling EnsureRioLoaded()</td></tr><tr><td><font color="blue">EnsureRioLoaded</font></td><td>Ensures that the native dll of RIO socket is loaded and initialized.</td></tr><tr><td><font color="blue">UnloadRio</font></td><td>Explicitly unload the native dll of RIO socket, and release resources.</td></tr><tr><td><font color="blue">Init</font></td><td>Initializes RIOSock native library.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.RioResult</font>
+####Summary
+  
+            
+            The RioResult structure contains data used to indicate request completion results used with RIO socket
+            
+        
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.SocketStream</font>
+####Summary
+  
+            
+            Provides the underlying stream of data for network access.
+            Just like a NetworkStream.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Flush</font></td><td>Flushes data from the stream. This is meaningless for us, so it does nothing.</td></tr><tr><td><font color="blue">Seek</font></td><td>Seeks a specific position in the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">SetLength</font></td><td>Sets the length of the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">ReadByte</font></td><td>Reads a byte from the stream and advances the position within the stream by one byte, or returns -1 if at the end of the stream.</td></tr><tr><td><font color="blue">Read</font></td><td>Reads data from the stream.</td></tr><tr><td><font color="blue">Write</font></td><td>Writes data to the stream.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.SockDataToken</font>
+####Summary
+  
+            
+            SockDataToken class is used to associate with the SocketAsyncEventArgs object.
+            Primarily, it is a way to pass state to the event handler.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Reset</font></td><td>Reset this token</td></tr><tr><td><font color="blue">DetachData</font></td><td>Detach the data ownership.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Network.SocketFactory</font>
+####Summary
+  
+            
+            SocketFactory is used to create ISocketWrapper instance based on a configuration and OS version.
+            
+            The ISocket instance can be RioSocket object, if the configuration is set to RioSocket and
+            only the application is running on a Windows OS that supports Registered IO socket.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateSocket</font></td><td>Creates a ISocket instance based on the configuration and OS version.</td></tr><tr><td><font color="blue">IsRioSockSupported</font></td><td>Indicates whether current OS supports RIO socket.</td></tr></table>
 
 ---
   
@@ -849,7 +985,21 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateDirectStream</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStreamWithRepartition</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateDirectStream</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStream``1</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">GetOffsetRange</font></td><td>create offset range from kafka messages when CSharpReader is enabled</td></tr><tr><td><font color="blue">GetNumPartitionsFromConfig</font></td><td>topics should contain only one topic if choose to repartitions to a configured numPartitions TODO: move to scala and merge into DynamicPartitionKafkaRDD.getPartitions to remove above limitation</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.OffsetRange</font>
+####Summary
+  
+            
+            Kafka offset range
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ToString</font></td><td>OffsetRange string format</td></tr></table>
 
 ---
   
@@ -937,6 +1087,20 @@
 ####Methods
 
 <table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ReduceByKey``2</font></td><td>Return a new DStream by applying ReduceByKey to each RDD.</td></tr><tr><td><font color="blue">CombineByKey``3</font></td><td>Return a new DStream by applying combineByKey to each RDD.</td></tr><tr><td><font color="blue">PartitionBy``2</font></td><td>Return a new DStream in which each RDD are partitioned by numPartitions.</td></tr><tr><td><font color="blue">MapValues``3</font></td><td>Return a new DStream by applying a map function to the value of each key-value pairs in this DStream without changing the key.</td></tr><tr><td><font color="blue">FlatMapValues``3</font></td><td>Return a new DStream by applying a flatmap function to the value of each key-value pairs in this DStream without changing the key.</td></tr><tr><td><font color="blue">GroupByKey``2</font></td><td>Return a new DStream by applying groupByKey on each RDD.</td></tr><tr><td><font color="blue">GroupWith``3</font></td><td>Return a new DStream by applying 'cogroup' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">Join``3</font></td><td>Return a new DStream by applying 'join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">LeftOuterJoin``3</font></td><td>Return a new DStream by applying 'left outer join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">RightOuterJoin``3</font></td><td>Return a new DStream by applying 'right outer join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">FullOuterJoin``3</font></td><td>Return a new DStream by applying 'full outer join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">GroupByKeyAndWindow``2</font></td><td>Return a new DStream by applying `GroupByKey` over a sliding window. Similar to `DStream.GroupByKey()`, but applies it over a sliding window.</td></tr><tr><td><font color="blue">ReduceByKeyAndWindow``2</font></td><td>Return a new DStream by applying incremental `reduceByKey` over a sliding window. The reduced value of over a new window is calculated using the old window's reduce value : 1. reduce the new values that entered the window (e.g., adding new counts) 2. "inverse reduce" the old values that left the window (e.g., subtracting old counts) `invFunc` can be None, then it will reduce all the RDDs in window, could be slower than having `invFunc`.</td></tr><tr><td><font color="blue">UpdateStateByKey``3</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr><tr><td><font color="blue">UpdateStateByKey``3</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr><tr><td><font color="blue">UpdateStateByKey``3</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr><tr><td><font color="blue">MapWithState``4</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.CSharpInputDStreamUtils</font>
+####Summary
+  
+            
+            Utils for csharp input stream.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream``1</font></td><td>Create an input stream that user can control the data injection by C# code</td></tr><tr><td><font color="blue">CreateStream``1</font></td><td>Create an input stream that user can control the data injection by C# code</td></tr></table>
 
 ---
   

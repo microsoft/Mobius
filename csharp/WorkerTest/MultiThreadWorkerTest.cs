@@ -2,31 +2,29 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Specialized;
 using System.Text;
+using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Core;
-using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using NUnit.Framework;
 
 namespace WorkerTest
 {
     /// <summary>
-    /// Validates MultiThreadWorker by creating a TcpListener server to 
+    /// Validates MultiThreadWorker by creating a ISocketWrapper server to 
     /// simulate interactions between CSharpRDD and CSharpWorker
     /// </summary>
-    [TestFixture]
+    [TestFixture("Normal")]
+    [TestFixture("Rio")]
+    [TestFixture("Saea")]
     class MultiThreadWorkerTest
     {
         private int splitIndex = 0;
@@ -35,6 +33,18 @@ namespace WorkerTest
         private int numberOfIncludesItems = 0;
         private int numBroadcastVariables = 0;
         private readonly byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
+
+        public MultiThreadWorkerTest(string sockType)
+        {
+            if (sockType.Equals("Rio") && !SocketFactory.IsRioSockSupported())
+            {
+                Assert.Ignore("Omitting TestFixture due to missing Riosock.dll. It might caused by no VC++ build tool or running on an OS that not supports Windows RIO socket.");
+            }
+
+            // Set Socket wrapper for test
+            Environment.SetEnvironmentVariable(ConfigurationService.CSharpSocketTypeEnvName, sockType);
+            SocketFactory.SocketWrapperType = SocketWrapperType.None;
+        }
 
         // StringBuilder is not thread-safe, it shouldn't be used concurrently from different threads.
         // http://stackoverflow.com/questions/12645351/stringbuilder-tostring-throw-an-index-out-of-range-exception
@@ -106,9 +116,9 @@ namespace WorkerTest
         /// Create new socket to simulate interaction between JVM and C#
         /// </summary>
         /// <param name="s"></param>
-        private Socket CreateSocket(int serverPort)
+        private ISocketWrapper CreateSocket(int serverPort)
         {
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var socket =SocketFactory.CreateSocket();
             socket.Connect(IPAddress.Loopback, serverPort);
             return socket;
         }
@@ -173,16 +183,21 @@ namespace WorkerTest
         /// <param name="exitCode"></param>
         private void AssertWorker(Process worker, int exitCode = 0, string errorMessage = null)
         {
-            worker.WaitForExit(3000);
+            if (!worker.WaitForExit(30000))
+            {
+                Console.WriteLine("Time out for worker.WaitForExit(). Force to kill worker process.");
+                worker.Kill();
+            }
+
             string str;
             lock (syncLock)
             {
                 str = output.ToString();
-                Console.WriteLine("output from server: {0}", str);
             }
+            Assert.IsTrue(errorMessage == null || str.Contains(errorMessage),
+                string.Format("Actual output from worker: {0}{1}", Environment.NewLine, str));
             Assert.IsTrue(worker.HasExited);
             Assert.AreEqual(exitCode, worker.ExitCode);
-            Assert.IsTrue(errorMessage == null || str.Contains(errorMessage));
         }
 
 
@@ -198,7 +213,7 @@ namespace WorkerTest
             Console.WriteLine("serverPort: {0}", serverPort);
 
             using (var socket = CreateSocket(serverPort))
-            using (var s = new NetworkStream(socket))
+            using (var s = socket.GetStream())
             {
                 int taskRunnerId = SerDe.ReadInt(s);
                 Console.WriteLine("taskRunnerId: {0}", taskRunnerId);
@@ -245,7 +260,7 @@ namespace WorkerTest
             Console.WriteLine("serverPort: {0}", serverPort);
 
             int num = 2;
-            var sockets = new Socket[2];
+            var sockets = new ISocketWrapper[2];
             var taskRunnerIds = new int[2];
 
             for (int index = 0; index < num; index++)
@@ -255,7 +270,7 @@ namespace WorkerTest
 
             for (int index = 0; index < num; index++)
             {
-                using (var s = new NetworkStream(sockets[index]))
+                using (var s = sockets[index].GetStream())
                 {
                     taskRunnerIds[index] = SerDe.ReadInt(s);
 

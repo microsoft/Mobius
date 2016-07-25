@@ -12,6 +12,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
 
 [assembly: InternalsVisibleTo("CSharpWorker")]
@@ -181,33 +182,33 @@ namespace Microsoft.Spark.CSharp.Core
     /// A simple TCP server that intercepts shutdown() in order to interrupt
     /// our continuous polling on the handler.
     /// </summary>
-    internal class AccumulatorServer : System.Net.Sockets.TcpListener
+    internal class AccumulatorServer
     {
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(AccumulatorServer));
         private volatile bool serverShutdown;
+        private ISocketWrapper innerSocket;
 
         internal AccumulatorServer()
-            : base(IPAddress.Loopback, 0)
         {
-
+            innerSocket = SocketFactory.CreateSocket();
         }
 
         internal void Shutdown()
         {
             serverShutdown = true;
-            base.Stop();
+            innerSocket.Close();
         }
 
         internal int StartUpdateServer()
         {
-            base.Start();
+            innerSocket.Listen();
             Task.Run(() =>
             {
                 try
                 {
                     IFormatter formatter = new BinaryFormatter();
-                    using (Socket s = AcceptSocket())
-                    using (var ns = new NetworkStream(s))
+                    using (var s = innerSocket.Accept())
+                    using (var ns = s.GetStream())
                     {
                         while (!serverShutdown)
                         {
@@ -237,7 +238,7 @@ namespace Microsoft.Spark.CSharp.Core
                 }
                 catch (SocketException e)
                 {
-                    if (e.ErrorCode != 10004)   // A blocking operation was interrupted by a call to WSACancelBlockingCall - TcpListener.Stop cancelled AccepSocket as expected
+                    if (e.ErrorCode != 10004)   // A blocking operation was interrupted by a call to WSACancelBlockingCall - ISocketWrapper.Close canceled Accep() as expected
                         throw e;
                 }
                 catch (Exception e)
@@ -247,7 +248,7 @@ namespace Microsoft.Spark.CSharp.Core
                 }
             });
             
-            return (base.LocalEndpoint as IPEndPoint).Port;
+            return (innerSocket.LocalEndPoint as IPEndPoint).Port;
         }
     }
 }

@@ -10,6 +10,9 @@ The following environment variables should be set properly in the Developer Comm
 
 * `JAVA_HOME`
 
+**To Be Noticed**: 
+Mobius on Windows includes a C++ component - RIOSock.dll. If your environment does not have VC++ Build Toolset installed, the C++ component will be skipped to compile. Offically, the C++ component is always compiled on AppVeyor.
+Please enable VC++ component from Visual Studio, or you can download [Visual C++ Build Tools](http://landinghub.visualstudio.com/visual-cpp-build-tools), if you want to build C++ components.
 
 ## Instructions
 

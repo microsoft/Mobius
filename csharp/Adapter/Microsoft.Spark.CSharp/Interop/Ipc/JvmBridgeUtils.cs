@@ -70,5 +70,11 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         {
             return new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "toSeq", GetJavaList<T>(enumerable)));
         }
+
+        public static JvmObjectReference GetJavaDuration(long durationMs)
+        {
+            // java expects Duration in mini seconds and must be of long type
+            return SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.streaming.Duration", new object[] { durationMs});
+        }
     }
 }

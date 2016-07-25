@@ -6,9 +6,9 @@ before_install:
   - sudo apt-get install xsltproc
   - nuget install NUnit.Runners -Version 3.0.0 -OutputDirectory testrunner
   # install maven 3.3.3
-  - wget http://archive.apache.org/dist/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
-  - tar zxf apache-maven-3.3.3-bin.tar.gz && rm apache-maven-3.3.3-bin.tar.gz
-  - export M2_HOME="$PWD/apache-maven-3.3.3"
+  - wget http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+  - tar zxf apache-maven-3.3.9-bin.tar.gz && rm apache-maven-3.3.9-bin.tar.gz
+  - export M2_HOME="$PWD/apache-maven-3.3.9"
   - export M2="$M2_HOME/bin"
   - export PATH="$M2:$PATH"
   - hash -r

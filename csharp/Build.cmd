@@ -5,11 +5,20 @@ SET CMDHOME=%~dp0
 @REM Remove trailing backslash \
 set CMDHOME=%CMDHOME:~0,-1%
 
-@REM Set some .NET directory locations required if running from PowerShell prompt.
-if "%FrameworkDir%" == "" set FrameworkDir=%WINDIR%\Microsoft.NET\Framework
-if "%FrameworkVersion%" == "" set FrameworkVersion=v4.0.30319
+@REM Set msbuild location.
+SET VisualStudioVersion=12.0
+if EXIST "%VS140COMNTOOLS%" SET VisualStudioVersion=14.0
 
-SET MSBUILDEXEDIR=%FrameworkDir%\%FrameworkVersion%
+@REM Set Build OS
+SET CppDll=HasCpp
+SET VCBuildTool="%VS120COMNTOOLS:~0,-14%VC\bin\cl.exe"
+if EXIST "%VS140COMNTOOLS%" SET VCBuildTool="%VS140COMNTOOLS:~0,-14%VC\bin\cl.exe"
+if NOT EXIST %VCBuildTool% SET CppDll=NoCpp
+
+SET MSBUILDEXEDIR=%programfiles(x86)%\MSBuild\%VisualStudioVersion%\Bin
+if NOT EXIST "%MSBUILDEXEDIR%\." SET MSBUILDEXEDIR=%programfiles%\MSBuild\%VisualStudioVersion%\Bin
+if NOT EXIST "%MSBUILDEXEDIR%\." GOTO :ErrorMSBUILD
+
 SET MSBUILDEXE=%MSBUILDEXEDIR%\MSBuild.exe
 SET MSBUILDOPT=/verbosity:minimal
 
@@ -37,7 +46,7 @@ SET CONFIGURATION=%STEP%
 
 SET STEP=%CONFIGURATION%
 
-"%MSBUILDEXE%" /p:Configuration=%CONFIGURATION% %MSBUILDOPT% "%PROJ%"
+"%MSBUILDEXE%" /p:Configuration=%CONFIGURATION%;AllowUnsafeBlocks=true %MSBUILDOPT% "%PROJ%"
 @if ERRORLEVEL 1 GOTO :ErrorStop
 @echo BUILD ok for %CONFIGURATION% %PROJ%
 
@@ -46,7 +55,7 @@ SET STEP=Release
 
 SET CONFIGURATION=%STEP%
 
-"%MSBUILDEXE%" /p:Configuration=%CONFIGURATION% %MSBUILDOPT% "%PROJ%"
+"%MSBUILDEXE%" /p:Configuration=%CONFIGURATION%;AllowUnsafeBlocks=true %MSBUILDOPT% "%PROJ%"
 @if ERRORLEVEL 1 GOTO :ErrorStop
 @echo BUILD ok for %CONFIGURATION% %PROJ%
 
@@ -62,6 +71,12 @@ if EXIST %PROJ_NAME%.nuspec (
 @echo ===== Build succeeded for %PROJ% =====
 
 @GOTO :EOF
+
+:ErrorMSBUILD
+set RC=1
+@echo ===== Build FAILED due to missing MSBUILD.EXE. =====
+@echo ===== Mobius requires "Developer Command Prompt for VS2013" and above =====
+exit /B %RC%
 
 :ErrorStop
 set RC=%ERRORLEVEL%

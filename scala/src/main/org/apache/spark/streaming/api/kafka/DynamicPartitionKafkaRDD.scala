@@ -100,7 +100,11 @@ class DynamicPartitionKafkaRDD[
         s"skipping ${part.topic} ${part.partition}")
       Iterator.empty
     } else if (CSharpReaderEnabled) {
-        Iterator((part.topic.getBytes(), ByteBuffer.allocate(4).putInt(part.partition).array()).asInstanceOf[R], (ByteBuffer.allocate(8).putLong(part.fromOffset).array(), ByteBuffer.allocate(8).putLong(part.untilOffset).array()).asInstanceOf[R])
+      // pass 2 messages of metadata instead when CSharpReaderEnabled
+      // Iterator((topicAndClusterId, partition), message 2: (fromOffset, untilOffset))
+        val topicAndClusterId = part.topic + "," + kafkaParams.getOrElse("cluster.id", null)
+        Iterator((topicAndClusterId.getBytes(), ByteBuffer.allocate(4).putInt(part.partition).array()).asInstanceOf[R],
+          (ByteBuffer.allocate(8).putLong(part.fromOffset).array(), ByteBuffer.allocate(8).putLong(part.untilOffset).array()).asInstanceOf[R])
     } else {
       new DynamicPartitionKafkaRDDIterator(part, context)
     }

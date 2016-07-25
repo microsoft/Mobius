@@ -31,7 +31,7 @@ namespace AdapterTest
             SparkCLREnvironment.SparkCLRProxy = mockSparkClrProxy.Object;
 
             var sparkContext = new SparkContext(SparkCLREnvironment.SparkCLRProxy.SparkContextProxy, new SparkConf(new Mock<ISparkConfProxy>().Object));
-            var streamingContext = new StreamingContext(sparkContext, 123);
+            var streamingContext = new StreamingContext(sparkContext, 123L);
             var dstream = EventHubsUtils.CreateUnionStream(streamingContext, new Dictionary<string, string>());
             Assert.AreEqual(mockDstreamProxy, dstream.DStreamProxy);
         }

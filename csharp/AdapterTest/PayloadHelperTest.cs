@@ -49,7 +49,7 @@ namespace AdapterTest
                 new string[] {"Hello", "World!"}, // IEnumerable<string>
                 new JvmObjectReference[]  // IEnumerable<JvmObjectReference>
                 {
-                    new JvmObjectReference(Guid.NewGuid().ToString()), 
+                    new JvmObjectReference(Guid.NewGuid().ToString()),
                     new JvmObjectReference(Guid.NewGuid().ToString())
                 },
 
@@ -75,9 +75,76 @@ namespace AdapterTest
             Assert.Throws<NotSupportedException>(() => TestBuildPayload(expectedClassName, expectedMethod, expectedParams, true));
         }
 
-        public void TestBuildPayload(string expectedClassName, string expectedMethod, object[] expectedParams, bool expectedMethodType)
+        class CallClassMethodParameters
         {
-            var payloadBytes = PayloadHelper.BuildPayload(expectedMethodType, expectedClassName, expectedMethod, expectedParams);
+            public bool IsStatic { get; set; }
+            public string ClassName { get; set; }
+            public string Method { get; set; }
+
+            public object[] Parameters { get; set; }
+
+            public CallClassMethodParameters(bool isStatic, string className, string method, object[] parameters)
+            {
+                this.IsStatic = IsStatic;
+                this.ClassName = className;
+                this.Method = method;
+                this.Parameters = parameters;
+            }
+        }
+
+        [Test]
+        public void TestBuildCallBytesForCSharpBackendHandlerSuite()
+        {
+            // Run this test to build input byte[] for Scala unit test of CSharpBackendHandlerSuite
+            // https://github.com/Microsoft/Mobius/blob/master/scala/src/test/scala/org/apache/spark/api/csharp/CSharpBackendHandlerSuite.scala
+            var initMethod = "<init>";
+            var testCases = new List<CallClassMethodParameters>
+            {
+                new CallClassMethodParameters(true, "org.apache.spark.SparkConf", initMethod, new object[] { true }),
+                new CallClassMethodParameters(true, "org.apache.spark.SparkContext", initMethod, new object[] { "2" }),
+                new CallClassMethodParameters(true, "org.apache.streaming.StreamingContext", initMethod, new object[] { 3, 5 }),
+            };
+
+            testCases.ForEach(cm =>
+                BuildAndVerify(cm.IsStatic, cm.ClassName, cm.Method, cm.Parameters)
+            );
+
+            var releaseHandler = "SparkCLRHandler";
+            var releaseMethod = "rm";
+            for (var id = 1; id <= testCases.Count; id++)
+            {
+                BuildAndVerify(true, releaseHandler, releaseMethod, new object[] { id.ToString() });
+            }
+        }
+
+        static void BuildAndVerify(bool isStatic, string className, string methodName, object[] parameters)
+        {
+            var encoding = Encoding.UTF8;
+
+            // Restored bytes in Scala side 
+            Func<string, byte[]> RestoreHexToBytes = (hexString) =>
+            {
+                var hexArray = hexString.Split('-');
+                var bytes = new byte[hexArray.Length];
+                var k = 0;
+                foreach (var hex in hexArray)
+                {
+                    bytes[k++] = Convert.ToByte(hex, 16);
+                }
+
+                return bytes;
+            };
+
+            var originalBytes = PayloadHelper.BuildPayload(isStatic, className, methodName, parameters);
+            var text = BitConverter.ToString(originalBytes);
+
+            Console.Out.WriteLine("{0} bytes (length = {1}) for {2} : length = {3} , string = {4}", encoding.BodyName, originalBytes.Length, className, text.Length, text);
+            var restoredBytes = RestoreHexToBytes(text);
+            VerifyBytes(restoredBytes, isStatic, className, methodName, parameters);
+        }
+
+        static void VerifyBytes(byte[] payloadBytes, bool expectedIsStatic, string expectedClassName, string expectedMethod, object[] expectedParams)
+        {
             Assert.IsNotNull(payloadBytes);
             Assert.IsTrue(payloadBytes.Length > 0);
 
@@ -89,15 +156,20 @@ namespace AdapterTest
             ParsePayload(payloadBytes, out payloadBytesLength, out isStatic, out className, out methodName, out parameters);
 
             Assert.AreEqual(payloadBytesLength + 4, payloadBytes.Length);
-            Assert.AreEqual(expectedMethodType, isStatic);
+            Assert.AreEqual(expectedIsStatic, isStatic);
             Assert.AreEqual(expectedClassName, className);
             Assert.AreEqual(expectedMethod, methodName);
             Assert.IsNotNull(parameters);
             Assert.AreEqual(expectedParams, parameters);
         }
 
+        public void TestBuildPayload(string expectedClassName, string expectedMethod, object[] expectedParams, bool expectedMethodType)
+        {
+            var payloadBytes = PayloadHelper.BuildPayload(expectedMethodType, expectedClassName, expectedMethod, expectedParams);
+            VerifyBytes(payloadBytes, expectedMethodType, expectedClassName, expectedMethod, expectedParams);
+        }
 
-        internal void ParsePayload(byte[] payloadBytes, out int payloadBytesLength, out bool isStatic, out string className,
+        static void ParsePayload(byte[] payloadBytes, out int payloadBytesLength, out bool isStatic, out string className,
             out string methodName, out object[] parameters)
         {
             var stream = new MemoryStream(payloadBytes);
