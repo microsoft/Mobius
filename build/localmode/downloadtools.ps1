@@ -306,6 +306,25 @@ function Download-BuildTools
             $envStream.WriteLine("set path=$gpgBin\;%path%");
     	}
     }
+    
+        # Dynamic Code Coverage Tools
+    if ($env:APPVEYOR -eq "true")
+    {
+        $covZip = "$toolsDir\dynamic-code-coverage-tools.zip"
+        if (!(test-path $covZip))
+        {
+            $url = "https://github.com/MobiusForSpark/build/blob/master/tools/dynamic-code-coverage-tools.zip?raw=true"
+            $output=$covZip
+            Download-File $url $output
+            # Unzip-File $output $toolsDir
+            Write-Output "[downloadtools.Download-BuildTools] Extracting $output to $toolsDir ..."
+            Invoke-Expression "& 7z x $output -o$toolsDir"
+        }
+        else
+        {
+            Write-Output "[downloadtools.Download-BuildTools] $covZip exists already. No download and extraction needed"
+        }
+    }
 
     # Download winutils.exe
     Download-Winutils

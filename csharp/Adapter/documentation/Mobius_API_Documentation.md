@@ -142,6 +142,13 @@
             Used for collect operation on RDD
             
         
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.IRDDCollector</font>
+####Summary
+  
+            
+            Interface for collect operation on RDD
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.DoubleRDDFunctions</font>
 ####Summary
   
@@ -156,13 +163,6 @@
 ---
   
   
-###<font color="#68228B">Microsoft.Spark.CSharp.Core.IRDDCollector</font>
-####Summary
-  
-            
-            Interface for collect operation on RDD
-            
-        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.OrderedRDDFunctions</font>
 ####Summary
   
@@ -210,13 +210,6 @@
 ---
   
   
-###<font color="#68228B">Microsoft.Spark.CSharp.Core.Profiler</font>
-####Summary
-  
-            
-            A class represents a profiler
-            
-        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.RDD`1</font>
 ####Summary
   
@@ -235,6 +228,13 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.Profiler</font>
+####Summary
+  
+            
+            A class represents a profiler
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.StringRDDFunctions</font>
 ####Summary
   
@@ -629,6 +629,21 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Sql.SqlContext</font>
+####Summary
+  
+            
+            The entry point for working with structured data (rows and columns) in Spark.  
+            Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetOrCreate</font></td><td>Get the existing SQLContext or create a new one with given SparkContext.</td></tr><tr><td><font color="blue">NewSession</font></td><td>Returns a new SQLContext as new session, that has separate SQLConf, registered temporary tables and UDFs, but shared SparkContext and table cache.</td></tr><tr><td><font color="blue">GetConf</font></td><td>Returns the value of Spark SQL configuration property for the given key. If the key is not set, returns defaultValue.</td></tr><tr><td><font color="blue">SetConf</font></td><td>Sets the given Spark SQL configuration property.</td></tr><tr><td><font color="blue">Read</font></td><td>Returns a DataFrameReader that can be used to read data in as a DataFrame.</td></tr><tr><td><font color="blue">ReadDataFrame</font></td><td>Loads a dataframe the source path using the given schema and options</td></tr><tr><td><font color="blue">CreateDataFrame</font></td><td>Creates a from a RDD containing array of object using the given schema.</td></tr><tr><td><font color="blue">RegisterDataFrameAsTable</font></td><td>Registers the given as a temporary table in the catalog. Temporary tables exist only during the lifetime of this instance of SqlContext.</td></tr><tr><td><font color="blue">DropTempTable</font></td><td>Remove the temp table from catalog.</td></tr><tr><td><font color="blue">Table</font></td><td>Returns the specified table as a</td></tr><tr><td><font color="blue">Tables</font></td><td>Returns a containing names of tables in the given database. If is not specified, the current database will be used. The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool type indicating if a table is a temporary one or not).</td></tr><tr><td><font color="blue">TableNames</font></td><td>Returns a list of names of tables in the database</td></tr><tr><td><font color="blue">CacheTable</font></td><td>Caches the specified table in-memory.</td></tr><tr><td><font color="blue">UncacheTable</font></td><td>Removes the specified table from the in-memory cache.</td></tr><tr><td><font color="blue">ClearCache</font></td><td>Removes all cached tables from the in-memory cache.</td></tr><tr><td><font color="blue">IsCached</font></td><td>Returns true if the table is currently cached in-memory.</td></tr><tr><td><font color="blue">Sql</font></td><td>Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line), returning the result as a DataFrame It goes through the entire dataset once to determine the schema.</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line) and applies the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads text file with the specific column delimited using the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads a text file (one object per line), returning the result as a DataFrame</td></tr><tr><td><font color="blue">RegisterFunction``1</font></td><td>Register UDF with no input argument, e.g: SqlContext.RegisterFunction&lt;bool&gt;("MyFilter", () =&gt; true); sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");</td></tr><tr><td><font color="blue">RegisterFunction``2</font></td><td>Register UDF with 1 input argument, e.g: SqlContext.RegisterFunction&lt;bool, string&gt;("MyFilter", (arg1) =&gt; arg1 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");</td></tr><tr><td><font color="blue">RegisterFunction``3</font></td><td>Register UDF with 2 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string&gt;("MyFilter", (arg1, arg2) =&gt; arg1 != null &amp;&amp; arg2 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");</td></tr><tr><td><font color="blue">RegisterFunction``4</font></td><td>Register UDF with 3 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, string&gt;("MyFilter", (arg1, arg2, arg3) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");</td></tr><tr><td><font color="blue">RegisterFunction``5</font></td><td>Register UDF with 4 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg4) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");</td></tr><tr><td><font color="blue">RegisterFunction``6</font></td><td>Register UDF with 5 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg5) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");</td></tr><tr><td><font color="blue">RegisterFunction``7</font></td><td>Register UDF with 6 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg6) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");</td></tr><tr><td><font color="blue">RegisterFunction``8</font></td><td>Register UDF with 7 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg7) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");</td></tr><tr><td><font color="blue">RegisterFunction``9</font></td><td>Register UDF with 8 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg8) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");</td></tr><tr><td><font color="blue">RegisterFunction``10</font></td><td>Register UDF with 9 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg9) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");</td></tr><tr><td><font color="blue">RegisterFunction``11</font></td><td>Register UDF with 10 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg10) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Sql.PythonSerDe</font>
 ####Summary
   
@@ -709,21 +724,6 @@
 ####Methods
 
 <table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetStringValue</font></td><td>Gets the string for the value of SaveMode</td></tr></table>
-
----
-  
-  
-###<font color="#68228B">Microsoft.Spark.CSharp.Sql.SqlContext</font>
-####Summary
-  
-            
-            The entry point for working with structured data (rows and columns) in Spark.  
-            Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
-            
-        
-####Methods
-
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">GetOrCreate</font></td><td>Get the existing SQLContext or create a new one with given SparkContext.</td></tr><tr><td><font color="blue">NewSession</font></td><td>Returns a new SQLContext as new session, that has separate SQLConf, registered temporary tables and UDFs, but shared SparkContext and table cache.</td></tr><tr><td><font color="blue">GetConf</font></td><td>Returns the value of Spark SQL configuration property for the given key. If the key is not set, returns defaultValue.</td></tr><tr><td><font color="blue">SetConf</font></td><td>Sets the given Spark SQL configuration property.</td></tr><tr><td><font color="blue">Read</font></td><td>Returns a DataFrameReader that can be used to read data in as a DataFrame.</td></tr><tr><td><font color="blue">ReadDataFrame</font></td><td>Loads a dataframe the source path using the given schema and options</td></tr><tr><td><font color="blue">CreateDataFrame</font></td><td>Creates a from a RDD containing array of object using the given schema.</td></tr><tr><td><font color="blue">RegisterDataFrameAsTable</font></td><td>Registers the given as a temporary table in the catalog. Temporary tables exist only during the lifetime of this instance of SqlContext.</td></tr><tr><td><font color="blue">DropTempTable</font></td><td>Remove the temp table from catalog.</td></tr><tr><td><font color="blue">Table</font></td><td>Returns the specified table as a</td></tr><tr><td><font color="blue">Tables</font></td><td>Returns a containing names of tables in the given database. If is not specified, the current database will be used. The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool type indicating if a table is a temporary one or not).</td></tr><tr><td><font color="blue">TableNames</font></td><td>Returns a list of names of tables in the database</td></tr><tr><td><font color="blue">CacheTable</font></td><td>Caches the specified table in-memory.</td></tr><tr><td><font color="blue">UncacheTable</font></td><td>Removes the specified table from the in-memory cache.</td></tr><tr><td><font color="blue">ClearCache</font></td><td>Removes all cached tables from the in-memory cache.</td></tr><tr><td><font color="blue">IsCached</font></td><td>Returns true if the table is currently cached in-memory.</td></tr><tr><td><font color="blue">Sql</font></td><td>Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line), returning the result as a DataFrame It goes through the entire dataset once to determine the schema.</td></tr><tr><td><font color="blue">JsonFile</font></td><td>Loads a JSON file (one object per line) and applies the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads text file with the specific column delimited using the given schema</td></tr><tr><td><font color="blue">TextFile</font></td><td>Loads a text file (one object per line), returning the result as a DataFrame</td></tr><tr><td><font color="blue">RegisterFunction``1</font></td><td>Register UDF with no input argument, e.g: SqlContext.RegisterFunction&lt;bool&gt;("MyFilter", () =&gt; true); sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");</td></tr><tr><td><font color="blue">RegisterFunction``2</font></td><td>Register UDF with 1 input argument, e.g: SqlContext.RegisterFunction&lt;bool, string&gt;("MyFilter", (arg1) =&gt; arg1 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");</td></tr><tr><td><font color="blue">RegisterFunction``3</font></td><td>Register UDF with 2 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string&gt;("MyFilter", (arg1, arg2) =&gt; arg1 != null &amp;&amp; arg2 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");</td></tr><tr><td><font color="blue">RegisterFunction``4</font></td><td>Register UDF with 3 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, string&gt;("MyFilter", (arg1, arg2, arg3) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");</td></tr><tr><td><font color="blue">RegisterFunction``5</font></td><td>Register UDF with 4 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg4) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");</td></tr><tr><td><font color="blue">RegisterFunction``6</font></td><td>Register UDF with 5 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg5) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");</td></tr><tr><td><font color="blue">RegisterFunction``7</font></td><td>Register UDF with 6 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg6) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");</td></tr><tr><td><font color="blue">RegisterFunction``8</font></td><td>Register UDF with 7 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg7) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");</td></tr><tr><td><font color="blue">RegisterFunction``9</font></td><td>Register UDF with 8 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg8) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");</td></tr><tr><td><font color="blue">RegisterFunction``10</font></td><td>Register UDF with 9 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg9) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");</td></tr><tr><td><font color="blue">RegisterFunction``11</font></td><td>Register UDF with 10 input arguments, e.g: SqlContext.RegisterFunction&lt;bool, string, string, ..., string&gt;("MyFilter", (arg1, arg2, ..., arg10) =&gt; arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null); sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");</td></tr></table>
 
 ---
   
@@ -985,7 +985,21 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateDirectStream</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStreamWithRepartition</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStreamWithRepartitionAndReadFunc``1</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateStream</font></td><td>Create an input stream that pulls messages from a Kafka Broker.</td></tr><tr><td><font color="blue">CreateDirectStream</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">CreateDirectStream``1</font></td><td>Create an input stream that directly pulls messages from a Kafka Broker and specific offset. This is not a receiver based Kafka input stream, it directly pulls the message from Kafka in each batch duration and processed without storing. This does not use Zookeeper to store offsets. The consumed offsets are tracked by the stream itself. For interoperability with Kafka monitoring tools that depend on Zookeeper, you have to update Kafka/Zookeeper yourself from the streaming application. You can access the offsets used in each batch from the generated RDDs (see [[org.apache.spark.streaming.kafka.HasOffsetRanges]]). To recover from driver failures, you have to enable checkpointing in the StreamingContext. The information on consumed offset can be recovered from the checkpoint. See the programming guide for details (constraints, etc.).</td></tr><tr><td><font color="blue">GetOffsetRange</font></td><td>create offset range from kafka messages when CSharpReader is enabled</td></tr><tr><td><font color="blue">GetNumPartitionsFromConfig</font></td><td>topics should contain only one topic if choose to repartitions to a configured numPartitions TODO: move to scala and merge into DynamicPartitionKafkaRDD.getPartitions to remove above limitation</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.OffsetRange</font>
+####Summary
+  
+            
+            Kafka offset range
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ToString</font></td><td>OffsetRange string format</td></tr></table>
 
 ---
   
@@ -1073,6 +1087,20 @@
 ####Methods
 
 <table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">ReduceByKey``2</font></td><td>Return a new DStream by applying ReduceByKey to each RDD.</td></tr><tr><td><font color="blue">CombineByKey``3</font></td><td>Return a new DStream by applying combineByKey to each RDD.</td></tr><tr><td><font color="blue">PartitionBy``2</font></td><td>Return a new DStream in which each RDD are partitioned by numPartitions.</td></tr><tr><td><font color="blue">MapValues``3</font></td><td>Return a new DStream by applying a map function to the value of each key-value pairs in this DStream without changing the key.</td></tr><tr><td><font color="blue">FlatMapValues``3</font></td><td>Return a new DStream by applying a flatmap function to the value of each key-value pairs in this DStream without changing the key.</td></tr><tr><td><font color="blue">GroupByKey``2</font></td><td>Return a new DStream by applying groupByKey on each RDD.</td></tr><tr><td><font color="blue">GroupWith``3</font></td><td>Return a new DStream by applying 'cogroup' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">Join``3</font></td><td>Return a new DStream by applying 'join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">LeftOuterJoin``3</font></td><td>Return a new DStream by applying 'left outer join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">RightOuterJoin``3</font></td><td>Return a new DStream by applying 'right outer join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">FullOuterJoin``3</font></td><td>Return a new DStream by applying 'full outer join' between RDDs of this DStream and `other` DStream. Hash partitioning is used to generate the RDDs with `numPartitions` partitions.</td></tr><tr><td><font color="blue">GroupByKeyAndWindow``2</font></td><td>Return a new DStream by applying `GroupByKey` over a sliding window. Similar to `DStream.GroupByKey()`, but applies it over a sliding window.</td></tr><tr><td><font color="blue">ReduceByKeyAndWindow``2</font></td><td>Return a new DStream by applying incremental `reduceByKey` over a sliding window. The reduced value of over a new window is calculated using the old window's reduce value : 1. reduce the new values that entered the window (e.g., adding new counts) 2. "inverse reduce" the old values that left the window (e.g., subtracting old counts) `invFunc` can be None, then it will reduce all the RDDs in window, could be slower than having `invFunc`.</td></tr><tr><td><font color="blue">UpdateStateByKey``3</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr><tr><td><font color="blue">UpdateStateByKey``3</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr><tr><td><font color="blue">UpdateStateByKey``3</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr><tr><td><font color="blue">MapWithState``4</font></td><td>Return a new "state" DStream where the state for each key is updated by applying the given function on the previous state of the key and the new values of the key.</td></tr></table>
+
+---
+  
+  
+###<font color="#68228B">Microsoft.Spark.CSharp.Streaming.CSharpInputDStreamUtils</font>
+####Summary
+  
+            
+            Utils for csharp input stream.
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">CreateStream``1</font></td><td>Create an input stream that user can control the data injection by C# code</td></tr><tr><td><font color="blue">CreateStream``1</font></td><td>Create an input stream that user can control the data injection by C# code</td></tr></table>
 
 ---
   

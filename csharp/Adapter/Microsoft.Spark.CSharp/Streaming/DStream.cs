@@ -221,12 +221,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <summary>
         /// Enable periodic checkpointing of RDDs of this DStream
         /// </summary>
-        /// <param name="intervalSeconds">time in seconds, after each period of that, generated RDD will be checkpointed</param>
+        /// <param name="intervalMs">time in milliseconds, after each period of that, generated RDD will be checkpointed</param>
         /// <returns></returns>
-        public DStream<T> Checkpoint(int intervalSeconds)
+        public DStream<T> Checkpoint(long intervalMs)
         {
             isCheckpointed = true;
-            DStreamProxy.Checkpoint(intervalSeconds);
+            DStreamProxy.Checkpoint(intervalMs);
             return this;
         }
 

@@ -54,7 +54,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 () =>
                 {
                     SparkContext sc = SparkCLRSamples.SparkContext;
-                    StreamingContext context = new StreamingContext(sc, 10);
+                    StreamingContext context = new StreamingContext(sc, 10000L); // batch interval is in milliseconds
                     context.Checkpoint(checkpointPath);
 
                     var lines = context.TextFileStream(Path.Combine(directory, "test1"));
