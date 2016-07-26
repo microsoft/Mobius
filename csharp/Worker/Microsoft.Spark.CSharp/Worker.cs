@@ -26,14 +26,6 @@ namespace Microsoft.Spark.CSharp
         private readonly ConcurrentDictionary<string, Assembly> assemblyDict = new ConcurrentDictionary<string, Assembly>();
         private readonly ConcurrentDictionary<string, bool> loadedFiles = new ConcurrentDictionary<string, bool>();
 
-        public void SetAssemblies(Assembly[] assemblies)
-        {
-            foreach (var assembly in assemblies)
-            {
-                assemblyDict[assembly.FullName] = assembly;
-            }
-        }
-
         public void LoadAssemblies(string[] files)
         {
             foreach (var assembly in from f in files.Where(f => new FileInfo(f).Length > 0).Select(Path.GetFullPath) where loadedFiles.TryAdd(f, true) select Assembly.Load(File.ReadAllBytes(f)))
