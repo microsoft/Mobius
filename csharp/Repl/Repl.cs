@@ -10,7 +10,7 @@ using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp
 {
-    public interface IoHandler
+    internal interface IoHandler
     {
         void Write(Object obj);
 
@@ -31,7 +31,7 @@ namespace Microsoft.Spark.CSharp
         string ReadLine();
     }
 
-    public class ConsoleIoHandler : IoHandler
+    internal class ConsoleIoHandler : IoHandler
     {
         public void Write(object obj)
         {
@@ -65,7 +65,7 @@ namespace Microsoft.Spark.CSharp
         }
     }
 
-    public class Repl
+    internal class Repl
     {
         private readonly IScriptEngine scriptEngine;
         private readonly IoHandler ioHandler;
