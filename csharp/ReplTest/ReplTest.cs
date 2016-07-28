@@ -93,10 +93,16 @@ namespace ReplTest
             // invalid :load directive
             ioHandler.input.Add(":load x");
 
+            // invalid directive
+            ioHandler.input.Add(":invalid directive");
+
+            // :help directive
+            ioHandler.input.Add(":help");
+
             // quit REPL
             ioHandler.input.Add(":quit");
             thread.Join();
-            scriptEngine.Cleanup();
+            scriptEngine.Close();
 
             Console.WriteLine(string.Join("\r\n", ioHandler.output));
             var seq = 0;
@@ -123,6 +129,14 @@ namespace ReplTest
 
             // invalid :load directive
             Assert.IsTrue(ioHandler.output[seq++].Contains("Invalid :load directive"));
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+
+            // invalid directive
+            Assert.IsTrue(ioHandler.output[seq++].Contains("Invalid directive"));
+            Assert.AreEqual("> ", ioHandler.output[seq++]);
+
+            // help directive
+            Assert.IsTrue(ioHandler.output[seq++].Contains("Commands"));
             Assert.AreEqual("> ", ioHandler.output[seq++]);
         }
 

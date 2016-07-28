@@ -106,12 +106,6 @@ namespace Microsoft.Spark.CSharp
                 {
                     var line = ioHandler.ReadLine();
 
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        cancelSubmission = true;
-                        break;
-                    }
-
                     if (IsDirective(line))
                     {
                         ProcessDirective(line, ref terminated);
@@ -120,6 +114,13 @@ namespace Microsoft.Spark.CSharp
 
                     inputLines.AppendLine(line);
                     scriptResult = scriptEngine.Execute(inputLines.ToString());
+
+                    if (ScriptResult.Empty.Equals(scriptResult))
+                    {
+                        cancelSubmission = true;
+                        break;
+                    }
+
                     if (scriptResult.IsCompleteSubmission)
                     {
                         break;
@@ -217,7 +218,7 @@ namespace Microsoft.Spark.CSharp
             var repl = new Repl(scriptEngine, new ConsoleIoHandler());
             repl.Init();
             repl.Run();
-            scriptEngine.Cleanup();
+            scriptEngine.Close();
         }
     }
 }

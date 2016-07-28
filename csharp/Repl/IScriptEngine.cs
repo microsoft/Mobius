@@ -9,6 +9,6 @@ namespace Microsoft.Spark.CSharp
 
         ScriptResult Execute(string code);
 
-        void Cleanup();
+        void Close();
     }
 }

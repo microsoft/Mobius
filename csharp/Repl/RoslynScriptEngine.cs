@@ -88,6 +88,11 @@ namespace Microsoft.Spark.CSharp
 
         public ScriptResult Execute(string code)
         {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return ScriptResult.Empty;
+            }
+
             if (!IsCompleteSubmission(code))
             {
                 return ScriptResult.Incomplete;
@@ -187,7 +192,7 @@ namespace Microsoft.Spark.CSharp
         /// <summary>
         /// Clean up compilation dump directory.
         /// </summary>
-        public void Cleanup()
+        public void Close()
         {
             // delete DLLs dump directory on exit
             if (Directory.Exists(compilationDumpDirectory))
