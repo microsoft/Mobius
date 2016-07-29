@@ -86,7 +86,7 @@ In the Developer Command Prompt for Visual Studio where `JAVA_HOME` is set prope
 RunSamples.cmd  
 ```
 
-It is **required** to run [Build.cmd](../build/Build.cmd) prior to running [RunSamples.cmd](../build/RunSamples.cmd).
+It is **required** to run [Build.cmd](../build/Build.cmd) prior to running [RunSamples.cmd](../build/localmode/RunSamples.cmd).
 
 [RunSamples.cmd](../build/localmode/RunSamples.cmd) downloads the version of Apache Spark referenced in the current branch, sets up `SPARK_HOME` environment variable, points `SPARKCLR_HOME` to `Mobius\build\runtime` directory created by [Build.cmd](../build/Build.cmd), and invokes [sparkclr-submit.cmd](../scripts/sparkclr-submit.cmd), with `spark.local.dir` set to `Mobius\build\runtime\Temp`.
 
