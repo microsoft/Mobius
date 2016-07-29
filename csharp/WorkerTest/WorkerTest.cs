@@ -230,6 +230,67 @@ namespace WorkerTest
         }
 
         /// <summary>
+        /// test when worker need to load assebmlies from specified location
+        /// </summary>
+        [Test]
+        public void TestWorkerWithDynamicLibrary()
+        {
+            var originalRunMode = Environment.GetEnvironmentVariable("SPARKCLR_RUN_MODE");
+            var originalCompilationDir = Environment.GetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR");
+            var compilationDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(compilationDir);
+
+            // copy dll
+            var currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            
+            File.Copy(Path.Combine(currentDir, "Microsoft.Spark.CSharp.Adapter.dll"), Path.Combine(compilationDir, "ReplCompilation.1"));
+
+            try
+            {
+                Environment.SetEnvironmentVariable("SPARKCLR_RUN_MODE", "R");
+                Process worker;
+                var CSharpRDD_SocketServer = CreateServer(out worker);
+
+                using (var serverSocket = CSharpRDD_SocketServer.Accept())
+                using (var s = serverSocket.GetStream())
+                {
+                    WritePayloadHeaderToWorker(s);
+
+                    Environment.SetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR", compilationDir);
+                    byte[] commandWithDynamicLibraryPath = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
+
+                    SerDe.Write(s, commandWithDynamicLibraryPath.Length);
+                    SerDe.Write(s, commandWithDynamicLibraryPath);
+
+                    for (int i = 0; i < 100; i++)
+                        SerDe.Write(s, i.ToString());
+
+                    SerDe.Write(s, (int) SpecialLengths.END_OF_DATA_SECTION);
+                    SerDe.Write(s, (int) SpecialLengths.END_OF_STREAM);
+                    s.Flush();
+
+                    int count = 0;
+                    foreach (var bytes in ReadWorker(s))
+                    {
+                        Assert.AreEqual(count++.ToString(), Encoding.UTF8.GetString(bytes));
+                    }
+
+                    Assert.AreEqual(100, count);
+                }
+
+                AssertWorker(worker);
+
+                CSharpRDD_SocketServer.Close();
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("SPARKCLR_RUN_MODE", originalRunMode);
+                Environment.SetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR", originalCompilationDir);
+                Directory.Delete(compilationDir, true);
+            }
+        }
+
+        /// <summary>
         /// test when socket read incomplet and worker exit with 0
         /// </summary>
         [Test]

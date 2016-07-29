@@ -113,6 +113,8 @@ object CSharpRunner {
           builder.redirectErrorStream(true) // Ugly but needed for stdout and stderr to synchronize
           val process = builder.start()
 
+          // Redirect stdin of JVM process to stdin of C# process
+          new RedirectThread(System.in, process.getOutputStream, "redirect JVM input").start()
           // Redirect stdout and stderr of C# process
           new RedirectThread(process.getInputStream, System.out, "redirect CSharp stdout").start()
           new RedirectThread(process.getErrorStream, System.out, "redirect CSharp stderr").start()

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -20,6 +21,37 @@ using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp
 {
+    internal class SparkCLRAssemblyHandler
+    {
+        private readonly ConcurrentDictionary<string, Assembly> assemblyDict = new ConcurrentDictionary<string, Assembly>();
+        private readonly ConcurrentDictionary<string, bool> loadedFiles = new ConcurrentDictionary<string, bool>();
+
+        public void LoadAssemblies(string[] files)
+        {
+            foreach (var assembly in from f in files.Where(f => new FileInfo(f).Length > 0).Select(Path.GetFullPath) where loadedFiles.TryAdd(f, true) select Assembly.Load(File.ReadAllBytes(f)))
+            {
+                if (!assemblyDict.ContainsKey(assembly.FullName))
+                {
+                    assemblyDict[assembly.FullName] = assembly;
+                }
+                else
+                {
+                    Console.Error.WriteLine("Already loaded assebmly " + assembly.FullName);
+                }
+            }
+        }
+
+        public Assembly Handle(object source, ResolveEventArgs e)
+        {
+            if (assemblyDict.ContainsKey(e.Name))
+            {
+                return assemblyDict[e.Name];
+            }
+
+            return null;
+        }
+    }
+
     /// <summary>
     /// Worker implementation for SparkCLR. The implementation is identical to the 
     /// worker used in PySpark. The RDD implementation to fork an external process
@@ -33,8 +65,13 @@ namespace Microsoft.Spark.CSharp
 
         private static ILoggerService logger = null;
 
+        private static SparkCLRAssemblyHandler assemblyHandler = null;
+
         public static void Main(string[] args)
         {
+            assemblyHandler = new SparkCLRAssemblyHandler();
+            AppDomain.CurrentDomain.AssemblyResolve += assemblyHandler.Handle;
+
             // can't initialize logger early because in MultiThreadWorker mode, JVM will read C#'s stdout via
             // pipe. When initialize logger, some unwanted info will be flushed to stdout. But we can still
             // use stderr
@@ -265,6 +302,21 @@ namespace Microsoft.Spark.CSharp
                 string serializerMode = SerDe.ReadString(networkStream);
                 logger.LogDebug("Serializer mode: " + serializerMode);
 
+                string runMode = SerDe.ReadString(networkStream);
+                if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var compilationDumpDir = SerDe.ReadString(networkStream);
+                    if (Directory.Exists(compilationDumpDir))
+                    {
+                        assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*",
+                            SearchOption.TopDirectoryOnly));
+                    }
+                    else
+                    {
+                        logger.LogError("Directory " + compilationDumpDir + " dose not exist.");
+                    }
+                }
+    
                 byte[] command = SerDe.ReadBytes(networkStream);
 
                 logger.LogDebug("command bytes read: " + command.Length);
