@@ -11,6 +11,7 @@
     <AssemblyName>CSharpWorker</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <CppDll Condition="Exists('..\..\..\cpp\x64')">HasCpp</CppDll>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -50,7 +51,18 @@
     <Compile Include="TaskRunner.cs" />
     <Compile Include="Worker.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
+    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.dll</Link>
+      <TargetPath>Riosock.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.pdb</Link>
+      <TargetPath>Riosock.pdb</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
       <Project>{ce999a96-f42b-4e80-b208-709d7f49a77c}</Project>

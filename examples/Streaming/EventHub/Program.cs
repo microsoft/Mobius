@@ -10,7 +10,8 @@ using Microsoft.Spark.CSharp.Streaming;
 namespace Microsoft.Spark.CSharp.Examples
 {
     /// <summary>
-    /// Sample SparkCLR application that processes events from EventHub in the format [timestamp],[loglevel],[logmessage]
+    /// Sample Mobius application that processes events from EventHub using .NET API for Apache Spark
+    /// Event format: [timestamp],[loglevel],[logmessage]
     /// EventPublisher class may be used to publish sample events to EventHubs to consume in this app
     /// </summary>
     class SparkCLREventHubsExample

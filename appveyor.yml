@@ -1,4 +1,4 @@
-version: 1.6.1-SNAPSHOT.{build}
+version: 1.6.2-SNAPSHOT.{build}
 
 environment:
   securefile:          
@@ -41,10 +41,12 @@ test:
 # scripts to run after tests
 after_test:
     - cmd: echo [after_test] ProjectVersion=%ProjectVersion%
+    - .\build\tools\Dynamic-Code-Coverage-Tools\CodeCoverage.exe collect /output:NativeCodeCoverage.coverage .\csharp\packages\NUnit.Console.3.0.1\tools\nunit3-console.exe .\csharp\WorkerTest\bin\Debug\WorkerTest.dll .\csharp\AdapterTest\bin\Debug\AdapterTest.dll
+    - .\build\tools\Dynamic-Code-Coverage-Tools\CodeCoverage.exe analyze /output:NativeCodeCoverage.xml NativeCodeCoverage.coverage
     - .\csharp\packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -target:.\csharp\packages\NUnit.Console.3.0.1\tools\nunit3-console.exe -register:user "-targetargs:"".\csharp\WorkerTest\bin\Debug\WorkerTest.dll"" "".\csharp\AdapterTest\bin\Debug\AdapterTest.dll"" " -filter:"+[CSharpWorker*|Microsoft.Spark.CSharp*]*" -excludebyattribute:*.ExcludeFromCodeCoverage* -hideskipped:All -output:.\SparkCLRCodeCoverage.xml
     - "SET PATH=C:\\Python34;C:\\Python34\\Scripts;%PATH%"
     - pip install codecov
-    - codecov -f "SparkCLRCodeCoverage.xml"
+    - codecov -f "NativeCodeCoverage.xml" "SparkCLRCodeCoverage.xml"
     - cmd: cd .\build\localmode
     - cmd: if not defined ProjectVersion (.\Runsamples.cmd --validate)
     - cmd: cd ..\..

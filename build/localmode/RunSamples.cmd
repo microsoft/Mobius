@@ -41,16 +41,14 @@ if "%precheck%" == "bad" (goto :EOF)
 @rem 
 @rem setup Hadoop and Spark versions
 @rem
-set SPARK_VERSION=1.6.1
+set SPARK_VERSION=1.6.2
 set HADOOP_VERSION=2.6
 @echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
 
-@rem Windows 7/8/10 may not allow powershell scripts by default
-powershell -Command Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
-
 @rem download runtime dependencies
 pushd "%CMDHOME%"
-powershell -f downloadtools.ps1 run !VERBOSE!
+@rem Windows 7/8/10 may not allow powershell scripts by default
+powershell -ExecutionPolicy Unrestricted -File downloadtools.ps1 run !VERBOSE!
 @echo [RunSamples.cmd] UpdateRuntime.cmd
 type ..\tools\updateruntime.cmd
 call ..\tools\updateruntime.cmd
@@ -62,7 +60,7 @@ if defined ProjectVersion (
 
 set SPARKCLR_HOME=%CMDHOME%\..\runtime
 
-# spark-csv package and its depenedency are required for DataFrame operations in Mobius
+@rem spark-csv package and its depenedency are required for DataFrame operations in Mobius
 set SPARKCLR_EXT_PATH=%SPARKCLR_HOME%\dependencies
 set SPARKCSV_JAR1PATH=%SPARKCLR_EXT_PATH%\spark-csv_2.10-1.3.0.jar
 set SPARKCSV_JAR2PATH=%SPARKCLR_EXT_PATH%\commons-csv-1.1.jar

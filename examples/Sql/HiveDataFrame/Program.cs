@@ -11,7 +11,7 @@ using System.IO;
 namespace Microsoft.Spark.CSharp.Examples
 {
     /// <summary>
-    /// This example shows how to use Hive in SparkCLR's C# API for Apache Spark DataFrame to
+    /// This example shows how to use Hive in Mobius .NET API for Apache Spark DataFrame to
     /// load data from Hive.
     /// </summary>
     class HiveDataFrameExample

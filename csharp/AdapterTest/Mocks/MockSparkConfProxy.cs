@@ -36,6 +36,11 @@ namespace AdapterTest.Mocks
         public void Set(string key, string value)
         {
             stringConfDictionary[key] = value;
+            int i;
+            if (int.TryParse(value, out i))
+            {
+                intConfDictionary[key] = i;
+            }
         }
 
         public int GetInt(string key, int defaultValue)

@@ -10,7 +10,7 @@ using Microsoft.Spark.CSharp.Sql;
 namespace Microsoft.Spark.CSharp.Examples
 {
     /// <summary>
-    /// This example shows how to use JDBC in SparkCLR's C# API for Apache Spark DataFrame to
+    /// This example shows how to use JDBC in Mobius C# API for Apache Spark DataFrame to
     /// load data from SQL Server. The connection url need to be updated for a different JDBC source.
     /// </summary>
     class JdbcDataFrameExample

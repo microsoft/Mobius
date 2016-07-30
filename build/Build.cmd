@@ -79,12 +79,14 @@ IF "%APPVEYOR_REPO_TAG%" == "true" (goto :sign)
 
 :mvndone
 
+set MVN_ERRORLEVEL=%ERRORLEVEL%
+
 @rem
 @rem After uber package is created, restore Pom.xml
 @rem
 copy /y %temp%\pom.xml.original pom.xml
 
-if %ERRORLEVEL% NEQ 0 (
+if %MVN_ERRORLEVEL% NEQ 0 (
   @echo Build Mobius Scala components failed, stop building.
   popd
   goto :eof
@@ -103,6 +105,29 @@ if EXIST "%CMDHOME%\lib" (
     copy /y "%%G" "%SPARKCLR_HOME%\lib\"
   )
 )
+
+:buildCpp
+Set CppSkipped=0
+@echo Assemble Mobius C++ components (RIOSOCK)
+pushd %CMDHOME%\..\cpp
+call Clean.cmd
+call Build.cmd
+
+if %ERRORLEVEL% EQU 2 (
+  set CppSkipped=1
+  popd
+  goto :buildCSharp
+)
+
+if %ERRORLEVEL% NEQ 0 (
+  @echo Build Mobius C++ RIOSOCK failed, stop building.
+  popd
+  goto :eof
+)
+@echo Mobius C++ RIOSOCK binaries
+copy /y x64\Release\*.dll "%SPARKCLR_HOME%\bin\"
+copy /y x64\Release\*.pdb "%SPARKCLR_HOME%\bin\"
+popd
 
 :buildCSharp
 @echo Assemble Mobius C# components
@@ -145,7 +170,7 @@ call Clean.cmd
 call Build.cmd
 
 if %ERRORLEVEL% NEQ 0 (
-  @echo Build Mobius C# examples failed, stop building.
+  @echo Build Mobius .NET examples failed, stop building.
   popd
   goto :eof
 )
@@ -213,3 +238,16 @@ copy /Y "%CMDHOME%\..\notes\mobius-release-info.md"
 
 :distdone
 popd
+
+if %CppSkipped% EQU 1 (
+    @echo. 
+    @echo ============================================================================================
+    @echo.
+    @echo   Note!!! Skipped to build Mobius C++ components due to missing VC++ Build Toolset.
+    @echo              If you want to compile C++ components, please enalble VC++ language from
+    @echo              Visual Studio. You can either download "Visual C++ Build Tools" availabe at 
+    @echo              "http://landinghub.visualstudio.com/visual-cpp-build-tools"
+    @echo. 
+    @echo ============================================================================================
+    @echo.
+)

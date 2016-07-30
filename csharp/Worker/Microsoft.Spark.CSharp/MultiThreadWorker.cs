@@ -2,20 +2,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Diagnostics;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Sockets;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
-using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
 
 
@@ -45,11 +39,11 @@ namespace Microsoft.Spark.CSharp
             try
             {
                 // start TCP listening server 
-                TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
-                listener.Start();
+                var listener = SocketFactory.CreateSocket();
+                listener.Listen();
 
                 // get the local port and write it back to JVM side
-                IPEndPoint endPoint = (IPEndPoint)listener.LocalEndpoint;
+                IPEndPoint endPoint = (IPEndPoint)listener.LocalEndPoint;
                 int localPort = endPoint.Port;
                 byte[] bytes = SerDe.ToBytes(localPort);
                 Stream outputStream = Console.OpenStandardOutput();
@@ -112,7 +106,7 @@ namespace Microsoft.Spark.CSharp
         /// Listen to the server socket and accept new TCP connection from JVM side. Then create new TaskRunner instance and
         /// add it to waitingTaskRunners queue.
         /// </summary>
-        private void StartDaemonServer(TcpListener listener)
+        private void StartDaemonServer(ISocketWrapper listener)
         {
             logger.LogInfo("StartDaemonServer ...");
 
@@ -130,9 +124,9 @@ namespace Microsoft.Spark.CSharp
 
                 while (true)
                 {
-                    Socket socket = listener.AcceptSocket();
+                    var socket = listener.Accept();
                     logger.LogInfo("Connection accepted for taskRunnerId: {0}", trId);
-                    using (NetworkStream s = new NetworkStream(socket))
+                    using (var s = socket.GetStream())
                     {
                         SerDe.Write(s, trId); // write taskRunnerId to JVM side
                         s.Flush();

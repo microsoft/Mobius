@@ -39,10 +39,12 @@ private[kafka] class KafkaUtilsCSharpHelper extends KafkaUtilsPythonHelper{
       kafkaParams: JMap[String, String],
       topics: JSet[String],
       fromOffsets: JMap[TopicAndPartition, JLong],
-      numPartitions: Int): JavaDStream[(Array[Byte], Array[Byte])] = {
+      numPartitions: Int,
+      cSharpFunc: Array[Byte],
+      serializationMode: String): JavaDStream[(Array[Byte], Array[Byte])] = {
     val messageHandler =
       (mmd: MessageAndMetadata[Array[Byte], Array[Byte]]) => (mmd.key, mmd.message)
-    new JavaDStream(createDirectStream(jssc, kafkaParams, topics, fromOffsets, messageHandler, numPartitions))
+    new JavaDStream(createDirectStream(jssc, kafkaParams, topics, fromOffsets, messageHandler, numPartitions, cSharpFunc, serializationMode))
   }
 
   def createDirectStream[V: ClassTag](
@@ -51,7 +53,9 @@ private[kafka] class KafkaUtilsCSharpHelper extends KafkaUtilsPythonHelper{
       topics: JSet[String],
       fromOffsets: JMap[TopicAndPartition, JLong],
       messageHandler: MessageAndMetadata[Array[Byte], Array[Byte]] => V,
-      numPartitions: Int): DStream[V] = {
+      numPartitions: Int,
+      cSharpFunc: Array[Byte],
+      serializationMode: String): DStream[V] = {
 
     val currentFromOffsets: Map[TopicAndPartition, Long] = if (!fromOffsets.isEmpty) {
       val topicsFromOffsets = fromOffsets.keySet().asScala.map(_.topic)
@@ -76,6 +80,8 @@ private[kafka] class KafkaUtilsCSharpHelper extends KafkaUtilsPythonHelper{
       Set(topics.asScala.toSeq: _*),
       Map(currentFromOffsets.toSeq: _*),
       jssc.ssc.sc.clean(messageHandler),
-      numPartitions)
+      numPartitions,
+      cSharpFunc,
+      serializationMode)
   }
 }
