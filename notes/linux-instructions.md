@@ -15,7 +15,7 @@ The following environment variables should be set properly:
 
 ## Instructions
 
-Instructions to build Mobius in Linux are same as [instructions for Windows](windows-instructions.md#instructions). The only change required is to use the following script files instead of .cmd files:
+Instructions to build Mobius in Linux are same as [instructions for Windows](./windows-instructions.md#instructions). The only change required is to use the following script files instead of .cmd files:
 * build.sh
 * clean.sh
 
@@ -25,9 +25,9 @@ Instructions to build Mobius in Linux are same as [instructions for Windows](win
     ```
     ./test.sh
     ```
-    
+
 # Running Mobius Samples in Linux
-Same as [instructions for Windows](windows-instructions.md#running-samples) but using the following scripts instead of .cmd files:
+Same as [instructions for Windows](./windows-instructions.md#running-samples) but using the following scripts instead of .cmd files:
 * run-samples.sh
 * sparkclr-submit.sh
 
@@ -52,7 +52,7 @@ If you are using CentOS, Fedora, or similar Linux distributions or OS X, follow 
   * Update CSharpWorkerPath setting in Mobius application config (refer to the config files used in Mobius examples like the [config for with Pi example](https://github.com/skaarthik/Mobius/blob/linux/examples/Batch/pi/App.config#L61)) to point to [CSharpWorker.sh.exe](./linux-csharpworker-prefix-script.md) (make sure to set the correct value appropriate for the Spark mode to be used)
 
 ### Mobius in Azure HDInsight Spark Cluster
-* Mono version available in HDInsight cluster is 3.x. Mobius [requires](/notes/linux-instructions.md#prerequisites) 4.2 or above. So, Mono has to be upgraded in HDInsight cluster to use Mobius.
+* Mono version available in HDInsight cluster is 3.x. Mobius [requires](./linux-instructions.md#prerequisites) 4.2 or above. So, Mono has to be upgraded in HDInsight cluster to use Mobius.
 * Follow [instructions](./linux-instructions.md#requirements) for Ubuntu
 
 ### Mobius in Amazon Web Services EMR Spark Cluster
@@ -66,6 +66,6 @@ $ sudo wget http://download.mono-project.com/sources/mono/mono-4.4.1.0.tar.bz2
 $ sudo tar jxf mono-4.4.1.0.tar.bz2
 $ cd mono-4.4.1.0
 $ sudo ./configure --prefix=/opt/mono
-$ sudo make 
+$ sudo make
 $ sudo make install
 ```

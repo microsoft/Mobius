@@ -2,19 +2,19 @@
 
 ## Prerequisites
 
-* All prerequisites listed in [Build in Windows](notes/windows-instructions.md#prerequisites)
+* All prerequisites listed in [Build in Windows](./windows-instructions.md#prerequisites)
 * .NET Framework **4.6.1** or above.
 
-**To Be Noticed**: 
+**To Be Noticed**:
 Currently Mobius Shell only supports **Windows**, Linux support is not supported yet.
 
 ## Building
 
-Mobius Shell is included in Mobius release, please refer to [Build in Windows](notes/windows-instructions.md) to build Mobius. 
+Mobius Shell is included in Mobius release, please refer to [Build in Windows](./windows-instructions.md) to build Mobius.
 
 ## Running the Shell
 
-Please first refer to [Running Mobius App](notes/running-mobius-app.md) to make sure all required softwares and enviroment variables are placed or set properly.
+Please first refer to [Running Mobius App](./running-mobius-app.md) to make sure all required softwares and enviroment variables are placed or set properly.
 
 * Local
 
@@ -61,7 +61,7 @@ This is from test lib.
 > var rdd = sc.Parallelize(Enumerable.Range(0, 100), 2).Map(d => d+1);
 > rdd.Count()
 100
-> 
+>
 > // dataframe example
 > var df = sqlContext.Read().Json(@"D:\SparkWorkspace\SparkCLR_REPL\build\runtime\data\people.json");
 > df.Count()
@@ -76,4 +76,3 @@ This is from test lib.
 +--------------------+---+---+-----+
 > :quit
 ```
-
