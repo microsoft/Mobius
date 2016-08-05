@@ -11,7 +11,7 @@ do
 done
 
 # setup Hadoop and Spark versions
-export SPARK_VERSION=1.6.2
+export SPARK_VERSION=2.0.0
 export HADOOP_VERSION=2.6
 echo "[run-samples.sh] SPARK_VERSION=$SPARK_VERSION, HADOOP_VERSION=$HADOOP_VERSION"
 
@@ -67,7 +67,11 @@ fi
 
 
 export SPARKCLR_HOME="$FWDIR/../runtime"
-export SPARKCSV_JARS=
+# spark-csv package and its depenedency are required for DataFrame operations in Mobius
+export SPARKCLR_EXT_PATH="$SPARKCLR_HOME\dependencies"
+export SPARKCSV_JAR1PATH="$SPARKCLR_EXT_PATH\spark-csv_2.10-1.3.0.jar"
+export SPARKCSV_JAR2PATH="$SPARKCLR_EXT_PATH\commons-csv-1.1.jar"
+export SPARKCLR_EXT_JARS="$SPARKCSV_JAR1PATH,$SPARKCSV_JAR2PATH"
 
 # run-samples.sh is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.
 export HADOOP_CONF_DIR=
@@ -80,10 +84,10 @@ export SAMPLES_DIR=$SPARKCLR_HOME/samples
 echo "[run-samples.sh] JAVA_HOME=$JAVA_HOME"
 echo "[run-samples.sh] SPARK_HOME=$SPARK_HOME"
 echo "[run-samples.sh] SPARKCLR_HOME=$SPARKCLR_HOME"
-echo "[run-samples.sh] SPARKCSV_JARS=$SPARKCSV_JARS"
+echo "[run-samples.sh] SPARKCLR_EXT_JARS=$SPARKCLR_EXT_JARS"
 
-echo "[run-samples.sh] sparkclr-submit.sh --exe SparkCLRSamples.exe $SAMPLES_DIR spark.local.dir $TEMP_DIR sparkclr.sampledata.loc $SPARKCLR_HOME/data $@"
-"$SPARKCLR_HOME/scripts/sparkclr-submit.sh" --exe SparkCLRSamples.exe "$SAMPLES_DIR" spark.local.dir "$TEMP_DIR" sparkclr.sampledata.loc "$SPARKCLR_HOME/data" "$@"
+echo "[run-samples.sh] sparkclr-submit.sh --jars $SPARKCLR_EXT_JARS --conf spark.sql.warehouse.dir=$TEMP_DIR --exe SparkCLRSamples.exe $SAMPLES_DIR spark.local.dir $TEMP_DIR sparkclr.sampledata.loc $SPARKCLR_HOME/data $@"
+"$SPARKCLR_HOME/scripts/sparkclr-submit.sh" --jars "$SPARKCLR_EXT_JARS" --conf spark.sql.warehouse.dir="$TEMP_DIR" --exe SparkCLRSamples.exe "$SAMPLES_DIR" spark.local.dir "$TEMP_DIR" sparkclr.sampledata.loc "$SPARKCLR_HOME/data" "$@"
 
 # explicitly export the exitcode as a reminder for future changes
 export exitcode=$?

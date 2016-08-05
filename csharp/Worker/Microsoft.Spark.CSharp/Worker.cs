@@ -21,37 +21,6 @@ using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp
 {
-    internal class SparkCLRAssemblyHandler
-    {
-        private readonly ConcurrentDictionary<string, Assembly> assemblyDict = new ConcurrentDictionary<string, Assembly>();
-        private readonly ConcurrentDictionary<string, bool> loadedFiles = new ConcurrentDictionary<string, bool>();
-
-        public void LoadAssemblies(string[] files)
-        {
-            foreach (var assembly in from f in files.Where(f => new FileInfo(f).Length > 0).Select(Path.GetFullPath) where loadedFiles.TryAdd(f, true) select Assembly.Load(File.ReadAllBytes(f)))
-            {
-                if (!assemblyDict.ContainsKey(assembly.FullName))
-                {
-                    assemblyDict[assembly.FullName] = assembly;
-                }
-                else
-                {
-                    Console.Error.WriteLine("Already loaded assebmly " + assembly.FullName);
-                }
-            }
-        }
-
-        public Assembly Handle(object source, ResolveEventArgs e)
-        {
-            if (assemblyDict.ContainsKey(e.Name))
-            {
-                return assemblyDict[e.Name];
-            }
-
-            return null;
-        }
-    }
-
     /// <summary>
     /// Worker implementation for SparkCLR. The implementation is identical to the 
     /// worker used in PySpark. The RDD implementation to fork an external process
@@ -283,93 +252,190 @@ namespace Microsoft.Spark.CSharp
 
         private static IFormatter ProcessCommand(Stream inputStream, Stream outputStream, int splitIndex, DateTime bootTime)
         {
-            int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
-            logger.LogDebug("command length: " + lengthOfCommandByteArray);
+            int isSqlUdf = SerDe.ReadInt(inputStream);
+            logger.LogDebug("Is func Sql UDF = {0}", isSqlUdf);
 
             IFormatter formatter = new BinaryFormatter();
 
-            if (lengthOfCommandByteArray > 0)
+            if (isSqlUdf == 0)
             {
-                var commandProcessWatch = new Stopwatch();
-                commandProcessWatch.Start();
+                logger.LogDebug("Processing non-UDF command");
+                int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
+                logger.LogDebug("Command length: " + lengthOfCommandByteArray);
 
-                int stageId = ReadDiagnosticsInfo(inputStream);
-
-                string deserializerMode = SerDe.ReadString(inputStream);
-                logger.LogDebug("Deserializer mode: " + deserializerMode);
-
-                string serializerMode = SerDe.ReadString(inputStream);
-                logger.LogDebug("Serializer mode: " + serializerMode);
-
-                string runMode = SerDe.ReadString(inputStream);
-                if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
+                if (lengthOfCommandByteArray > 0)
                 {
-                    var compilationDumpDir = SerDe.ReadString(inputStream);
-                    if (Directory.Exists(compilationDumpDir))
-                    {
-                        assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*",
-                            SearchOption.TopDirectoryOnly));
-                    }
-                    else
-                    {
-                        logger.LogError("Directory " + compilationDumpDir + " dose not exist.");
-                    }
+                    var commandProcessWatch = new Stopwatch();
+                    commandProcessWatch.Start();
+
+                    int stageId;
+                    string deserializerMode;
+                    string serializerMode;
+                    CSharpWorkerFunc workerFunc;
+                    ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
+                        out workerFunc);
+
+                    ExecuteCommand(inputStream, outputStream, splitIndex, bootTime, deserializerMode, workerFunc, serializerMode,
+                        formatter, commandProcessWatch, stageId, isSqlUdf);
                 }
-    
-                byte[] command = SerDe.ReadBytes(inputStream);
-
-                logger.LogDebug("command bytes read: " + command.Length);
-                var stream = new MemoryStream(command);
-
-                var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
-                var func = workerFunc.Func;
-                logger.LogDebug(
-                    "------------------------ Printing stack trace of workerFunc for ** debugging ** ------------------------------");
-                logger.LogDebug(workerFunc.StackTrace);
-                logger.LogDebug(
-                    "--------------------------------------------------------------------------------------------------------------");
-                DateTime initTime = DateTime.UtcNow;
-
-                int count = 0;
-                int nullMessageCount = 0;
-                var funcProcessWatch = Stopwatch.StartNew();
-                foreach (var message in func(splitIndex, GetIterator(inputStream, deserializerMode)))
+                else
                 {
-                    funcProcessWatch.Stop();
-
-                    if (object.ReferenceEquals(null, message))
-                    {
-                        nullMessageCount++;
-                        continue;
-                    }
-
-                    WriteOutput(outputStream, serializerMode, message, formatter);
-                    count++;
-                    funcProcessWatch.Start();
+                    logger.LogWarn("lengthOfCommandByteArray = 0. Nothing to execute :-(");
                 }
-
-                logger.LogDebug("Output entries count: " + count);
-                logger.LogDebug("Null messages count: " + nullMessageCount);
-
-                //if profiler:
-                //    profiler.profile(process)
-                //else:
-                //    process()
-
-                WriteDiagnosticsInfo(outputStream, bootTime, initTime);
-
-                commandProcessWatch.Stop();
-
-                // log statistics
-                logger.LogInfo(string.Format("func process time: {0}", funcProcessWatch.ElapsedMilliseconds));
-                logger.LogInfo(string.Format("stage {0}, command process time: {1}", stageId, commandProcessWatch.ElapsedMilliseconds));
             }
             else
             {
-                logger.LogWarn("lengthOfCommandByteArray = 0. Nothing to execute :-(");
+                logger.LogDebug("Processing UDF command");
+                var udfCount = SerDe.ReadInt(inputStream);
+                logger.LogDebug("Count of UDFs = {0}", udfCount);
+
+                if (udfCount == 1)
+                {
+                    CSharpWorkerFunc func = null;
+                    var argCount = SerDe.ReadInt(inputStream);
+                    logger.LogDebug("Count of args = {0}", argCount);
+
+                    var argOffsets = new List<int>();
+
+                    for (int argIndex = 0; argIndex < argCount; argIndex++)
+                    {
+                        var offset = SerDe.ReadInt(inputStream);
+                        logger.LogDebug("UDF argIndex = {0}, Offset = {1}", argIndex, offset);
+                        argOffsets.Add(offset);
+                    }
+                    var chainedFuncCount = SerDe.ReadInt(inputStream);
+                    logger.LogDebug("Count of chained func = {0}", chainedFuncCount);
+
+                    var commandProcessWatch = new Stopwatch();
+                    int stageId = -1;
+                    string deserializerMode = null;
+                    string serializerMode = null;
+                    CSharpWorkerFunc workerFunc = null;
+                    for (int funcIndex = 0; funcIndex < chainedFuncCount; funcIndex++)
+                    {
+                        int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
+                        logger.LogDebug("UDF command length: " + lengthOfCommandByteArray)
+                        ;
+
+                        if (lengthOfCommandByteArray > 0)
+                        {
+                            ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
+                                out workerFunc);
+
+                            if (func == null)
+                            {
+                                func = workerFunc;
+                            }
+                            else
+                            {
+                                func = CSharpWorkerFunc.Chain(func, workerFunc);
+                            }
+                        }
+                        else
+                        {
+                            logger.LogWarn("UDF lengthOfCommandByteArray = 0. Nothing to execute :-(");
+                        }
+                    }
+
+                    Debug.Assert(stageId != -1);
+                    Debug.Assert(deserializerMode != null);
+                    Debug.Assert(serializerMode != null);
+                    Debug.Assert(func != null);
+                    ExecuteCommand(inputStream, outputStream, splitIndex, bootTime, deserializerMode, func, serializerMode, formatter,
+                        commandProcessWatch, stageId, isSqlUdf);
+                }
+                else
+                {
+                    throw new NotSupportedException(); //TODO - add support for multiple UDFs
+                }
             }
 
             return formatter;
+        }
+
+        private static void ReadCommand(Stream networkStream, IFormatter formatter, out int stageId,
+            out string deserializerMode,
+            out string serializerMode, out CSharpWorkerFunc workerFunc)
+        {
+            stageId = ReadDiagnosticsInfo(networkStream);
+
+            deserializerMode = SerDe.ReadString(networkStream);
+            logger.LogDebug("Deserializer mode: " + deserializerMode);
+            serializerMode = SerDe.ReadString(networkStream);
+            logger.LogDebug("Serializer mode: " + serializerMode);
+
+            string runMode = SerDe.ReadString(networkStream);
+            if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var compilationDumpDir = SerDe.ReadString(networkStream);
+                if (Directory.Exists(compilationDumpDir))
+                {
+                    assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*",
+                        SearchOption.TopDirectoryOnly));
+                }
+                else
+                {
+                    logger.LogError("Directory " + compilationDumpDir + " dose not exist.");
+                }
+            }
+
+
+            byte[] command = SerDe.ReadBytes(networkStream);
+
+            logger.LogDebug("command bytes read: " + command.Length);
+            var stream = new MemoryStream(command);
+
+            workerFunc = (CSharpWorkerFunc) formatter.Deserialize(stream);
+
+            logger.LogDebug(
+                "------------------------ Printing stack trace of workerFunc for ** debugging ** ------------------------------");
+            logger.LogDebug(workerFunc.StackTrace);
+            logger.LogDebug(
+                "--------------------------------------------------------------------------------------------------------------");
+        }
+
+        private static void ExecuteCommand(Stream inputStream, Stream outputStream, int splitIndex, DateTime bootTime,
+                     string deserializerMode, CSharpWorkerFunc workerFunc, string serializerMode,
+                     IFormatter formatter, Stopwatch commandProcessWatch, int stageId, int isSqlUdf)
+        {
+            int count = 0;
+            int nullMessageCount = 0;
+            logger.LogDebug("Beginning to execute func");
+            var func = workerFunc.Func;
+
+            var funcProcessWatch = Stopwatch.StartNew();
+            DateTime initTime = DateTime.UtcNow;
+            foreach (var message in func(splitIndex, GetIterator(inputStream, deserializerMode, isSqlUdf)))
+            {
+                funcProcessWatch.Stop();
+
+                if (object.ReferenceEquals(null, message))
+                {
+                    nullMessageCount++;
+                    continue;
+                }
+
+                WriteOutput(outputStream, serializerMode, message, formatter);
+                count++;
+                funcProcessWatch.Start();   
+            }
+
+            logger.LogDebug("Output entries count: " + count);
+            logger.LogDebug("Null messages count: " + nullMessageCount);
+
+            //if profiler:
+            //    profiler.profile(process)
+            //else:
+            //    process()
+
+            WriteDiagnosticsInfo(outputStream, bootTime, initTime);
+
+            commandProcessWatch.Stop();
+
+            // log statistics
+            logger.LogInfo(string.Format("func process time: {0}", funcProcessWatch.ElapsedMilliseconds));
+            logger.LogInfo(string.Format("stage {0}, command process time: {1}", stageId,
+                commandProcessWatch.ElapsedMilliseconds));
         }
 
         private static void WriteOutput(Stream networkStream, string serializerMode, dynamic message, IFormatter formatter)
@@ -428,8 +494,7 @@ namespace Microsoft.Spark.CSharp
 
             return buffer;
         }
-
-
+        
         private static int ReadDiagnosticsInfo(Stream networkStream)
         {
             int rddId = SerDe.ReadInt(networkStream);
@@ -488,7 +553,7 @@ namespace Microsoft.Spark.CSharp
             return (long)(dt - UnixTimeEpoch).TotalMilliseconds;
         }
 
-        private static IEnumerable<dynamic> GetIterator(Stream inputStream, string serializedMode)
+        private static IEnumerable<dynamic> GetIterator(Stream inputStream, string serializedMode, int isFuncSqlUdf)
         {
             logger.LogInfo("Serialized mode in GetIterator: " + serializedMode);
             IFormatter formatter = new BinaryFormatter();
@@ -526,10 +591,25 @@ namespace Microsoft.Spark.CSharp
                             {
                                 Debug.Assert(messageLength > 0);
                                 var unpickledObjects = PythonSerDe.GetUnpickledObjects(buffer);
-                                foreach (var row in unpickledObjects.Select(item => (item as RowConstructor).GetRow()))
+
+                                if (isFuncSqlUdf == 0)
                                 {
-                                    yield return row;
+                                    /*                                    var rows = unpickledObjects.Select(item => (item as RowConstructor).GetRow()).ToList();
+                                                                        result = rows.Cast<object>().ToArray();*/
+                                    foreach (var row in unpickledObjects.Select(item => (item as RowConstructor).GetRow()))
+                                    {
+                                        yield return row;
+                                    }
                                 }
+                                else
+                                {
+                                    //result = unpickledObjects; //due catalyst optimization & code gen unpickledObject is object[] with actual column values
+                                    foreach (var row in unpickledObjects)
+                                    {
+                                        yield return row;
+                                    }
+                                }
+
                                 break;
                             }
 
@@ -584,6 +664,37 @@ namespace Microsoft.Spark.CSharp
             }
 
             logger.LogInfo(string.Format("total receive time: {0}", watch.ElapsedMilliseconds));
+        }
+
+        internal class SparkCLRAssemblyHandler
+        {
+            private readonly ConcurrentDictionary<string, Assembly> assemblyDict = new ConcurrentDictionary<string, Assembly>();
+            private readonly ConcurrentDictionary<string, bool> loadedFiles = new ConcurrentDictionary<string, bool>();
+
+            public void LoadAssemblies(string[] files)
+            {
+                foreach (var assembly in from f in files.Where(f => new FileInfo(f).Length > 0).Select(Path.GetFullPath) where loadedFiles.TryAdd(f, true) select Assembly.Load(File.ReadAllBytes(f)))
+                {
+                    if (!assemblyDict.ContainsKey(assembly.FullName))
+                    {
+                        assemblyDict[assembly.FullName] = assembly;
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine("Already loaded assebmly " + assembly.FullName);
+                    }
+                }
+            }
+
+            public Assembly Handle(object source, ResolveEventArgs e)
+            {
+                if (assemblyDict.ContainsKey(e.Name))
+                {
+                    return assemblyDict[e.Name];
+                }
+
+                return null;
+            }
         }
     }
 }

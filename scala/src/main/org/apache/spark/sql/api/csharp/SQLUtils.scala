@@ -7,15 +7,16 @@ package org.apache.spark.sql.api.csharp
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
 
-import org.apache.spark.SparkContext
+import org.apache.spark.{Accumulator, SparkContext}
 import org.apache.spark.api.csharp.SerDe
 import org.apache.spark.api.java.{JavaRDD, JavaSparkContext}
-import org.apache.spark.api.python.SerDeUtil
+import org.apache.spark.api.python.{PythonBroadcast, PythonFunction, SerDeUtil}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.sql.hive
 import org.apache.spark.sql.types.{DataType, FloatType, StructType}
 import org.apache.spark.sql._
-import java.util.{ArrayList => JArrayList}
+import java.util.{List => JList, Map => JMap, ArrayList => JArrayList}
+import org.apache.spark.broadcast.Broadcast
 
 /**
  * Utility functions for DataFrame in SparkCLR
@@ -29,11 +30,23 @@ object SQLUtils {
   }
 
   def createHiveContext(sc: SparkContext): SQLContext = {
-      new HiveContext(sc)
+    // TODO fix this
+    new SQLContext(sc)
   }
 
   def getJavaSparkContext(sqlCtx: SQLContext): JavaSparkContext = {
     new JavaSparkContext(sqlCtx.sparkContext)
+  }
+
+  def createCSharpFunction(command: Array[Byte],
+                           envVars: JMap[String, String],
+                           cSharpIncludes: JList[String],
+                           cSharpWorkerExecutable: String,
+                           unUsedVersionIdentifier: String,
+                           broadcastVars: JList[Broadcast[PythonBroadcast]],
+                           accumulator: Accumulator[JList[Array[Byte]]]) : PythonFunction = {
+    PythonFunction(command, envVars, cSharpIncludes, cSharpWorkerExecutable,
+      unUsedVersionIdentifier, broadcastVars, accumulator)
   }
 
   def toSeq[T](arr: Array[T]): Seq[T] = {
@@ -60,7 +73,7 @@ object SQLUtils {
   }
 
   def dfToRowRDD(df: DataFrame): RDD[Array[Byte]] = {
-    df.map(r => rowToCSharpBytes(r))
+    df.map(r => rowToCSharpBytes(r))(Encoders.BINARY).rdd
   }
 
   private[this] def doConversion(data: Object, dataType: DataType): Object = {
@@ -232,5 +245,9 @@ object SQLUtils {
       case obj if obj.getClass.isArray =>
         obj.asInstanceOf[Array[_]].toArray
     }
+  }
+
+  def getSparkSession(sqlContext: SQLContext): SparkSession = {
+    sqlContext.sparkSession
   }
 }
