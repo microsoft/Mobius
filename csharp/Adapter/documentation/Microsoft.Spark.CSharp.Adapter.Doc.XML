@@ -10,21 +10,6 @@
             to be used in SparkCLR runtime
             </summary>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Configuration.IConfigurationService">
-            <summary>
-            Helps getting config settings to be used in SparkCLR runtime
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Configuration.IConfigurationService.GetCSharpWorkerExePath">
-            <summary>
-            The full path of the CSharp external backend worker process executable.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Configuration.IConfigurationService.BackendPortNumber">
-            <summary>
-            The port number used for communicating with the CSharp external backend worker process.
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Configuration.ConfigurationService.SparkCLRConfiguration">
             <summary>
             Default configuration for SparkCLR jobs.
@@ -88,6 +73,21 @@
             Indicates service is running in Yarn
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Configuration.IConfigurationService">
+            <summary>
+            Helps getting config settings to be used in SparkCLR runtime
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Configuration.IConfigurationService.BackendPortNumber">
+            <summary>
+            The port number used for communicating with the CSharp external backend worker process.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Configuration.IConfigurationService.GetCSharpWorkerExePath">
+            <summary>
+            The full path of the CSharp external backend worker process executable.
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Accumulator">
             <summary>
             A shared variable that can be accumulated, i.e., has a commutative and associative "add"
@@ -127,6 +127,12 @@
             <param name="accumulatorId">The Identity of the accumulator</param>
             <param name="value">The value of the accumulator</param>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Accumulator`1.Value">
+            <summary>
+            Gets or sets the value of the accumulator; only usable in driver program
+            </summary>
+            <exception cref="T:System.ArgumentException"></exception>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Accumulator`1.Add(`0)">
             <summary>
             Adds a term to this accumulator's value
@@ -147,12 +153,6 @@
             Creates and returns a string representation of the current accumulator
             </summary>
             <returns>A string representation of the current accumulator</returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.Accumulator`1.Value">
-            <summary>
-            Gets or sets the value of the accumulator; only usable in driver program
-            </summary>
-            <exception cref="T:System.ArgumentException"></exception>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.AccumulatorParam`1">
             <summary>
@@ -216,15 +216,25 @@
             </summary>
             <typeparam name="T">The type of element in Broadcast</typeparam>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Broadcast`1.Value">
+            <summary>
+            Return the broadcasted value
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Broadcast`1.Unpersist(System.Boolean)">
             <summary>
             Delete cached copies of this broadcast on the executors.
             </summary>
             <param name="blocking"></param>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.Broadcast`1.Value">
+        <member name="T:Microsoft.Spark.CSharp.Core.CSharpWorkerFunc">
             <summary>
-            Return the broadcasted value
+            Function that will be executed in CSharpWorker
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.CSharpWorkerFunc.Chain(Microsoft.Spark.CSharp.Core.CSharpWorkerFunc,Microsoft.Spark.CSharp.Core.CSharpWorkerFunc)">
+            <summary>
+            Used to chain functions
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
@@ -245,17 +255,17 @@
             </summary>
             <param name="value">The value to be associated with the new instance.</param>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.Option`1.IsDefined">
+            <summary>
+            Indicates whether the option value is defined.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.Option`1.GetValue">
             <summary>
             Returns the value of the option if Option.IsDefined is TRUE;
             otherwise, throws an <see cref="T:System.ArgumentException"/>.
             </summary>
             <returns></returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.Option`1.IsDefined">
-            <summary>
-            Indicates whether the option value is defined.
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Partitioner">
             <summary>
@@ -291,11 +301,6 @@
         <member name="T:Microsoft.Spark.CSharp.Core.RDDCollector">
             <summary>
             Used for collect operation on RDD
-            </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.IRDDCollector">
-            <summary>
-            Interface for collect operation on RDD
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.DoubleRDDFunctions">
@@ -414,6 +419,11 @@
             </summary>
             <param name="self"></param>
             <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.IRDDCollector">
+            <summary>
+            Interface for collect operation on RDD
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions">
             <summary>
@@ -1052,6 +1062,14 @@
             <param name="path">path to sequence file</param>
             <param name="compressionCodecClass">(None by default)</param>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupByMergeHelper`2">
+            <summary>
+            These classes are defined explicitly and marked as [Serializable]instead of using anonymous method as delegate to 
+            prevent C# compiler from generating private anonymous type that is not serializable. Since the delegate has to be 
+            serialized and sent to the Spark workers for execution, it is necessary to have the type marked [Serializable]. 
+            These classes are to work around the limitation on the serializability of compiler generated types
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.NullIfEmpty``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             Converts a collection to a list where the element type is Option(T) type.
@@ -1061,20 +1079,35 @@
             <typeparam name="T">The element type in the collection</typeparam>
             <returns>A list that use Option(T) as element type</returns>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupByMergeHelper`2">
-            <summary>
-            These classes are defined explicitly and marked as [Serializable]instead of using anonymous method as delegate to 
-            prevent C# compiler from generating private anonymous type that is not serializable. Since the delegate has to be 
-            serialized and sent to the Spark workers for execution, it is necessary to have the type marked [Serializable]. 
-            These classes are to work around the limitation on the serializability of compiler generated types
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1">
             <summary>
             Wraps C#-based transformations that can be executed within a stage. It helps avoid unnecessary Ser/De of data between
             JVM and CLR to execute C# transformations and pipelines them
             </summary>
             <typeparam name="U"></typeparam>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndex``1(System.Func{System.Int32,System.Collections.Generic.IEnumerable{`0},System.Collections.Generic.IEnumerable{``0}},System.Boolean)">
+            <summary>
+            Return a new RDD by applying a function to each partition of this RDD,
+            while tracking the index of the original partition.
+            </summary>
+            <typeparam name="U1">The element type</typeparam>
+            <param name="newFunc">The function to be applied to each partition</param>
+            <param name="preservesPartitioningParam">Indicates if it preserves partition parameters</param>
+            <returns>A new RDD</returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndexHelper`2">
+            <summary>
+            This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
+            private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
+            for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
+            on the serializability of compiler generated types
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.Profiler">
+            <summary>
+            A class represents a profiler
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.RDD`1">
             <summary>
@@ -1093,6 +1126,21 @@
         <member name="F:Microsoft.Spark.CSharp.Core.RDD`1.isCheckpointed">
             <summary>
             Indicates whether the RDD is checkpointed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCached">
+            <summary>
+            Return whether this RDD has been cached or not
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCheckpointed">
+            <summary>
+            Return whether this RDD has been checkpointed or not
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.Name">
+            <summary>
+            Return the name of this RDD.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.RDD`1.Cache">
@@ -1651,7 +1699,7 @@
             n is the number of partitions. So there may exist gaps, but this
             method won't trigger a spark job, which is different from <see cref="M:Microsoft.Spark.CSharp.Core.RDD`1.ZipWithIndex"/>
             
-            &gt;&gt;&gt; sc.Parallelize(new string[] { "a", "b", "c", "d" }, 1).ZipWithIndex().Collect()
+            >>> sc.Parallelize(new string[] { "a", "b", "c", "d" }, 1).ZipWithIndex().Collect()
             [('a', 0), ('b', 1), ('c', 4), ('d', 2), ('e', 5)]
             
             </summary>
@@ -1704,44 +1752,6 @@
             <param name="ub">upper bound to use for the Bernoulli sampler</param>
             <param name="seed">the seed for the Random number generator</param>
             <returns>A random sub-sample of the RDD without replacement.</returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCached">
-            <summary>
-            Return whether this RDD has been cached or not
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCheckpointed">
-            <summary>
-            Return whether this RDD has been checkpointed or not
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.Name">
-            <summary>
-            Return the name of this RDD.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndex``1(System.Func{System.Int32,System.Collections.Generic.IEnumerable{`0},System.Collections.Generic.IEnumerable{``0}},System.Boolean)">
-            <summary>
-            Return a new RDD by applying a function to each partition of this RDD,
-            while tracking the index of the original partition.
-            </summary>
-            <typeparam name="U1">The element type</typeparam>
-            <param name="newFunc">The function to be applied to each partition</param>
-            <param name="preservesPartitioningParam">Indicates if it preserves partition parameters</param>
-            <returns>A new RDD</returns>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.PipelinedRDD`1.MapPartitionsWithIndexHelper`2">
-            <summary>
-            This class is defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
-            private anonymous type that is not serializable. Since the delegate has to be serialized and sent to the Spark workers
-            for execution, it is necessary to have the type marked [Serializable]. This class is to work around the limitation
-            on the serializability of compiler generated types
-            </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Core.Profiler">
-            <summary>
-            A class represents a profiler
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StringRDDFunctions">
             <summary>
@@ -1951,6 +1961,41 @@
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.GetActiveSparkContext">
             <summary>
             Get existing SparkContext
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.GetConf">
+            <summary>
+            Return a copy of this JavaSparkContext's configuration. The configuration ''cannot'' be changed at runtime.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.Version">
+            <summary>
+            The version of Spark on which this application is running.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StartTime">
+            <summary>
+            Return the epoch time when the Spark Context was started.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultParallelism">
+            <summary>
+            Default level of parallelism to use when not given by user (e.g. for reduce tasks)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultMinPartitions">
+            <summary>
+            Default min number of partitions for Hadoop RDDs when not given by user
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.SparkUser">
+            <summary>
+            Get SPARK_USER for user who is running SparkContext.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StatusTracker">
+            <summary>
+            Return :class:`StatusTracker` object
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.#ctor(System.String,System.String,System.String)">
@@ -2295,36 +2340,6 @@
             Cancel all jobs that have been scheduled or are running.
             </summary>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.Version">
-            <summary>
-            The version of Spark on which this application is running.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StartTime">
-            <summary>
-            Return the epoch time when the Spark Context was started.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultParallelism">
-            <summary>
-            Default level of parallelism to use when not given by user (e.g. for reduce tasks)
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.DefaultMinPartitions">
-            <summary>
-            Default min number of partitions for Hadoop RDDs when not given by user
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.SparkUser">
-            <summary>
-            Get SPARK_USER for user who is running SparkContext.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Core.SparkContext.StatusTracker">
-            <summary>
-            Return :class:`StatusTracker` object
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StatCounter">
             <summary>
             A class for tracking the statistics of a set of numbers (count, mean and variance) in a numerically
@@ -2370,14 +2385,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.ToString">
-            <summary>
-            Returns a string that represents this StatCounter.
-            </summary>
-            <returns>
-            A string that represents this StatCounter.
-            </returns>
-        </member>
         <member name="P:Microsoft.Spark.CSharp.Core.StatCounter.Count">
             <summary>
             Gets the count number of this StatCounter
@@ -2422,6 +2429,14 @@
             <summary>
             Return the sample standard deviation of the values, which corrects for bias in estimating the variance by dividing by N-1 instead of N.
             </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.StatCounter.ToString">
+            <summary>
+            Returns a string that represents this StatCounter.
+            </summary>
+            <returns>
+            A string that represents this StatCounter.
+            </returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StatusTracker">
             <summary>
@@ -2691,6 +2706,11 @@
             Adjust checkCount adaptively according to current weak reference objects count
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Interop.Ipc.WeakObjectManagerImpl.CheckInterval">
+            <summary>
+            Sleep time for checking thread
+            </summary>
+        </member>
         <member name="F:Microsoft.Spark.CSharp.Interop.Ipc.WeakObjectManagerImpl.MaxReleasingDuration">
             <summary>
             Maximum running duration for checking thread each time
@@ -2701,16 +2721,6 @@
             It can be an expensive operation. ** Do not use ** unless there is a real need for this method
             </summary>
             <returns></returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Interop.Ipc.WeakObjectManagerImpl.CheckInterval">
-            <summary>
-            Sleep time for checking thread
-            </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
-            <summary>
-            Contains everything needed to setup an environment for using C# with Spark
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Interop.Ipc.IJvmBridge">
             <summary>
@@ -2929,6 +2939,11 @@
             <param name="s">The stream to write</param>
             <param name="value">The string to write</param>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Interop.SparkCLREnvironment">
+            <summary>
+            Contains everything needed to setup an environment for using C# with Spark
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Network.ByteBuf">
             <summary>
             ByteBuf delimits a section of a ByteBufChunk.
@@ -2954,6 +2969,66 @@
                  +-------------------+------------------+------------------+
                  |                   |                  |                  |
                  0       ==     readerIndex   ==   writerIndex    ==    capacity
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.Array">
+            <summary>
+            Gets the underlying array.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.Capacity">
+            <summary>
+            Gets the total number of elements in the range delimited by the ByteBuf.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.Offset">
+            <summary>
+            Gets the position of the first element in the range delimited
+            by the ByteBuf, relative to the start of the original array.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ByteBufChunk">
+            <summary>
+            Returns the ByteBuf chunk that contains this ByteBuf.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ReadableBytes">
+            <summary>
+            Returns the number of readable bytes which is equal to (writerIndex - readerIndex).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.WritableBytes">
+            <summary>
+            Returns the number of writable bytes which is equal to (capacity - writerIndex).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.UnsafeArray">
+            <summary>
+            Gets the underlying unsafe array.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ReaderIndex">
+            <summary>
+            Gets or sets the readerIndex of this ByteBuf
+            </summary>
+            <exception cref="T:System.IndexOutOfRangeException"></exception>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.WriterIndex">
+            <summary>
+            Gets or sets the writerIndex of this ByteBuf
+            </summary>
+            <exception cref="T:System.IndexOutOfRangeException"></exception>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ReaderIndexOffset">
+            <summary>
+            Returns the position of the readerIndex element in the range delimited
+            by the ByteBuf, relative to the start of the original array.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.WriterIndexOffset">
+            <summary>
+            Returns the position of the readerIndex element in the range delimited
+            by the ByteBuf, relative to the start of the original array.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.ByteBuf.Clear">
@@ -3031,66 +3106,6 @@
             Creates an empty ByteBuf with error status.
             </summary>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.Array">
-            <summary>
-            Gets the underlying array.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.Capacity">
-            <summary>
-            Gets the total number of elements in the range delimited by the ByteBuf.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.Offset">
-            <summary>
-            Gets the position of the first element in the range delimited
-            by the ByteBuf, relative to the start of the original array.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ByteBufChunk">
-            <summary>
-            Returns the ByteBuf chunk that contains this ByteBuf.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ReadableBytes">
-            <summary>
-            Returns the number of readable bytes which is equal to (writerIndex - readerIndex).
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.WritableBytes">
-            <summary>
-            Returns the number of writable bytes which is equal to (capacity - writerIndex).
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.UnsafeArray">
-            <summary>
-            Gets the underlying unsafe array.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ReaderIndex">
-            <summary>
-            Gets or sets the readerIndex of this ByteBuf
-            </summary>
-            <exception cref="T:System.IndexOutOfRangeException"></exception>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.WriterIndex">
-            <summary>
-            Gets or sets the writerIndex of this ByteBuf
-            </summary>
-            <exception cref="T:System.IndexOutOfRangeException"></exception>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.ReaderIndexOffset">
-            <summary>
-            Returns the position of the readerIndex element in the range delimited
-            by the ByteBuf, relative to the start of the original array.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ByteBuf.WriterIndexOffset">
-            <summary>
-            Returns the position of the readerIndex element in the range delimited
-            by the ByteBuf, relative to the start of the original array.
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Network.ByteBufChunk">
             <summary>
             ByteBufChunk represents a memory blocks that can be allocated from 
@@ -3115,50 +3130,6 @@
         <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Finalize">
             <summary>
             Finalizer.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Allocate(Microsoft.Spark.CSharp.Network.ByteBuf@)">
-            <summary>
-            Allocates a ByteBuf from this ByteChunk.
-            </summary>
-            <param name="byteBuf">The ByteBuf be allocated</param>
-            <returns>true, if succeed to allocate a ByteBuf; otherwise, false</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Dispose">
-            <summary>
-            Release all resources
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Free(Microsoft.Spark.CSharp.Network.ByteBuf)">
-            <summary>
-            Releases the ByteBuf back to this ByteChunk
-            </summary>
-            <param name="byteBuf">The ByteBuf to be released.</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.ToString">
-            <summary>
-            Returns a readable string for the ByteBufChunk
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.NewChunk(Microsoft.Spark.CSharp.Network.ByteBufPool,System.Int32,System.Int32,System.Boolean)">
-            <summary>
-            Static method to create a new ByteBufChunk with given segment and chunk size.
-            If isUnsafe is true, it allocates memory from the process's heap.
-            </summary>
-            <param name="pool">The ByteBufPool that contains the new ByteChunk</param>
-            <param name="segmentSize">The segment size</param>
-            <param name="chunkSize">The chunk size to create</param>
-            <param name="isUnsafe">Indicates if it is a safe or unsafe</param>
-            <returns>The new ByteBufChunk object</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.FreeToProcessHeap(System.IntPtr)">
-            <summary>
-            Wraps HeapFree to process heap.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Dispose(System.Boolean)">
-            <summary>
-                Implementation of the Dispose pattern.
             </summary>
         </member>
         <member name="P:Microsoft.Spark.CSharp.Network.ByteBufChunk.Array">
@@ -3207,6 +3178,50 @@
             <summary>
             Returns the IntPtr that points to beginning of the cached heap block.
             This is used for PInvoke with native code.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Allocate(Microsoft.Spark.CSharp.Network.ByteBuf@)">
+            <summary>
+            Allocates a ByteBuf from this ByteChunk.
+            </summary>
+            <param name="byteBuf">The ByteBuf be allocated</param>
+            <returns>true, if succeed to allocate a ByteBuf; otherwise, false</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Dispose">
+            <summary>
+            Release all resources
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Free(Microsoft.Spark.CSharp.Network.ByteBuf)">
+            <summary>
+            Releases the ByteBuf back to this ByteChunk
+            </summary>
+            <param name="byteBuf">The ByteBuf to be released.</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.ToString">
+            <summary>
+            Returns a readable string for the ByteBufChunk
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.NewChunk(Microsoft.Spark.CSharp.Network.ByteBufPool,System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Static method to create a new ByteBufChunk with given segment and chunk size.
+            If isUnsafe is true, it allocates memory from the process's heap.
+            </summary>
+            <param name="pool">The ByteBufPool that contains the new ByteChunk</param>
+            <param name="segmentSize">The segment size</param>
+            <param name="chunkSize">The chunk size to create</param>
+            <param name="isUnsafe">Indicates if it is a safe or unsafe</param>
+            <returns>The new ByteBufChunk object</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.FreeToProcessHeap(System.IntPtr)">
+            <summary>
+            Wraps HeapFree to process heap.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufChunk.Dispose(System.Boolean)">
+            <summary>
+                Implementation of the Dispose pattern.
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Network.ByteBufChunk.Segment">
@@ -3312,28 +3327,6 @@
             <param name="chunkOrder">Used to caculate chunk size and ensures it is a multiple of a segment size</param>
             <param name="isUnsafe">Indicates whether allocates memory from process's heap</param>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.Allocate">
-            <summary>
-            Allocates a ByteBuf from this ByteBufPool to use.
-            </summary>
-            <returns>A ByteBuf contained in this ByteBufPool</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.Free(Microsoft.Spark.CSharp.Network.ByteBuf)">
-            <summary>
-            Deallocates a ByteBuf back to this ByteBufPool.
-            </summary>
-            <param name="byteBuf">The ByteBuf to be release.</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.ToString">
-            <summary>
-            Gets a readable string for this ByteBufPool
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.GetUsages">
-            <summary>
-            Returns the chunk numbers in each queue.
-            </summary>
-        </member>
         <member name="P:Microsoft.Spark.CSharp.Network.ByteBufPool.Default">
             <summary>
             Gets the default byte buffer pool instance for managed memory.
@@ -3362,72 +3355,31 @@
             Returns the size of a ByteChunk in this ByteBufPool
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.Allocate">
+            <summary>
+            Allocates a ByteBuf from this ByteBufPool to use.
+            </summary>
+            <returns>A ByteBuf contained in this ByteBufPool</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.Free(Microsoft.Spark.CSharp.Network.ByteBuf)">
+            <summary>
+            Deallocates a ByteBuf back to this ByteBufPool.
+            </summary>
+            <param name="byteBuf">The ByteBuf to be release.</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.ToString">
+            <summary>
+            Gets a readable string for this ByteBufPool
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.GetUsages">
+            <summary>
+            Returns the chunk numbers in each queue.
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper">
             <summary>
             A simple wrapper of System.Net.Sockets.Socket class.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Network.ISocketWrapper">
-            <summary>
-            ISocketWrapper interface defines the common methods to operate a socket (traditional socket or 
-            Windows Registered IO socket)
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Accept">
-            <summary>
-            Accepts a incoming connection request.
-            </summary>
-            <returns>A ISocket instance used to send and receive data</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Close">
-            <summary>
-            Close the ISocket connections and releases all associated resources.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
-            <summary>
-            Establishes a connection to a remote host that is specified by an IP address and a port number
-            </summary>
-            <param name="remoteaddr">The IP address of the remote host</param>
-            <param name="port">The port number of the remote host</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.GetStream">
-            <summary>
-            Returns a stream used to send and receive data.
-            </summary>
-            <returns>The underlying Stream instance that be used to send and receive data</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Listen(System.Int32)">
-            <summary>
-            Starts listening for incoming connections requests
-            </summary>
-            <param name="backlog">The maximum length of the pending connections queue. </param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Receive">
-            <summary>
-            Receives network data from this socket, and returns a ByteBuf that contains the received data.
-            </summary>
-            <returns>A ByteBuf object that contains received data.</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Send(Microsoft.Spark.CSharp.Network.ByteBuf)">
-            <summary>
-            Sends data to this socket with a ByteBuf object that contains data to be sent.
-            </summary>
-            <param name="data">A ByteBuf object that contains data to be sent</param>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ISocketWrapper.HasData">
-            <summary>
-            Indicates whether there are data that has been received from the network and is available to be read.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ISocketWrapper.LocalEndPoint">
-            <summary>
-            Returns the local endpoint.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.ISocketWrapper.RemoteEndPoint">
-            <summary>
-            Returns the remote endpoint
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.#ctor">
@@ -3525,6 +3477,69 @@
             Returns the remote endpoint if it has one.
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Network.ISocketWrapper">
+            <summary>
+            ISocketWrapper interface defines the common methods to operate a socket (traditional socket or 
+            Windows Registered IO socket)
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Accept">
+            <summary>
+            Accepts a incoming connection request.
+            </summary>
+            <returns>A ISocket instance used to send and receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Close">
+            <summary>
+            Close the ISocket connections and releases all associated resources.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+            <summary>
+            Establishes a connection to a remote host that is specified by an IP address and a port number
+            </summary>
+            <param name="remoteaddr">The IP address of the remote host</param>
+            <param name="port">The port number of the remote host</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.GetStream">
+            <summary>
+            Returns a stream used to send and receive data.
+            </summary>
+            <returns>The underlying Stream instance that be used to send and receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Listen(System.Int32)">
+            <summary>
+            Starts listening for incoming connections requests
+            </summary>
+            <param name="backlog">The maximum length of the pending connections queue. </param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Receive">
+            <summary>
+            Receives network data from this socket, and returns a ByteBuf that contains the received data.
+            </summary>
+            <returns>A ByteBuf object that contains received data.</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Send(Microsoft.Spark.CSharp.Network.ByteBuf)">
+            <summary>
+            Sends data to this socket with a ByteBuf object that contains data to be sent.
+            </summary>
+            <param name="data">A ByteBuf object that contains data to be sent</param>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ISocketWrapper.HasData">
+            <summary>
+            Indicates whether there are data that has been received from the network and is available to be read.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ISocketWrapper.LocalEndPoint">
+            <summary>
+            Returns the local endpoint.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.ISocketWrapper.RemoteEndPoint">
+            <summary>
+            Returns the remote endpoint
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Network.RioNative">
             <summary>
             RioNative class imports and initializes RIOSock.dll for use with RIO socket APIs.
@@ -3547,6 +3562,11 @@
             it must be called before calling EnsureRioLoaded()
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.RioNative.ConnectionTable">
+            <summary>
+            Gets the connection table that contains all connections.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Network.RioNative.EnsureRioLoaded">
             <summary>
             Ensures that the native dll of RIO socket is loaded and initialized.
@@ -3560,11 +3580,6 @@
         <member name="M:Microsoft.Spark.CSharp.Network.RioNative.Init">
             <summary>
             Initializes RIOSock native library.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.RioNative.ConnectionTable">
-            <summary>
-            Gets the connection table that contains all connections.
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Network.RioResult">
@@ -3592,6 +3607,26 @@
         <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.Finalize">
             <summary>
             Finalizer
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.HasData">
+            <summary>
+            Indicates whether there are data that has been received from the network and is available to be read.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.LocalEndPoint">
+            <summary>
+            Returns the local endpoint.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.RemoteEndPoint">
+            <summary>
+            Returns the remote endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.SockHandle">
+            <summary>
+            Returns the handle of native socket.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.Accept">
@@ -3687,26 +3722,6 @@
             Generates a unique key from a GUID.
             </summary>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.HasData">
-            <summary>
-            Indicates whether there are data that has been received from the network and is available to be read.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.LocalEndPoint">
-            <summary>
-            Returns the local endpoint.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.RemoteEndPoint">
-            <summary>
-            Returns the remote endpoint
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.RioSocketWrapper.SockHandle">
-            <summary>
-            Returns the handle of native socket.
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper">
             <summary>
             SaeaSocketWrapper class is a wrapper of a socket that use SocketAsyncEventArgs class
@@ -3727,6 +3742,21 @@
         <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.Finalize">
             <summary>
             Finalizer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.HasData">
+            <summary>
+            Indicates whether there are data that has been received from the network and is available to be read.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.LocalEndPoint">
+            <summary>
+            Returns the local endpoint.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.RemoteEndPoint">
+            <summary>
+            Returns the remote endpoint
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.Accept">
@@ -3815,21 +3845,6 @@
             If all of the data has NOT been sent, then it calls PostSend to send more data. 
             </summary>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.HasData">
-            <summary>
-            Indicates whether there are data that has been received from the network and is available to be read.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.LocalEndPoint">
-            <summary>
-            Returns the local endpoint.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.RemoteEndPoint">
-            <summary>
-            Returns the remote endpoint
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Network.SocketStream">
             <summary>
             Provides the underlying stream of data for network access.
@@ -3847,6 +3862,36 @@
             Initializes a SocketStream with a RioSocketWrapper object.
             </summary>
             <param name="socket">a RioSocketWrapper object</param>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.CanRead">
+            <summary>
+            Indicates that data can be read from the stream.
+            This property always returns <see langword='true'/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.CanSeek">
+            <summary>
+            Indicates that the stream can seek a specific location in the stream.
+            This property always returns <see langword='false'/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.CanWrite">
+            <summary>
+            Indicates that data can be written to the stream.
+            This property always returns <see langword='true'/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.Length">
+            <summary>
+            The length of data available on the stream.
+            Always throws <see cref='T:System.NotSupportedException'/>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.Position">
+            <summary>
+            Gets or sets the position in the stream.
+            Always throws <see cref='T:System.NotSupportedException'/>.
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.SocketStream.Flush">
             <summary>
@@ -3889,36 +3934,6 @@
             <param name="offset">Offset into the buffer from where we'll start writing.</param>
             <param name="count">Number of bytes to write.</param>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.CanRead">
-            <summary>
-            Indicates that data can be read from the stream.
-            This property always returns <see langword='true'/>
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.CanSeek">
-            <summary>
-            Indicates that the stream can seek a specific location in the stream.
-            This property always returns <see langword='false'/>
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.CanWrite">
-            <summary>
-            Indicates that data can be written to the stream.
-            This property always returns <see langword='true'/>
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.Length">
-            <summary>
-            The length of data available on the stream.
-            Always throws <see cref="T:System.NotSupportedException"/>.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SocketStream.Position">
-            <summary>
-            Gets or sets the position in the stream.
-            Always throws <see cref="T:System.NotSupportedException"/>.
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Network.SockDataToken">
             <summary>
             SockDataToken class is used to associate with the SocketAsyncEventArgs object.
@@ -3960,6 +3975,11 @@
             only the application is running on a Windows OS that supports Registered IO socket.
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Network.SocketFactory.SocketWrapperType">
+            <summary>
+            Set socket wrapper type only for internal use (unit test)
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Network.SocketFactory.CreateSocket">
             <summary>
             Creates a ISocket instance based on the configuration and OS version.
@@ -3973,11 +3993,6 @@
         <member name="M:Microsoft.Spark.CSharp.Network.SocketFactory.IsRioSockSupported">
             <summary>
             Indicates whether current OS supports RIO socket.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Network.SocketFactory.SocketWrapperType">
-            <summary>
-            Set socket wrapper type only for internal use (unit test)
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Network.SocketWrapperType">
@@ -4167,6 +4182,84 @@
             Right now it just prints out the messages to Console
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.GetLoggerInstance(System.Type)">
+            <summary>
+            Get an instance of ILoggerService by a given type of logger
+            </summary>
+            <param name="type">The type of a logger to return</param>
+            <returns>An instance of ILoggerService</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String)">
+            <summary>
+            Logs a message at debug level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String,System.Object[])">
+            <summary>
+            Logs a message at debug level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String)">
+            <summary>
+            Logs a message at info level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String,System.Object[])">
+            <summary>
+            Logs a message at info level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String)">
+            <summary>
+            Logs a message at warning level.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String,System.Object[])">
+            <summary>
+            Logs a message at warning level with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String)">
+            <summary>
+            Logs a fatal message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String,System.Object[])">
+            <summary>
+            Logs a fatal message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String)">
+            <summary>
+            Logs a error message.
+            </summary>
+            <param name="message">The message to be logged</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String,System.Object[])">
+            <summary>
+            Logs a error message with a format string.
+            </summary>
+            <param name="messageFormat">The format string</param>
+            <param name="messageParameters">The array of arguments</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogException(System.Exception)">
+            <summary>
+            Logs an exception
+            </summary>
+            <param name="e">The exception to be logged</param>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Services.ILoggerService">
             <summary>
             Defines a logger what be used in service
@@ -4245,84 +4338,6 @@
             <param name="messageParameters">The array of arguments</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.LogException(System.Exception)">
-            <summary>
-            Logs an exception
-            </summary>
-            <param name="e">The exception to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.GetLoggerInstance(System.Type)">
-            <summary>
-            Get an instance of ILoggerService by a given type of logger
-            </summary>
-            <param name="type">The type of a logger to return</param>
-            <returns>An instance of ILoggerService</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String)">
-            <summary>
-            Logs a message at debug level.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogDebug(System.String,System.Object[])">
-            <summary>
-            Logs a message at debug level with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String)">
-            <summary>
-            Logs a message at info level.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogInfo(System.String,System.Object[])">
-            <summary>
-            Logs a message at info level with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String)">
-            <summary>
-            Logs a message at warning level.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogWarn(System.String,System.Object[])">
-            <summary>
-            Logs a message at warning level with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String)">
-            <summary>
-            Logs a fatal message.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogFatal(System.String,System.Object[])">
-            <summary>
-            Logs a fatal message with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String)">
-            <summary>
-            Logs a error message.
-            </summary>
-            <param name="message">The message to be logged</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogError(System.String,System.Object[])">
-            <summary>
-            Logs a error message with a format string.
-            </summary>
-            <param name="messageFormat">The format string</param>
-            <param name="messageParameters">The array of arguments</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.LogException(System.Exception)">
             <summary>
             Logs an exception
             </summary>
@@ -4664,6 +4679,27 @@
             
             See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.DataFrame
             </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Rdd">
+            <summary>
+            Represents the content of the DataFrame as an RDD of Rows.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.IsLocal">
+            <summary>
+            Returns true if the collect and take methods can be run locally (without any Spark executors).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Schema">
+            <summary>
+            Returns the schema of this DataFrame.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Item(System.String)">
+            <summary>
+            Returns a column for a given column name.
+            </summary>
+            <param name="columnName">The name of column</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.RegisterTempTable(System.String)">
             <summary>
@@ -5220,27 +5256,6 @@
             SaveMode specified by mode, and a set of options.
             </summary>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Rdd">
-            <summary>
-            Represents the content of the DataFrame as an RDD of Rows.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.IsLocal">
-            <summary>
-            Returns true if the collect and take methods can be run locally (without any Spark executors).
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Schema">
-            <summary>
-            Returns the schema of this DataFrame.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.DataFrame.Item(System.String)">
-            <summary>
-            Returns a column for a given column name.
-            </summary>
-            <param name="columnName">The name of column</param>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.JoinType">
             <summary>
             The type of join operation for DataFrame
@@ -5660,341 +5675,6 @@
             Configuration for Hive is read from hive-site.xml on the classpath.
             It supports running both SQL and HiveQL commands.
             </summary>
-        </member>
-        <member name="T:Microsoft.Spark.CSharp.Sql.SqlContext">
-            <summary>
-            The entry point for working with structured data (rows and columns) in Spark.  
-            Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext)">
-            <summary>
-            Creates a SqlContext
-            </summary>
-            <param name="sparkContext"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.GetOrCreate(Microsoft.Spark.CSharp.Core.SparkContext)">
-            <summary>
-            Get the existing SQLContext or create a new one with given SparkContext.
-            </summary>
-            <param name="sparkContext"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.NewSession">
-            <summary>
-            Returns a new SQLContext as new session, that has separate SQLConf, 
-            registered temporary tables and UDFs, but shared SparkContext and table cache.
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.GetConf(System.String,System.String)">
-            <summary>
-            Returns the value of Spark SQL configuration property for the given key.
-            If the key is not set, returns defaultValue.
-            </summary>
-            <param name="key"></param>
-            <param name="defaultValue"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.SetConf(System.String,System.String)">
-            <summary>
-            Sets the given Spark SQL configuration property.
-            </summary>
-            <param name="key"></param>
-            <param name="value"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Read">
-            <summary>
-            Returns a DataFrameReader that can be used to read data in as a DataFrame.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.ReadDataFrame(System.String,Microsoft.Spark.CSharp.Sql.StructType,System.Collections.Generic.Dictionary{System.String,System.String})">
-            <summary>
-            Loads a dataframe the source path using the given schema and options
-            </summary>
-            <param name="path"></param>
-            <param name="schema"></param>
-            <param name="options"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.CreateDataFrame(Microsoft.Spark.CSharp.Core.RDD{System.Object[]},Microsoft.Spark.CSharp.Sql.StructType)">
-            <summary>
-            Creates a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> from a RDD containing array of object using the given schema.
-            </summary>
-            <param name="rdd">RDD containing array of object. The array acts as a row and items within the array act as columns which the schema is specified in <paramref name="schema"/>. </param>
-            <param name="schema">The schema of DataFrame.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterDataFrameAsTable(Microsoft.Spark.CSharp.Sql.DataFrame,System.String)">
-            <summary>
-            Registers the given <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> as a temporary table in the catalog.
-            Temporary tables exist only during the lifetime of this instance of SqlContext.
-            </summary>
-            <param name="dataFrame"></param>
-            <param name="tableName"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.DropTempTable(System.String)">
-            <summary>
-            Remove the temp table from catalog.
-            </summary>
-            <param name="tableName"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Table(System.String)">
-            <summary>
-            Returns the specified table as a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/>
-            </summary>
-            <param name="tableName"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Tables(System.String)">
-            <summary>
-            Returns a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> containing names of tables in the given database.
-            If <paramref name="databaseName"/> is not specified, the current database will be used.
-            The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool 
-            type indicating if a table is a temporary one or not).
-            </summary>
-            <param name="databaseName">Name of the database to use. Default to the current database. 
-            Note: This is only applicable to HiveContext.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.TableNames(System.String)">
-            <summary>
-            Returns a list of names of tables in the database <paramref name="databaseName"/>
-            </summary>
-            <param name="databaseName">Name of the database to use. Default to the current database.
-            Note: This is only applicable to HiveContext.</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.CacheTable(System.String)">
-            <summary>
-            Caches the specified table in-memory.
-            </summary>
-            <param name="tableName"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.UncacheTable(System.String)">
-            <summary>
-            Removes the specified table from the in-memory cache.
-            </summary>
-            <param name="tableName"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.ClearCache">
-            <summary>
-            Removes all cached tables from the in-memory cache.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.IsCached(System.String)">
-            <summary>
-            Returns true if the table is currently cached in-memory.
-            </summary>
-            <param name="tableName"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Sql(System.String)">
-            <summary>
-            Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'
-            </summary>
-            <param name="sqlQuery"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.JsonFile(System.String)">
-            <summary>
-            Loads a JSON file (one object per line), returning the result as a DataFrame
-            It goes through the entire dataset once to determine the schema.
-            </summary>
-            <param name="path">path to JSON file</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.JsonFile(System.String,Microsoft.Spark.CSharp.Sql.StructType)">
-            <summary>
-            Loads a JSON file (one object per line) and applies the given schema
-            </summary>
-            <param name="path">path to JSON file</param>
-            <param name="schema">schema to use</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.TextFile(System.String,Microsoft.Spark.CSharp.Sql.StructType,System.String)">
-            <summary>
-            Loads text file with the specific column delimited using the given schema
-            </summary>
-            <param name="path">path to text file</param>
-            <param name="schema">schema to use</param>
-            <param name="delimiter">delimiter to use</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.TextFile(System.String,System.String,System.Boolean,System.Boolean)">
-            <summary>
-            Loads a text file (one object per line), returning the result as a DataFrame
-            </summary>
-            <param name="path">path to text file</param>
-            <param name="delimiter">delimited to use</param>
-            <param name="hasHeader">indicates if the text file has a header row</param>
-            <param name="inferSchema">indicates if every row has to be read to infer the schema; if false, columns will be strings</param>
-            <returns></returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``1(System.String,System.Func{``0})">
-            <summary>
-            Register UDF with no input argument, e.g:
-                SqlContext.RegisterFunction&lt;bool>("MyFilter", () => true);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``2(System.String,System.Func{``1,``0})">
-            <summary>
-            Register UDF with 1 input argument, e.g:
-                SqlContext.RegisterFunction&lt;bool, string>("MyFilter", (arg1) => arg1 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``3(System.String,System.Func{``1,``2,``0})">
-            <summary>
-            Register UDF with 2 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string>("MyFilter", (arg1, arg2) => arg1 != null &amp;&amp; arg2 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``4(System.String,System.Func{``1,``2,``3,``0})">
-            <summary>
-            Register UDF with 3 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, string>("MyFilter", (arg1, arg2, arg3) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``5(System.String,System.Func{``1,``2,``3,``4,``0})">
-            <summary>
-            Register UDF with 4 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg4) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <typeparam name="A4"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``6(System.String,System.Func{``1,``2,``3,``4,``5,``0})">
-            <summary>
-            Register UDF with 5 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg5) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <typeparam name="A4"></typeparam>
-            <typeparam name="A5"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``7(System.String,System.Func{``1,``2,``3,``4,``5,``6,``0})">
-            <summary>
-            Register UDF with 6 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg6) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <typeparam name="A4"></typeparam>
-            <typeparam name="A5"></typeparam>
-            <typeparam name="A6"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``8(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``0})">
-            <summary>
-            Register UDF with 7 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg7) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <typeparam name="A4"></typeparam>
-            <typeparam name="A5"></typeparam>
-            <typeparam name="A6"></typeparam>
-            <typeparam name="A7"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``9(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``0})">
-            <summary>
-            Register UDF with 8 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg8) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <typeparam name="A4"></typeparam>
-            <typeparam name="A5"></typeparam>
-            <typeparam name="A6"></typeparam>
-            <typeparam name="A7"></typeparam>
-            <typeparam name="A8"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``10(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``0})">
-            <summary>
-            Register UDF with 9 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg9) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <typeparam name="A4"></typeparam>
-            <typeparam name="A5"></typeparam>
-            <typeparam name="A6"></typeparam>
-            <typeparam name="A7"></typeparam>
-            <typeparam name="A8"></typeparam>
-            <typeparam name="A9"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``11(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``0})">
-            <summary>
-            Register UDF with 10 input arguments, e.g:
-                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg10) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null);
-                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");
-            </summary>
-            <typeparam name="RT"></typeparam>
-            <typeparam name="A1"></typeparam>
-            <typeparam name="A2"></typeparam>
-            <typeparam name="A3"></typeparam>
-            <typeparam name="A4"></typeparam>
-            <typeparam name="A5"></typeparam>
-            <typeparam name="A6"></typeparam>
-            <typeparam name="A7"></typeparam>
-            <typeparam name="A8"></typeparam>
-            <typeparam name="A9"></typeparam>
-            <typeparam name="A10"></typeparam>
-            <param name="name"></param>
-            <param name="f"></param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.HiveContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext)">
             <summary>
@@ -6798,26 +6478,345 @@
             <param name="mode">The given SaveMode</param>
             <returns>The string that represents the given SaveMode</returns>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.SqlContext">
+            <summary>
+            The entry point for working with structured data (rows and columns) in Spark.  
+            Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext)">
+            <summary>
+            Creates a SqlContext
+            </summary>
+            <param name="sparkContext"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.GetOrCreate(Microsoft.Spark.CSharp.Core.SparkContext)">
+            <summary>
+            Get the existing SQLContext or create a new one with given SparkContext.
+            </summary>
+            <param name="sparkContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.NewSession">
+            <summary>
+            Returns a new SQLContext as new session, that has separate SQLConf, 
+            registered temporary tables and UDFs, but shared SparkContext and table cache.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.GetConf(System.String,System.String)">
+            <summary>
+            Returns the value of Spark SQL configuration property for the given key.
+            If the key is not set, returns defaultValue.
+            </summary>
+            <param name="key"></param>
+            <param name="defaultValue"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.SetConf(System.String,System.String)">
+            <summary>
+            Sets the given Spark SQL configuration property.
+            </summary>
+            <param name="key"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Read">
+            <summary>
+            Returns a DataFrameReader that can be used to read data in as a DataFrame.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.ReadDataFrame(System.String,Microsoft.Spark.CSharp.Sql.StructType,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Loads a dataframe the source path using the given schema and options
+            </summary>
+            <param name="path"></param>
+            <param name="schema"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.CreateDataFrame(Microsoft.Spark.CSharp.Core.RDD{System.Object[]},Microsoft.Spark.CSharp.Sql.StructType)">
+            <summary>
+            Creates a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> from a RDD containing array of object using the given schema.
+            </summary>
+            <param name="rdd">RDD containing array of object. The array acts as a row and items within the array act as columns which the schema is specified in <paramref name="schema"/>. </param>
+            <param name="schema">The schema of DataFrame.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterDataFrameAsTable(Microsoft.Spark.CSharp.Sql.DataFrame,System.String)">
+            <summary>
+            Registers the given <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> as a temporary table in the catalog.
+            Temporary tables exist only during the lifetime of this instance of SqlContext.
+            </summary>
+            <param name="dataFrame"></param>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.DropTempTable(System.String)">
+            <summary>
+            Remove the temp table from catalog.
+            </summary>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Table(System.String)">
+            <summary>
+            Returns the specified table as a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/>
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Tables(System.String)">
+            <summary>
+            Returns a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> containing names of tables in the given database.
+            If <paramref name="databaseName"/> is not specified, the current database will be used.
+            The returned DataFrame has two columns: 'tableName' and 'isTemporary' (a column with bool 
+            type indicating if a table is a temporary one or not).
+            </summary>
+            <param name="databaseName">Name of the database to use. Default to the current database. 
+            Note: This is only applicable to HiveContext.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.TableNames(System.String)">
+            <summary>
+            Returns a list of names of tables in the database <paramref name="databaseName"/>
+            </summary>
+            <param name="databaseName">Name of the database to use. Default to the current database.
+            Note: This is only applicable to HiveContext.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.CacheTable(System.String)">
+            <summary>
+            Caches the specified table in-memory.
+            </summary>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.UncacheTable(System.String)">
+            <summary>
+            Removes the specified table from the in-memory cache.
+            </summary>
+            <param name="tableName"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.ClearCache">
+            <summary>
+            Removes all cached tables from the in-memory cache.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.IsCached(System.String)">
+            <summary>
+            Returns true if the table is currently cached in-memory.
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.Sql(System.String)">
+            <summary>
+            Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'
+            </summary>
+            <param name="sqlQuery"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.JsonFile(System.String)">
+            <summary>
+            Loads a JSON file (one object per line), returning the result as a DataFrame
+            It goes through the entire dataset once to determine the schema.
+            </summary>
+            <param name="path">path to JSON file</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.JsonFile(System.String,Microsoft.Spark.CSharp.Sql.StructType)">
+            <summary>
+            Loads a JSON file (one object per line) and applies the given schema
+            </summary>
+            <param name="path">path to JSON file</param>
+            <param name="schema">schema to use</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.TextFile(System.String,Microsoft.Spark.CSharp.Sql.StructType,System.String)">
+            <summary>
+            Loads text file with the specific column delimited using the given schema
+            </summary>
+            <param name="path">path to text file</param>
+            <param name="schema">schema to use</param>
+            <param name="delimiter">delimiter to use</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.TextFile(System.String,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Loads a text file (one object per line), returning the result as a DataFrame
+            </summary>
+            <param name="path">path to text file</param>
+            <param name="delimiter">delimited to use</param>
+            <param name="hasHeader">indicates if the text file has a header row</param>
+            <param name="inferSchema">indicates if every row has to be read to infer the schema; if false, columns will be strings</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``1(System.String,System.Func{``0})">
+            <summary>
+            Register UDF with no input argument, e.g:
+                SqlContext.RegisterFunction&lt;bool>("MyFilter", () => true);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``2(System.String,System.Func{``1,``0})">
+            <summary>
+            Register UDF with 1 input argument, e.g:
+                SqlContext.RegisterFunction&lt;bool, string>("MyFilter", (arg1) => arg1 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``3(System.String,System.Func{``1,``2,``0})">
+            <summary>
+            Register UDF with 2 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string>("MyFilter", (arg1, arg2) => arg1 != null &amp;&amp; arg2 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``4(System.String,System.Func{``1,``2,``3,``0})">
+            <summary>
+            Register UDF with 3 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, string>("MyFilter", (arg1, arg2, arg3) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``5(System.String,System.Func{``1,``2,``3,``4,``0})">
+            <summary>
+            Register UDF with 4 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg4) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``6(System.String,System.Func{``1,``2,``3,``4,``5,``0})">
+            <summary>
+            Register UDF with 5 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg5) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``7(System.String,System.Func{``1,``2,``3,``4,``5,``6,``0})">
+            <summary>
+            Register UDF with 6 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg6) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``8(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``0})">
+            <summary>
+            Register UDF with 7 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg7) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``9(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``0})">
+            <summary>
+            Register UDF with 8 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg8) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``10(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``0})">
+            <summary>
+            Register UDF with 9 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg9) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <typeparam name="A9"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.RegisterFunction``11(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``0})">
+            <summary>
+            Register UDF with 10 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg10) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <typeparam name="A9"></typeparam>
+            <typeparam name="A10"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.DataType">
             <summary>
             The base type of all Spark SQL data types.
             </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(System.String)">
-            <summary>
-            Parses a Json string to construct a DataType.
-            </summary>
-            <param name="json">The Json string to be parsed</param>
-            <returns>The new DataType instance from the Json string</returns>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(Newtonsoft.Json.Linq.JToken)">
-            <summary>
-            Parse a JToken object to construct a DataType.
-            </summary>
-            <param name="json">The JToken object to be parsed</param>
-            <returns>The new DataType instance from the Json string</returns>
-            <exception cref="T:System.NotImplementedException">Not implemented for "udt" type</exception>
-            <exception cref="T:System.ArgumentException"></exception>
         </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.DataType.TypeName">
             <summary>
@@ -6838,6 +6837,22 @@
             <summary>
             The compact JSON representation of this data type.
             </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(System.String)">
+            <summary>
+            Parses a Json string to construct a DataType.
+            </summary>
+            <param name="json">The Json string to be parsed</param>
+            <returns>The new DataType instance from the Json string</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataType.ParseDataTypeFromJson(Newtonsoft.Json.Linq.JToken)">
+            <summary>
+            Parse a JToken object to construct a DataType.
+            </summary>
+            <param name="json">The JToken object to be parsed</param>
+            <returns>The new DataType instance from the Json string</returns>
+            <exception cref="T:System.NotImplementedException">Not implemented for "udt" type</exception>
+            <exception cref="T:System.ArgumentException"></exception>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.AtomicType">
             <summary>
@@ -6953,20 +6968,6 @@
             The data type for collections of multiple values. 
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.#ctor(Microsoft.Spark.CSharp.Sql.DataType,System.Boolean)">
-            <summary>
-            Initializes a ArrayType instance with a specific DataType and specifying if the array has null values.
-            </summary>
-            <param name="elementType">The data type of values</param>
-            <param name="containsNull">Indicates if values have null values</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.FromJson(Newtonsoft.Json.Linq.JObject)">
-            <summary>
-            Constructs a ArrayType from a Json object
-            </summary>
-            <param name="json">The Json object used to construct a ArrayType</param>
-            <returns>A new ArrayType instance</returns>
-        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.ArrayType.ElementType">
             <summary>
             Gets the DataType of each element in the array
@@ -6977,10 +6978,24 @@
             Returns whether the array can contain null (None) values
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.#ctor(Microsoft.Spark.CSharp.Sql.DataType,System.Boolean)">
+            <summary>
+            Initializes a ArrayType instance with a specific DataType and specifying if the array has null values.
+            </summary>
+            <param name="elementType">The data type of values</param>
+            <param name="containsNull">Indicates if values have null values</param>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.ArrayType.SimpleString">
             <summary>
             Readable string representation for the type.
             </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.ArrayType.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a ArrayType from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a ArrayType</param>
+            <returns>A new ArrayType instance</returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.MapType">
             <summary>
@@ -6999,22 +7014,6 @@
             <summary>
             A field inside a StructType.
             </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.#ctor(System.String,Microsoft.Spark.CSharp.Sql.DataType,System.Boolean,Newtonsoft.Json.Linq.JObject)">
-            <summary>
-            Initializes a StructField instance with a specific name, data type, nullable, and metadata
-            </summary>
-            <param name="name">The name of this field</param>
-            <param name="dataType">The data type of this field</param>
-            <param name="isNullable">Indicates if values of this field can be null values</param>
-            <param name="metadata">The metadata of this field</param>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.FromJson(Newtonsoft.Json.Linq.JObject)">
-            <summary>
-            Constructs a StructField from a Json object
-            </summary>
-            <param name="json">The Json object used to construct a StructField</param>
-            <returns>A new StructField instance</returns>
         </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.StructField.Name">
             <summary>
@@ -7036,15 +7035,36 @@
             The metadata of this field. The metadata should be preserved during transformation if the content of the column is not modified, e.g, in selection. 
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.#ctor(System.String,Microsoft.Spark.CSharp.Sql.DataType,System.Boolean,Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Initializes a StructField instance with a specific name, data type, nullable, and metadata
+            </summary>
+            <param name="name">The name of this field</param>
+            <param name="dataType">The data type of this field</param>
+            <param name="isNullable">Indicates if values of this field can be null values</param>
+            <param name="metadata">The metadata of this field</param>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Sql.StructField.SimpleString">
             <summary>
             Returns a readable string that represents the type.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.StructField.FromJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Constructs a StructField from a Json object
+            </summary>
+            <param name="json">The Json object used to construct a StructField</param>
+            <returns>A new StructField instance</returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.StructType">
             <summary>
             Struct type, consisting of a list of StructField
             This is the data type representing a Row
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.Fields">
+            <summary>
+            Gets a list of StructField.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.StructType.#ctor(System.Collections.Generic.IEnumerable{Microsoft.Spark.CSharp.Sql.StructField})">
@@ -7053,6 +7073,11 @@
             </summary>
             <param name="fields">The collection that holds StructField objects</param>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.SimpleString">
+            <summary>
+            Returns a readable string that joins all <see cref="T:Microsoft.Spark.CSharp.Sql.StructField"/>s together.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.StructType.FromJson(Newtonsoft.Json.Linq.JObject)">
             <summary>
             Constructs a StructType from a Json object
@@ -7060,19 +7085,14 @@
             <param name="json">The Json object used to construct a StructType</param>
             <returns>A new StructType instance</returns>
         </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.Fields">
-            <summary>
-            Gets a list of StructField.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Sql.StructType.SimpleString">
-            <summary>
-            Returns a readable string that joins all <see cref="T:Microsoft.Spark.CSharp.Sql.StructField"/>s together.
-            </summary>
-        </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.ConstantInputDStream`1">
             <summary>
             An input stream that always returns the same RDD on each timestep. Useful for testing.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Streaming.ConstantInputDStream`1.#ctor(Microsoft.Spark.CSharp.Core.RDD{`0},Microsoft.Spark.CSharp.Streaming.StreamingContext)">
+            <summary>
+            Construct a ConstantInputDStream instance.
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.DStream`1">
@@ -7095,6 +7115,11 @@
              - A function that is used to generate an RDD after each time interval
             </summary>
             <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Streaming.DStream`1.SlideDuration">
+            <summary>
+            Return the slideDuration in seconds of this DStream
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Streaming.DStream`1.Count">
             <summary>
@@ -7352,16 +7377,6 @@
             </param>
             <param name="numPartitions">number of partitions of each RDD in the new DStream.</param>
             <returns></returns>
-        </member>
-        <member name="P:Microsoft.Spark.CSharp.Streaming.DStream`1.SlideDuration">
-            <summary>
-            Return the slideDuration in seconds of this DStream
-            </summary>
-        </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.ConstantInputDStream`1.#ctor(Microsoft.Spark.CSharp.Core.RDD{`0},Microsoft.Spark.CSharp.Streaming.StreamingContext)">
-            <summary>
-            Construct a ConstantInputDStream instance.
-            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.MapPartitionsWithIndexHelper`2">
             <summary>

@@ -12,7 +12,7 @@ import java.util.{Timer, TimerTask}
 
 import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream, ZipFile}
 import org.apache.commons.io.{FileUtils, IOUtils}
-import org.apache.spark.Logging
+import org.apache.spark.internal.Logging
 
 import scala.collection.JavaConverters._
 import scala.collection.Set
