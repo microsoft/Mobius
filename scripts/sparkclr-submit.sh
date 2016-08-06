@@ -43,7 +43,7 @@ function usage() {
 
 export SPARK_JARS_DIR="$SPARK_HOME/jars"
 
-if [ ! -d "$SPARK_JARS_DIR" ]; then
+if [ ! -d "$SPARK_JARS_DIR" ];
 then
   echo "[sparkclr-submit.sh] Failed to find Spark jars directory."
   echo "[sparkclr-submit.sh] You need to build Spark before running this program."
