@@ -4,11 +4,13 @@
 using System;
 using System.Configuration;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
 
+[assembly: InternalsVisibleTo("WorkerTest")]
 namespace Microsoft.Spark.CSharp
 {
     /// <summary>
@@ -19,9 +21,9 @@ namespace Microsoft.Spark.CSharp
     {
         private static ILoggerService logger = null;
 
-        private static readonly int readBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerReadBufferSize"] ?? "0");
+        internal static int readBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerReadBufferSize"] ?? "8192");
 
-        private static readonly int writeBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerWriteBufferSize"] ?? "8192");
+        internal static int writeBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerWriteBufferSize"] ?? "8192");
 
         private ILoggerService Logger
         {
