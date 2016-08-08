@@ -348,17 +348,9 @@ namespace WorkerTest
 
                 SerDe.Write(s, command.Length);
                 s.Write(command, 0, command.Length / 2);
-                s.Flush();
             }
 
-            if (SocketFactory.SocketWrapperType.Equals(SocketWrapperType.Rio))
-            {
-                AssertWorker(worker, -1);
-            }
-            else
-            {
-                AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
-            }
+            AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
 
             CSharpRDD_SocketServer.Close();
         }

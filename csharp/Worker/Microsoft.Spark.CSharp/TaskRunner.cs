@@ -19,7 +19,7 @@ namespace Microsoft.Spark.CSharp
     {
         private static ILoggerService logger = null;
 
-        private static readonly int readBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerReadBufferSize"] ?? "8192");
+        private static readonly int readBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerReadBufferSize"] ?? "0");
 
         private static readonly int writeBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerWriteBufferSize"] ?? "8192");
 
