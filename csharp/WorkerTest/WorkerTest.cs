@@ -338,8 +338,6 @@ namespace WorkerTest
         [Test]
         public void TestWorkerIncompleteBytes()
         {
-            if (SocketFactory.SocketWrapperType.Equals(SocketWrapperType.Rio)) return;
-
             Process worker;
             var CSharpRDD_SocketServer = CreateServer(out worker);
 
@@ -353,8 +351,14 @@ namespace WorkerTest
                 s.Flush();
             }
 
-
-            AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
+            if (SocketFactory.SocketWrapperType.Equals(SocketWrapperType.Rio))
+            {
+                AssertWorker(worker, -1);
+            }
+            else
+            {
+                AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
+            }
 
             CSharpRDD_SocketServer.Close();
         }
