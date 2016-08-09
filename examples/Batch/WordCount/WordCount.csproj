@@ -70,7 +70,9 @@
     <None Include="..\..\packages\Microsoft.SparkCLR.1.6.100\lib\net45\CSharpWorker.exe.config">
       <Link>CSharpWorker.exe.config</Link>
     </None>
-    <None Include="App.config" />
+    <None Include="..\..\App.config">
+      <Link>App.config</Link>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
