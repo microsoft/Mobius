@@ -53,7 +53,7 @@ The steps to debug a Mobius driver program are:
 ```
 #### Instructions for Mobius versions 1.6.200 or later
 * Syntax to launch CSharpBackend in debug mode is `sparkclr-submit.cmd debug <port number>`. Port number is optional. 
-  * If the port number is not specified, default port number will be used and there is no need to set that in App.Config using the key `CSharpBackendPortNumber`.
+  * If the port number is not specified, default port number (5567) will be used and there is no need to set that in App.Config using the key `CSharpBackendPortNumber`.
   * If the port number is specified, it will be used when launching the CSharpBackend. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
   * If the port number specified is 0, a random port number will be used in CSharpBackend. This behavior is same as in Mobius releases prior to 1.6.200. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
 
