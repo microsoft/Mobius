@@ -185,8 +185,8 @@ namespace Microsoft.Spark.CSharp.Configuration
                 {
                     logger.LogInfo(
                         string.Format(
-                            "Port number not set using setting {0} in App.config. Using default port {0} to connect to CSharpBackend",
-                            cSharpBackendPortNumber));
+                            "Port number not set using setting {0} in App.config. Using default port {1} to connect to CSharpBackend",
+                            CSharpBackendPortNumberSettingKey, cSharpBackendPortNumber));
                 }
                 else
                 {
