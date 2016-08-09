@@ -31,7 +31,7 @@ class CSharpBackend { self => // for accessing the this reference in inner class
   private[this] var bootstrap: ServerBootstrap = null
   private[this] var bossGroup: EventLoopGroup = null
 
-  def init(): Int = {
+  def init(portNumber: Int): Int = {
     // need at least 3 threads, use 10 here for safety
     bossGroup = new NioEventLoopGroup(10)
     val workerGroup = bossGroup
@@ -58,7 +58,7 @@ class CSharpBackend { self => // for accessing the this reference in inner class
       }
     })
 
-    channelFuture = bootstrap.bind(new InetSocketAddress("localhost", 0))
+    channelFuture = bootstrap.bind(new InetSocketAddress("localhost", portNumber))
     channelFuture.syncUninterruptibly()
     channelFuture.channel().localAddress().asInstanceOf[InetSocketAddress].getPort()
   }

@@ -24,21 +24,20 @@ import org.apache.spark.util.csharp.{Utils => CSharpSparkUtils}
  */
 // scalastyle:off println
 object CSharpRunner {
+  val MOBIUS_DEBUG_PORT = 5567
+
   def main(args: Array[String]): Unit = {
-    // determines if CSharpBackend need to be run in debug mode
-    // in debug mode this runner will not launch C# process
-    var runInDebugMode = false
 
     if (args.length == 0) {
       throw new IllegalArgumentException("At least one argument is expected for CSharpRunner")
     }
 
-    if (args.length == 1 && args(0).equalsIgnoreCase("debug")) {
-      runInDebugMode = true
-      println("[CSharpRunner.main] Debug mode is set. " +
-        "CSharp executable will not be launched as a sub-process.")
-    }
+    val runnerSettings = initializeCSharpRunnerSettings(args)
 
+    // determines if CSharpBackend need to be run in debug mode
+    // in debug mode this runner will not launch C# process
+    var runInDebugMode = runnerSettings._1
+    @volatile var csharpBackendPortNumber = runnerSettings._2
     var csharpExecutable = ""
     var otherArgs: Array[String] = null
 
@@ -83,11 +82,12 @@ object CSharpRunner {
     // Launch a SparkCLR backend server for the C# process to connect to; this will let it see our
     // Java system properties etc.
     val csharpBackend = new CSharpBackend()
-    @volatile var csharpBackendPortNumber = 0
     val initialized = new Semaphore(0)
     val csharpBackendThread = new Thread("CSharpBackend") {
       override def run() {
-        csharpBackendPortNumber = csharpBackend.init()
+        // need to get back csharpBackendPortNumber because if the value passed to init is 0
+        // the port number is dynamically assigned in the backend
+        csharpBackendPortNumber = csharpBackend.init(csharpBackendPortNumber)
         println("[CSharpRunner.main] Port number used by CSharpBackend is "
           + csharpBackendPortNumber) // TODO - send to logger also
         initialized.release()
@@ -189,6 +189,20 @@ object CSharpRunner {
   def closeBackend(csharpBackend: CSharpBackend): Unit = {
     println("[CSharpRunner.main] closing CSharpBackend")
     csharpBackend.close()
+  }
+
+  def initializeCSharpRunnerSettings(args: Array[String]): (Boolean, Int) = {
+    val runInDebugMode = (args.length == 1 || args.length == 2) && args(0).equalsIgnoreCase("debug")
+    var portNumber = 0
+    if (runInDebugMode) {
+      if (args.length == 1) {
+        portNumber = MOBIUS_DEBUG_PORT
+      } else if (args.length == 2 ) {
+        portNumber = Integer.parseInt(args(1))
+      }
+    }
+
+    (runInDebugMode, portNumber)
   }
 }
 // scalastyle:on println

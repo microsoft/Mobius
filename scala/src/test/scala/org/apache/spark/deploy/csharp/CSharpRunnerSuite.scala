@@ -26,4 +26,20 @@ class CSharpRunnerSuite extends SparkCLRFunSuite {
     assert(CSharpRunner.formatPath(path3).startsWith("."))
     assert(CSharpRunner.formatPath(path3).endsWith(path3))
   }
+
+  test("debug mode test without port number") {
+    val args = Array("debug")
+    val settings = CSharpRunner.initializeCSharpRunnerSettings(args)
+
+    assert(settings._1)
+    assert(CSharpRunner.MOBIUS_DEBUG_PORT == settings._2)
+  }
+
+  test("debug mode test with port number") {
+    val args = Array("debug", "1234")
+    val settings = CSharpRunner.initializeCSharpRunnerSettings(args)
+
+    assert(settings._1)
+    assert(1234 == settings._2)
+  }
 }
