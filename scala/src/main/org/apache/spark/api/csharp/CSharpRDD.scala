@@ -77,6 +77,18 @@ class CSharpRDD(
       logInfo(s"CSharpWorker socket type: $CSharpRDD.csharpWorkerSocketType")
     }
 
+    if (CSharpRDD.csharpWorkerReadBufferSize >= 0) {
+      envVars.put("spark.mobius.CSharpWorker.readBuffer",
+        CSharpRDD.csharpWorkerReadBufferSize.toString)
+      logInfo(s"CSharpWorker read buffer size: $CSharpRDD.csharpWorkerReadBufferSize")
+    }
+
+    if (CSharpRDD.csharpWorkerWriteBufferSize >= 0) {
+      envVars.put("spark.mobius.CSharpWorker.writeBuffer",
+        CSharpRDD.csharpWorkerWriteBufferSize.toString)
+      logInfo(s"CSharpWorker write buffer size: $CSharpRDD.csharpWorkerWriteBufferSize")
+    }
+
     val runner = new PythonRunner(
       command, envVars, cSharpIncludes, cSharpWorker.getAbsolutePath, unUsedVersionIdentifier,
       broadcastVars, accumulator, bufferSize, reuse_worker)
@@ -207,6 +219,10 @@ object CSharpRDD {
   var maxCSharpWorkerProcessCount: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.maxProcessCount", -1)
   // socket type for CSharpWorker
   var csharpWorkerSocketType: String = SparkEnv.get.conf.get("spark.mobius.CSharp.socketType", "")
+  // Buffer size in bytes for operation of reading data from JVM process
+  var csharpWorkerReadBufferSize: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.readBuffer", -1)
+  // Buffer size in bytes for operation of writing data to JVM process
+  var csharpWorkerWriteBufferSize: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.writeBuffer", -1)
 
   def createRDDFromArray(
       sc: SparkContext,
@@ -214,7 +230,7 @@ object CSharpRDD {
       numSlices: Int): JavaRDD[Array[Byte]] = {
     JavaRDD.fromRDD(sc.parallelize(arr, numSlices))
   }
-  
+
   // this method is called when saveAsTextFile is called on RDD<string>
   // calling saveAsTextFile() on CSharpRDDs result in bytes written to text file
   // - this method converts bytes to string before writing to file

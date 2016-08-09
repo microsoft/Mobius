@@ -6,6 +6,7 @@ using System.Configuration;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
@@ -20,11 +21,6 @@ namespace Microsoft.Spark.CSharp
     internal class TaskRunner
     {
         private static ILoggerService logger = null;
-
-        internal static int readBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerReadBufferSize"] ?? "8192");
-
-        internal static int writeBufferSize = int.Parse(ConfigurationManager.AppSettings["CSharpWorkerWriteBufferSize"] ?? "8192");
-
         private ILoggerService Logger
         {
             get
@@ -59,7 +55,10 @@ namespace Microsoft.Spark.CSharp
 
         public void Run()
         {
-            Logger.LogInfo(string.Format("TaskRunner [{0}] is running ...", trId));
+            int readBufferSize = int.Parse(Environment.GetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName) ?? "8192");
+            int writeBufferSize = int.Parse(Environment.GetEnvironmentVariable(ConfigurationService.CSharpWorkerWriteBufferSizeEnvName) ?? "8192");
+
+            Logger.LogInfo(string.Format("TaskRunner [{0}] is running ..., read buffer size: {1}, write buffer size: {2}", trId, readBufferSize, writeBufferSize));
 
             try
             {

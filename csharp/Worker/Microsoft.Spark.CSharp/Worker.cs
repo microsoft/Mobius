@@ -78,16 +78,10 @@ namespace Microsoft.Spark.CSharp
             Console.Error.WriteLine("input args: [{0}] SocketWrapper: [{1}]",
                 string.Join(" ", args), SocketFactory.SocketWrapperType);
 
-            if (args.Length < 2)
+            if (args.Length != 2)
             {
                 Console.Error.WriteLine("Wrong number of args: {0}, will exit", args.Count());
                 Environment.Exit(-1);
-            }
-
-            if (args.Length == 4) // for debug purpose only
-            {
-                TaskRunner.readBufferSize = int.Parse(args[2]);
-                TaskRunner.writeBufferSize = int.Parse(args[3]);
             }
 
             if ("pyspark.daemon".Equals(args[1]))

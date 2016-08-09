@@ -11,6 +11,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using Microsoft.Spark.CSharp;
 using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Core;
@@ -71,7 +72,7 @@ namespace WorkerTest
         StringBuilder output = new StringBuilder();
         private readonly object syncLock = new object();
 
-        private ISocketWrapper CreateServer(out Process worker, int readBufferSize = 8192, int writeBufferSize = 8192)
+        private ISocketWrapper CreateServer(out Process worker)
         {
             var tcpListener = SocketFactory.CreateSocket();
             tcpListener.Listen();
@@ -84,7 +85,7 @@ namespace WorkerTest
                 StartInfo =
                 {
                     FileName = Path.Combine(exeLocation, "CSharpWorker.exe"),
-                    Arguments = string.Format("-m pyspark.worker {0} {1}", readBufferSize, writeBufferSize),
+                    Arguments = "-m pyspark.worker",
                     UseShellExecute = false,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true
@@ -339,14 +340,15 @@ namespace WorkerTest
         [Test]
         public void TestWorkerIncompleteBytes()
         {
+            if (SocketFactory.SocketWrapperType.Equals(SocketWrapperType.Rio)) return;
+
             Process worker;
-            var CSharpRDD_SocketServer = CreateServer(out worker, 0);
+            var CSharpRDD_SocketServer = CreateServer(out worker);
 
             using (var serverSocket = CSharpRDD_SocketServer.Accept())
             using (var s = serverSocket.GetStream())
             {
                 WritePayloadHeaderToWorker(s);
-
                 SerDe.Write(s, command.Length);
                 s.Write(command, 0, command.Length / 2);
             }
