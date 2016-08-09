@@ -46,8 +46,9 @@ SparkCLRCodeCoverage.xml
 AdapterTestCoverage.xml
 TestResult.xml
 csharp/SparkCLR.compiled.nuspec
+cpp/Riosock.sdf
 
 # Office Doc Temp files #
 #########################
-docs/~$SparkCLR.pptx
-docs/~$arkCLR.docx
+docs/~$Mobius.pptx
+docs/~$Mobius.docx
