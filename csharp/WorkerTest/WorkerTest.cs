@@ -340,22 +340,34 @@ namespace WorkerTest
         [Test]
         public void TestWorkerIncompleteBytes()
         {
-            if (SocketFactory.SocketWrapperType.Equals(SocketWrapperType.Rio)) return;
+            var originalReadBufferSize = Environment.GetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName);
 
-            Process worker;
-            var CSharpRDD_SocketServer = CreateServer(out worker);
-
-            using (var serverSocket = CSharpRDD_SocketServer.Accept())
-            using (var s = serverSocket.GetStream())
+            try
             {
-                WritePayloadHeaderToWorker(s);
-                SerDe.Write(s, command.Length);
-                s.Write(command, 0, command.Length / 2);
+                if (SocketFactory.SocketWrapperType.Equals(SocketWrapperType.Rio))
+                {
+                    Environment.SetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName, "0");
+                }
+
+                Process worker;
+                var CSharpRDD_SocketServer = CreateServer(out worker);
+
+                using (var serverSocket = CSharpRDD_SocketServer.Accept())
+                using (var s = serverSocket.GetStream())
+                {
+                    WritePayloadHeaderToWorker(s);
+                    SerDe.Write(s, command.Length);
+                    s.Write(command, 0, command.Length/2);
+                }
+
+                AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
+
+                CSharpRDD_SocketServer.Close();
             }
-
-            AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
-
-            CSharpRDD_SocketServer.Close();
+            finally
+            {
+                Environment.SetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName, originalReadBufferSize);
+            }
         }
 
         /// <summary>
