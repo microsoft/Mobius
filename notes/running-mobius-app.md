@@ -40,15 +40,22 @@ To use Mobius with Spark available locally in a machine, navigate to `%SPARKCLR_
 ### Debug Mode
 Debug mode is used to step through the C# code in Visual Studio during a debugging session. With this mode, driver-side operations can be debugged. 
 
-1. Navigate to `%SPARKCLR_HOME%\scripts` directory and run `sparkclr-submit.cmd debug`
+The steps to debug a Mobius driver program are:
+
+1. Navigate to `%SPARKCLR_HOME%\scripts` directory and run `sparkclr-submit.cmd debug` (**Note**: refer to [additional instructions]() for Mobius versions 1.6.200 or later)
 2. Look for the message in the console output that looks like "Port number used by CSharpBackend is <portnumber>". Note down the port number and use it in the next step
 3. Add the following XML snippet to App.Config in the Visual Studio project for Mobius application that you want to debug and start debugging
 ```
 <appSettings>
-    <add key="CSharpWorkerPath" value="/path/to/CSharpWorker.exe"/>
+    <add key="CSharpWorkerPath" value="/path/to/driverprogram/CSharpWorker.exe"/>
     <add key="CSharpBackendPortNumber" value="port_number_from_previous_step"/>
 </appSettings>
 ```
+#### Instructions for Mobius versions 1.6.200 or later
+* Syntax to launch CSharpBackend in debug mode is `sparkclr-submit.cmd debug <port number>`. Port number is optional. 
+  * If the port number is not specified, default port number will be used and there is no need to set that in App.Config using the key `CSharpBackendPortNumber`.
+  * If the port number is specified, it will be used when launching the CSharpBackend. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
+  * If the port number specified is 0, a random port number will be used in CSharpBackend. This behavior is same as in Mobius releases prior to 1.6.200. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
 
 **Notes**
 * `CSharpWorkerPath` - the folder containing CSharpWorker.exe should also contain Microsoft.Spark.CSharp.Adapter.dll, executable that has the Mobius driver application and any dependent binaries. Typically, the path to CSharpWorker.exe in the build output directory of Mobius application is used for this configuration value
