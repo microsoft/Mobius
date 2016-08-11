@@ -154,12 +154,12 @@
     <Compile Include="Streaming\TransformedDStream.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
-    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
+    <ContentWithTargetPath Include="..\..\..\cpp\x64\$(ConfigurationName)\Riosock.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Cpp\Riosock.dll</Link>
       <TargetPath>Riosock.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
+    <ContentWithTargetPath Include="..\..\..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Cpp\Riosock.dll</Link>
       <TargetPath>Riosock.pdb</TargetPath>

@@ -57,6 +57,9 @@ namespace AdapterTest
                         
                         Thread.SpinWait(0);
 
+                        // Send more bytes to test ReadByte() do not cause failures
+                        s.Write(bytes, 0, bytesRec);
+
                         // Keep sending to ensure no memory leak
                         var longBytes = Encoding.UTF8.GetBytes(new string('x', 8192));
                         for (int i = 0; i < 1000; i++)
@@ -112,6 +115,10 @@ namespace AdapterTest
                 // Receive echo message
                 var oneByte = s.ReadByte();
                 Assert.AreEqual((byte)1, oneByte);
+
+                // Receive more message to test ReadByte do not cause failures.
+                bytesRec = s.Read(bytes, 0, bytes.Length);
+                Assert.AreNotEqual(0, bytesRec);
 
                 // Keep receiving to ensure no memory leak.
                 while (true)
