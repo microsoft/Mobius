@@ -32,11 +32,19 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         internal static SparkContext GetActiveSparkContext()
         {
-                return _activeSparkContext;
+            return _activeSparkContext;
         }
 
         private AccumulatorServer accumulatorServer;
         private int nextAccumulatorId;
+
+        /// <summary>
+        /// Return a copy of this JavaSparkContext's configuration. The configuration ''cannot'' be changed at runtime.
+        /// </summary>
+        public SparkConf GetConf()
+        {
+            return new SparkConf(SparkContextProxy.GetConf());
+        }
 
         /// <summary>
         /// The version of Spark on which this application is running.
@@ -88,7 +96,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="sparkHome">the path that holds spark bits</param>
         public SparkContext(string master, string appName, string sparkHome)
             : this(master, appName, sparkHome, null)
-        {}
+        { }
 
         /// <summary>
         /// Initializes a SparkContext instance with a specific master and application name.
@@ -97,7 +105,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="appName"></param>
         public SparkContext(string master, string appName)
             : this(master, appName, null, null)
-        {}
+        { }
 
         /// <summary>
         /// Initializes a SparkContext instance with a specific spark config.
@@ -105,7 +113,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="conf">A SparkConf object that represents the settings for spark</param>
         public SparkContext(SparkConf conf)
             : this(null, null, null, conf)
-        {}
+        { }
 
         /// <summary>
         /// when created from checkpoint
@@ -584,6 +592,27 @@ namespace Microsoft.Spark.CSharp.Core
             Array.Reverse(lengthAsBytes);
             commandPayloadBytesList.Add(lengthAsBytes);
             commandPayloadBytesList.Add(modeBytes);
+
+            // add run mode
+            // N - normal
+            // R - repl
+            var runMode = Environment.GetEnvironmentVariable("SPARKCLR_RUN_MODE") ?? "N";
+            var runModeBytes = Encoding.UTF8.GetBytes(runMode);
+            lengthAsBytes = BitConverter.GetBytes(runModeBytes.Length);
+            Array.Reverse(lengthAsBytes);
+            commandPayloadBytesList.Add(lengthAsBytes);
+            commandPayloadBytesList.Add(runModeBytes);
+
+            if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // add compilation dump directory
+                var compilationDumpDirBytes = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SPARKCLR_SCRIPT_COMPILATION_DIR")?? ".");
+                lengthAsBytes = BitConverter.GetBytes(compilationDumpDirBytes.Length);
+                Array.Reverse(lengthAsBytes);
+                commandPayloadBytesList.Add(lengthAsBytes);
+                commandPayloadBytesList.Add(compilationDumpDirBytes);
+            }
+
             // add func
             var funcBytes = stream.ToArray();
             var funcBytesLengthAsBytes = BitConverter.GetBytes(funcBytes.Length);

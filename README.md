@@ -25,7 +25,7 @@ metricDataFrame.RegisterTempTable("metrics");
 var joinDataFrame = GetSqlContext().Sql(  
     "SELECT joinedtable.datacenter" +
          ", MAX(joinedtable.latency) maxlatency" +
-         ", AVG(joinedtable.latency) avglatency " + 
+         ", AVG(joinedtable.latency) avglatency " +
     "FROM (" +
        "SELECT a.C1 as datacenter, b.C6 as latency " +  
        "FROM requests a JOIN metrics b ON a.C0  = b.C3) joinedtable " +   
@@ -79,21 +79,21 @@ StreamingContext sparkStreamingContext = StreamingContext.GetOrCreate(checkpoint
 sparkStreamingContext.Start();
 sparkStreamingContext.AwaitTermination();
 ```
-Refer to [Mobius\csharp\Samples](csharp/Samples) directory and [sample usage](csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
+Refer to [Mobius\csharp\Samples](./csharp/Samples) directory and [sample usage](./csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
 
 ## API Documentation
 
-Refer to [Mobius C# API documentation](csharp/Adapter/documentation/Mobius_API_Documentation.md) for the list of Spark's data processing operations supported in Mobius.
+Refer to [Mobius C# API documentation](./csharp/Adapter/documentation/Mobius_API_Documentation.md) for the list of Spark's data processing operations supported in Mobius.
 
 ## API Usage
 
 Mobius API usage samples are available at:
 
-* [Examples folder](./examples) which contains standalone [C# projects](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) that can be used as templates to start developing Mobius applications
+* [Examples folder](./examples) which contains standalone [C# projects](./notes/running-mobius-app.md#running-mobius-examples-in-local-mode) that can be used as templates to start developing Mobius applications
 
-* [Samples project](csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of Mobius APIs to implement samples that are also used for functional validation of APIs
- 
-* Mobius performance test scenarios implemented in [C#](csharp/Perf/Microsoft.Spark.CSharp) and [Scala](scala/perf) for side by side comparison of Spark driver code
+* [Samples project](./csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of Mobius APIs to implement samples that are also used for functional validation of APIs
+
+* Mobius performance test scenarios implemented in [C#](./csharp/Perf/Microsoft.Spark.CSharp) and [Scala](./scala/perf) for side by side comparison of Spark driver code
 
 ## Documents
 
@@ -113,11 +113,12 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 |Run samples (functional tests) in local mode |[Samples in Windows](notes/windows-instructions.md#running-samples) |[Samples in Linux](notes/linux-instructions.md#running-mobius-samples-in-linux) |
 |Run examples in local mode |[Examples in Windows](/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) |[Examples in Linux](notes/linux-instructions.md#running-mobius-examples-in-linux) |
 |Run Mobius app |<ul><li>[Standalone cluster](notes/running-mobius-app.md#standalone-cluster)</li><li>[YARN cluster](notes/running-mobius-app.md#yarn-cluster)</li></ul> |<ul><li>[Linux cluster](notes/linux-instructions.md#running-mobius-applications-in-linux)</li><li>[Azure HDInsight Spark Cluster](/notes/linux-instructions.md#mobius-in-azure-hdinsight-spark-cluster)</li><li>[AWS EMR Spark Cluster](/notes/linux-instructions.md#mobius-in-amazon-web-services-emr-spark-cluster)</li> |
+|Run Mobius Shell |<ul><li>[Local](notes/mobius-shell.md#run-shell)</li><li>[YARN](notes/mobius-shell.md#run-shell)</li></ul> | Not supported yet |
 
 ### Useful Links
-* [Configuration parameters in Mobius](/notes/configuration-mobius.md)
-* [Troubleshoot errors in Mobius](/notes/troubleshooting-mobius.md)
-* [Debug Mobius apps](/notes/running-mobius-app.md#debug-mode)
+* [Configuration parameters in Mobius](./notes/configuration-mobius.md)
+* [Troubleshoot errors in Mobius](./notes/troubleshooting-mobius.md)
+* [Debug Mobius apps](./notes/running-mobius-app.md#debug-mode)
 
 ## Supported Spark Versions
 
@@ -129,7 +130,7 @@ Mobius releases are available at https://github.com/Microsoft/Mobius/releases. R
 
 [![NuGet Badge](https://buildstats.info/nuget/Microsoft.SparkCLR)](https://www.nuget.org/packages/Microsoft.SparkCLR)
 
-Refer to [mobius-release-info.md](notes/mobius-release-info.md) for the details on versioning policy and the contents of the release.
+Refer to [mobius-release-info.md](./notes/mobius-release-info.md) for the details on versioning policy and the contents of the release.
 
 ## License
 
@@ -145,7 +146,7 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
 [![Join the chat at https://gitter.im/Microsoft/Mobius](https://badges.gitter.im/Microsoft/Mobius.svg)](https://gitter.im/Microsoft/Mobius?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Twitter](https://img.shields.io/twitter/url/http/twitter.com/MobiusForSpark.svg?style=social)](https://twitter.com/intent/tweet?text=@MobiusForSpark [your tweet] via @GitHub)
 
-* Mobius project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](notes/CONTRIBUTING.md)
+* Mobius project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](./notes/CONTRIBUTING.md)
 
 * Options to ask your question to the Mobius community
   * create issue on [GitHub](https://github.com/Microsoft/Mobius)

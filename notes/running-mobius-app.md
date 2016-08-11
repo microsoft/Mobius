@@ -40,15 +40,22 @@ To use Mobius with Spark available locally in a machine, navigate to `%SPARKCLR_
 ### Debug Mode
 Debug mode is used to step through the C# code in Visual Studio during a debugging session. With this mode, driver-side operations can be debugged. 
 
-1. Navigate to `%SPARKCLR_HOME%\scripts` directory and run `sparkclr-submit.cmd debug`
+The steps to debug a Mobius driver program are:
+
+1. Navigate to `%SPARKCLR_HOME%\scripts` directory and run `sparkclr-submit.cmd debug` (**Note**: refer to [additional instructions](https://github.com/Microsoft/Mobius/blob/master/notes/running-mobius-app.md#instructions-for-mobius-versions-16200-or-later) for Mobius versions 1.6.200 or later)
 2. Look for the message in the console output that looks like "Port number used by CSharpBackend is <portnumber>". Note down the port number and use it in the next step
 3. Add the following XML snippet to App.Config in the Visual Studio project for Mobius application that you want to debug and start debugging
 ```
 <appSettings>
-    <add key="CSharpWorkerPath" value="/path/to/CSharpWorker.exe"/>
+    <add key="CSharpWorkerPath" value="/path/to/driverprogram/CSharpWorker.exe"/>
     <add key="CSharpBackendPortNumber" value="port_number_from_previous_step"/>
 </appSettings>
 ```
+#### Instructions for Mobius versions 1.6.200 or later
+* Syntax to launch CSharpBackend in debug mode is `sparkclr-submit.cmd debug <port number>`. Port number is optional. 
+  * If the port number is not specified, default port number (5567) will be used and there is no need to set that in App.Config using the key `CSharpBackendPortNumber`.
+  * If the port number is specified, it will be used when launching the CSharpBackend. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
+  * If the port number specified is 0, a random port number will be used in CSharpBackend. This behavior is same as in Mobius releases prior to 1.6.200. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
 
 **Notes**
 * `CSharpWorkerPath` - the folder containing CSharpWorker.exe should also contain Microsoft.Spark.CSharp.Adapter.dll, executable that has the Mobius driver application and any dependent binaries. Typically, the path to CSharpWorker.exe in the build output directory of Mobius application is used for this configuration value
@@ -125,8 +132,8 @@ Instructions to run Mobius applications in Linux are available at [linux-instruc
 ## Running Mobius Examples in Local Mode
 | Type          | Examples      |
 | ------------- |--------------|
-| Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li></ul> |
-| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li><li>[Cassandra](#cassandra-example-sql)</li></ul> |
+| Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li><li>[Word Count (F#)](#wordcount-example---f-batch)</li></ul> |
+| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li><li>[Cassandra](#cassandra-example-sql)</li><li>[JSON (F#)](#json-example---f-sql)</li></ul> |
 | Streaming | <ul><li>[Kafka](#kafka-example-streaming)</li><li>[EventHubs](#eventhubs-example-streaming)</li><li>[HDFS Word Count](#hdfswordcount-example-streaming)</li></ul> |
 
 The following sample commands show how to run Mobius examples in local mode. Using the instruction above, the following sample commands can be tweaked to run in other modes
@@ -137,7 +144,18 @@ The following sample commands show how to run Mobius examples in local mode. Usi
 Computes the _approximate_ value of Pi using two appropaches and displays the value.
 
 ### WordCount Example (Batch)
-* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Batch\WordCount\bin\Debug <inputFile>`
+* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Batch\WordCount\bin\Debug <InputFilePath>`
+
+`InputFilePath` should be in one of the following formats:
+* `hdfs://path/to/inputfile`
+* `file:///C:/path/to/inputfile`
+
+### WordCount Example - F# (Batch)
+* Run `sparkclr-submit.cmd --exe WordCountFSharp.exe C:\Git\Mobius\examples\fsharp\WordCount\bin\Debug <InputFilePath>`
+
+`InputFilePath` should be in one of the following formats:
+* `hdfs://path/to/inputfile`
+* `file:///C:/path/to/inputfile`
 
 ### JDBC Example (Sql)
 * Download a JDBC driver for the SQL Database you want to use
@@ -169,6 +187,15 @@ Reads data from a csv file, creates a Hive table and reads data from it
 * **Note** - If you created keyspace and tables with different names than what is in the CQL in the example or do not have Cassandra in localhost, you need to pass arguments to the example `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug <host name> <keyspace name> <users table name> <filtered users table name>`
 
 This sample reads data from a table, displays results in the console, performs filter on dataframe and writes results to another table
+
+### JSON Example - F# (Sql)
+* Run `sparkclr-submit.cmd --exe JsonDataFrame.exe C:\Git\Mobius\examples\fsharp\JsonDataFrame\bin\Debug <InputFilePath>`
+
+A file named data.json available in the same location as JsonDataFrame.exe and it may be used when running the example
+
+`InputFilePath` should be in one of the following formats:
+* `hdfs://path/to/inputfile`
+* `file:///C:/path/to/inputfile`
 
 ### EventHubs Example (Streaming)
 * Get the following jar files

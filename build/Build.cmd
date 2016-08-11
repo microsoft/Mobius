@@ -36,6 +36,7 @@ if NOT EXIST "%SPARKCLR_HOME%\bin" mkdir "%SPARKCLR_HOME%\bin"
 if NOT EXIST "%SPARKCLR_HOME%\data" mkdir "%SPARKCLR_HOME%\data"
 if NOT EXIST "%SPARKCLR_HOME%\lib" mkdir "%SPARKCLR_HOME%\lib"
 if NOT EXIST "%SPARKCLR_HOME%\samples" mkdir "%SPARKCLR_HOME%\samples"
+if NOT EXIST "%SPARKCLR_HOME%\repl" mkdir "%SPARKCLR_HOME%\repl"
 
 @echo Assemble Mobius Scala components
 pushd "%CMDHOME%\..\scala"
@@ -153,6 +154,11 @@ copy /y Samples\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\samples\"
 
 @echo Mobius Samples data
 copy /y Samples\Microsoft.Spark.CSharp\data\* "%SPARKCLR_HOME%\data\"
+
+@echo SparkCLR REPL
+copy /y Worker\Microsoft.Spark.CSharp\bin\Release\* "%SPARKCLR_HOME%\repl\"
+copy /y Repl\bin\Release\* "%SPARKCLR_HOME%\repl\"
+
 popd
 
 @echo Download external dependencies

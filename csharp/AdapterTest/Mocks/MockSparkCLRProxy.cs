@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -13,6 +14,7 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Sql;
 
+[assembly: InternalsVisibleTo("ReplTest")] 
 namespace AdapterTest.Mocks
 {
     internal class MockSparkCLRProxy : ISparkCLRProxy

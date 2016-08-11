@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 open Microsoft.Spark.CSharp.Core
 open Microsoft.Spark.CSharp.Services
 open System.Reflection

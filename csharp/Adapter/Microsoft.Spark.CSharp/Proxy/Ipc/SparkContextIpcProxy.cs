@@ -23,6 +23,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         private JvmObjectReference jvmAccumulatorReference;
         internal List<JvmObjectReference> jvmBroadcastReferences = new List<JvmObjectReference>();
 
+        public ISparkConfProxy GetConf()
+        {
+            return new SparkConfIpcProxy(new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "getConf")));
+        }  
+
         internal JvmObjectReference JvmSparkContextReference
         {
             get { return jvmSparkContextReference; }
