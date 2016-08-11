@@ -1,4 +1,7 @@
-﻿namespace WordCountFSharp.AssemblyInfo
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace WordCountFSharp.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
