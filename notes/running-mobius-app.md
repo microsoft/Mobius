@@ -59,7 +59,8 @@ The steps to debug a Mobius driver program are:
 
 **Notes**
 * `CSharpWorkerPath` - the folder containing CSharpWorker.exe should also contain Microsoft.Spark.CSharp.Adapter.dll, executable that has the Mobius driver application and any dependent binaries. Typically, the path to CSharpWorker.exe in the build output directory of Mobius application is used for this configuration value
-* If a jar file is required by Spark (for example, spark-xml_2.10-0.3.1.jar to process XML files) then the local path to the jar file must set using the command `set SPARKCLR_DEBUGMODE_EXT_JARS=C:\ext\spark-xml\spark-xml_2.10-0.3.1.jar` before launching CSharpBackend in step #1
+* In debug mode `sparkclr-submit.cmd` (or `sparkclr-submit.sh`) does not support commandline parameters like `--jars` or `--conf`.
+ * If a jar file is required by Spark (for example, spark-xml_2.10-0.3.1.jar to process XML files) then the local path to the jar file must set using the command `set SPARKCLR_DEBUGMODE_EXT_JARS=C:\ext\spark-xml\spark-xml_2.10-0.3.1.jar` before launching CSharpBackend in step #1 above
 
 ### Standalone Cluster
 #### Client Mode
