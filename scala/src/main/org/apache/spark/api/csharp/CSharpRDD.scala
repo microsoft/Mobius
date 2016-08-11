@@ -76,12 +76,12 @@ class CSharpRDD(
     }
 
     if (CSharpRDD.csharpWorkerReadBufferSize >= 0) {
-      envVars.put("spark.mobius.CSharpWorker.readBuffer",
+      envVars.put("spark.mobius.CSharpWorker.readBufferSize",
         CSharpRDD.csharpWorkerReadBufferSize.toString)
     }
 
     if (CSharpRDD.csharpWorkerWriteBufferSize >= 0) {
-      envVars.put("spark.mobius.CSharpWorker.writeBuffer",
+      envVars.put("spark.mobius.CSharpWorker.writeBufferSize",
         CSharpRDD.csharpWorkerWriteBufferSize.toString)
     }
 
