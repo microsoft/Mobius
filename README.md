@@ -1,7 +1,7 @@
 <img src='logo/mobius-star-200.png' width='125px' alt='Mobius logo' />
 # Mobius: C# API for Spark
 
-[Mobius](https://github.com/Microsoft/Mobius) adds C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in C#.
+[Mobius](https://github.com/Microsoft/Mobius) provides C# language binding to [Apache Spark](https://spark.apache.org/), enabling the implementation of Spark driver code and data processing operations in the languages supported in the .NET framework like C# or F#.
 
 For example, the word count sample in Apache Spark can be implemented in C# as follows :
 
@@ -79,7 +79,7 @@ StreamingContext sparkStreamingContext = StreamingContext.GetOrCreate(checkpoint
 sparkStreamingContext.Start();
 sparkStreamingContext.AwaitTermination();
 ```
-Refer to [Mobius\csharp\Samples](./csharp/Samples) directory and [sample usage](./csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) for complete samples.
+For more code samples, refer to [Mobius\examples](./examples) directory or [Mobius\csharp\Samples](./csharp/Samples) directory.
 
 ## API Documentation
 
@@ -89,7 +89,7 @@ Refer to [Mobius C# API documentation](./csharp/Adapter/documentation/Mobius_API
 
 Mobius API usage samples are available at:
 
-* [Examples folder](./examples) which contains standalone [C# projects](./notes/running-mobius-app.md#running-mobius-examples-in-local-mode) that can be used as templates to start developing Mobius applications
+* [Examples folder](./examples) which contains standalone [C#/F# projects](./notes/running-mobius-app.md#running-mobius-examples-in-local-mode) that can be used as templates to start developing Mobius applications
 
 * [Samples project](./csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of Mobius APIs to implement samples that are also used for functional validation of APIs
 
