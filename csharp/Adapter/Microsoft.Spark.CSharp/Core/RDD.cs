@@ -1157,8 +1157,8 @@ namespace Microsoft.Spark.CSharp.Core
         internal static T[] TakeOrdered<T>(this RDD<T> self, int num, bool ascending, Func<T, dynamic> keyFunc = null) where T : IComparable<T>
         {
             var helper = new TakeOrderedHelper<T>(num, keyFunc, ascending);
-            return self.MapPartitionsWithIndex(helper.Execute)
-                    .Reduce(helper.Execute2)
+            return self.MapPartitionsWithIndex(helper.TakeOrderedInPartition)
+                    .Reduce(helper.MergeTwoPriorityQueues)
                     .OrderBy(x => keyFunc == null ? x : keyFunc(x))
                     .ToArray();
         }
@@ -1483,7 +1483,8 @@ namespace Microsoft.Spark.CSharp.Core
             this.keyFunc = keyFunc;
             this.ascending = ascending;
         }
-        internal IEnumerable<PriorityQueue<T>> Execute(int pid, IEnumerable<T> input)
+
+        internal IEnumerable<PriorityQueue<T>> TakeOrderedInPartition(int pid, IEnumerable<T> input)
         {
             Comparer<T> comparer;
 
@@ -1519,7 +1520,7 @@ namespace Microsoft.Spark.CSharp.Core
             return new[] { priorityQueue };
         }
 
-        internal PriorityQueue<T> Execute2(PriorityQueue<T> queue1, PriorityQueue<T> queue2)
+        internal PriorityQueue<T> MergeTwoPriorityQueues(PriorityQueue<T> queue1, PriorityQueue<T> queue2)
         {
             foreach (var e in queue1)
             {

@@ -46,7 +46,7 @@ namespace Microsoft.Spark.CSharp.Core
             var i = elementCount;
             if (i >= queue.Length)
             {
-                if (GE(queue[0], e)) // compare it with root of the heap
+                if (GT(queue[0], e)) // compare it with root of the heap
                 {
                     queue[0] = e;
                     SiftDownHeapRoot();
@@ -77,7 +77,7 @@ namespace Microsoft.Spark.CSharp.Core
                 var child = (k << 1) + 1;
                 var c = queue[child];
                 var right = child + 1;
-                if (right < elementCount && GE(queue[right], c))
+                if (right < elementCount && GT(queue[right], c))
                 {
                     c = queue[child = right];
                 }
@@ -112,10 +112,16 @@ namespace Microsoft.Spark.CSharp.Core
             queue[k] = x;
         }
 
+        // helper method for comparision
+        private bool GT(T a, T b)
+        {
+            return comparer.Compare(a, b) > 0;
+        }
+
         // great or equal, helper method for comparision
         private bool GE(T a, T b)
         {
-            return comparer.Compare(a, b) > 0;
+            return comparer.Compare(a, b) >= 0;
         }
 
         public IEnumerator<T> GetEnumerator()
