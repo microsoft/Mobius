@@ -89,6 +89,11 @@ namespace Microsoft.Spark.CSharp.Core
         public StatusTracker StatusTracker { get { return new StatusTracker(SparkContextProxy.StatusTracker); } }
 
         /// <summary>
+        /// Configuration for Hadoop usage in Spark
+        /// </summary>
+        public HadoopConfiguration HadoopConfiguration { get { return new HadoopConfiguration(SparkContextProxy.HadoopConfiguration); }}
+
+        /// <summary>
         /// Initializes a SparkContext instance with a specific master, application name, and spark home 
         /// </summary>
         /// <param name="master">Cluster URL to connect to (e.g. mesos://host:port, spark://host:port, local)</param>

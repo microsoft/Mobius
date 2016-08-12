@@ -77,6 +77,7 @@
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
     <Compile Include="EventHubsUtilsTest.cs" />
+    <Compile Include="HadoopConfigurationTest.cs" />
     <Compile Include="JsonSerDeTest.cs" />
     <Compile Include="FunctionsTest.cs" />
     <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />

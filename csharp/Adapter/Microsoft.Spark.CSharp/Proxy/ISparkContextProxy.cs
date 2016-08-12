@@ -27,6 +27,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         long StartTime { get; }
         int DefaultParallelism { get; }
         int DefaultMinPartitions { get; }
+        IHadoopConfigurationProxy HadoopConfiguration { get; }
         void Stop();
         IRDDProxy EmptyRDD();
         IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices);
