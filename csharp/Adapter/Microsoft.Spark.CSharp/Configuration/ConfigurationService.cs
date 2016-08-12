@@ -21,6 +21,8 @@ namespace Microsoft.Spark.CSharp.Configuration
         public const string CSharpWorkerPathSettingKey = "CSharpWorkerPath";
         public const string CSharpBackendPortNumberSettingKey = "CSharpBackendPortNumber";
         public const string CSharpSocketTypeEnvName = "spark.mobius.CSharp.socketType";
+        public const string CSharpWorkerReadBufferSizeEnvName = "spark.mobius.CSharpWorker.readBufferSize";
+        public const string CSharpWorkerWriteBufferSizeEnvName = "spark.mobius.CSharpWorker.writeBufferSize";
         public const string SPARKCLR_HOME = "SPARKCLR_HOME";
         public const string SPARK_MASTER = "spark.master";
         public const string CSHARPBACKEND_PORT = "CSHARPBACKEND_PORT";
@@ -208,7 +210,7 @@ namespace Microsoft.Spark.CSharp.Configuration
                     logger.LogInfo("Worker path read from setting {0} in app config", CSharpWorkerPathSettingKey);
                     return workerPathConfig.Value;
                 }
-                
+
                 var path = GetSparkCLRArtifactsPath("bin", ProcFileName);
                 logger.LogInfo("Worker path {0} constructed using {1} environment variable", path, SPARKCLR_HOME);
 

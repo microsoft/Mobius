@@ -155,7 +155,7 @@ namespace Microsoft.Spark.CSharp
             return socket;
         }
 
-        public static bool ProcessStream(Stream networkStream, int splitIndex)
+        public static bool ProcessStream(Stream inputStream, Stream outputStream, int splitIndex)
         {
             logger.LogInfo(string.Format("Start of stream processing, splitIndex: {0}", splitIndex));
             bool readComplete = true;   // Whether all input data from the socket is read though completely
@@ -164,7 +164,7 @@ namespace Microsoft.Spark.CSharp
             {
                 DateTime bootTime = DateTime.UtcNow;
 
-                string ver = SerDe.ReadString(networkStream);
+                string ver = SerDe.ReadString(inputStream);
                 logger.LogDebug("version: " + ver);
 
                 //// initialize global state
@@ -172,30 +172,30 @@ namespace Microsoft.Spark.CSharp
                 //shuffle.DiskBytesSpilled = 0
 
                 // fetch name of workdir
-                string sparkFilesDir = SerDe.ReadString(networkStream);
+                string sparkFilesDir = SerDe.ReadString(inputStream);
                 logger.LogDebug("spark_files_dir: " + sparkFilesDir);
                 //SparkFiles._root_directory = sparkFilesDir
                 //SparkFiles._is_running_on_worker = True
 
-                ProcessIncludesItems(networkStream);
+                ProcessIncludesItems(inputStream);
 
-                ProcessBroadcastVariables(networkStream);
+                ProcessBroadcastVariables(inputStream);
 
                 Accumulator.threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
 
-                var formatter = ProcessCommand(networkStream, splitIndex, bootTime);
+                var formatter = ProcessCommand(inputStream, outputStream, splitIndex, bootTime);
 
                 // Mark the beginning of the accumulators section of the output
-                SerDe.Write(networkStream, (int)SpecialLengths.END_OF_DATA_SECTION);
+                SerDe.Write(outputStream, (int)SpecialLengths.END_OF_DATA_SECTION);
 
-                WriteAccumulatorValues(networkStream, formatter);
+                WriteAccumulatorValues(outputStream, formatter);
 
-                int end = SerDe.ReadInt(networkStream);
+                int end = SerDe.ReadInt(inputStream);
 
                 // check end of stream
                 if (end == (int)SpecialLengths.END_OF_STREAM)
                 {
-                    SerDe.Write(networkStream, (int)SpecialLengths.END_OF_STREAM);
+                    SerDe.Write(outputStream, (int)SpecialLengths.END_OF_STREAM);
                     logger.LogDebug("END_OF_STREAM: " + (int)SpecialLengths.END_OF_STREAM);
                 }
                 else
@@ -203,11 +203,11 @@ namespace Microsoft.Spark.CSharp
                     // This may happen when the input data is not read completely, e.g., when take() operation is performed
                     logger.LogWarn(string.Format("**** unexpected read: {0}, not all data is read", end));
                     // write a different value to tell JVM to not reuse this worker
-                    SerDe.Write(networkStream, (int)SpecialLengths.END_OF_DATA_SECTION);
+                    SerDe.Write(outputStream, (int)SpecialLengths.END_OF_DATA_SECTION);
                     readComplete = false;
                 }
 
-                networkStream.Flush();
+                outputStream.Flush();
 
                 // log bytes read and write
                 logger.LogDebug(string.Format("total read bytes: {0}", SerDe.totalReadNum));
@@ -222,7 +222,7 @@ namespace Microsoft.Spark.CSharp
                 try
                 {
                     logger.LogError("Trying to write error to stream");
-                    SerDe.Write(networkStream, e.ToString());
+                    SerDe.Write(outputStream, e.ToString());
                 }
                 catch (IOException)
                 {
@@ -281,9 +281,9 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        private static IFormatter ProcessCommand(Stream networkStream, int splitIndex, DateTime bootTime)
+        private static IFormatter ProcessCommand(Stream inputStream, Stream outputStream, int splitIndex, DateTime bootTime)
         {
-            int lengthOfCommandByteArray = SerDe.ReadInt(networkStream);
+            int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
             logger.LogDebug("command length: " + lengthOfCommandByteArray);
 
             IFormatter formatter = new BinaryFormatter();
@@ -293,18 +293,18 @@ namespace Microsoft.Spark.CSharp
                 var commandProcessWatch = new Stopwatch();
                 commandProcessWatch.Start();
 
-                int stageId = ReadDiagnosticsInfo(networkStream);
+                int stageId = ReadDiagnosticsInfo(inputStream);
 
-                string deserializerMode = SerDe.ReadString(networkStream);
+                string deserializerMode = SerDe.ReadString(inputStream);
                 logger.LogDebug("Deserializer mode: " + deserializerMode);
 
-                string serializerMode = SerDe.ReadString(networkStream);
+                string serializerMode = SerDe.ReadString(inputStream);
                 logger.LogDebug("Serializer mode: " + serializerMode);
 
-                string runMode = SerDe.ReadString(networkStream);
+                string runMode = SerDe.ReadString(inputStream);
                 if ("R".Equals(runMode, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var compilationDumpDir = SerDe.ReadString(networkStream);
+                    var compilationDumpDir = SerDe.ReadString(inputStream);
                     if (Directory.Exists(compilationDumpDir))
                     {
                         assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*",
@@ -316,7 +316,7 @@ namespace Microsoft.Spark.CSharp
                     }
                 }
     
-                byte[] command = SerDe.ReadBytes(networkStream);
+                byte[] command = SerDe.ReadBytes(inputStream);
 
                 logger.LogDebug("command bytes read: " + command.Length);
                 var stream = new MemoryStream(command);
@@ -333,7 +333,7 @@ namespace Microsoft.Spark.CSharp
                 int count = 0;
                 int nullMessageCount = 0;
                 var funcProcessWatch = Stopwatch.StartNew();
-                foreach (var message in func(splitIndex, GetIterator(networkStream, deserializerMode)))
+                foreach (var message in func(splitIndex, GetIterator(inputStream, deserializerMode)))
                 {
                     funcProcessWatch.Stop();
 
@@ -343,7 +343,7 @@ namespace Microsoft.Spark.CSharp
                         continue;
                     }
 
-                    WriteOutput(networkStream, serializerMode, message, formatter);
+                    WriteOutput(outputStream, serializerMode, message, formatter);
                     count++;
                     funcProcessWatch.Start();
                 }
@@ -356,7 +356,7 @@ namespace Microsoft.Spark.CSharp
                 //else:
                 //    process()
 
-                WriteDiagnosticsInfo(networkStream, bootTime, initTime);
+                WriteDiagnosticsInfo(outputStream, bootTime, initTime);
 
                 commandProcessWatch.Stop();
 

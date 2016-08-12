@@ -247,13 +247,14 @@ popd
 
 if %CppSkipped% EQU 1 (
     @echo. 
-    @echo ============================================================================================
-    @echo.
-    @echo   Note!!! Skipped to build Mobius C++ components due to missing VC++ Build Toolset.
-    @echo              If you want to compile C++ components, please enalble VC++ language from
-    @echo              Visual Studio. You can either download "Visual C++ Build Tools" availabe at 
-    @echo              "http://landinghub.visualstudio.com/visual-cpp-build-tools"
+    @echo ===============================================================================================================
+    @echo.                                                 !!! Note !!!
+    @echo        Skipped building Mobius C++ component ^(RIOSock.dll^) due to missing VC++ Build Toolset.
+    @echo        Mobius uses this component to leverage socket optimization available in Windows    
+    @echo        This is an optional component and Mobius will be fully functional even without this component
+    @echo        If you want to build this component, enable VC++ project in Visual Studio
+    @echo        or download "Visual C++ Build Tools" from "http://landinghub.visualstudio.com/visual-cpp-build-tools"
     @echo. 
-    @echo ============================================================================================
+    @echo ===============================================================================================================
     @echo.
 )

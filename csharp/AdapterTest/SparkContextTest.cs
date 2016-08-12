@@ -140,6 +140,19 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestSparkContextHadoopConfigurationProperty()
+        {
+            Mock<IHadoopConfigurationProxy> hadoopConfProxy = new Mock<IHadoopConfigurationProxy>();
+            Mock<ISparkContextProxy> sparkContextProxy = new Mock<ISparkContextProxy>();
+            sparkContextProxy.Setup(m => m.HadoopConfiguration).Returns(hadoopConfProxy.Object);
+            SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
+
+            var hadoopConf = sc.HadoopConfiguration;
+
+            Assert.IsNotNull(hadoopConf);
+        }
+
+        [Test]
         public void TestCancelAllJobs()
         {
             // Arrange

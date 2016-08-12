@@ -11,7 +11,6 @@
     <AssemblyName>SparkCLRPerf</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <CppDll Condition="Exists('..\..\..\cpp\x64')">HasCpp</CppDll>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,16 +47,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="data\deletionbenchmarktestdata.csv" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
-    <None Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>Cpp\Riosock.dll</Link>
-    </None>
-    <None Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>Cpp\Riosock.pdb</Link>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
