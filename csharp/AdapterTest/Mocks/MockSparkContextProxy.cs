@@ -249,6 +249,14 @@ namespace AdapterTest.Mocks
             }
         }
 
+        public IHadoopConfigurationProxy HadoopConfiguration
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public void Accumulator(int port)
         {
             accumuatorServerPort = port;

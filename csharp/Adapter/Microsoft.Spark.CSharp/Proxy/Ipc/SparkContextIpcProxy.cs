@@ -111,6 +111,22 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             get { if (defaultMinPartitions == null) { defaultMinPartitions = (int)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "defaultMinPartitions"); } return (int)defaultMinPartitions; }
         }
+
+        private IHadoopConfigurationProxy hadoopConfiguration;
+        public IHadoopConfigurationProxy HadoopConfiguration
+        {
+            get
+            {
+                return hadoopConfiguration ??
+                       (hadoopConfiguration =
+                           new HadoopConfigurationIpcProxy(
+                               new JvmObjectReference(
+                                   (string)
+                                       SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference,
+                                           "hadoopConfiguration"))));
+            }
+        }
+
         public void Accumulator(int port)
         {
             jvmAccumulatorReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "accumulator", 
