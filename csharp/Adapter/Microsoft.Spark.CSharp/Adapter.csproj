@@ -70,6 +70,7 @@
     <Compile Include="Core\OrderedRDDFunctions.cs" />
     <Compile Include="Core\PairRDDFunctions.cs" />
     <Compile Include="Core\PipelinedRDD.cs" />
+    <Compile Include="Core\PriorityQueue.cs" />
     <Compile Include="Core\Profiler.cs" />
     <Compile Include="Core\RDD.cs" />
     <Compile Include="Core\SparkConf.cs" />
@@ -154,12 +155,12 @@
     <Compile Include="Streaming\TransformedDStream.cs" />
   </ItemGroup>
   <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
-    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
+    <ContentWithTargetPath Include="..\..\..\cpp\x64\$(ConfigurationName)\Riosock.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Cpp\Riosock.dll</Link>
       <TargetPath>Riosock.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
+    <ContentWithTargetPath Include="..\..\..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Cpp\Riosock.dll</Link>
       <TargetPath>Riosock.pdb</TargetPath>

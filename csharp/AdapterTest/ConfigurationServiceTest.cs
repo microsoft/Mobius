@@ -39,7 +39,7 @@ namespace AdapterTest
             try
             {
                 ConfigurationService debugConfiguration = new ConfigurationService();
-                Assert.Throws<ConfigurationErrorsException>(() => Console.WriteLine(debugConfiguration.BackendPortNumber));
+                Assert.AreEqual(ConfigurationService.CSHARPBACKEND_DEBUG_PORT, debugConfiguration.BackendPortNumber);
                 Assert.Throws<Exception>(() => Console.WriteLine(debugConfiguration.GetCSharpWorkerExePath()));
             }
             finally

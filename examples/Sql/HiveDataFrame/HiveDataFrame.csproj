@@ -59,7 +59,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="..\..\App.config">
+      <Link>App.config</Link>
+    </None>
     <None Include="data\people.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -4,9 +4,9 @@ The following software need to be installed and appropriate environment variable
 | |Version | Environment variables |Notes |
 |---|----|-----------------------------------------------------|------|
 |JDK |7u85 or 8u60 ([OpenJDK](http://www.azul.com/downloads/zulu/zulu-windows/) or [Oracle JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)) |JAVA_HOME | After setting JAVA_HOME, run `set PATH=%PATH%;%JAVA_HOME%\bin` to add java to PATH |
-|Spark |[1.5.2 or 1.6.*](http://spark.apache.org/downloads.html) | SPARK_HOME |Spark can be downloaded from Spark download website. Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `toos\spark*` directory (under [`build`](../build) directory) that can be used as SPARK_HOME  |
+|Spark | [1.5.2 or 1.6.*](http://spark.apache.org/downloads.html) | SPARK_HOME |Spark can be downloaded from Spark download website. The version of Spark should match the one supported by the Mobius branch/release you are using. See [Mobius versioning policy](./mobius-release-info.md#versioning-policy) for notes of Spark & Mobius versions. Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `toos\spark*` directory (under [`build`](../build) directory) that can be used as SPARK_HOME  |
 |winutils.exe | see [Running Hadoop on Windows](https://wiki.apache.org/hadoop/WindowsProblems) for details |HADOOP_HOME |Spark in Windows needs this utility in `%HADOOP_HOME%\bin` directory. It can be copied over from any Hadoop distribution. Alternative, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `toos\winutils` directory (under [`build`](../build) directory) that can be used as HADOOP_HOME  |
-|Mobius | [v1.6.100](https://github.com/Microsoft/Mobius/releases/tag/v1.6.100) or a valid dev build or [previous release](https://github.com/Microsoft/Mobius/releases) of Mobius | SPARKCLR_HOME |If you downloaded a [Mobius release](https://github.com/Microsoft/Mobius/releases), SPARKCLR_HOME should be set to the directory named `runtime` (for example, `D:\downloads\spark-clr_2.10-1.5.200\runtime`). Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `runtime` directory (under [`build`](../build) directory) that can be used as SPARKCLR_HOME. **Note** - setting SPARKCLR_HOME is _optional_ and it is set by sparkclr-submit.cmd if not set. |
+|Mobius | Appropriate version of [Mobius release](https://github.com/Microsoft/Mobius/releases) or a valid dev build | SPARKCLR_HOME |If you downloaded a [Mobius release](https://github.com/Microsoft/Mobius/releases), SPARKCLR_HOME should be set to the directory named `runtime` (for example, `D:\downloads\spark-clr_2.10-1.5.200\runtime`). Alternatively, if you used [`RunSamples.cmd`](../csharp/Samples/Microsoft.Spark.CSharp/samplesusage.md) to run Mobius samples, you can find `runtime` directory (under [`build`](../build) directory) that can be used as SPARKCLR_HOME. |
 
 ## Dependencies
 Some features in Mobius depend on classes outside of Spark and Mobius. A selected set of jar files that Mobius depends on are available in Mobius release under "runtime\dependencies" folder. These jar files are used with "--jars" parameter in Mobius (that is sparkclr-submit.cmd) and they get passed to Spark (spark-submit.cmd). 
@@ -40,19 +40,27 @@ To use Mobius with Spark available locally in a machine, navigate to `%SPARKCLR_
 ### Debug Mode
 Debug mode is used to step through the C# code in Visual Studio during a debugging session. With this mode, driver-side operations can be debugged. 
 
-1. Navigate to `%SPARKCLR_HOME%\scripts` directory and run `sparkclr-submit.cmd debug`
+The steps to debug a Mobius driver program are:
+
+1. Navigate to `%SPARKCLR_HOME%\scripts` directory and run `sparkclr-submit.cmd debug` (**Note**: refer to [additional instructions](https://github.com/Microsoft/Mobius/blob/master/notes/running-mobius-app.md#instructions-for-mobius-versions-16200-or-later) for Mobius versions 1.6.200 or later)
 2. Look for the message in the console output that looks like "Port number used by CSharpBackend is <portnumber>". Note down the port number and use it in the next step
 3. Add the following XML snippet to App.Config in the Visual Studio project for Mobius application that you want to debug and start debugging
 ```
 <appSettings>
-    <add key="CSharpWorkerPath" value="/path/to/CSharpWorker.exe"/>
+    <add key="CSharpWorkerPath" value="/path/to/driverprogram/CSharpWorker.exe"/>
     <add key="CSharpBackendPortNumber" value="port_number_from_previous_step"/>
 </appSettings>
 ```
+#### Instructions for Mobius versions 1.6.200 or later
+* Syntax to launch CSharpBackend in debug mode is `sparkclr-submit.cmd debug <port number>`. Port number is optional. 
+  * If the port number is not specified, default port number (5567) will be used and there is no need to set that in App.Config using the key `CSharpBackendPortNumber`.
+  * If the port number is specified, it will be used when launching the CSharpBackend. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
+  * If the port number specified is 0, a random port number will be used in CSharpBackend. This behavior is same as in Mobius releases prior to 1.6.200. This port number should be set in App.Config using the key `CSharpBackendPortNumber`
 
 **Notes**
 * `CSharpWorkerPath` - the folder containing CSharpWorker.exe should also contain Microsoft.Spark.CSharp.Adapter.dll, executable that has the Mobius driver application and any dependent binaries. Typically, the path to CSharpWorker.exe in the build output directory of Mobius application is used for this configuration value
-* If a jar file is required by Spark (for example, spark-xml_2.10-0.3.1.jar to process XML files) then the local path to the jar file must set using the command `set SPARKCLR_DEBUGMODE_EXT_JARS=C:\ext\spark-xml\spark-xml_2.10-0.3.1.jar` before launching CSharpBackend in step #1
+* In debug mode `sparkclr-submit.cmd` (or `sparkclr-submit.sh`) does not support commandline parameters like `--jars` or `--conf`.
+ * If a jar file is required by Spark (for example, spark-xml_2.10-0.3.1.jar to process XML files) then the local path to the jar file must set using the command `set SPARKCLR_DEBUGMODE_EXT_JARS=C:\ext\spark-xml\spark-xml_2.10-0.3.1.jar` before launching CSharpBackend in step #1 above
 
 ### Standalone Cluster
 #### Client Mode
@@ -125,8 +133,8 @@ Instructions to run Mobius applications in Linux are available at [linux-instruc
 ## Running Mobius Examples in Local Mode
 | Type          | Examples      |
 | ------------- |--------------|
-| Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li></ul> |
-| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li><li>[Cassandra](#cassandra-example-sql)</li></ul> |
+| Batch | <ul><li>[Pi](#pi-example-batch)</li><li>[Word Count](#wordcount-example-batch)</li><li>[Word Count (F#)](#wordcount-example---f-batch)</li></ul> |
+| SQL | <ul><li>[JDBC](#jdbc-example-sql)</li><li>[Spark-XML](#spark-xml-example-sql)</li><li>[Hive](#hive-example-sql)</li><li>[Cassandra](#cassandra-example-sql)</li><li>[JSON (F#)](#json-example---f-sql)</li></ul> |
 | Streaming | <ul><li>[Kafka](#kafka-example-streaming)</li><li>[EventHubs](#eventhubs-example-streaming)</li><li>[HDFS Word Count](#hdfswordcount-example-streaming)</li></ul> |
 
 The following sample commands show how to run Mobius examples in local mode. Using the instruction above, the following sample commands can be tweaked to run in other modes
@@ -137,7 +145,18 @@ The following sample commands show how to run Mobius examples in local mode. Usi
 Computes the _approximate_ value of Pi using two appropaches and displays the value.
 
 ### WordCount Example (Batch)
-* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Batch\WordCount\bin\Debug <inputFile>`
+* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Batch\WordCount\bin\Debug <InputFilePath>`
+
+`InputFilePath` should be in one of the following formats:
+* `hdfs://path/to/inputfile`
+* `file:///C:/path/to/inputfile`
+
+### WordCount Example - F# (Batch)
+* Run `sparkclr-submit.cmd --exe WordCountFSharp.exe C:\Git\Mobius\examples\fsharp\WordCount\bin\Debug <InputFilePath>`
+
+`InputFilePath` should be in one of the following formats:
+* `hdfs://path/to/inputfile`
+* `file:///C:/path/to/inputfile`
 
 ### JDBC Example (Sql)
 * Download a JDBC driver for the SQL Database you want to use
@@ -169,6 +188,15 @@ Reads data from a csv file, creates a Hive table and reads data from it
 * **Note** - If you created keyspace and tables with different names than what is in the CQL in the example or do not have Cassandra in localhost, you need to pass arguments to the example `sparkclr-submit.cmd --jars <jar files used for using Cassandra in Spark> --exe CassandraDataFrameExample.exe C:\Git\Mobius\examples\Sql\CassandraDataFrame\bin\Debug <host name> <keyspace name> <users table name> <filtered users table name>`
 
 This sample reads data from a table, displays results in the console, performs filter on dataframe and writes results to another table
+
+### JSON Example - F# (Sql)
+* Run `sparkclr-submit.cmd --exe JsonDataFrame.exe C:\Git\Mobius\examples\fsharp\JsonDataFrame\bin\Debug <InputFilePath>`
+
+A file named data.json available in the same location as JsonDataFrame.exe and it may be used when running the example
+
+`InputFilePath` should be in one of the following formats:
+* `hdfs://path/to/inputfile`
+* `file:///C:/path/to/inputfile`
 
 ### EventHubs Example (Streaming)
 * Get the following jar files

@@ -1151,8 +1151,16 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T[] TakeOrdered<T>(this RDD<T> self, int num, Func<T, dynamic> keyFunc = null) where T : IComparable<T>
         {
-            return self.MapPartitionsWithIndex<T>(new TakeOrderedHelper<T>(num, keyFunc).Execute).Collect()
-                .OrderBy(x => keyFunc == null ? x : keyFunc(x)).Take(num).ToArray();
+            return self.TakeOrdered(num, true, keyFunc);
+        }
+
+        internal static T[] TakeOrdered<T>(this RDD<T> self, int num, bool ascending, Func<T, dynamic> keyFunc = null) where T : IComparable<T>
+        {
+            var helper = new TakeOrderedHelper<T>(num, keyFunc, ascending);
+            return self.MapPartitionsWithIndex(helper.TakeOrderedInPartition)
+                    .Reduce(helper.MergeTwoPriorityQueues)
+                    .OrderBy(x => keyFunc == null ? x : keyFunc(x))
+                    .ToArray();
         }
 
         /// <summary>
@@ -1170,7 +1178,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T[] Top<T>(this RDD<T> self, int num) where T : IComparable<T>
         {
-            return self.MapPartitionsWithIndex<T>(new TopHelper<T>(num).Execute).Collect().OrderByDescending(x => x).Take(num).ToArray();
+            return self.TakeOrdered(num, false).OrderByDescending(x => x).ToArray();
         }
     }
 
@@ -1463,33 +1471,66 @@ namespace Microsoft.Spark.CSharp.Core
         }
     }
     [Serializable]
-    internal class TakeOrderedHelper<T>
+    internal class TakeOrderedHelper<T> where T : IComparable<T>
     {
         private readonly int num;
         private readonly Func<T, dynamic> keyFunc;
-        internal TakeOrderedHelper(int num, Func<T, dynamic> keyFunc)
+        private readonly bool ascending;
+
+        internal TakeOrderedHelper(int num, Func<T, dynamic> keyFunc, bool ascending)
         {
             this.num = num;
             this.keyFunc = keyFunc;
+            this.ascending = ascending;
         }
-        internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
+
+        internal IEnumerable<PriorityQueue<T>> TakeOrderedInPartition(int pid, IEnumerable<T> input)
         {
-            return input.OrderBy(x => keyFunc == null ? x : keyFunc(x)).Take(num);
+            Comparer<T> comparer;
+
+            if (ascending)
+            {
+                if (keyFunc != null)
+                {
+                    comparer = Comparer<T>.Create((x, y) => ((IComparable) keyFunc(x)).CompareTo(keyFunc(y)));
+                }
+                else
+                {
+                    comparer = Comparer<T>.Create((x, y) => x.CompareTo(y));
+                }
+            }
+            else
+            {
+                if (keyFunc == null)
+                {
+                    comparer = Comparer<T>.Create((x, y) => y.CompareTo(x));
+                }
+                else
+                {
+                    comparer = Comparer<T>.Create((x, y) => ((IComparable)keyFunc(y)).CompareTo(keyFunc(x)));
+                }
+            }
+           
+            var priorityQueue = new PriorityQueue<T>(num, comparer);
+            foreach (var e in input)
+            {
+                priorityQueue.Offer(e);
+            }
+
+            return new[] { priorityQueue };
+        }
+
+        internal PriorityQueue<T> MergeTwoPriorityQueues(PriorityQueue<T> queue1, PriorityQueue<T> queue2)
+        {
+            foreach (var e in queue1)
+            {
+                queue2.Offer(e);
+            }
+
+            return queue2;
         }
     }
-    [Serializable]
-    internal class TopHelper<T>
-    {
-        private readonly int num;
-        internal TopHelper(int num)
-        {
-            this.num = num;
-        }
-        internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
-        {
-            return input.OrderByDescending(x => x).Take(num);
-        }
-    }
+
     [Serializable]
     internal class ZipWithUniqueIdHelper<T>
     {

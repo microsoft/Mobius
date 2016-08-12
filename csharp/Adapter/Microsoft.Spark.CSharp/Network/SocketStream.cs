@@ -124,7 +124,14 @@ namespace Microsoft.Spark.CSharp.Network
                 recvDataCache = streamSocket.Receive();
             }
 
-            return recvDataCache.ReadByte();
+            var v = recvDataCache.ReadByte();
+            if (recvDataCache.IsReadable()) return v;
+
+            // Release cache if it is not readable. If we do not reset the cache here,
+            // the cache will be used in next Read() that caused 0 bytes return.
+            recvDataCache.Release();
+            recvDataCache = null;
+            return v;
         }
 
         /// <summary>

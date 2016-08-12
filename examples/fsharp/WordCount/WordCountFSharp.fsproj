@@ -64,8 +64,10 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="WordCountExample.fs" />
-    <Content Include="App.config" />
     <Content Include="packages.config" />
+    <Content Include="..\..\App.config">
+      <Link>App.config</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CSharpWorker">
