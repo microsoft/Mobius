@@ -84,6 +84,7 @@
     <Compile Include="Mocks\MockRDDCollector.cs" />
     <Compile Include="Mocks\MockRow.cs" />
     <Compile Include="PayloadHelperTest.cs" />
+    <Compile Include="PriorityQueueTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RowTest.cs" />
     <Compile Include="SocketStreamTest.cs" />
