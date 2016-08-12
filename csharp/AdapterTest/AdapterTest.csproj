@@ -16,7 +16,6 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
-    <CppDll Condition="Exists('..\..\cpp\x64')">HasCpp</CppDll>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -126,18 +125,6 @@
       <Project>{e4479c4c-e106-4b90-bf0c-319561cea9c4}</Project>
       <Name>Tests.Common</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
-    <ContentWithTargetPath  Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>Cpp\Riosock.pdb</Link>
-      <TargetPath>Riosock.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath  Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>Cpp\Riosock.pdb</Link>
-      <TargetPath>Riosock.pdb</TargetPath>
-    </ContentWithTargetPath>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
