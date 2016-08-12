@@ -36,7 +36,7 @@ if "%SPARK_ASSEMBLY_JAR%"=="0" (
   exit /b 1
 )
 
-if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.6.200-SNAPSHOT.jar)
+if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.6.200-PREVIEW-1.jar)
 echo SPARKCLR_JAR=%SPARKCLR_JAR% 
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
 REM SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode
