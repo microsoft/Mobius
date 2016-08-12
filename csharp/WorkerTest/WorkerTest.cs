@@ -11,6 +11,8 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
+using Microsoft.Spark.CSharp;
 using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
@@ -338,21 +340,34 @@ namespace WorkerTest
         [Test]
         public void TestWorkerIncompleteBytes()
         {
-            Process worker;
-            var CSharpRDD_SocketServer = CreateServer(out worker);
+            var originalReadBufferSize = Environment.GetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName);
 
-            using (var serverSocket = CSharpRDD_SocketServer.Accept())
-            using (var s = serverSocket.GetStream())
+            try
             {
-                WritePayloadHeaderToWorker(s);
+                if (SocketFactory.SocketWrapperType.Equals(SocketWrapperType.Rio))
+                {
+                    Environment.SetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName, "0");
+                }
 
-                SerDe.Write(s, command.Length);
-                s.Write(command, 0, command.Length / 2);
+                Process worker;
+                var CSharpRDD_SocketServer = CreateServer(out worker);
+
+                using (var serverSocket = CSharpRDD_SocketServer.Accept())
+                using (var s = serverSocket.GetStream())
+                {
+                    WritePayloadHeaderToWorker(s);
+                    SerDe.Write(s, command.Length);
+                    s.Write(command, 0, command.Length/2);
+                }
+
+                AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
+
+                CSharpRDD_SocketServer.Close();
             }
-
-            AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
-
-            CSharpRDD_SocketServer.Close();
+            finally
+            {
+                Environment.SetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName, originalReadBufferSize);
+            }
         }
 
         /// <summary>
@@ -374,14 +389,11 @@ namespace WorkerTest
 
                 for (int i = 0; i < 100; i++)
                     SerDe.Write(s, i.ToString());
+                
+                s.Flush();
 
-                int count = 0;
-                foreach (var bytes in ReadWorker(s, 100))
-                {
-                    Assert.AreEqual(count++.ToString(), Encoding.UTF8.GetString(bytes));
-                }
-
-                Assert.AreEqual(100, count);
+                // Note: as send buffer is enabled by default, and CSharpWorker only flushes output after receives all data (receive END_OF_DATA_SECTION flag), 
+                // so in current test we can't ensure expected number of result will be received at this point, validation for returned data is not enabled to avoid flaky test.
             }
 
             AssertWorker(worker, 0, "System.NullReferenceException: Object reference not set to an instance of an object.");
