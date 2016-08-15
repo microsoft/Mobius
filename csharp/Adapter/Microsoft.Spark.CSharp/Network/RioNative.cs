@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
+using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Network
@@ -26,7 +28,8 @@ namespace Microsoft.Spark.CSharp.Network
             new ConcurrentDictionary<long, RioSocketWrapper>();
         private volatile bool keepRunning = true;
         private bool disposed;
-        private Thread[] workThreadPool;
+        private Thread[] workThreadPoolOfRecv;
+        private Thread[] workThreadPoolOfSend;
 
         private RioNative()
         {
@@ -51,7 +54,7 @@ namespace Microsoft.Spark.CSharp.Network
 
         internal static int GetWorkThreadNumber()
         {
-            return Default.Value.workThreadPool.Length;
+            return Default.Value.workThreadPoolOfRecv.Length;
         }
 
         /// <summary>
@@ -128,25 +131,39 @@ namespace Microsoft.Spark.CSharp.Network
             var maxThreads = 1;
             if (useThreadPool)
             {
-                maxThreads = Environment.ProcessorCount;
+                var executorCores = int.Parse(Environment.GetEnvironmentVariable(ConfigurationService.ExecutorCoresEnvName) ?? "2");
+                // In useThreadPool mode, the background threads should be 2 at least for each
+                // receive /send completion procedure. If the value of the executorCores is more
+                // than 2, We halve it for the maxThreads. So that the total number of background
+                // threads equals to executorCores.
+                maxThreads = executorCores > 2 ? (executorCores + 1) >> 1 : 2;
             }
 
-            workThreadPool = new Thread[maxThreads];
-            for (var i = 0; i < workThreadPool.Length; i++)
+            workThreadPoolOfRecv = new Thread[maxThreads];
+            workThreadPoolOfSend = new Thread[maxThreads];
+            for (var i = 0; i < maxThreads; i++)
             {
+                // Start background threads for processing receive completion
                 var worker = new Thread(WorkThreadFunc)
                 {
-                    Name = "RIOThread " + i,
+                    Name = "RIOThread-Recv" + i,
                     IsBackground = true
                 };
+                workThreadPoolOfRecv[i] = worker;
+                worker.Start(true);
 
-                workThreadPool[i] = worker;
-                worker.Start();
+                // Start background threads for processing send completion
+                worker = new Thread(WorkThreadFunc)
+                {
+                    Name = "RIOThread-Send" + i,
+                    IsBackground = true
+                };
+                workThreadPoolOfSend[i] = worker;
+                worker.Start(false);
             }
 
             // if everything succeeds, post a Notify to catch the first set of IO
-            var registered = RegisterRIONotify();
-            if (!registered)
+            if (!RegisterRIONotify(true/*Recv CQ*/) || !RegisterRIONotify(false/*Send CQ*/))
             {
                 // Failed to post a NOTIFY.
                 var socketException = new SocketException();
@@ -161,36 +178,35 @@ namespace Microsoft.Spark.CSharp.Network
             disposed = false;
         }
 
-        private unsafe void WorkThreadFunc()
+        private unsafe void WorkThreadFunc(object isRecv)
         {
+            string operation = (bool) isRecv ? "Receive" : "Send";
             RioResult* results = stackalloc RioResult[DefaultResultSize];
-
             while (keepRunning)
             {
-                if (!GetRIOCompletionStatus())
+                if (!GetRIOCompletionStatus((bool)isRecv))
                 {
                     var socketException = new SocketException();
-                    Logger.LogError("GetRIOCompletionStatus() with error {0}. Error Message: {1}",
-                        socketException.ErrorCode, socketException.Message);
+                    Logger.LogError("GetRIOCompletionStatus([{0}]) with error {1}. Error Message: {2}",
+                        operation, socketException.ErrorCode, socketException.Message);
                     //this one is not normal error. might need to debug this issue.
                     continue;
                 }
 
-                var resultCount = DequeueRIOResults((IntPtr)results, DefaultResultSize);
+                var resultCount = DequeueRIOResults((bool)isRecv, (IntPtr)results, DefaultResultSize);
                 if (resultCount == 0 || resultCount == 0xFFFFFFFF /*RIO_CORRUPT_CQ*/)
                 {
                     // We were notified there were completions, but we can't dequeue any IO
                     // Something has gone horribly wrong - likely our CQ is corrupt.
                     Logger.LogError(
-                        "DequeueRIOResults() returned [{0}] : expected to have dequeued IO after being signaled",
-                        resultCount);
+                        "DequeueRIOResults([{0}]) returned [{1}] : expected to have dequeued IO after being signaled",
+                        operation, resultCount);
                     continue;
                 }
 
                 for (uint i = 0; i < resultCount; ++i)
                 {
                     var result = results[i];
-
                     RioSocketWrapper socket;
                     if (connectedSocks.TryGetValue(result.ConnectionId, out socket))
                     {
@@ -213,7 +229,7 @@ namespace Microsoft.Spark.CSharp.Network
                         }
 
                         var socketException = new SocketException(result.Status);
-                        Logger.LogError("Failed to lookup socket [{0}] from SocketTable with status [{1}] and BytesTransferred [{2}] - Error Message: {3}.",
+                        Logger.LogWarn("Failed to lookup socket [{0}] from SocketTable with status [{1}] and BytesTransferred [{2}] - Error Message: {3}.",
                             result.ConnectionId, result.Status, result.BytesTransferred, socketException.Message);
                     }
                 }
@@ -239,15 +255,15 @@ namespace Microsoft.Spark.CSharp.Network
 
         [DllImport(RioSockDll, CharSet = CharSet.Unicode, SetLastError = true)]
         [SuppressUnmanagedCodeSecurity]
-        private static extern bool RegisterRIONotify();
+        private static extern bool RegisterRIONotify([In] bool isRecvCq);
 
         [DllImport(RioSockDll, CharSet = CharSet.Unicode, SetLastError = true)]
         [SuppressUnmanagedCodeSecurity]
-        private static extern bool GetRIOCompletionStatus();
+        private static extern bool GetRIOCompletionStatus([In] bool isRecvCq);
 
         [DllImport(RioSockDll, CharSet = CharSet.Unicode, SetLastError = true)]
         [SuppressUnmanagedCodeSecurity]
-        private static extern uint DequeueRIOResults([Out] IntPtr rioResults, [In] uint rioResultSize);
+        private static extern uint DequeueRIOResults([In] bool isRecvCq, [Out] IntPtr rioResults, [In] uint rioResultSize);
 
         //
         // Internal functions

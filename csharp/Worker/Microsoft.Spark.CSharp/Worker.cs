@@ -75,8 +75,8 @@ namespace Microsoft.Spark.CSharp
             // can't initialize logger early because in MultiThreadWorker mode, JVM will read C#'s stdout via
             // pipe. When initialize logger, some unwanted info will be flushed to stdout. But we can still
             // use stderr
-            Console.Error.WriteLine("input args: [{0}] SocketWrapper: [{1}]",
-                string.Join(" ", args), SocketFactory.SocketWrapperType);
+            Console.Error.WriteLine("CSharpWorker [{0}]: Input args [{1}] SocketWrapper [{2}]",
+                Process.GetCurrentProcess().Id, string.Join(" ", args), SocketFactory.SocketWrapperType);
 
             if (args.Length != 2)
             {
@@ -343,12 +343,20 @@ namespace Microsoft.Spark.CSharp
                         continue;
                     }
 
-                    WriteOutput(outputStream, serializerMode, message, formatter);
+                    try
+                    {
+                        WriteOutput(outputStream, serializerMode, message, formatter);
+                    }
+                    catch (Exception)
+                    {
+                        logger.LogError("WriteOutput() failed at iteration {0}", count);
+                        throw;
+                    }
                     count++;
                     funcProcessWatch.Start();
                 }
 
-                logger.LogDebug("Output entries count: " + count);
+                logger.LogInfo("Output entries count: " + count);
                 logger.LogDebug("Null messages count: " + nullMessageCount);
 
                 //if profiler:
