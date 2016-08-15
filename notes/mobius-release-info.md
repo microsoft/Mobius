@@ -27,8 +27,8 @@ The [release in GitHub](https://github.com/Microsoft/Mobius/releases) is a zip f
 Instructions on running a Mobius app is available at https://github.com/Microsoft/Mobius/blob/master/notes/running-mobius-app.md
 
 Mobius samples do not have any external dependencies. The dependent jar files and data files used by samples are included in the release. Instructions to run samples are available at
-* https://github.com/Microsoft/Mobius/blob/master/notes/windows-instructions.md#running-samples
-* https://github.com/Microsoft/Mobius/blob/master/notes/linux-instructions.md#running-mobius-samples-in-linux
+* **Windows**: https://github.com/Microsoft/Mobius/blob/master/notes/windows-instructions.md#running-samples
+* **Linux**: https://github.com/Microsoft/Mobius/blob/master/notes/linux-instructions.md#running-mobius-samples-in-linux
 
 Mobius examples under "examples" folder may have external dependencies and may need configuration settings to those dependencies before they can be run. Refer to [Running Examples](https://github.com/Microsoft/Mobius/blob/master/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) for details on how to run each example.
 
