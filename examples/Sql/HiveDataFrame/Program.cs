@@ -25,8 +25,8 @@ namespace Microsoft.Spark.CSharp.Examples
             var sparkContext = new SparkContext(sparkConf);
             var hiveContext = new HiveContext(sparkContext);
             
-            // please give the people.json file path or just use data/people.json under this folder as input
-            var jsonFilePath = args.Length > 0 ? args[0] : Path.Combine(Environment.CurrentDirectory, @"data/people.json");
+            // please give the path to input json file
+            var jsonFilePath = args[0];
             var peopleDataFrame = hiveContext.Read().Json(jsonFilePath);
 
             const string dbName = "SampleHiveDataBaseForMobius";
