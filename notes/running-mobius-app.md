@@ -64,7 +64,7 @@ The steps to debug a Mobius driver program are:
 
 ### Standalone Cluster
 #### Client Mode
-Mobius `runtime` folder and the build output of Mobius driver application must be copied over to the machine where you submit Mobius apps to a Spark Standalone cluster. Once copying is done, instructions are same as that of [localmode](running-mobius-app.md#local-mode) but specifying master URL (`--master <spark://host:port>`) is required in addition.
+Mobius `runtime` folder and the build output of Mobius driver application must be copied over to the machine where you submit Mobius apps to a Spark Standalone cluster. Once copying is done, instructions are same as that of [local mode](running-mobius-app.md#local-mode) but specifying master URL (`--master <spark://host:port>`) is required in addition.
 
 **Sample Commands**
  * `sparkclr-submit.cmd` `--master spark://93.184.216.34:7077` `--total-executor-cores 2` `--exe SparkClrPi.exe C:\Git\Mobius\examples\Pi\bin\Debug`
