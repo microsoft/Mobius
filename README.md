@@ -89,7 +89,7 @@ Refer to [Mobius C# API documentation](./csharp/Adapter/documentation/Mobius_API
 
 Mobius API usage samples are available at:
 
-* [Examples folder](./examples) which contains standalone [C# or F# projects](./notes/running-mobius-app.md#running-mobius-examples-in-local-mode) that can be used as templates to start developing Mobius applications
+* [Examples folder](./examples) which contains standalone [C# and F# projects](./notes/running-mobius-app.md#running-mobius-examples-in-local-mode) that can be used as templates to start developing Mobius applications
 
 * [Samples project](./csharp/Samples/Microsoft.Spark.CSharp/) which uses a comprehensive set of Mobius APIs to implement samples that are also used for functional validation of APIs
 
