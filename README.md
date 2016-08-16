@@ -1,7 +1,7 @@
 <img src='logo/mobius-star-200.png' width='125px' alt='Mobius logo' />
 # Mobius: C# API for Spark
 
-[Mobius](https://github.com/Microsoft/Mobius) provides C# language binding to [Apache Spark](https://spark.apache.org/) enabling the implementation of Spark driver code and data processing operations in the languages supported in the .NET framework like C# or F#.
+[Mobius](https://github.com/Microsoft/Mobius) provides C# language binding to [Apache Spark](https://spark.apache.org/) enabling the implementation of Spark driver program and data processing operations in the languages supported in the .NET framework like C# or F#.
 
 For example, the word count sample in Apache Spark can be implemented in C# as follows :
 
