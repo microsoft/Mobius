@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Linq;
 using System.Threading;
-
 using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp.Sql
@@ -19,7 +19,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Schema of the DataFrame currently being processed
         /// </summary>
         [ThreadStatic] // thread safe is need when running in C# worker process
-        private static string currentSchema; 
+        private static string currentSchema;
 
         /// <summary>
         /// Indicates if Schema is already set during construction of this type
@@ -55,6 +55,7 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             if (!isCurrentSchemaSet) //first call always includes schema and schema is always in args[0]
             {
+
                 currentSchema = args[0].ToString();
                 isCurrentSchemaSet = true;
             }
@@ -75,7 +76,6 @@ namespace Microsoft.Spark.CSharp.Sql
             //next row will have schema - so resetting is fine
             isCurrentSchemaSet = false;
             currentSchema = null;
-
             return row;
         }
 

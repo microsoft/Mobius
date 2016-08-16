@@ -90,6 +90,9 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
                 socket.close()
                 socket = null
               }
+              catch {
+                case e: Exception => println("Exception when closing socket: " + e)
+              }
             }
           } while (socket != null)
           CSharpBackend.callbackSocketShutdown = true

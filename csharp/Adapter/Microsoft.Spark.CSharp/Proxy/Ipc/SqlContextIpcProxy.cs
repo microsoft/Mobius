@@ -34,9 +34,11 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var rdd = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "byteArrayRDDToAnyArrayRDD",
                     new object[] { (rddProxy as RDDIpcProxy).JvmRddReference }).ToString());
 
+            var sparkSessionJvmReference = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "getSparkSession", new object[] { jvmSqlContextReference}).ToString());
+
             return new DataFrameIpcProxy(
                 new JvmObjectReference(
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "applySchemaToPythonRDD",
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(sparkSessionJvmReference, "applySchemaToPythonRDD",
                     new object[] { rdd, (structTypeProxy as StructTypeIpcProxy).JvmStructTypeReference }).ToString()), this);
         }
 
@@ -93,17 +95,21 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             var hashTableReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
             var arrayListReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList", new object[] { });
 
-            var dt =  new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.types.DataType", "fromJson", new object[] { "\"" + returnType + "\"" }));
-
-            var udf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.UserDefinedPythonFunction", new object[]
-                {
-                    name, command, hashTableReference, arrayListReference, 
+            var dt = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.types.DataType", "fromJson", new object[] { "\"" + returnType + "\"" }));
+            var function = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.SQLUtils", "createCSharpFunction", new object[]
+            {
+                command, hashTableReference, arrayListReference,
                     SparkCLREnvironment.ConfigurationService.GetCSharpWorkerExePath(),
                     "1.0",
-                    arrayListReference, null, dt
+                    arrayListReference, null
+            }));
+
+            var udf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.execution.python.UserDefinedPythonFunction", new object[]
+                {
+                    name, function, dt
                 });
 
-            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython", new object[] {name, udf});
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython", new object[] { name, udf });
         }
 
         public ISqlContextProxy NewSession()
