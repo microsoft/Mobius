@@ -127,6 +127,7 @@ namespace WorkerTest
             SerDe.Write(s, sparkFilesDir);
             SerDe.Write(s, numberOfIncludesItems);
             SerDe.Write(s, numBroadcastVariables);
+            SerDe.Write(s, 0); //flag for UDF
             s.Flush();
         }
 
@@ -639,6 +640,7 @@ namespace WorkerTest
 
                 broadcastVariablesToAdd.ToList().ForEach(bid => { SerDe.Write(s, bid); SerDe.Write(s, "path" + bid); });
                 broadcastVariablesToDelete.ToList().ForEach(bid => SerDe.Write(s, -bid - 1));
+                SerDe.Write(s, 0); //flag for UDF
 
                 byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
 

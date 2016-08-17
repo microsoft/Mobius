@@ -11,13 +11,13 @@ import java.nio.channels.{FileChannel, FileLock, OverlappingFileLockException}
 import java.util.{List => JList, Map => JMap}
 
 import org.apache.hadoop.io.compress.CompressionCodec
-import org.apache.spark._
-import org.apache.spark.api.java.JavaRDD
-import org.apache.spark.api.python.{PythonBroadcast, PythonRDD, PythonRunner}
+import org.apache.spark.api.python._
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
+import org.apache.spark._
+import org.apache.spark.api.java.{JavaPairRDD, JavaRDD, JavaSparkContext}
+import org.apache.spark.sql.api.csharp.SQLUtils
 import org.apache.spark.util.csharp.{Utils => CSharpUtils}
-
 import scala.collection.JavaConverters._
 
 /**
@@ -26,7 +26,7 @@ import scala.collection.JavaConverters._
  * it just extends from it without overriding any behavior for now
  */
 class CSharpRDD(
-    @transient parent: RDD[_],
+    parent: RDD[_],
     command: Array[Byte],
     envVars: JMap[String, String],
     cSharpIncludes: JList[String],
@@ -37,14 +37,9 @@ class CSharpRDD(
     accumulator: Accumulator[JList[Array[Byte]]])
   extends PythonRDD (
     parent,
-    command,
-    envVars,
-    cSharpIncludes,
-    preservePartitioning,
-    cSharpWorkerExecutable,
-    unUsedVersionIdentifier,
-    broadcastVars,
-    accumulator) {
+    SQLUtils.createCSharpFunction(command, envVars, cSharpIncludes, cSharpWorkerExecutable,
+      unUsedVersionIdentifier, broadcastVars, accumulator),
+    preservePartitioning) {
 
   override def compute(split: Partition, context: TaskContext): Iterator[Array[Byte]] = {
     val cSharpWorker = new File(cSharpWorkerExecutable).getAbsoluteFile
@@ -70,6 +65,14 @@ class CSharpRDD(
       logInfo(s"workerFactoryId: $workerFactoryId")
     }
 
+    val func = SQLUtils.createCSharpFunction(command,
+                                                    envVars,
+                                                    cSharpIncludes,
+                                                    cSharpWorkerExecutable,
+                                                    unUsedVersionIdentifier,
+                                                    broadcastVars,
+                                                    accumulator)
+
     if (!CSharpRDD.csharpWorkerSocketType.isEmpty) {
       envVars.put("spark.mobius.CSharp.socketType", CSharpRDD.csharpWorkerSocketType)
       logInfo(s"CSharpWorker socket type: ${CSharpRDD.csharpWorkerSocketType}")
@@ -88,8 +91,7 @@ class CSharpRDD(
     logInfo("Env vars: " + envVars.asScala.mkString(", "))
 
     val runner = new PythonRunner(
-      command, envVars, cSharpIncludes, cSharpWorker.getAbsolutePath, unUsedVersionIdentifier,
-      broadcastVars, accumulator, bufferSize, reuse_worker)
+      Seq(ChainedPythonFunctions(Seq(func))), bufferSize, reuse_worker, false, Array(Array(0)))
     runner.compute(firstParent.iterator(split, context), split.index, context)
   }
 

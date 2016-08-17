@@ -227,12 +227,35 @@
             </summary>
             <param name="blocking"></param>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.CSharpWorkerFunc">
+            <summary>
+            Function that will be executed in CSharpWorker
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.CSharpWorkerFunc.Chain(Microsoft.Spark.CSharp.Core.CSharpWorkerFunc,Microsoft.Spark.CSharp.Core.CSharpWorkerFunc)">
+            <summary>
+            Used to chain functions
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.HadoopConfiguration">
+            <summary>
+            Configuration for Hadoop operations
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Core.HadoopConfiguration.Set(System.String,System.String)">
             <summary>
-            Sets value to HadoopConfiguration
+            Sets a property value to HadoopConfiguration
             </summary>
             <param name="name">Name of the property</param>
             <param name="value">Value of the property</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.HadoopConfiguration.Get(System.String,System.String)">
+            <summary>
+            Gets the value of a property from HadoopConfiguration
+            </summary>
+            <param name="name">Name of the property</param>
+            <param name="defaultValue">Default value if the property is not available in the configuration</param>
+            <returns></returns>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.Option`1">
             <summary>

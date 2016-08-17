@@ -26,25 +26,26 @@ if "x%1"=="x" (
   goto :usage
 )
 
-set ASSEMBLY_DIR=%SPARK_HOME%\lib
+set SPARK_JARS_DIR=%SPARK_HOME%\jars
 
-for %%d in ("%ASSEMBLY_DIR%"\spark-assembly*hadoop*.jar) do (
-  set SPARK_ASSEMBLY_JAR=%%d
-)
-if "%SPARK_ASSEMBLY_JAR%"=="0" (
-  @echo [sparkclr-submit.cmd] Failed to find Spark assembly JAR.
+if not exist "%SPARK_JARS_DIR%" (
+  echo [sparkclr-submit.cmd] Failed to find Spark jars directory.
+  echo [sparkclr-submit.cmd] You need to build Spark before running this program.
   exit /b 1
 )
 
-if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.10-1.6.200-SNAPSHOT.jar)
-echo SPARKCLR_JAR=%SPARKCLR_JAR% 
+set SPARK_JARS_CLASSPATH=%SPARK_JARS_DIR%\*
+
+if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.11-2.0.000-SNAPSHOT.jar)
+echo [sparkclr-submit.cmd] SPARKCLR_JAR=%SPARKCLR_JAR% 
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
 REM SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode
 if not "%SPARKCLR_DEBUGMODE_EXT_JARS%" == "" (
     echo [sparkclr-submit.cmd] External jars path is configured to %SPARKCLR_DEBUGMODE_EXT_JARS%
     SET SPARKCLR_CLASSPATH=%SPARKCLR_CLASSPATH%;%SPARKCLR_DEBUGMODE_EXT_JARS%
 )
-set LAUNCH_CLASSPATH=%SPARK_ASSEMBLY_JAR%;%SPARKCLR_CLASSPATH%
+set LAUNCH_CLASSPATH=%SPARKCLR_CLASSPATH%;%SPARK_JARS_CLASSPATH%
+echo [sparkclr-submit.cmd] LAUNCH_CLASSPATH="%LAUNCH_CLASSPATH%"
 
 if "%1"=="debug" (
   goto :debugmode

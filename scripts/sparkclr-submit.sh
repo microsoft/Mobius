@@ -41,24 +41,23 @@ function usage() {
 # Test that an argument was given
 [ $# -le 1 ] && usage
 
-export ASSEMBLY_DIR="$SPARK_HOME/lib"
+export SPARK_JARS_DIR="$SPARK_HOME/jars"
 
-export SPARK_ASSEMBLY_JAR="0"
-for jar in `ls "$ASSEMBLY_DIR"/spark-assembly*hadoop*.jar`
-do 
-  export SPARK_ASSEMBLY_JAR="$jar"
-done
-if [ "$SPARK_ASSEMBLY_JAR" = "0" ];
+if [ ! -d "$SPARK_JARS_DIR" ];
 then
-  echo "[sparkclr-submit.sh] Failed to find Spark assembly JAR."
+  echo "[sparkclr-submit.sh] Failed to find Spark jars directory."
+  echo "[sparkclr-submit.sh] You need to build Spark before running this program."
   exit 1
 fi
 
-export SPARKCLR_JAR=spark-clr_2.10-1.6.200-SNAPSHOT.jar
+export SPARK_JARS_CLASSPATH="$SPARK_JARS_DIR\*"
+
+export SPARKCLR_JAR=spark-clr_2.11-2.0.000-SNAPSHOT.jar
 export SPARKCLR_CLASSPATH="$SPARKCLR_HOME/lib/$SPARKCLR_JAR"
 # SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode
 [ ! "$SPARKCLR_DEBUGMODE_EXT_JARS" = "" ] && export SPARKCLR_CLASSPATH="$SPARKCLR_CLASSPATH:$SPARKCLR_DEBUGMODE_EXT_JARS"
-export LAUNCH_CLASSPATH="$SPARK_ASSEMBLY_JAR:$SPARKCLR_CLASSPATH"
+export LAUNCH_CLASSPATH="$SPARKCLR_CLASSPATH:$SPARK_JARS_CLASSPATH"
+echo "[sparkclr-submit.sh] LAUNCH_CLASSPATH=$LAUNCH_CLASSPATH"
 
 if [ $1 = "debug" ];
 then

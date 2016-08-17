@@ -41,7 +41,7 @@ if "%precheck%" == "bad" (goto :EOF)
 @rem 
 @rem setup Hadoop and Spark versions
 @rem
-set SPARK_VERSION=1.6.2
+set SPARK_VERSION=2.0.0
 set HADOOP_VERSION=2.6
 @echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
 
@@ -55,7 +55,7 @@ call ..\tools\updateruntime.cmd
 popd
 
 if defined ProjectVersion (
-    set SPARKCLR_JAR=spark-clr_2.10-%ProjectVersion%.jar
+    set SPARKCLR_JAR=spark-clr_2.11-%ProjectVersion%.jar
 )
 
 set SPARKCLR_HOME=%CMDHOME%\..\runtime
@@ -87,10 +87,10 @@ pushd "%SPARKCLR_HOME%\scripts"
 
 if "!USER_EXE!"=="" (
     @echo [RunSamples.cmd] call sparkclr-submit.cmd --jars %SPARKCLR_EXT_JARS% -exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
-    call sparkclr-submit.cmd --jars %SPARKCLR_EXT_JARS% --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
+    call sparkclr-submit.cmd --jars %SPARKCLR_EXT_JARS% --conf spark.sql.warehouse.dir=%TEMP_DIR% --exe SparkCLRSamples.exe %SAMPLES_DIR% spark.local.dir %TEMP_DIR% sparkclr.sampledata.loc %SPARKCLR_HOME%\data %*
 ) else (
     @echo [RunSamples.cmd] call sparkclr-submit.cmd %*
-    call sparkclr-submit.cmd %*
+    call sparkclr-submit.cmd --conf spark.sql.warehouse.dir=%TEMP_DIR% %*
 )
 
 @if ERRORLEVEL 1 GOTO :ErrorStop
