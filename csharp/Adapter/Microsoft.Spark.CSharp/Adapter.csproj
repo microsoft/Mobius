@@ -62,6 +62,7 @@
     <Compile Include="Configuration\IConfigurationService.cs" />
     <Compile Include="Core\Accumulator.cs" />
     <Compile Include="Core\Broadcast.cs" />
+    <Compile Include="Core\CSharpWorkerFunc.cs" />
     <Compile Include="Core\HadoopConfiguration.cs" />
     <Compile Include="Core\Option.cs" />
     <Compile Include="Core\Partitioner.cs" />

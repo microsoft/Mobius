@@ -15,7 +15,8 @@ import java.net.Socket
 import java.util.{ArrayList => JArrayList}
 import java.util.concurrent.{LinkedBlockingQueue, ConcurrentHashMap, ThreadPoolExecutor}
 
-import org.apache.spark.{Logging, SparkContext}
+import org.apache.spark.SparkContext
+import org.apache.spark.internal.Logging
 import org.apache.spark.api.csharp._
 import org.apache.spark.api.csharp.SerDe._
 import org.apache.spark.api.java._
@@ -86,6 +87,9 @@ object CSharpDStream {
         if (socket != null) {
           try {
             socket.close()
+          }
+          catch {
+            case e: Exception => println("Exception when closing socket: " + e)
           }
         }
 

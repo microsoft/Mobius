@@ -22,7 +22,8 @@ import org.apache.spark.streaming.kafka.KafkaCluster.LeaderOffset
 import org.apache.spark.streaming.scheduler.StreamInputInfo
 import org.apache.spark.streaming.{Duration, StreamingContext, Time}
 import org.apache.spark.util.{ThreadUtils, Utils}
-import org.apache.spark.{Logging, SparkException}
+import org.apache.spark.{SparkException}
+import org.apache.spark.internal.Logging
 
 import scala.annotation.tailrec
 import scala.collection.mutable

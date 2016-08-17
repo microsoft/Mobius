@@ -134,6 +134,7 @@ namespace WorkerTest
             SerDe.Write(s, sparkFilesDir);
             SerDe.Write(s, numberOfIncludesItems);
             SerDe.Write(s, numBroadcastVariables);
+            SerDe.Write(s, 0);  //flag for UDF
             s.Flush();
         }
 
