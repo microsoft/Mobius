@@ -791,39 +791,39 @@ namespace WorkerTest
         }
 
         [Test]
-        public void TestUdfCommandFormat()
+        public void TestUdfSerialization()
         {
             Func<string, int> f = (s) => 1;
             Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<int, string>(f).Execute;
             var udfCommand = SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.String,
                 SerializedMode.String);
 
-            using (var o = new MemoryStream(500))
-            using (var s = new MemoryStream(500))
+            using (var outputStream = new MemoryStream(500))
+            using (var inputStream = new MemoryStream(500))
             {
-                SerDe.Write(s, "1.0"); //version
-                SerDe.Write(s, ""); //includes directory
-                SerDe.Write(s, 0); //number of included items
-                SerDe.Write(s, 0); //number of broadcast variables
-                SerDe.Write(s, 1); //flag for UDF
+                SerDe.Write(inputStream, "1.0"); //version
+                SerDe.Write(inputStream, ""); //includes directory
+                SerDe.Write(inputStream, 0); //number of included items
+                SerDe.Write(inputStream, 0); //number of broadcast variables
+                SerDe.Write(inputStream, 1); //flag for UDF
 
-                SerDe.Write(s, 1); //count of udfs
-                SerDe.Write(s, 1); //count of args
-                SerDe.Write(s, 0); //index of args
-                SerDe.Write(s, 1); //count of chained func
+                SerDe.Write(inputStream, 1); //count of udfs
+                SerDe.Write(inputStream, 1); //count of args
+                SerDe.Write(inputStream, 0); //index of args
+                SerDe.Write(inputStream, 1); //count of chained func
 
-                SerDe.Write(s, udfCommand.Length);
-                SerDe.Write(s, udfCommand);
+                SerDe.Write(inputStream, udfCommand.Length);
+                SerDe.Write(inputStream, udfCommand);
 
-                SerDe.Write(s, (int)SpecialLengths.END_OF_DATA_SECTION);
-                SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
-                s.Flush();
-                s.Position = 0;
+                SerDe.Write(inputStream, (int)SpecialLengths.END_OF_DATA_SECTION);
+                SerDe.Write(inputStream, (int)SpecialLengths.END_OF_STREAM);
+                inputStream.Flush();
+                inputStream.Position = 0;
 
                 Worker.InitializeLogger();
-                Worker.ProcessStream(s, o, 1);
-                o.Position = 0;
-                foreach (var val in ReadWorker(o))
+                Worker.ProcessStream(inputStream, outputStream, 1);
+                outputStream.Position = 0;
+                foreach (var val in ReadWorker(outputStream))
                 {
                     //Section in output could be successfuly read from the stream
                 }
