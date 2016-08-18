@@ -594,8 +594,6 @@ namespace Microsoft.Spark.CSharp
 
                                 if (isFuncSqlUdf == 0)
                                 {
-                                    /*                                    var rows = unpickledObjects.Select(item => (item as RowConstructor).GetRow()).ToList();
-                                                                        result = rows.Cast<object>().ToArray();*/
                                     foreach (var row in unpickledObjects.Select(item => (item as RowConstructor).GetRow()))
                                     {
                                         yield return row;
@@ -603,7 +601,6 @@ namespace Microsoft.Spark.CSharp
                                 }
                                 else
                                 {
-                                    //result = unpickledObjects; //due catalyst optimization & code gen unpickledObject is object[] with actual column values
                                     foreach (var row in unpickledObjects)
                                     {
                                         yield return row;
