@@ -77,6 +77,7 @@ namespace AdapterTest
                             SerDe.Write(ns, buffer.Length);
                             SerDe.Write(ns, buffer);
                         }
+                        ns.Flush();
                     }
                 });
                 return (listener.LocalEndPoint as IPEndPoint).Port;

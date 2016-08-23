@@ -6,7 +6,6 @@ using System.IO;
 using System.Net;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
@@ -18,7 +17,7 @@ namespace Microsoft.Spark.CSharp
     /// <summary>
     /// The C# worker process is shared by multiple JVM Tasks. A daemon thread listens to the server socket
     /// and establish new TCP connection. Multiple work threads pick up the TCP connection, use this connection
-    /// to commuicate with JVM and do the actual work.
+    /// to communicate with JVM and do the actual work.
     /// </summary>
     public class MultiThreadWorker
     {
@@ -69,7 +68,7 @@ namespace Microsoft.Spark.CSharp
 
                     if (length != sizeof(int))
                     {
-                        logger.LogError(string.Format("read error, length: {0}, will exit", length));
+                        logger.LogError("Read error, length: {0}, will exit", length);
                         Environment.Exit(-1);
                     }
                     int trId = SerDe.ToInt(bytes);
@@ -81,7 +80,7 @@ namespace Microsoft.Spark.CSharp
                     }
                     else
                     {
-                        logger.LogInfo(string.Format("try to stop taskRunner [{0}]", trId));
+                        logger.LogInfo("try to stop taskRunner [{0}]", trId);
                         if (taskRunnerRegistry.ContainsKey(trId))
                         {
                             TaskRunner tr = taskRunnerRegistry[trId];
@@ -89,7 +88,7 @@ namespace Microsoft.Spark.CSharp
                         }
                         else
                         {
-                            logger.LogWarn(string.Format("can't find taskRunner [{0}] in TaskRunnerRegistery. Maybe it has exited already?", trId));
+                            logger.LogWarn("can't find taskRunner [{0}] in TaskRunnerRegistery. Maybe it has exited already?", trId);
                         }
                     }
                 }
@@ -177,9 +176,9 @@ namespace Microsoft.Spark.CSharp
                         tr.Run();
 
                         // remove it from registry
-                        int trId = tr.trId;
+                        var trId = tr.TaskId;
                         TaskRunner tmp;
-                        taskRunnerRegistry.TryRemove(tr.trId, out tmp);
+                        taskRunnerRegistry.TryRemove(trId, out tmp);
                     }
                 }
             }

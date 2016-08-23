@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Network
 {
@@ -18,6 +19,7 @@ namespace Microsoft.Spark.CSharp.Network
     /// </summary>
     internal sealed class ByteBufChunk
     {
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(RioSocketWrapper));
         private readonly Queue<Segment> segmentQueue;
         private readonly int segmentSize;
         private bool disposed;
@@ -286,6 +288,7 @@ namespace Microsoft.Spark.CSharp.Network
                 return;
             }
 
+            logger.LogDebug("Disposing ByteBufChunk [{0}].", ToString());
             if (!IsUnsafe && memory != null)
             {
                 memory = null;

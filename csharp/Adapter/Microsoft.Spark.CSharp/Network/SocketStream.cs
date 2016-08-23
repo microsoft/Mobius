@@ -16,6 +16,7 @@ namespace Microsoft.Spark.CSharp.Network
         private readonly ByteBufPool bufPool;
         private readonly ISocketWrapper streamSocket;
         private ByteBuf recvDataCache;
+        private ByteBuf sendDataCache;
 
         /// <summary>
         /// Initializes a SocketStream with a SaeaSocketWrapper object.
@@ -87,10 +88,29 @@ namespace Microsoft.Spark.CSharp.Network
         }
 
         /// <summary>
-        /// Flushes data from the stream.  This is meaningless for us, so it does nothing.
+        /// Flushes data in send cache to the stream.
         /// </summary>
         public override void Flush()
         {
+            if (sendDataCache != null && sendDataCache.IsReadable())
+            {
+                try
+                {
+                    streamSocket.Send(sendDataCache);
+                    sendDataCache = null;
+                }
+                catch (Exception e)
+                {
+                    if (e is ThreadAbortException || e is StackOverflowException || e is OutOfMemoryException)
+                    {
+                        throw;
+                    }
+
+                    // some sort of error occurred on the socked call,
+                    // set the SocketException as InnerException and throw
+                    throw new IOException(string.Format("Unable to write data to the transport connection: {0}.", e.Message), e);
+                }
+            }
         }
 
         /// <summary>
@@ -198,12 +218,26 @@ namespace Microsoft.Spark.CSharp.Network
             try
             {
                 var remainingBytes = count;
+                var newOffset = offset;
                 while (0 < remainingBytes)
                 {
-                    var sendBuffer = bufPool.Allocate();
-                    var sendCount = Math.Min(sendBuffer.WritableBytes, remainingBytes);
-                    sendBuffer.WriteBytes(buffer, offset, sendCount);
-                    streamSocket.Send(sendBuffer);
+                    if (sendDataCache == null)
+                    {
+                        sendDataCache = bufPool.Allocate();
+                    }
+
+                    if (sendDataCache.WritableBytes > remainingBytes)
+                    {
+                        sendDataCache.WriteBytes(buffer, newOffset, remainingBytes);
+                        return;
+                    }
+                    
+                    var sendCount = sendDataCache.WritableBytes;
+                    sendDataCache.WriteBytes(buffer, newOffset, sendCount);
+                    streamSocket.Send(sendDataCache);
+                    sendDataCache = null;
+
+                    newOffset += sendCount;
                     remainingBytes -= sendCount;
                 }
             }

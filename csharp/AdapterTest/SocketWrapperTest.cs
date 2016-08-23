@@ -54,20 +54,24 @@ namespace AdapterTest
                         // Send echo one byte
                         byte[] oneBytes = { (byte)oneByte };
                         s.Write(oneBytes, 0, oneBytes.Length);
+                        s.Flush();
                         
                         Thread.SpinWait(0);
 
                         // Send more bytes to test ReadByte() do not cause failures
                         s.Write(bytes, 0, bytesRec);
+                        s.Flush();
 
                         // Keep sending to ensure no memory leak
-                        var longBytes = Encoding.UTF8.GetBytes(new string('x', 8192));
+                        var longBytes = Encoding.UTF8.GetBytes(new string('x', 66536));
                         for (int i = 0; i < 1000; i++)
                         {
                             s.Write(longBytes, 0, longBytes.Length);
+                            s.Flush();
                         }
                         byte[] msg = Encoding.ASCII.GetBytes("This is a test<EOF>");
                         s.Write(msg, 0, msg.Length);
+                        s.Flush();
 
                         // Receive echo byte.
                         s.ReadByte();
@@ -97,33 +101,36 @@ namespace AdapterTest
                 Assert.Throws<InvalidOperationException>(() => clientSock.Accept());
             }
 
-            using (var s = clientSock.GetStream())
+            using (var ins = clientSock.GetInputStream())
+            using (var outs = clientSock.GetOutputStream())
             {
                 // Send message
-                s.Write(clientMsgBytes, 0, clientMsgBytes.Length);
+                outs.Write(clientMsgBytes, 0, clientMsgBytes.Length);
+                outs.Flush();
                 // Receive echo message
                 var bytes = new byte[1024];
-                var bytesRec = s.Read(bytes, 0, bytes.Length);
+                var bytesRec = ins.Read(bytes, 0, bytes.Length);
                 Assert.AreEqual(clientMsgBytes.Length, bytesRec);
                 var recvStr = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                 Assert.AreEqual(clientMsg, recvStr);
 
                 // Send one byte
                 byte[] oneBytes = { 1 };
-                s.Write(oneBytes, 0, oneBytes.Length);
+                outs.Write(oneBytes, 0, oneBytes.Length);
+                outs.Flush();
 
                 // Receive echo message
-                var oneByte = s.ReadByte();
+                var oneByte = ins.ReadByte();
                 Assert.AreEqual((byte)1, oneByte);
 
                 // Receive more message to test ReadByte do not cause failures.
-                bytesRec = s.Read(bytes, 0, bytes.Length);
+                bytesRec = ins.Read(bytes, 0, bytes.Length);
                 Assert.AreNotEqual(0, bytesRec);
 
                 // Keep receiving to ensure no memory leak.
                 while (true)
                 {
-                    bytesRec = s.Read(bytes, 0, bytes.Length);
+                    bytesRec = ins.Read(bytes, 0, bytes.Length);
                     recvStr = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                     if (recvStr.IndexOf("<EOF>", StringComparison.OrdinalIgnoreCase) > -1)
                     {
@@ -131,7 +138,8 @@ namespace AdapterTest
                     }
                 }
                 // send echo bytes
-                s.Write(oneBytes, 0, oneBytes.Length);
+                outs.Write(oneBytes, 0, oneBytes.Length);
+                outs.Flush();
             }
 
             clientSock.Close();
@@ -187,9 +195,26 @@ namespace AdapterTest
                 Assert.Ignore("Omitting due to missing Riosock.dll. It might caused by no VC++ build tool or running on an OS that not supports Windows RIO socket.");
             }
 
+            // Verify default value for no specific executor cores in environment variable.
             RioNative.SetUseThreadPool(true);
             RioNative.EnsureRioLoaded();
-            Assert.AreEqual(Environment.ProcessorCount, RioNative.GetWorkThreadNumber());
+            Assert.AreEqual(2, RioNative.GetWorkThreadNumber());
+            RioNative.UnloadRio();
+            RioNative.SetUseThreadPool(false);
+
+            // Verify the executor cores is less than 2.
+            Environment.SetEnvironmentVariable(ConfigurationService.ExecutorCoresEnvName, "1");
+            RioNative.SetUseThreadPool(true);
+            RioNative.EnsureRioLoaded();
+            Assert.AreEqual(2, RioNative.GetWorkThreadNumber());
+            RioNative.UnloadRio();
+            RioNative.SetUseThreadPool(false);
+
+            // Verify the executor cores is more than 2.
+            Environment.SetEnvironmentVariable(ConfigurationService.ExecutorCoresEnvName, "5");
+            RioNative.SetUseThreadPool(true);
+            RioNative.EnsureRioLoaded();
+            Assert.AreEqual(3, RioNative.GetWorkThreadNumber());
             RioNative.UnloadRio();
             RioNative.SetUseThreadPool(false);
         }
