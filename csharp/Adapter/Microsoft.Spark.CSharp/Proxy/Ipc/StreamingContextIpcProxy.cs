@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
@@ -306,7 +305,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                                 logger.LogDebug("receive close cmd from Scala side");
                                 break;
                             }
-                            else if (cmd == "callback")
+
+                            if (cmd == "callback")
                             {
                                 int numRDDs = SerDe.ReadInt(s);
                                 var jrdds = new List<JvmObjectReference>();
@@ -343,6 +343,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                                     ((Action<double, RDD<dynamic>>)func)(time, rdd);
                                     SerDe.Write(s, (byte)'n');
                                 }
+                                s.Flush();
                             }
                         }
                         catch (Exception e)

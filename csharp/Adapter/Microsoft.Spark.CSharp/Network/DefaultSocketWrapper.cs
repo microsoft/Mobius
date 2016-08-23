@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using Microsoft.Spark.CSharp.Configuration;
+using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Network
 {
@@ -13,6 +15,7 @@ namespace Microsoft.Spark.CSharp.Network
     /// </summary>
     internal class DefaultSocketWrapper : ISocketWrapper
     {
+        private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(DefaultSocketWrapper));
         private readonly Socket innerSocket;
 
         /// <summary>
@@ -77,6 +80,30 @@ namespace Microsoft.Spark.CSharp.Network
         public Stream GetStream()
         {
             return new NetworkStream(innerSocket);
+        }
+
+        /// <summary>
+        /// Returns a stream used to receive data only.
+        /// </summary>
+        /// <returns>The underlying Stream instance that be used to receive data</returns>
+        public Stream GetInputStream()
+        {
+            // The default buffer size is 64K, PythonRDD also use 64K as default buffer size.
+            var readBufferSize = int.Parse(Environment.GetEnvironmentVariable(ConfigurationService.CSharpWorkerReadBufferSizeEnvName) ?? "65536");
+            logger.LogDebug("Input stream buffer size: [{0}]", readBufferSize);
+            return readBufferSize > 0 ? new BufferedStream(GetStream(), readBufferSize) : GetStream();
+        }
+
+        /// <summary>
+        /// Returns a stream used to send data only.
+        /// </summary>
+        /// <returns>The underlying Stream instance that be used to send data</returns>
+        public Stream GetOutputStream()
+        {
+            // The default buffer size is 64K, PythonRDD also use 64K as default buffer size.
+            var writeBufferSize = int.Parse(Environment.GetEnvironmentVariable(ConfigurationService.CSharpWorkerWriteBufferSizeEnvName) ?? "65536");
+            logger.LogDebug("Output stream buffer size: [{0}]", writeBufferSize);
+            return writeBufferSize > 0 ? new BufferedStream(GetStream(), writeBufferSize) : GetStream();
         }
 
         /// <summary>

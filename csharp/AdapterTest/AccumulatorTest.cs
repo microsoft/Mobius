@@ -46,6 +46,7 @@ namespace AdapterTest
                 {
                     int numUpdates = 0;
                     SerDe.Write(s, numUpdates);
+                    s.Flush();
                 }
             }
             catch

@@ -144,6 +144,24 @@ namespace Microsoft.Spark.CSharp.Network
         }
 
         /// <summary>
+        /// Returns a stream used to receive data only.
+        /// </summary>
+        /// <returns>The underlying Stream instance that be used to receive data</returns>
+        public Stream GetInputStream()
+        {
+            return GetStream();
+        }
+
+        /// <summary>
+        /// Returns a stream used to send data only.
+        /// </summary>
+        /// <returns>The underlying Stream instance that be used to send data</returns>
+        public Stream GetOutputStream()
+        {
+            return GetStream();
+        }
+
+        /// <summary>
         /// Starts listening for incoming connections requests
         /// </summary>
         /// <param name="backlog">The maximum length of the pending connections queue. </param>

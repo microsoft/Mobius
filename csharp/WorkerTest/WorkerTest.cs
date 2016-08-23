@@ -358,6 +358,7 @@ namespace WorkerTest
                     WritePayloadHeaderToWorker(s);
                     SerDe.Write(s, command.Length);
                     s.Write(command, 0, command.Length/2);
+                    s.Flush();
                 }
 
                 AssertWorker(worker, 0, "System.ArgumentException: Incomplete bytes read: ");
