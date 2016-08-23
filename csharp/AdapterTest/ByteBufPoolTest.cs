@@ -43,14 +43,14 @@ namespace AdapterTest
             Assert.AreEqual(0, chunkNumbers[5]); // The number of chunks in 100% usage queue should be 0 at beginning.
 
             var bufs = new List<ByteBuf>();
-            for (var i = 0; i < 257; i++)
+            for (var i = 0; i < 4097; i++)
             {
                 var byteBuf = bufPool.Allocate();
                 bufs.Add(byteBuf);
             }
 
-            var firstChunk = bufs[255].ByteBufChunk;
-            var secondChunk = bufs[256].ByteBufChunk;
+            var firstChunk = bufs[4095].ByteBufChunk;
+            var secondChunk = bufs[4096].ByteBufChunk;
 
             // Verify the buffer pool got grown.
             Assert.AreNotSame(firstChunk, secondChunk);
@@ -117,14 +117,14 @@ namespace AdapterTest
             }
 
             var bufs = new List<ByteBuf>();
-            for (var i = 0; i < 257; i++)
+            for (var i = 0; i < 4097; i++)
             {
                 var byteBuf = unsafeBufPool.Allocate();
                 bufs.Add(byteBuf);
             }
 
-            var firstChunk = bufs[255].ByteBufChunk;
-            var secondChunk = bufs[256].ByteBufChunk;
+            var firstChunk = bufs[4095].ByteBufChunk;
+            var secondChunk = bufs[4096].ByteBufChunk;
 
             // Verify the buffer pool got grown.
             Assert.AreNotSame(firstChunk, secondChunk);

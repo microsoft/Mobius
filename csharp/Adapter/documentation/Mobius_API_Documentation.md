@@ -499,7 +499,7 @@
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Flush</font></td><td>Flushes data from the stream. This is meaningless for us, so it does nothing.</td></tr><tr><td><font color="blue">Seek</font></td><td>Seeks a specific position in the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">SetLength</font></td><td>Sets the length of the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">ReadByte</font></td><td>Reads a byte from the stream and advances the position within the stream by one byte, or returns -1 if at the end of the stream.</td></tr><tr><td><font color="blue">Read</font></td><td>Reads data from the stream.</td></tr><tr><td><font color="blue">Write</font></td><td>Writes data to the stream.</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Flush</font></td><td>Flushes data in send cache to the stream.</td></tr><tr><td><font color="blue">Seek</font></td><td>Seeks a specific position in the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">SetLength</font></td><td>Sets the length of the stream. This method is not supported by the SocketDataStream class.</td></tr><tr><td><font color="blue">ReadByte</font></td><td>Reads a byte from the stream and advances the position within the stream by one byte, or returns -1 if at the end of the stream.</td></tr><tr><td><font color="blue">Read</font></td><td>Reads data from the stream.</td></tr><tr><td><font color="blue">Write</font></td><td>Writes data to the stream.</td></tr></table>
 
 ---
   

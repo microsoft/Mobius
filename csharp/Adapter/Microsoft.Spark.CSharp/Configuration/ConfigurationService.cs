@@ -23,6 +23,7 @@ namespace Microsoft.Spark.CSharp.Configuration
         public const string CSharpSocketTypeEnvName = "spark.mobius.CSharp.socketType";
         public const string CSharpWorkerReadBufferSizeEnvName = "spark.mobius.CSharpWorker.readBufferSize";
         public const string CSharpWorkerWriteBufferSizeEnvName = "spark.mobius.CSharpWorker.writeBufferSize";
+        public const string ExecutorCoresEnvName = "spark.executor.cores";
         public const string SPARKCLR_HOME = "SPARKCLR_HOME";
         public const string SPARK_MASTER = "spark.master";
         public const string CSHARPBACKEND_PORT = "CSHARPBACKEND_PORT";

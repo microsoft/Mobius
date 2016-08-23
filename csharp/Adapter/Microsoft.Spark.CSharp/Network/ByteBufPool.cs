@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Network
@@ -21,6 +21,22 @@ namespace Microsoft.Spark.CSharp.Network
         /// </summary>
         private const int MaxChunkSize = (int)((int.MaxValue + 1L) / 2);
 
+        /// <summary>
+        /// The default segment size to delimit a byte array chunk. 
+        /// </summary>
+        public const int DefaultSegmentSize = 65536; // 64K
+
+        /// <summary>
+        /// The default chunk order used to calculate chunk size and ensure it is a multiple of a segment size.
+        /// </summary>
+        public const int DefaultChunkOrder = 12; // 65536 << 12 = 256 MBytes per chunk
+
+        /// <summary>
+        /// The trial count of trying to allocate buffer from existing ByteBufChunkList.
+        /// The 1000 should be enough to trial.
+        /// </summary>
+        private const int TrialsCount = 1000;
+
         private static readonly Lazy<ByteBufPool> DefaultPool =
             new Lazy<ByteBufPool>(() => new ByteBufPool(DefaultSegmentSize, DefaultChunkOrder, false));
         private static readonly Lazy<ByteBufPool> DefaultUnsafePool =
@@ -29,16 +45,6 @@ namespace Microsoft.Spark.CSharp.Network
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(RioSocketWrapper));
         private readonly bool isUnsafe;
         private readonly ByteBufChunkList qInit, q000, q025, q050, q075, q100;
-
-        /// <summary>
-        /// The default segment size to delimit a byte array chunk. 
-        /// </summary>
-        public const int DefaultSegmentSize = 131072; // 65536; // 64K
-
-        /// <summary>
-        /// The default chunk order used to calculate chunk size and ensure it is a multiple of a segment size.
-        /// </summary>
-        public const int DefaultChunkOrder = 7; // 65536 << 8 = 16 MBytes per chunk
 
         /// <summary>
         /// Initializes a new ByteBufPool instance with a given segment size and chunk order.
@@ -110,13 +116,22 @@ namespace Microsoft.Spark.CSharp.Network
         [MethodImpl(MethodImplOptions.Synchronized)]
         public ByteBuf Allocate()
         {
+            var trial = 0;
             ByteBuf byteBuf;
-            if (q050.Allocate(out byteBuf) || q025.Allocate(out byteBuf) ||
-                q000.Allocate(out byteBuf) || qInit.Allocate(out byteBuf) ||
-                q075.Allocate(out byteBuf))
+            do
             {
-                return byteBuf;
-            }
+                if (q050.Allocate(out byteBuf) || q025.Allocate(out byteBuf) ||
+                    q000.Allocate(out byteBuf) || qInit.Allocate(out byteBuf) ||
+                    q075.Allocate(out byteBuf))
+                {
+                    return byteBuf;
+                }
+
+                // Issues a pause instruction on each loop iteration, 
+                // and not fall back to a more expensive wait on.
+                Thread.Sleep(0); 
+                trial++;
+            } while (trial < TrialsCount);
 
             // Add a new chunk and allocate a segment from it.
             try
@@ -124,9 +139,11 @@ namespace Microsoft.Spark.CSharp.Network
                 var chunk = ByteBufChunk.NewChunk(this, SegmentSize, ChunkSize, isUnsafe);
                 if (!chunk.Allocate(out byteBuf))
                 {
-                    logger.LogError("Failed to allocate a ByteBuf from a new ByteBufChunk - isUnsafe [{0}].", isUnsafe);
+                    logger.LogError("Failed to allocate a ByteBuf from a new ByteBufChunk - isUnsafe [{0}].",
+                        isUnsafe);
                     return null;
                 }
+
                 qInit.Add(chunk);
                 return byteBuf;
             }

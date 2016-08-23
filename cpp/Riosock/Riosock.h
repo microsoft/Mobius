@@ -52,7 +52,9 @@ extern "C" {
         );
 
     // Registers the method to use for notification behavior.
-    BOOL RIOSOCKAPI RegisterRIONotify();
+    BOOL RIOSOCKAPI RegisterRIONotify(
+        _In_  BOOL  isRecvCq  
+        );
     
     // Registers a specified buffer for use with RIO Socket
     RIO_BUFFERID RIOSOCKAPI RegisterRIOBuffer(
@@ -77,27 +79,30 @@ extern "C" {
 
     // Dequeues RIO results from the I/O completion queue used with RIO socket.
     DWORD RIOSOCKAPI DequeueRIOResults(
+        _In_   BOOL        isRecvCq,
         _Out_  PRIORESULT  rioResults,
         _In_   DWORD       rioResultSize
         );
 
     // Creates a request queue
     RIO_RQ RIOSOCKAPI CreateRIORequestQueue(
-        _In_ SOCKET  socket,
-        _In_ ULONG   maxOutstandingReceive,
-        _In_ ULONG   maxOutstandingSend,
-        _In_ PVOID   socketContext
+        _In_  SOCKET  socket,
+        _In_  ULONG   maxOutstandingReceive,
+        _In_  ULONG   maxOutstandingSend,
+        _In_  PVOID   socketContext
         );
 
     // Resizes a request queue
     BOOL RIOSOCKAPI ResizeRIORequestQueue(
-        _In_ RIO_RQ rq,
-        _In_ DWORD  maxOutstandingReceive,
-        _In_ DWORD  maxOutstandingSend
+        _In_  RIO_RQ rq,
+        _In_  DWORD  maxOutstandingReceive,
+        _In_  DWORD  maxOutstandingSend
         );
 
     // Dequeues an IO completion packet
-    BOOL RIOSOCKAPI GetRIOCompletionStatus();
+    BOOL RIOSOCKAPI GetRIOCompletionStatus(
+        _In_  BOOL  isRecvCq
+        );
 
 #ifdef __cplusplus
 }

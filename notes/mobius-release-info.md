@@ -10,10 +10,14 @@ The [release in GitHub](https://github.com/Microsoft/Mobius/releases) is a zip f
         |-- jar files Mobius depends on for functionality like CSV parsing, Kafka message processing etc.        
     |-- lib
         |-- Mobius jar file
+    |-- repl
+        |-- .NET binaries and its dependencies used by C# REPL shell in Mobius
     |-- scripts
         |-- Mobius job submission scripts
 |-- examples
-    |-- Example Mobius applications
+    |-- Example Mobius applications in C#
+    |-- fsharp
+        |-- Example Mobius applications in F#
 |-- samples
     |-- C# Spark driver samples for Mobius API 
     |-- data    
@@ -22,9 +26,9 @@ The [release in GitHub](https://github.com/Microsoft/Mobius/releases) is a zip f
 
 Instructions on running a Mobius app is available at https://github.com/Microsoft/Mobius/blob/master/notes/running-mobius-app.md
 
-Mobius samples do not have any extenral dependencies. The dependent jar files and data files used by samples are included in the release. Instructions to run samples are available at
-* https://github.com/Microsoft/Mobius/blob/master/notes/windows-instructions.md#running-samples for Windows
-* https://github.com/Microsoft/Mobius/blob/master/notes/linx-instructions.md#running-samples for Linux
+Mobius samples do not have any external dependencies. The dependent jar files and data files used by samples are included in the release. Instructions to run samples are available at
+* **Windows**: https://github.com/Microsoft/Mobius/blob/master/notes/windows-instructions.md#running-samples
+* **Linux**: https://github.com/Microsoft/Mobius/blob/master/notes/linux-instructions.md#running-mobius-samples-in-linux
 
 Mobius examples under "examples" folder may have external dependencies and may need configuration settings to those dependencies before they can be run. Refer to [Running Examples](https://github.com/Microsoft/Mobius/blob/master/notes/running-mobius-app.md#running-mobius-examples-in-local-mode) for details on how to run each example.
 
@@ -33,7 +37,7 @@ The packages published to [NuGet](https://www.nuget.org/packages/Microsoft.Spark
 
 # Versioning Policy
 |Release location|Naming convention |Example |
-|----|----|----|
+|----------------|------------------|--------|
 |[GitHub](https://github.com/Microsoft/Mobius/releases) |spark-clr_[scala version]-[spark version][mobius release id][optional suffix].zip|spark-clr_2.10-1.6.100-PREVIEW-1.zip |
 |[NuGet](https://www.nuget.org/packages/Microsoft.SparkCLR/)|Microsoft.SparkCLR [spark version][mobius release id][optional suffix]|Microsoft.SparkCLR 1.6.100-PREVIEW-1 |
 

@@ -77,6 +77,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 using (var s = socket.GetStream())
                 {
                     SerDe.Write(s, overallPayload);
+                    s.Flush();
 
                     var isMethodCallFailed = SerDe.ReadInt(s);
                     //TODO - add boolean instead of int in the backend

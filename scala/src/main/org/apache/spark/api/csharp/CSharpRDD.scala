@@ -85,6 +85,10 @@ class CSharpRDD(
         CSharpRDD.csharpWorkerWriteBufferSize.toString)
     }
 
+    if (CSharpRDD.executorCores >= 0) {
+      envVars.put("spark.executor.cores", CSharpRDD.executorCores.toString)
+    }
+
     logInfo("Env vars: " + envVars.asScala.mkString(", "))
 
     val runner = new PythonRunner(
@@ -221,6 +225,8 @@ object CSharpRDD {
   var csharpWorkerReadBufferSize: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.readBufferSize", -1)
   // Buffer size in bytes for operation of writing data to JVM process
   var csharpWorkerWriteBufferSize: Int = SparkEnv.get.conf.getInt("spark.mobius.CSharpWorker.writeBufferSize", -1)
+  // Cores per executor
+  var executorCores: Int = SparkEnv.get.conf.getInt("spark.executor.cores", -1)
 
   def createRDDFromArray(
       sc: SparkContext,

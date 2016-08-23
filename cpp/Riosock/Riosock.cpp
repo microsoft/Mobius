@@ -23,9 +23,10 @@ DWORD CQUsed = 0;
 
 LONG RIOSockRef;
 PrioritizedLock *CQAccessLock = nullptr;
-RIO_CQ CompletionQueue = nullptr;
-RIO_RQ RequestQueue = nullptr;
-RIO_NOTIFICATION_COMPLETION CompletionType;
+RIO_CQ RecvCQ = nullptr;
+RIO_CQ SendCQ = nullptr;
+RIO_NOTIFICATION_COMPLETION RecvCompletionType;
+RIO_NOTIFICATION_COMPLETION SendCompletionType;
 RIO_EXTENSION_FUNCTION_TABLE RIOFuncs = { 0 };
 
 //
@@ -268,11 +269,23 @@ HRESULT RIOSOCKAPI RIOSockInitialize()
         return E_OUTOFMEMORY;
     }
 
-    // Create IOCP handle
-    auto iocpHandle = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
-    if (iocpHandle == nullptr)
+    // Create IOCP handle for RECV CQ
+    auto iocpHandleOfRecv = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
+    if (iocpHandleOfRecv == nullptr)
     {
         DWORD errorCode = GetLastError();
+        delete CQAccessLock;
+        SetLastError(errorCode);
+        return HRESULT_FROM_WIN32(errorCode);
+    }
+
+    // Create IOCP handle for SEND CQ
+    auto iocpHandleOfSend = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
+    if (iocpHandleOfSend == nullptr)
+    {
+        DWORD errorCode = GetLastError();
+        // Close IOCP handle
+        CloseHandle(iocpHandleOfRecv);
         delete CQAccessLock;
         SetLastError(errorCode);
         return HRESULT_FROM_WIN32(errorCode);
@@ -282,7 +295,8 @@ HRESULT RIOSOCKAPI RIOSockInitialize()
     auto overLapped = calloc(1, sizeof(OVERLAPPED));
     if (nullptr == overLapped) {
         // Close IOCP handle
-        CloseHandle(iocpHandle);
+        CloseHandle(iocpHandleOfRecv);
+        CloseHandle(iocpHandleOfSend);
         delete CQAccessLock;
         SetLastError(WSAENOBUFS);
         return HRESULT_FROM_WIN32(WSAENOBUFS);
@@ -290,18 +304,38 @@ HRESULT RIOSOCKAPI RIOSockInitialize()
 
     // With RIO, we don't associate the IOCP handle with the socket like 'typical' sockets
     // - Instead we directly pass the IOCP handle through RIOCreateCompletionQueue
-    ::ZeroMemory(&CompletionType, sizeof(CompletionType));
+    ::ZeroMemory(&RecvCompletionType, sizeof(RecvCompletionType));
+    RecvCompletionType.Type = RIO_IOCP_COMPLETION;
+    RecvCompletionType.Iocp.CompletionKey = reinterpret_cast<void*>(1);
+    RecvCompletionType.Iocp.Overlapped = overLapped;
+    RecvCompletionType.Iocp.IocpHandle = iocpHandleOfRecv;
 
-    CompletionType.Type = RIO_IOCP_COMPLETION;
-    CompletionType.Iocp.CompletionKey = reinterpret_cast<void*>(1); 
-    CompletionType.Iocp.Overlapped = overLapped;
-    CompletionType.Iocp.IocpHandle = iocpHandle;
+    ::ZeroMemory(&SendCompletionType, sizeof(SendCompletionType));
+    SendCompletionType.Type = RIO_IOCP_COMPLETION;
+    SendCompletionType.Iocp.CompletionKey = reinterpret_cast<void*>(1);
+    SendCompletionType.Iocp.Overlapped = overLapped;
+    SendCompletionType.Iocp.IocpHandle = iocpHandleOfSend;
     
-    // Create a completion queue
-    CompletionQueue = CreateRIOCompletionQueue(DefaultRIOCQSize, &CompletionType);
-    if (RIO_INVALID_CQ == CompletionQueue) {
+    // Create a completion queue for RECV
+    RecvCQ = CreateRIOCompletionQueue(DefaultRIOCQSize, &RecvCompletionType);
+    if (RIO_INVALID_CQ == RecvCQ) {
         DWORD errorCode = WSAGetLastError();
-        CloseHandle(iocpHandle);
+        CloseHandle(iocpHandleOfRecv);
+        CloseHandle(iocpHandleOfSend);
+        free(overLapped);
+        delete CQAccessLock;
+        SetLastError(errorCode);
+        return HRESULT_FROM_WIN32(errorCode);
+    }
+
+    // Create a completion queue for SEND
+    SendCQ = CreateRIOCompletionQueue(DefaultRIOCQSize, &SendCompletionType);
+    if (RIO_INVALID_CQ == SendCQ) {
+        DWORD errorCode = WSAGetLastError();
+        CloseRIOCompletionQueue(RecvCQ);
+        RecvCQ = RIO_INVALID_CQ;
+        CloseHandle(iocpHandleOfRecv);
+        CloseHandle(iocpHandleOfSend);
         free(overLapped);
         delete CQAccessLock;
         SetLastError(errorCode);
@@ -331,18 +365,29 @@ void RIOSOCKAPI RIOSockUninitialize()
     InterlockedDecrement(&RIOSockRef);
     if (RIOSockRef > 0) return;
 
-    if (CompletionQueue != RIO_INVALID_CQ) {
-        CloseRIOCompletionQueue(CompletionQueue);
-        CompletionQueue = RIO_INVALID_CQ;
+    if (RecvCQ != RIO_INVALID_CQ) {
+        CloseRIOCompletionQueue(RecvCQ);
+        RecvCQ = RIO_INVALID_CQ;
     }
 
-    if (CompletionType.Iocp.IocpHandle != nullptr) {
-        CloseHandle(CompletionType.Iocp.IocpHandle);
-        CompletionType.Iocp.IocpHandle = nullptr;
+    if (SendCQ != RIO_INVALID_CQ) {
+        CloseRIOCompletionQueue(SendCQ);
+        SendCQ = RIO_INVALID_CQ;
     }
 
-    free(CompletionType.Iocp.Overlapped);
-    CompletionType.Iocp.Overlapped = nullptr;
+    if (RecvCompletionType.Iocp.IocpHandle != nullptr) {
+        CloseHandle(RecvCompletionType.Iocp.IocpHandle);
+        RecvCompletionType.Iocp.IocpHandle = nullptr;
+    }
+
+    if (SendCompletionType.Iocp.IocpHandle != nullptr) {
+        CloseHandle(SendCompletionType.Iocp.IocpHandle);
+        SendCompletionType.Iocp.IocpHandle = nullptr;
+    }
+
+    free(RecvCompletionType.Iocp.Overlapped);
+    RecvCompletionType.Iocp.Overlapped = nullptr;
+    SendCompletionType.Iocp.Overlapped = nullptr;
 
     delete CQAccessLock;
     CQAccessLock = nullptr;
@@ -513,11 +558,14 @@ BOOL RIOSOCKAPI PostRIOSend(
 //  Description:
 //      This function registers the method to use for notification behavior.
 //
+//  Parameters:
+//      isRecvCq  -  Indicates whether register Notify at RecvCQ or SendCQ.
+//
 //  Result:
 //      Returns TRUE if no error occurs. Otherwise, a value of FALSE is returned.
 //-
 FORCEINLINE
-BOOL RIOSOCKAPI RegisterRIONotify()
+BOOL RIOSOCKAPI RegisterRIONotify(_In_  BOOL  isRecvCq)
 {
     auto hr = EnsureWinSockMethods(INVALID_SOCKET);
     if (FAILED(hr))
@@ -525,7 +573,7 @@ BOOL RIOSOCKAPI RegisterRIONotify()
         return FALSE;
     }
 
-    auto notify = RIOFuncs.RIONotify(CompletionQueue);
+    auto notify = RIOFuncs.RIONotify((isRecvCq == TRUE) ? RecvCQ : SendCQ);
     if (notify != ERROR_SUCCESS) {
         SetLastError(notify);
         return FALSE;
@@ -633,7 +681,8 @@ BOOL RIOSOCKAPI AllocateRIOCompletion(
             newCQSize = RIO_MAX_CQ_SIZE;
         }
 
-        if (!ResizeRIOCompletionQueue(CompletionQueue, newCQSize))
+        if (!ResizeRIOCompletionQueue(RecvCQ, newCQSize) &&
+            !ResizeRIOCompletionQueue(SendCQ, newCQSize))
         {
             return FALSE;
         }
@@ -684,6 +733,7 @@ BOOL RIOSOCKAPI ReleaseRIOCompletion(
 //      It will always post a Notify with proper synchronization.
 //
 //  Parameters:
+//      isRecvCq       -  Indicates whether dequeue results from RecvCQ or SendCQ
 //      rioResults     -  An array of RIORESULT structures to receive the description of the completions dequeued.
 //      rioResultSize  -  The maximum number of entries in the rioResults to write.
 //
@@ -694,6 +744,7 @@ BOOL RIOSOCKAPI ReleaseRIOCompletion(
 //-
 FORCEINLINE
 DWORD RIOSOCKAPI DequeueRIOResults(
+    _In_   BOOL        isRecvCq,
     _Out_  PRIORESULT  rioResults,
     _In_   DWORD       rioResultSize
     )
@@ -702,7 +753,7 @@ DWORD RIOSOCKAPI DequeueRIOResults(
     // dequeuing. So it can add space to the CQ
     AutoReleaseDefaultLock defaultLock(*CQAccessLock);
 
-    auto resultCount = DequeueRIOCompletion(CompletionQueue, rioResults, rioResultSize);
+    auto resultCount = DequeueRIOCompletion((isRecvCq == TRUE) ? RecvCQ : SendCQ, rioResults, rioResultSize);
     if (0 == resultCount || RIO_CORRUPT_CQ == resultCount)
     {
         // We were notified there were completions, but we can't dequeue any IO
@@ -711,7 +762,7 @@ DWORD RIOSOCKAPI DequeueRIOResults(
     }
 
     // Immediately after invoking Dequeue, post another Notify
-    auto notifyResult = RegisterRIONotify();
+    auto notifyResult = RegisterRIONotify(isRecvCq);
     if (notifyResult == FALSE)
     {
         // if notify fails, we can't reliably know when the next IO completes
@@ -762,8 +813,8 @@ RIO_RQ RIOSOCKAPI CreateRIORequestQueue(
         1,
         maxOutstandingSend,
         1,
-        CompletionQueue,
-        CompletionQueue,
+        RecvCQ,
+        SendCQ,
         socketContext
     );
 }
@@ -811,11 +862,14 @@ BOOL RIOSOCKAPI ResizeRIORequestQueue(
 //      This function calls GetQueuedCompletionStatus() internally to dequeue an IO completion packet.
 //      If there is no completion packet queued, the function blocks the thread.
 //
+//  Parameters:
+//      isRecvCq  -  Indicates whether get the status from the RecvCQ or SendCQ
+//
 //  Result:
 //      If no error occurs, it returns a new request queue. Otherwise, a value of RIO_INVALID_RQ is returned.
 //-
 FORCEINLINE
-BOOL RIOSOCKAPI GetRIOCompletionStatus()
+BOOL RIOSOCKAPI GetRIOCompletionStatus(_In_  BOOL  isRecvCq)
 {
     DWORD bytesTransferred;
     ULONG_PTR completionKey;
@@ -823,7 +877,7 @@ BOOL RIOSOCKAPI GetRIOCompletionStatus()
 
 
     if (!GetQueuedCompletionStatus(
-            CompletionType.Iocp.IocpHandle,
+            (isRecvCq == TRUE) ? RecvCompletionType.Iocp.IocpHandle : SendCompletionType.Iocp.IocpHandle,
             &bytesTransferred,
             &completionKey,
             &pov,

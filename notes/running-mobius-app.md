@@ -64,7 +64,7 @@ The steps to debug a Mobius driver program are:
 
 ### Standalone Cluster
 #### Client Mode
-Mobius `runtime` folder and the build output of Mobius driver application must be copied over to the machine where you submit Mobius apps to a Spark Standalone cluster. Once copying is done, instructions are same as that of [localmode](running-mobius-app.md#local-mode) but specifying master URL (`--master <spark://host:port>`) is required in addition.
+Mobius `runtime` folder and the build output of Mobius driver application must be copied over to the machine where you submit Mobius apps to a Spark Standalone cluster. Once copying is done, instructions are same as that of [local mode](running-mobius-app.md#local-mode) but specifying master URL (`--master <spark://host:port>`) is required in addition.
 
 **Sample Commands**
  * `sparkclr-submit.cmd` `--master spark://93.184.216.34:7077` `--total-executor-cores 2` `--exe SparkClrPi.exe C:\Git\Mobius\examples\Pi\bin\Debug`
@@ -173,9 +173,9 @@ Displays the number of XML elements in the input XML file provided as the first 
 
 ### Hive Example (Sql)
 * 
-`sparkclr-submit.cmd --jars <jar files used for using Hive in Spark> --exe HiveDataFrame.exe C:\Git\Mobius\examples\Sql\HiveDataFrame\bin\Debug`
+`sparkclr-submit.cmd --exe HiveDataFrame.exe C:\Git\Mobius\examples\Sql\HiveDataFrame\bin\Debug <input json file path>`
 
-Reads data from a csv file, creates a Hive table and reads data from it
+Reads data from a csv file, creates a Hive table and reads data from it. The `<input json file path>` could look like `C:\Git\Mobius\examples\Sql\HiveDataFrame\data\people.json` or `file:///C:/Git/Mobius/examples/Sql/HiveDataFrame/data/people.json` in Windows environment. While in local Linux environment, the `<input json file path>` could look look like `file:///path/to/people.json`.
 
 ### Cassandra Example (Sql)
 * Download following jars that are needed to use Spark with Cassandra. **Note** that you need to get the right version of the jar files depending on the versions of Spark and Cassandra. Refer to [version compatibility](https://github.com/datastax/spark-cassandra-connector#version-compatibility) table for details.

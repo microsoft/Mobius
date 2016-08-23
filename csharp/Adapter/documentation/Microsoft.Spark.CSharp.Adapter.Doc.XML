@@ -3353,6 +3353,12 @@
             The default chunk order used to calculate chunk size and ensure it is a multiple of a segment size.
             </summary>
         </member>
+        <member name="F:Microsoft.Spark.CSharp.Network.ByteBufPool.TrialsCount">
+            <summary>
+            The trial count of trying to allocate buffer from existing ByteBufChunkList.
+            The 1000 should be enough to trial.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Network.ByteBufPool.#ctor(System.Int32,System.Int32,System.Boolean)">
             <summary>
             Initializes a new ByteBufPool instance with a given segment size and chunk order.
@@ -3460,6 +3466,18 @@
             the NetworkStream by yourself. Closing DefaultSocketWrapper does not release the NetworkStream
             </remarks>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.GetInputStream">
+            <summary>
+            Returns a stream used to receive data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.GetOutputStream">
+            <summary>
+            Returns a stream used to send data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to send data</returns>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Listen(System.Int32)">
             <summary>
             Starts listening for incoming connections requests
@@ -3542,6 +3560,18 @@
             Returns a stream used to send and receive data.
             </summary>
             <returns>The underlying Stream instance that be used to send and receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.GetInputStream">
+            <summary>
+            Returns a stream used to receive data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.GetOutputStream">
+            <summary>
+            Returns a stream used to send data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to send data</returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Listen(System.Int32)">
             <summary>
@@ -3694,6 +3724,18 @@
             </summary>
             <returns>The underlying Stream instance that be used to send and receive data</returns>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.GetInputStream">
+            <summary>
+            Returns a stream used to receive data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.GetOutputStream">
+            <summary>
+            Returns a stream used to send data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to send data</returns>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.Listen(System.Int32)">
             <summary>
             Starts listening for incoming connections requests
@@ -3824,6 +3866,18 @@
             </summary>
             <returns>The underlying Stream instance that be used to send and receive data</returns>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.GetInputStream">
+            <summary>
+            Returns a stream used to receive data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to receive data</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.GetOutputStream">
+            <summary>
+            Returns a stream used to send data only.
+            </summary>
+            <returns>The underlying Stream instance that be used to send data</returns>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.Listen(System.Int32)">
             <summary>
             Starts listening for incoming connections requests
@@ -3931,7 +3985,7 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.SocketStream.Flush">
             <summary>
-            Flushes data from the stream.  This is meaningless for us, so it does nothing.
+            Flushes data in send cache to the stream.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.SocketStream.Seek(System.Int64,System.IO.SeekOrigin)">
