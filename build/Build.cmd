@@ -225,7 +225,8 @@ if not defined ProjectVersion (
     goto :distdone
 )
 
-set SPARKCLR_NAME=spark-clr_2.10-%ProjectVersion%
+set SPARKCLR_NAME=spark-clr_2.11-%ProjectVersion%
+set SPARKCLR_NAME=spark-clr_2.11-%ProjectVersion%
 @echo "%SPARKCLR_HOME%
 
 @rem copy samples to top-level folder before zipping
