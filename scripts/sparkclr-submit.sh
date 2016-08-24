@@ -52,7 +52,7 @@ fi
 
 export SPARK_JARS_CLASSPATH="$SPARK_JARS_DIR\*"
 
-export SPARKCLR_JAR=spark-clr_2.10-2.0.000-PREVIEW-1.jar
+export SPARKCLR_JAR=spark-clr_2.11-2.0.000-PREVIEW-1.jar
 export SPARKCLR_CLASSPATH="$SPARKCLR_HOME/lib/$SPARKCLR_JAR"
 # SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode
 [ ! "$SPARKCLR_DEBUGMODE_EXT_JARS" = "" ] && export SPARKCLR_CLASSPATH="$SPARKCLR_CLASSPATH:$SPARKCLR_DEBUGMODE_EXT_JARS"
