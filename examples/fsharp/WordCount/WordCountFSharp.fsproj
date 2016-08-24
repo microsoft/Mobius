@@ -71,7 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CSharpWorker">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200-PREVIEW-1\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200\lib\net45\CSharpWorker.exe</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core">
@@ -83,7 +83,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Spark.CSharp.Adapter">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200-PREVIEW-1\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />

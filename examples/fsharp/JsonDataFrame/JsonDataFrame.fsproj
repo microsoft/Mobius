@@ -66,13 +66,13 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CSharpWorker">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200-PREVIEW-1\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200\lib\net45\CSharpWorker.exe</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Spark.CSharp.Adapter">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200-PREVIEW-1\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
