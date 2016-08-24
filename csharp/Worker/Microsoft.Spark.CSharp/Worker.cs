@@ -352,6 +352,7 @@ namespace Microsoft.Spark.CSharp
 
             return formatter;
         }
+<<<<<<< HEAD
 
         private static void ReadCommand(Stream networkStream, IFormatter formatter, out int stageId,
             out string deserializerMode,
@@ -359,6 +360,15 @@ namespace Microsoft.Spark.CSharp
         {
             stageId = ReadDiagnosticsInfo(networkStream);
 
+=======
+
+        private static void ReadCommand(Stream networkStream, IFormatter formatter, out int stageId,
+            out string deserializerMode,
+            out string serializerMode, out CSharpWorkerFunc workerFunc)
+        {
+            stageId = ReadDiagnosticsInfo(networkStream);
+
+>>>>>>> db85fe39d7d4ba25e51f84e16bdbcfdbfb17fd7b
             deserializerMode = SerDe.ReadString(networkStream);
             logger.LogDebug("Deserializer mode: " + deserializerMode);
             serializerMode = SerDe.ReadString(networkStream);
@@ -372,11 +382,19 @@ namespace Microsoft.Spark.CSharp
                 {
                     assemblyHandler.LoadAssemblies(Directory.GetFiles(compilationDumpDir, "ReplCompilation.*",
                         SearchOption.TopDirectoryOnly));
+<<<<<<< HEAD
                 }
                 else
                 {
                     logger.LogError("Directory " + compilationDumpDir + " dose not exist.");
                 }
+=======
+                }
+                else
+                {
+                    logger.LogError("Directory " + compilationDumpDir + " dose not exist.");
+                }
+>>>>>>> db85fe39d7d4ba25e51f84e16bdbcfdbfb17fd7b
             }
 
 
@@ -415,6 +433,7 @@ namespace Microsoft.Spark.CSharp
                     continue;
                 }
 
+<<<<<<< HEAD
                 try
                 {
                     WriteOutput(outputStream, serializerMode, message, formatter);
@@ -425,11 +444,18 @@ namespace Microsoft.Spark.CSharp
                     throw;
                 }
 
+=======
+                WriteOutput(outputStream, serializerMode, message, formatter);
+>>>>>>> db85fe39d7d4ba25e51f84e16bdbcfdbfb17fd7b
                 count++;
                 funcProcessWatch.Start();   
             }
 
+<<<<<<< HEAD
             logger.LogInfo("Output entries count: " + count);
+=======
+            logger.LogDebug("Output entries count: " + count);
+>>>>>>> db85fe39d7d4ba25e51f84e16bdbcfdbfb17fd7b
             logger.LogDebug("Null messages count: " + nullMessageCount);
 
             //if profiler:
