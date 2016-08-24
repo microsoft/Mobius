@@ -17,15 +17,15 @@ function Update-Csproj($targetDir, $version)
     Write-Output "[SetSparkClrPackageVersion.Update-Csproj] Start setting *.csproj under $targetDir to version=$version"
 
     # 
-    # Update Mobius package version to this release. Example in *.csproj:  
+    # Update Mobius package version to this release. Example in *.csproj and *.fsproj:  
     #     <HintPath>..\packages\Microsoft.SparkCLR.1.5.2-SNAPSHOT\lib\net45\CSharpWorker.exe</HintPath>
     # 
-    Get-ChildItem $targetDir -filter "*.csproj" -recurs | % { 
-        Write-Output "[SetSparkClrPackageVersion.Update-Csproj] updating $($_.FullName)"
+    Get-ChildItem $targetDir -filter "*.*sproj" -recurs | % { 
+        Write-Output "[SetSparkClrPackageVersion.Update-*sproj] updating $($_.FullName)"
  		((Get-Content $_.FullName) -replace "\\Microsoft\.SparkCLR.*\\lib", "\Microsoft.SparkCLR.$version\lib") | Set-Content -Encoding UTF8 -Path $_.FullName -force
 	}
 
-    Write-Output "[SetSparkClrPackageVersion.Update-Csproj] Done setting *.csproj under $targetDir to version=$version"
+    Write-Output "[SetSparkClrPackageVersion.Update-Csproj] Done setting *.csproj and *.fsproj under $targetDir to version=$version"
 }
 
 function Update-PackageConfig($targetDir, $version)

@@ -38,11 +38,11 @@
       <HintPath>..\..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="CSharpWorker, Version=1.6.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200\lib\net45\CSharpWorker.exe</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.2.0.0-PREVIEW-1\lib\net45\CSharpWorker.exe</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Spark.CSharp.Adapter, Version=1.6.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.1.6.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.SparkCLR.2.0.0-PREVIEW-1\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
