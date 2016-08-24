@@ -356,8 +356,8 @@ function Download-ExternalDependencies
 	$readMeStream.WriteLine("")
 	$readMeStream.WriteLine("------------ Dependencies for Kafka-based processing in Mobius Streaming API -----------------------------")
 		
-	$url = "http://search.maven.org/remotecontent?filepath=org/apache/spark/spark-streaming-kafka-assembly_2.10/1.6.1/spark-streaming-kafka-assembly_2.10-1.6.1.jar"
-	$output="$scriptDir\..\dependencies\spark-streaming-kafka-assembly_2.10-1.6.1.jar"
+	$url = "http://search.maven.org/remotecontent?filepath=org/apache/spark/spark-streaming-kafka-0-8-assembly_2.11/2.0.0/spark-streaming-kafka-0-8-assembly_2.11-2.0.0.jar"
+	$output="$scriptDir\..\dependencies\spark-streaming-kafka-0-8-assembly_2.11-2.0.0.jar"
 	Download-File $url $output
     Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"	
 	$readMeStream.WriteLine("$url")
