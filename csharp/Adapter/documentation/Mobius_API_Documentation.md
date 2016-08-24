@@ -104,6 +104,20 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.CSharpWorkerFunc</font>
+####Summary
+  
+            
+            Function that will be executed in CSharpWorker
+            
+        
+####Methods
+
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Chain</font></td><td>Used to chain functions</td></tr></table>
+
+---
+  
+  
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.Option`1</font>
 ####Summary
   

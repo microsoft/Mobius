@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
@@ -120,13 +121,14 @@ namespace WorkerTest
         /// write common header to worker
         /// </summary>
         /// <param name="s"></param>
-        private void WritePayloadHeaderToWorker(Stream s)
+        private void WritePayloadHeaderToWorker(Stream s, int isSqlUdf = 0)
         {
             SerDe.Write(s, splitIndex);
             SerDe.Write(s, ver);
             SerDe.Write(s, sparkFilesDir);
             SerDe.Write(s, numberOfIncludesItems);
             SerDe.Write(s, numBroadcastVariables);
+            SerDe.Write(s, isSqlUdf); //flag for UDF
             s.Flush();
         }
 
@@ -244,7 +246,7 @@ namespace WorkerTest
 
             // copy dll
             var currentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            
+
             File.Copy(Path.Combine(currentDir, "Microsoft.Spark.CSharp.Adapter.dll"), Path.Combine(compilationDir, "ReplCompilation.1"));
 
             try
@@ -267,8 +269,8 @@ namespace WorkerTest
                     for (int i = 0; i < 100; i++)
                         SerDe.Write(s, i.ToString());
 
-                    SerDe.Write(s, (int) SpecialLengths.END_OF_DATA_SECTION);
-                    SerDe.Write(s, (int) SpecialLengths.END_OF_STREAM);
+                    SerDe.Write(s, (int)SpecialLengths.END_OF_DATA_SECTION);
+                    SerDe.Write(s, (int)SpecialLengths.END_OF_STREAM);
                     s.Flush();
 
                     int count = 0;
@@ -357,7 +359,7 @@ namespace WorkerTest
                 {
                     WritePayloadHeaderToWorker(s);
                     SerDe.Write(s, command.Length);
-                    s.Write(command, 0, command.Length/2);
+                    s.Write(command, 0, command.Length / 2);
                     s.Flush();
                 }
 
@@ -390,7 +392,7 @@ namespace WorkerTest
 
                 for (int i = 0; i < 100; i++)
                     SerDe.Write(s, i.ToString());
-                
+
                 s.Flush();
 
                 // Note: as send buffer is enabled by default, and CSharpWorker only flushes output after receives all data (receive END_OF_DATA_SECTION flag), 
@@ -469,7 +471,7 @@ namespace WorkerTest
                 SerDe.Write(s, commandWithRawDeserializeMode.Length);
                 SerDe.Write(s, commandWithRawDeserializeMode);
 
-                var payloadCollection = new string[] {"A", "B", "C", "D", "E"};
+                var payloadCollection = new string[] { "A", "B", "C", "D", "E" };
                 foreach (var payloadElement in payloadCollection)
                 {
                     var payload = Encoding.UTF8.GetBytes(payloadElement);
@@ -640,6 +642,7 @@ namespace WorkerTest
 
                 broadcastVariablesToAdd.ToList().ForEach(bid => { SerDe.Write(s, bid); SerDe.Write(s, "path" + bid); });
                 broadcastVariablesToDelete.ToList().ForEach(bid => SerDe.Write(s, -bid - 1));
+                SerDe.Write(s, 0); //flag for UDF
 
                 byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((pid, iter) => iter), SerializedMode.String, SerializedMode.String);
 
@@ -667,7 +670,7 @@ namespace WorkerTest
                 // we postpone the test of assertMessage after worker exit
                 assertMessage = "num_broadcast_variables: " + (broadcastVariablesToAdd.Length + broadcastVariablesToDelete.Length);
             }
-           
+
             AssertWorker(worker, 0, assertMessage);
             CSharpRDD_SocketServer.Close();
         }
@@ -725,7 +728,7 @@ namespace WorkerTest
                     if (expectedCount > 0 && ++count >= expectedCount)
                     {
                         break;
-                    }  
+                    }
                 }
                 else if (length == (int)SpecialLengths.END_OF_STREAM)
                 {
@@ -786,6 +789,47 @@ namespace WorkerTest
             AssertWorker(worker);
             CSharpRDD_SocketServer.Close();
         }
+
+        [Test]
+        public void TestUdfSerialization()
+        {
+            Func<string, int> f = (s) => 1;
+            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<int, string>(f).Execute;
+            var udfCommand = SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.String,
+                SerializedMode.String);
+
+            using (var outputStream = new MemoryStream(500))
+            using (var inputStream = new MemoryStream(500))
+            {
+                SerDe.Write(inputStream, "1.0"); //version
+                SerDe.Write(inputStream, ""); //includes directory
+                SerDe.Write(inputStream, 0); //number of included items
+                SerDe.Write(inputStream, 0); //number of broadcast variables
+                SerDe.Write(inputStream, 1); //flag for UDF
+
+                SerDe.Write(inputStream, 1); //count of udfs
+                SerDe.Write(inputStream, 1); //count of args
+                SerDe.Write(inputStream, 0); //index of args
+                SerDe.Write(inputStream, 1); //count of chained func
+
+                SerDe.Write(inputStream, udfCommand.Length);
+                SerDe.Write(inputStream, udfCommand);
+
+                SerDe.Write(inputStream, (int)SpecialLengths.END_OF_DATA_SECTION);
+                SerDe.Write(inputStream, (int)SpecialLengths.END_OF_STREAM);
+                inputStream.Flush();
+                inputStream.Position = 0;
+
+                Worker.InitializeLogger();
+                Worker.ProcessStream(inputStream, outputStream, 1);
+                outputStream.Position = 0;
+                foreach (var val in ReadWorker(outputStream))
+                {
+                    //Section in output could be successfuly read from the stream
+                }
+            }
+
+        }
     }
 
     [Serializable]
@@ -804,6 +848,32 @@ namespace WorkerTest
                 accumulator += 1;
                 return e;
             });
+        }
+    }
+
+    [TestFixture]
+    public class CSharpWorkerFuncTest
+    {
+        [Test]
+        public void ChainTest()
+        {
+            var func1 = new CSharpWorkerFunc((id, iter) => new List<dynamic> { 1, 2, 3 });
+            var func2 = new CSharpWorkerFunc(Multiplier);
+            var func3 = CSharpWorkerFunc.Chain(func1, func2); //func1 will be executed first on input and result will be input to func2
+
+            var result = func3.Func(1, new List<dynamic>()).Cast<int>().ToArray();
+
+            Assert.AreEqual(10, result[0]);
+            Assert.AreEqual(20, result[1]);
+            Assert.AreEqual(30, result[2]);
+        }
+
+        private IEnumerable<dynamic> Multiplier(int arg1, IEnumerable<dynamic> values)
+        {
+            foreach (var value in values)
+            {
+                yield return value * 10;
+            }
         }
     }
 }
