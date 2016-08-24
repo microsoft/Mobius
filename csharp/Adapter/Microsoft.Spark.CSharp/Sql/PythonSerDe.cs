@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using Razorvine.Pickle;
 using Razorvine.Pickle.Objects;
 
@@ -26,7 +27,9 @@ namespace Microsoft.Spark.CSharp.Sql
         internal static object[] GetUnpickledObjects(byte[] buffer)
         {
             var unpickler = new Unpickler(); //not making any assumptions about the implementation and hence not a class member
-            return (unpickler.loads(buffer) as object[]);
+            var unpickledItems = unpickler.loads(buffer);
+            Debug.Assert(unpickledItems != null);
+            return (unpickledItems as object[]);
         }
     }
 }

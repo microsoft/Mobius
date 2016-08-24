@@ -227,6 +227,16 @@
             </summary>
             <param name="blocking"></param>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.CSharpWorkerFunc">
+            <summary>
+            Function that will be executed in CSharpWorker
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.CSharpWorkerFunc.Chain(Microsoft.Spark.CSharp.Core.CSharpWorkerFunc,Microsoft.Spark.CSharp.Core.CSharpWorkerFunc)">
+            <summary>
+            Used to chain functions
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.HadoopConfiguration">
             <summary>
             Configuration for Hadoop operations

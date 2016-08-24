@@ -4,12 +4,12 @@
   <artifactId>spark-clr-perf</artifactId>
   <version>${spark.version}-SNAPSHOT</version>
   <name>${project.artifactId}</name>
-  <description>Scala Perf suite for SparkCLR</description>
+  <description>Scala Perf suite for Mobius</description>
   <inceptionYear>2015</inceptionYear>
   <licenses>
     <license>
       <name>MIT License</name>
-      <url>https://github.com/Microsoft/SparkCLR/blob/master/LICENSE</url>
+      <url>https://github.com/Microsoft/Mobius/blob/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -18,9 +18,9 @@
     <maven.compiler.source>1.5</maven.compiler.source>
     <maven.compiler.target>1.5</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.version>2.10.4</scala.version>
-    <spark.version>1.6.2</spark.version>
-    <scala.binary.version>2.10</scala.binary.version>
+    <scala.version>2.11.8</scala.version>
+    <spark.version>2.0.0</spark.version>
+    <scala.binary.version>2.11</scala.binary.version>
   </properties>
 
   <dependencies>
@@ -51,24 +51,24 @@
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
-          <artifactId>spark-core_2.10</artifactId>
+          <artifactId>spark-core_2.11</artifactId>
           <version>${spark.version}</version>
           <!--the following is placeholder for building uber package. Please keep as-is-->
           <!--<scope>provided</scope>-->
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
-          <artifactId>spark-streaming_2.10</artifactId>
+          <artifactId>spark-streaming_2.11</artifactId>
           <version>${spark.version}</version>
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
-          <artifactId>spark-streaming-kafka_2.10</artifactId>
+          <artifactId>spark-streaming-kafka-0-8_2.11</artifactId>
           <version>${spark.version}</version>
       </dependency>
       <dependency>
           <groupId>org.apache.spark</groupId>
-          <artifactId>spark-sql_2.10</artifactId>
+          <artifactId>spark-sql_2.11</artifactId>
           <version>${spark.version}</version>
       </dependency>
       <dependency>

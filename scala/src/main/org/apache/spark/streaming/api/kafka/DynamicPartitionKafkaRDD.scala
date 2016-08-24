@@ -39,7 +39,7 @@ class DynamicPartitionKafkaRDD[
   U <: Decoder[_]: ClassTag,
   T <: Decoder[_]: ClassTag,
   R: ClassTag] private[spark] (
-    @transient sc: SparkContext,
+    sc: SparkContext,
     kafkaParams: Map[String, String],
     override val offsetRanges: Array[OffsetRange],
     leaders: Map[TopicAndPartition, (String, Int)],
