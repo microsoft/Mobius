@@ -122,7 +122,7 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 
 ## Supported Spark Versions
 
-Mobius is built and tested with Apache Spark [1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5) and [1.6.*](https://github.com/Microsoft/Mobius/tree/branch-1.6).
+Mobius is built and tested with Apache Spark [1.4.1](https://github.com/Microsoft/Mobius/tree/branch-1.4), [1.5.2](https://github.com/Microsoft/Mobius/tree/branch-1.5), [1.6.*](https://github.com/Microsoft/Mobius/tree/branch-1.6) and [2.0](https://github.com/Microsoft/Mobius/tree/branch-2.0).
 
 ## Releases
 

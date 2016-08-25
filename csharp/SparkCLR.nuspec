@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Microsoft.SparkCLR</id>
-    <version>1.6.200-SNAPSHOT</version>
+    <version>2.0.000-SNAPSHOT</version>
     <authors>Microsoft Corporation</authors>
     <owners>Microsoft Corporation</owners>
     <licenseUrl>https://github.com/Microsoft/Mobius/blob/master/LICENSE</licenseUrl>
