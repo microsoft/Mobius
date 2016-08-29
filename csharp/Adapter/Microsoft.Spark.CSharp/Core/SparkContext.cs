@@ -129,6 +129,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             SparkContextProxy = sparkContextProxy;
             SparkConf = conf;
+            _activeSparkContext = this;
         }
 
         private SparkContext(string master, string appName, string sparkHome, SparkConf conf)
@@ -143,6 +144,16 @@ namespace Microsoft.Spark.CSharp.Core
 
             SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
             _activeSparkContext = this;
+        }
+
+        public static SparkContext GetOrCreate(SparkConf conf)
+        {
+            if (_activeSparkContext == null)
+            {
+                _activeSparkContext = new SparkContext(conf);
+            }
+
+            return _activeSparkContext;
         }
 
         internal void StartAccumulatorServer()

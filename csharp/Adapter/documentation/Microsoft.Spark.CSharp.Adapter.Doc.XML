@@ -6578,6 +6578,28 @@
             <param name="mode">The given SaveMode</param>
             <returns>The string that represents the given SaveMode</returns>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.CreateDataFrame(Microsoft.Spark.CSharp.Core.RDD{System.Object[]},Microsoft.Spark.CSharp.Sql.StructType)">
+            <summary>
+            Creates a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> from a RDD containing array of object using the given schema.
+            </summary>
+            <param name="rdd">RDD containing array of object. The array acts as a row and items within the array act as columns which the schema is specified in <paramref name="schema"/>. </param>
+            <param name="schema">The schema of DataFrame.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Table(System.String)">
+            <summary>
+            Returns the specified table as a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/>
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Sql(System.String)">
+            <summary>
+            Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'
+            </summary>
+            <param name="sqlQuery"></param>
+            <returns></returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.SqlContext">
             <summary>
             The entry point for working with structured data (rows and columns) in Spark.  

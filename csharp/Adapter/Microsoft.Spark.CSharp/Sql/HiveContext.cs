@@ -17,13 +17,8 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Creates a HiveContext
         /// </summary>
         /// <param name="sparkContext"></param>
-        public HiveContext(SparkContext sparkContext) 
-            : base(sparkContext, sparkContext.SparkContextProxy.CreateHiveContext())
-        {
-        }
-
-        internal HiveContext(SparkContext sparkContext, ISqlContextProxy sqlContextProxy)
-            : base(sparkContext, sqlContextProxy)
+        public HiveContext(SparkContext sparkContext)
+            : base(SparkSession.Builder().Config(sparkContext.SparkConf).EnableHiveSupport().GetOrCreate())
         {
         }
 
@@ -36,7 +31,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="tableName"></param>
         public void RefreshTable(string tableName)
         {
-            SqlContextProxy.RefreshTable(tableName);
+            SparkSession.Catalog.RefreshTable(tableName);
         }
     }
 }

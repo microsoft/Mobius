@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Configuration;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
@@ -121,6 +123,26 @@ namespace Microsoft.Spark.CSharp.Core
         public string Get(string key, string defaultValue)
         {
             return sparkConfProxy.Get(key, defaultValue);
+        }
+
+        public Dictionary<string, string> GetAll()
+        {
+            var configKvp = new Dictionary<string, string>();
+            var kvpStringCollection = sparkConfProxy.GetSparkConfAsString();
+            var kvpStringArray = Regex.Split(kvpStringCollection, ";");
+            foreach (var kvpString in kvpStringArray)
+            {
+                if (!string.IsNullOrEmpty(kvpString))
+                {
+                    var kvpItems = Regex.Split(kvpString, "=");
+                    if (kvpItems.Length == 2 && !string.IsNullOrEmpty(kvpItems[0]) && !string.IsNullOrEmpty(kvpItems[1]))
+                    {
+                        configKvp.Add(kvpItems[0], kvpItems[1]);
+                    }
+                }
+            }
+
+            return configKvp;
         }
     }
     

@@ -23,17 +23,35 @@ namespace Microsoft.Spark.CSharp.Sql
 
         private static SqlContext instance;
 
+        private SparkSession sparkSession;
+        private bool isRootContext;
+
+        public SparkSession SparkSession
+        {
+            get { return sparkSession; }
+        }
+
+        internal SqlContext(SparkSession sparkSession, bool isRootContext)
+        {
+            this.sparkSession = sparkSession;
+            this.isRootContext = isRootContext;
+            if (instance == null) instance = this;
+        }
+
+        internal SqlContext(SparkSession sparkSession) : this(sparkSession, true)
+        { }
+
         /// <summary>
         /// Creates a SqlContext
         /// </summary>
         /// <param name="sparkContext"></param>
-        public SqlContext(SparkContext sparkContext)
+        public SqlContext(SparkContext sparkContext) : this(new SparkSession(sparkContext))
         {
+            sqlContextProxy = sparkSession.SparkSessionProxy.SqlContextProxy;
             this.sparkContext = sparkContext;
-            sqlContextProxy = sparkContext.SparkContextProxy.CreateSqlContext();
-            if (instance == null) instance = this;
         }
 
+        //TODO - remove this constructor after fixing unit tests that reference this
         internal SqlContext(SparkContext sparkContext, ISqlContextProxy sqlContextProxy)
         {
             this.sparkContext = sparkContext;
@@ -62,8 +80,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public SqlContext NewSession()
         {
-            var newSessionProxy = sqlContextProxy.NewSession();
-            return new SqlContext(this.sparkContext, newSessionProxy);
+            return new SqlContext(sparkSession.NewSession());
         }
 
         /// <summary>
@@ -75,7 +92,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public string GetConf(string key, string defaultValue)
         {
-            return sqlContextProxy.GetConf(key, defaultValue);
+            return SparkSession.SparkSessionProxy.SqlContextProxy.GetConf(key, defaultValue);
         }
 
         /// <summary>
@@ -85,7 +102,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="value"></param>
         public void SetConf(string key, string value)
         {
-            sqlContextProxy.SetConf(key, value);
+            SparkSession.SparkSessionProxy.SqlContextProxy.SetConf(key, value);
         }
 
         /// <summary>
@@ -155,7 +172,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public DataFrame Table(string tableName)
         {
-            return new DataFrame(sqlContextProxy.Table(tableName), sparkContext);
+            return SparkSession.Table(tableName);
         }
 
         /// <summary>
@@ -230,7 +247,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrame Sql(string sqlQuery)
         {
             logger.LogInfo("SQL query to execute on the dataframe is {0}", sqlQuery);
-            return new DataFrame(sqlContextProxy.Sql(sqlQuery), sparkContext);
+            return SparkSession.Sql(sqlQuery);
         }
 
         /// <summary>

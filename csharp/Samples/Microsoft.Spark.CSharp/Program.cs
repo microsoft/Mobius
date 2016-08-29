@@ -78,6 +78,9 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 conf.Set("spark.local.dir", Configuration.SparkLocalDirectoryOverride);
             }
+
+            conf.Set("spark.sql.warehouse.dir",
+                @"C:\Code\skaarthik\Mobius\dataset\Mobius\build\runtime\Temp");
             return new SparkContext(conf);
         }
 
