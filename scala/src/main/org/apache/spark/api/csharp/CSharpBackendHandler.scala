@@ -112,7 +112,6 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
     // Close the connection when an exception is raised.
     logError("Exception caught: ", cause)
-    cause.printStackTrace()
     ctx.close()
   }
 
@@ -179,8 +178,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           case Some(jObj) => jObj.getClass.getName
           case None => "NullObject"
         }
-        logError(s"On object of type $jvmObjName failed ${e.getMessage}")
-        e.printStackTrace()
+        logError(s"On object of type $jvmObjName failed", e)
         if (methods != null) {
           logError("methods:")
           methods.foreach(m => logError(m.toString))

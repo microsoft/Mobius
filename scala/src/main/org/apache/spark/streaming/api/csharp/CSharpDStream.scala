@@ -78,8 +78,7 @@ object CSharpDStream extends Logging{
       case e: Exception =>
         // log exception only when callback socket is not shutdown explicitly
         if (!CSharpBackend.callbackSocketShutdown) {
-          logError(s"CSharp transform callback failed with ${e.getMessage}")
-          e.printStackTrace()
+          logError(s"CSharp transform callback failed", e)
         }
 
         // close this socket if error happen
