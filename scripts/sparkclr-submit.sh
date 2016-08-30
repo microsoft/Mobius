@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
 function spark_home_error() {
 	echo "[sparkclr-submit.sh] Error - SPARK_HOME environment variable is not export"
 	echo "[sparkclr-submit.sh] Note that SPARK_HOME environment variable should not have trailing /"

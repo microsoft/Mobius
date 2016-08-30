@@ -1,4 +1,10 @@
 @echo off
+
+rem
+rem Copyright (c) Microsoft. All rights reserved.
+rem Licensed under the MIT license. See LICENSE file in the project root for full license information.
+rem
+
 setlocal enabledelayedexpansion
 
 set CMDHOME=%~dp0
