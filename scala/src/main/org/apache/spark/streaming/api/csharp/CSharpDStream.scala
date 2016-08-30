@@ -29,7 +29,7 @@ import org.apache.spark.streaming.api.java._
 
 import scala.language.existentials
 
-object CSharpDStream {
+object CSharpDStream extends Logging{
 
   // Variables for debugging
   var debugMode = false
@@ -78,8 +78,7 @@ object CSharpDStream {
       case e: Exception =>
         // log exception only when callback socket is not shutdown explicitly
         if (!CSharpBackend.callbackSocketShutdown) {
-          // TODO: change println to log
-          System.err.println("CSharp transform callback failed with " + e) // scalastyle:off println
+          logError(s"CSharp transform callback failed with ${e.getMessage}")
           e.printStackTrace()
         }
 
@@ -89,7 +88,7 @@ object CSharpDStream {
             socket.close()
           }
           catch {
-            case e: Exception => println("Exception when closing socket: " + e)
+            case e: Exception => logError("Exception when closing socket", e)
           }
         }
 
