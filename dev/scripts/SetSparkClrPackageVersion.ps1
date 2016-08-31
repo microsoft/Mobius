@@ -1,4 +1,9 @@
 #
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
+#
 # This script takes in "version" and "targetDir" (optional) parameters, update Mobius Nuget package 
 # version reference in all *.csproj and packages.config under "dir". 
 #

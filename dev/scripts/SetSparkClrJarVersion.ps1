@@ -1,4 +1,9 @@
 #
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
+#
 # This script takes in "version" and "targetDir" (optional) parameters, update Spark-Clr jar 
 # version reference in all scripts under "targetDir". 
 #

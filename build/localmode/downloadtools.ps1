@@ -1,4 +1,9 @@
 #
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
+#
 # Input - 
 #     (1) "stage" parameter, accepts either "build" or "run"
 #     (2) "vebose" parameter, accepts "verbose"

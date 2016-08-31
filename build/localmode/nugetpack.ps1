@@ -1,3 +1,8 @@
+#
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
 $root = (split-path -parent $MyInvocation.MyCommand.Definition) + '\..\..'
 
 # expected tagname: v{version-string}. E.g., "v1.5.2-snapshot-2", "v1.5.2-prerelease-1"
