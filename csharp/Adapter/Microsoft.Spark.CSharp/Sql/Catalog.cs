@@ -24,6 +24,8 @@ namespace Microsoft.Spark.CSharp.Sql.Catalog
             get { return catalogProxy.CurrentDatabase; }
         }
 
+        // TODO Enable these convenience functions if needed
+        /*
         public List<Database> GetDatabasesList()
         {
             var rows = ListDatabases().Collect();
@@ -41,21 +43,11 @@ namespace Microsoft.Spark.CSharp.Sql.Catalog
             return list;
         }
 
-        public DataFrame ListDatabases()
-        {
-            return catalogProxy.ListDatabases().ToDF();
-        }
-
         public List<Table> GetTablesList(string dbName = null)
         {
             var tables = ListTables(dbName).Collect();
             //iterate and construct Table
             throw new NotImplementedException();
-        }
-
-        public DataFrame ListTables(string dbName = null)
-        {
-            return catalogProxy.ListTables(dbName ?? CurrentDatabase).ToDF();
         }
 
         public List<Table> GetColumnsList(string tableName, string dbName = null)
@@ -65,16 +57,27 @@ namespace Microsoft.Spark.CSharp.Sql.Catalog
             throw new NotImplementedException();
         }
 
-        public DataFrame ListColumns(string tableName, string dbName = null)
-        {
-            return catalogProxy.ListColumns(tableName, dbName ?? CurrentDatabase).ToDF();
-        }
-
         public List<Table> GetFunctionsList(string dbName = null)
         {
             var tables = ListFunctions(dbName).Collect();
             //iterate and construct Table
             throw new NotImplementedException();
+        }
+        */
+
+        public DataFrame ListDatabases()
+        {
+            return catalogProxy.ListDatabases().ToDF();
+        }
+
+        public DataFrame ListTables(string dbName = null)
+        {
+            return catalogProxy.ListTables(dbName ?? CurrentDatabase).ToDF();
+        }
+
+        public DataFrame ListColumns(string tableName, string dbName = null)
+        {
+            return catalogProxy.ListColumns(tableName, dbName ?? CurrentDatabase).ToDF();
         }
 
         public DataFrame ListFunctions(string dbName = null)

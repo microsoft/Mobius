@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 
@@ -22,51 +19,48 @@ namespace Microsoft.Spark.CSharp.Sql
 
         public Column this[string columnName]
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
+            get { return ToDF()[columnName]; }
         }
 
-
+        private DataFrame dataFrame;
         public DataFrame ToDF()
         {
-            return new DataFrame(datasetProxy.ToDF(), SparkContext.GetActiveSparkContext());
+            return dataFrame ?? (dataFrame = new DataFrame(datasetProxy.ToDF(), SparkContext.GetActiveSparkContext()));
         }
 
         public void PrintSchema()
         {
-            throw new NotImplementedException();
+            ToDF().ShowSchema();
         }
 
         public void Explain(bool extended)
         {
-            throw new NotImplementedException();
+            ToDF().Explain(extended);
         }
 
         public void Explain()
         {
-            throw new NotImplementedException();
+            ToDF().Explain();
         }
 
         public IEnumerable<Tuple<string, string>> DTypes()
         {
-            throw new NotImplementedException();
+            return ToDF().DTypes();
         }
 
         public IEnumerable<string> Columns()
         {
-            throw new NotImplementedException();
+            return ToDF().Columns();
         }
 
         public void Show(int numberOfRows = 20, bool truncate = true)
         {
-            throw new NotImplementedException();
+            ToDF().Show(numberOfRows, truncate);
         }
 
         public void ShowSchema()
         {
-            throw new NotImplementedException();
+            ToDF().ShowSchema();
         }
     }
 

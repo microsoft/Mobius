@@ -95,7 +95,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void Stop()
         {
-            throw new NotImplementedException();
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkSessionReference, "stop");
         }
     }
 }

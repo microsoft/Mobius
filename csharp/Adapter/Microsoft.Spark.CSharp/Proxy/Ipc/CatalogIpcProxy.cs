@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Sql.Catalog;
@@ -45,22 +46,30 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public DataFrame CreateExternalTable(string tableName, string path)
         {
-            throw new NotImplementedException();
+            return new DataFrame(
+                new DataFrameIpcProxy(
+                    new JvmObjectReference(
+                        SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "createExternalTable",
+                            new object[] {tableName, path}).ToString()), sqlContextProxy), SparkContext.GetActiveSparkContext());
         }
 
         public DataFrame CreateExternalTable(string tableName, string source, Dictionary<string, string> options)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); //TODO - implement
         }
 
         public DataFrame CreateExternalTable(string tableName, string path, string source)
         {
-            throw new NotImplementedException();
+            return new DataFrame(
+                new DataFrameIpcProxy(
+                    new JvmObjectReference(
+                        SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "createExternalTable",
+                            new object[] { tableName, path, source }).ToString()), sqlContextProxy), SparkContext.GetActiveSparkContext());
         }
 
         public DataFrame CreateExternalTable(string tableName, string source, StructType schema, Dictionary<string, string> options)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); //TODO - implement
         }
 
         public void DropTempTable(string tableName)
@@ -70,17 +79,29 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public bool IsCached(string tableName)
         {
-            throw new NotImplementedException();
+            return
+                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "isCached",
+                    new object[] {tableName}).ToString().Equals("true", StringComparison.InvariantCultureIgnoreCase);
         }
 
         public Dataset<Sql.Catalog.Column> ListColumns(string tableName)
         {
-            throw new NotImplementedException();
+            return new Dataset<Sql.Catalog.Column>(
+                new DatasetIpcProxy(
+                    new JvmObjectReference(
+                        (string)
+                            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "listColumns",
+                                new object[] { tableName })), sqlContextProxy));
         }
 
         public Dataset<Sql.Catalog.Column> ListColumns(string dbName, string tableName)
         {
-            throw new NotImplementedException();
+            return new Dataset<Sql.Catalog.Column>(
+                new DatasetIpcProxy(
+                    new JvmObjectReference(
+                        (string)
+                            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "listColumns",
+                                new object[] { dbName, tableName })), sqlContextProxy));
         }
 
         public Dataset<Database> ListDatabases()
@@ -97,11 +118,22 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                 new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "listFunctions", new object[] { dbName })), sqlContextProxy));
         }
 
-        public Dataset<Table> ListTables(string dbName)
+        public Dataset<Table> ListTables(string dbName = null)
         {
-            return new Dataset<Table>(
-            new DatasetIpcProxy(
-                new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "listTables", new object[] {dbName})), sqlContextProxy));
+            if (dbName != null)
+                return new Dataset<Table>(
+                    new DatasetIpcProxy(
+                        new JvmObjectReference(
+                            (string)
+                                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "listTables",
+                                    new object[] {dbName})), sqlContextProxy));
+            else
+                return new Dataset<Table>(
+                    new DatasetIpcProxy(
+                        new JvmObjectReference(
+                            (string)
+                                SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "listTables")),
+                        sqlContextProxy));
         }
 
         public void SetCurrentDatabase(string dbName)
@@ -117,16 +149,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public void RefreshTable(string tableName)
         {
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmCatalogReference, "refreshTable", new object[] { tableName });
-        }
-
-        Dataset<Sql.Catalog.Column> ICatalogProxy.ListColumns(string tableName)
-        {
-            throw new NotImplementedException();
-        }
-
-        Dataset<Sql.Catalog.Column> ICatalogProxy.ListColumns(string dbName, string tableName)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -65,10 +65,12 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="BuilderTest.cs" />
     <Compile Include="ByteBufChunkListTest.cs" />
     <Compile Include="ByteBufChunkTest.cs" />
     <Compile Include="ByteBufPoolTest.cs" />
     <Compile Include="ByteBufTest.cs" />
+    <Compile Include="CatalogTest.cs" />
     <Compile Include="ColumnTest.cs" />
     <Compile Include="AccumulatorTest.cs" />
     <Compile Include="BroadcastTest.cs" />
@@ -76,6 +78,7 @@
     <Compile Include="DataFrameNaFunctionsTest.cs" />
     <Compile Include="DataFrameReaderTest.cs" />
     <Compile Include="DataFrameWriterTest.cs" />
+    <Compile Include="DatasetTest.cs" />
     <Compile Include="EventHubsUtilsTest.cs" />
     <Compile Include="HadoopConfigurationTest.cs" />
     <Compile Include="JsonSerDeTest.cs" />
@@ -92,6 +95,7 @@
     <Compile Include="SocketWrapperTest.cs" />
     <Compile Include="SerDeTest.cs" />
     <Compile Include="HiveContextTest.cs" />
+    <Compile Include="SparkSessionTest.cs" />
     <Compile Include="StatusTrackerTest.cs" />
     <Compile Include="TestWithMoqDemo.cs" />
     <Compile Include="Mocks\MockStructTypeProxy.cs" />

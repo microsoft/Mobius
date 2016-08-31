@@ -64,7 +64,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
         public void Stop()
         {
-            sparkContext.Stop();
+            sparkSessionProxy.Stop();
         }
 
         public DataFrameReader Read()

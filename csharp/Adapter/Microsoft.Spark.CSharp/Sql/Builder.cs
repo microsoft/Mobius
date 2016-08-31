@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.Sql
 {
     public class Builder
     {
-        Dictionary<string, string> options = new Dictionary<string, string>();
+        internal Dictionary<string, string> options = new Dictionary<string, string>();
 
         internal Builder() { }
 

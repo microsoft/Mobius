@@ -17,11 +17,11 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var catalog = SparkSessionSamples.GetSparkSession().Catalog;
             var currentDatabase = catalog.CurrentDatabase;
-            var databasesList = SparkSessionSamples.GetSparkSession().Catalog.GetDatabasesList();
+            var databasesList = SparkSessionSamples.GetSparkSession().Catalog.ListDatabases().Collect();
             
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                var defaultDatabase = databasesList.First(db => db.Name.Equals("default")); //throws exception if First() is missing
+                var defaultDatabase = databasesList.First(row => row.Get("name").Equals("default")); //throws exception if First() is missing
             }
         }
     }
