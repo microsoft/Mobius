@@ -22,13 +22,14 @@ namespace Microsoft.Spark.CSharp.Core
         public CSharpWorkerFunc(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func)
         {
             this.func = func;
-            stackTrace = new StackTrace(true).ToString();
+            stackTrace = new StackTrace(true).ToString().Replace("   at ", "   [STACK] ");
         }
 
         public CSharpWorkerFunc(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func, string innerStackTrace)
+            : this(func)
         {
-            this.func = func;
-            stackTrace = new StackTrace(true).ToString() + "\nInner stack trace ...\n" + innerStackTrace;
+            stackTrace += string.Format("   [STACK] --- Inner stack trace: ---{0}{1}",
+                Environment.NewLine, innerStackTrace.Replace("   at ", "   [STACK] "));
         }
 
         public Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> Func

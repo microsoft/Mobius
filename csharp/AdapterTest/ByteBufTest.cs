@@ -91,6 +91,9 @@ namespace AdapterTest
         [Test]
         public void TestInvalidByteBuf()
         {
+            // Test ByteBuf with error status.
+            var errorByteBuf = ByteBuf.NewErrorStatusByteBuf(10054);
+            Assert.AreEqual(10054, errorByteBuf.Status);
             // Test invalid parameter to new ByteBuf.
             Assert.Throws<ArgumentOutOfRangeException>(() => new ByteBuf(null, -1, 1024));
             Assert.Throws<ArgumentOutOfRangeException>(() => new ByteBuf(null, 0, -1));
