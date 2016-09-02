@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
@@ -36,7 +37,7 @@ namespace Microsoft.Spark.CSharp
                 }
                 else
                 {
-                    Console.Error.WriteLine("Already loaded assebmly " + assembly.FullName);
+                    Console.Error.WriteLine("Already loaded assembly " + assembly.FullName);
                 }
             }
         }
@@ -62,10 +63,8 @@ namespace Microsoft.Spark.CSharp
     public class Worker
     {
         private static readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-        private static ILoggerService logger = null;
-
-        private static SparkCLRAssemblyHandler assemblyHandler = null;
+        private static ILoggerService logger;
+        private static SparkCLRAssemblyHandler assemblyHandler;
 
         public static void Main(string[] args)
         {
@@ -80,7 +79,7 @@ namespace Microsoft.Spark.CSharp
 
             if (args.Length != 2)
             {
-                Console.Error.WriteLine("Wrong number of args: {0}, will exit", args.Count());
+                Console.Error.WriteLine("Wrong number of args: {0}, will exit", args.Length);
                 Environment.Exit(-1);
             }
 
@@ -201,7 +200,7 @@ namespace Microsoft.Spark.CSharp
                 else
                 {
                     // This may happen when the input data is not read completely, e.g., when take() operation is performed
-                    logger.LogWarn(string.Format("**** unexpected read: {0}, not all data is read", end));
+                    logger.LogWarn("**** unexpected read: {0}, not all data is read", end);
                     // write a different value to tell JVM to not reuse this worker
                     SerDe.Write(outputStream, (int)SpecialLengths.END_OF_DATA_SECTION);
                     readComplete = false;
@@ -210,8 +209,8 @@ namespace Microsoft.Spark.CSharp
                 outputStream.Flush();
 
                 // log bytes read and write
-                logger.LogDebug(string.Format("total read bytes: {0}", SerDe.totalReadNum));
-                logger.LogDebug(string.Format("total write bytes: {0}", SerDe.totalWriteNum));
+                logger.LogDebug("total read bytes: {0}", SerDe.totalReadNum);
+                logger.LogDebug("total write bytes: {0}", SerDe.totalWriteNum);
 
                 logger.LogDebug("Stream processing completed successfully");
             }
@@ -233,10 +232,10 @@ namespace Microsoft.Spark.CSharp
                     logger.LogError("Writing exception to stream failed with exception:");
                     logger.LogException(ex);
                 }
-                throw e;
+                throw;
             }
 
-            logger.LogInfo(string.Format("Stop of stream processing, splitIndex: {0}, readComplete: {1}", splitIndex, readComplete));
+            logger.LogInfo("Stop of stream processing, splitIndex: {0}, readComplete: {1}", splitIndex, readComplete);
             return readComplete;
         }
 
@@ -323,11 +322,17 @@ namespace Microsoft.Spark.CSharp
 
                 var workerFunc = (CSharpWorkerFunc)formatter.Deserialize(stream);
                 var func = workerFunc.Func;
-                logger.LogDebug(
-                    "------------------------ Printing stack trace of workerFunc for ** debugging ** ------------------------------");
-                logger.LogDebug(workerFunc.StackTrace);
-                logger.LogDebug(
-                    "--------------------------------------------------------------------------------------------------------------");
+                if (logger.IsDebugEnabled)
+                {
+                    var sb = new StringBuilder(Environment.NewLine);
+                    sb.AppendLine(
+                        "------------------------ Printing stack trace of workerFunc for ** debugging ** ------------------------------");
+                    sb.AppendLine(workerFunc.StackTrace);
+                    sb.AppendLine(
+                        "--------------------------------------------------------------------------------------------------------------");
+                    logger.LogDebug(sb.ToString());
+                }
+
                 DateTime initTime = DateTime.UtcNow;
 
                 int count = 0;
@@ -369,8 +374,8 @@ namespace Microsoft.Spark.CSharp
                 commandProcessWatch.Stop();
 
                 // log statistics
-                logger.LogInfo(string.Format("func process time: {0}", funcProcessWatch.ElapsedMilliseconds));
-                logger.LogInfo(string.Format("stage {0}, command process time: {1}", stageId, commandProcessWatch.ElapsedMilliseconds));
+                logger.LogInfo("func process time: {0}", funcProcessWatch.ElapsedMilliseconds);
+                logger.LogInfo("stage {0}, command process time: {1}", stageId, commandProcessWatch.ElapsedMilliseconds);
             }
             else
             {
@@ -443,7 +448,7 @@ namespace Microsoft.Spark.CSharp
             int rddId = SerDe.ReadInt(networkStream);
             int stageId = SerDe.ReadInt(networkStream);
             int partitionId = SerDe.ReadInt(networkStream);
-            logger.LogInfo(string.Format("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId));
+            logger.LogInfo("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId);
             return stageId;
         }
 
@@ -451,8 +456,8 @@ namespace Microsoft.Spark.CSharp
         {
             DateTime finishTime = DateTime.UtcNow;
             const string format = "MM/dd/yyyy hh:mm:ss.fff tt";
-            logger.LogDebug(string.Format("bootTime: {0}, initTime: {1}, finish_time: {2}",
-                bootTime.ToString(format), initTime.ToString(format), finishTime.ToString(format)));
+            logger.LogDebug("bootTime: {0}, initTime: {1}, finish_time: {2}",
+                bootTime.ToString(format), initTime.ToString(format), finishTime.ToString(format));
             SerDe.Write(networkStream, (int)SpecialLengths.TIMING_DATA);
             SerDe.Write(networkStream, ToUnixTime(bootTime));
             SerDe.Write(networkStream, ToUnixTime(initTime));
@@ -472,7 +477,7 @@ namespace Microsoft.Spark.CSharp
                     item.Value.GetType()
                         .GetField("value", BindingFlags.NonPublic | BindingFlags.Instance)
                         .GetValue(item.Value);
-                logger.LogDebug(string.Format("({0}, {1})", item.Key, value));
+                logger.LogDebug("({0}, {1})", item.Key, value);
                 formatter.Serialize(ms, new KeyValuePair<int, dynamic>(item.Key, value));
                 byte[] buffer = ms.ToArray();
                 SerDe.Write(networkStream, buffer.Length);
@@ -482,13 +487,29 @@ namespace Microsoft.Spark.CSharp
 
         public static void PrintFiles()
         {
-            logger.LogDebug("Files available in executor");
-            var driverFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            var files = Directory.EnumerateFiles(driverFolder);
+            if (!logger.IsDebugEnabled) return;
+
+            var folder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var files = Directory.EnumerateFiles(folder).Select(Path.GetFileName).ToArray();
+            var longest = files.Max(f => f.Length);
+            var count = 0;
+            var outfiles = new StringBuilder(Environment.NewLine);
             foreach (var file in files)
             {
-                logger.LogDebug(file);
+                switch (count++ % 2)
+                {
+                    case 0:
+                        outfiles.Append("   " + file.PadRight(longest + 2));
+                        break;
+                    default:
+                        outfiles.AppendLine(file);
+                        break;
+                }
             }
+
+            logger.LogDebug("Files available in executor");
+            logger.LogDebug("Location: {0}{1}{2}",
+                folder, Environment.NewLine, outfiles.ToString());
         }
 
         private static long ToUnixTime(DateTime dt)
@@ -544,7 +565,7 @@ namespace Microsoft.Spark.CSharp
                         case SerializedMode.Pair:
                             {
                                 byte[] pairKey = buffer;
-                                byte[] pairValue = null;
+                                byte[] pairValue;
 
                                 watch.Start();
                                 int valueLength = SerDe.ReadInt(inputStream);
@@ -572,7 +593,6 @@ namespace Microsoft.Spark.CSharp
                                 break;
                             }
 
-                        case SerializedMode.Byte:
                         default:
                             {
                                 if (buffer != null)
@@ -591,7 +611,7 @@ namespace Microsoft.Spark.CSharp
                 watch.Start();
             }
 
-            logger.LogInfo(string.Format("total receive time: {0}", watch.ElapsedMilliseconds));
+            logger.LogInfo("total receive time: {0}", watch.ElapsedMilliseconds);
         }
     }
 }
