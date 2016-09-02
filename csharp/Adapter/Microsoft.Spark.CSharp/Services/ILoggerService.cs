@@ -8,6 +8,11 @@ namespace Microsoft.Spark.CSharp.Services
     public interface ILoggerService
     {
         /// <summary>
+        /// Gets a value indicating whether logging is enabled for the Debug level.
+        /// </summary>
+        bool IsDebugEnabled { get; }
+
+        /// <summary>
         /// Get an instance of ILoggerService by a given type of logger
         /// </summary>
         /// <param name="type">The type of a logger to return</param>

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using log4net;
 using log4net.Config;
 
@@ -35,7 +31,15 @@ namespace Microsoft.Spark.CSharp.Services
         public Log4NetLoggerService(Type type)
         {
             logger = LogManager.GetLogger(type);
-            log4net.GlobalContext.Properties["pid"] = Process.GetCurrentProcess().Id;
+            GlobalContext.Properties["pid"] = Process.GetCurrentProcess().Id;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether logging is enabled for the Debug level.
+        /// </summary>
+        public bool IsDebugEnabled
+        {
+            get { return logger.IsDebugEnabled; }
         }
 
         /// <summary>

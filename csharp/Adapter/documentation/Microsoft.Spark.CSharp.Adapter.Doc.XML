@@ -4282,6 +4282,12 @@
             Right now it just prints out the messages to Console
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Services.DefaultLoggerService.IsDebugEnabled">
+            <summary>
+            Gets a value indicating whether logging is enabled for the Debug level.
+            Always return true for the DefaultLoggerService object.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.GetLoggerInstance(System.Type)">
             <summary>
             Get an instance of ILoggerService by a given type of logger
@@ -4363,6 +4369,11 @@
         <member name="T:Microsoft.Spark.CSharp.Services.ILoggerService">
             <summary>
             Defines a logger what be used in service
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Services.ILoggerService.IsDebugEnabled">
+            <summary>
+            Gets a value indicating whether logging is enabled for the Debug level.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.GetLoggerInstance(System.Type)">
@@ -4458,6 +4469,11 @@
             Initializes a instance of Log4NetLoggerService with a specific type.
             </summary>
             <param name="type">The type of the logger</param>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.IsDebugEnabled">
+            <summary>
+            Gets a value indicating whether logging is enabled for the Debug level.
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogDebug(System.String)">
             <summary>
