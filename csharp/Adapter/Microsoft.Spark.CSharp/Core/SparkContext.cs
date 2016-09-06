@@ -146,6 +146,15 @@ namespace Microsoft.Spark.CSharp.Core
             _activeSparkContext = this;
         }
 
+        /// <summary>
+        /// This function may be used to get or instantiate a SparkContext and register it as a
+        /// singleton object. Because we can only have one active SparkContext per JVM,
+        /// this is useful when applications may wish to share a SparkContext.
+        /// Note: This function cannot be used to create multiple SparkContext instances
+        /// even if multiple contexts are allowed.
+        /// </summary>
+        /// <param name="conf"></param>
+        /// <returns></returns>
         public static SparkContext GetOrCreate(SparkConf conf)
         {
             if (_activeSparkContext == null)

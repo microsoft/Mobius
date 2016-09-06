@@ -15,13 +15,15 @@ using Microsoft.Spark.CSharp.Sql.Catalog;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
+    /// <summary>
+    /// The entry point to programming Spark with the Dataset and DataFrame API.
+    /// </summary>
     public class SparkSession
     {
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkSession));
 
         private ISparkSessionProxy sparkSessionProxy;
         private readonly SparkContext sparkContext;
-        private readonly SqlContext sqlContext;
 
         internal ISparkSessionProxy SparkSessionProxy
         {
@@ -31,6 +33,11 @@ namespace Microsoft.Spark.CSharp.Sql
         }
 
         private Catalog.Catalog catalog;
+
+        /// <summary>
+        /// Interface through which the user may create, drop, alter or query underlying
+        /// databases, tables, functions etc.
+        /// </summary>
         public Catalog.Catalog Catalog
         {
             get { return catalog ?? (catalog = new Catalog.Catalog(SparkSessionProxy.GetCatalog())); }
@@ -41,6 +48,9 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return sparkContext; }
         }
 
+        /// <summary>
+        /// Builder for SparkSession
+        /// </summary>
         public static Builder Builder()
         {
             return new Builder();
@@ -57,16 +67,31 @@ namespace Microsoft.Spark.CSharp.Sql
             this.sparkSessionProxy = sparkSessionProxy;
         }
 
+        /// <summary>
+        /// Start a new session with isolated SQL configurations, temporary tables, registered
+        /// functions are isolated, but sharing the underlying [[SparkContext]] and cached data.
+        /// Note: Other than the [[SparkContext]], all shared state is initialized lazily.
+        /// This method will force the initialization of the shared state to ensure that parent
+        /// and child sessions are set up with the same shared state. If the underlying catalog
+        /// implementation is Hive, this will initialize the metastore, which may take some time.
+        /// </summary>
         public SparkSession NewSession()
         {
             return new SparkSession(sparkSessionProxy.NewSession());
         }
 
+        /// <summary>
+        /// Stop underlying SparkContext
+        /// </summary>
         public void Stop()
         {
             sparkSessionProxy.Stop();
         }
 
+        /// <summary>
+        /// Returns a DataFrameReader that can be used to read non-streaming data in as a DataFrame
+        /// </summary>
+        /// <returns></returns>
         public DataFrameReader Read()
         {
             logger.LogInfo("Using DataFrameReader to read input data from external data source");

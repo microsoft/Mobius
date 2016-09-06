@@ -125,6 +125,9 @@ namespace Microsoft.Spark.CSharp.Core
             return sparkConfProxy.Get(key, defaultValue);
         }
 
+        /// <summary>
+        /// Get all parameters as a list of pairs
+        /// </summary>
         public Dictionary<string, string> GetAll()
         {
             var configKvp = new Dictionary<string, string>();

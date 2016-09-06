@@ -26,6 +26,9 @@ namespace Microsoft.Spark.CSharp.Sql
         private SparkSession sparkSession;
         private bool isRootContext;
 
+        /// <summary>
+        /// Underlying SparkSession
+        /// </summary>
         public SparkSession SparkSession
         {
             get { return sparkSession; }

@@ -15,7 +15,7 @@ using Microsoft.Spark.CSharp.Sql.Catalog;
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
     [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
-    public class CatalogIpcProxy : ICatalogProxy
+    internal class CatalogIpcProxy : ICatalogProxy
     {
         private readonly JvmObjectReference jvmCatalogReference;
         private readonly ISqlContextProxy sqlContextProxy;

@@ -120,7 +120,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var nameFilteredDataFrame = GetSparkSession().Sql("SELECT name, address.city, address.state FROM people where name='Bill'");
             long nameFilteredDataFrameRowsCount = nameFilteredDataFrame.Count();
 
-            GetSparkSession().Catalog.DropTempTable("people");
+            GetSparkSession().Catalog.DropTempView("people");
             
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {

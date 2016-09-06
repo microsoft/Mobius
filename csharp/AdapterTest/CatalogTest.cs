@@ -93,7 +93,7 @@ namespace AdapterTest
         {
             var mockCatalogProxy = new Mock<ICatalogProxy>();
             var catalog = new Catalog(mockCatalogProxy.Object);
-            catalog.DropTempTable("tablename");
+            catalog.DropTempView("tablename");
             mockCatalogProxy.Verify(m => m.DropTempTable("tablename"), Times.Once);
         }
 
