@@ -170,11 +170,17 @@ namespace Microsoft.Spark.CSharp.Sql
             return Rdd.Collect(port).Cast<Row>();
         }
 
+        //TODO - add this method if needed to convert Row to collection of T
+        //public IEnumerable<T> Collect<T>()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
         /// <summary>
-        /// Converts the DataFrame to RDD of Row
-        /// </summary>
-        /// <returns>resulting RDD</returns>
-        public RDD<Row> ToRDD() //RDD created using byte representation of Row objects
+    /// Converts the DataFrame to RDD of Row
+    /// </summary>
+    /// <returns>resulting RDD</returns>
+    public RDD<Row> ToRDD() //RDD created using byte representation of Row objects
         {
             return Rdd;
         }

@@ -40,6 +40,10 @@ build/dependencies/
 *.log
 lib/
 
+# Local databases used for Dataset/frames #
+###########################################
+scala/metastore_db/
+
 # Generated Files #
 ############
 SparkCLRCodeCoverage.xml

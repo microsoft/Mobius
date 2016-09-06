@@ -25,13 +25,12 @@ import org.apache.spark.broadcast.Broadcast
  * implementation constructs from SparkR
  */
 object SQLUtils {
-  def createSQLContext(sc: SparkContext): SQLContext = {
-      new SQLContext(sc)
+  def createSparkSession(sc: SparkContext): SparkSession = {
+       new SparkSession(sc)
   }
 
-  def createHiveContext(sc: SparkContext): SQLContext = {
-    // TODO fix this
-    new SQLContext(sc)
+  def getSqlContext(ss: SparkSession): SQLContext = {
+        ss.sqlContext
   }
 
   def getJavaSparkContext(sqlCtx: SQLContext): JavaSparkContext = {

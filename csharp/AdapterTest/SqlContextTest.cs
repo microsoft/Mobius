@@ -61,15 +61,16 @@ namespace AdapterTest
         public void TestSqlContextNewSession()
         {
             // arrange
-            var sessionProxy = new SqlContextIpcProxy(new JvmObjectReference("1"));
-            mockSqlContextProxy.Setup(m => m.NewSession()).Returns(sessionProxy);
-            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+            var sparkSessionProxy = new Mock<ISparkSessionProxy>();
+            var newSparkSessionProxy = new Mock<ISparkSessionProxy>();
 
             // act
-            var actualNewSession = sqlContext.NewSession();
+            sparkSessionProxy.Setup(m => m.NewSession()).Returns(newSparkSessionProxy.Object);
+            var sqlContext = new SqlContext(new SparkSession(sparkSessionProxy.Object));
+            var ns = sqlContext.NewSession();
 
             // assert
-            Assert.AreEqual(sessionProxy, actualNewSession.SqlContextProxy);
+            sparkSessionProxy.Verify(m => m.NewSession());
         }
 
         [Test]
@@ -79,9 +80,24 @@ namespace AdapterTest
             const string key = "key";
             const string value = "value";
             mockSqlContextProxy.Setup(m => m.GetConf(key, "")).Returns(value);
-            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+            var mockSparkContextProxy = new Mock<ISparkContextProxy>();
 
-            // act
+            var mockSparkSessionProxy = new Mock<ISparkSessionProxy>();
+            var mockCatalogProxy = new Mock<ICatalogProxy>();
+            mockCatalogProxy.Setup(m => m.RefreshTable(It.IsAny<string>()));
+            mockSparkSessionProxy.Setup(m => m.GetCatalog()).Returns(mockCatalogProxy.Object);
+            mockSparkContextProxy.Setup(m => m.CreateSparkSession()).Returns(mockSparkSessionProxy.Object);
+            mockSparkSessionProxy.Setup(m => m.SqlContextProxy).Returns(mockSqlContextProxy.Object);
+
+            var mockSparkConfProxy = new Mock<ISparkConfProxy>();
+            mockSparkConfProxy.Setup(m => m.GetSparkConfAsString())
+                .Returns("spark.master=master;spark.app.name=appname;config1=value1;config2=value2;");
+
+            var conf = new SparkConf(mockSparkConfProxy.Object);
+            var sqlContext = new SqlContext(new SparkContext(mockSparkContextProxy.Object, conf));
+            sqlContext.SparkSession.SparkSessionProxy = mockSparkSessionProxy.Object;
+
+            //act
             var actualValue = sqlContext.GetConf(key, "");
 
             // assert
@@ -95,7 +111,22 @@ namespace AdapterTest
             const string key = "key";
             const string value = "value";
             mockSqlContextProxy.Setup(m => m.SetConf(key, value));
-            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+            var mockSparkContextProxy = new Mock<ISparkContextProxy>();
+
+            var mockSparkSessionProxy = new Mock<ISparkSessionProxy>();
+            var mockCatalogProxy = new Mock<ICatalogProxy>();
+            mockCatalogProxy.Setup(m => m.RefreshTable(It.IsAny<string>()));
+            mockSparkSessionProxy.Setup(m => m.GetCatalog()).Returns(mockCatalogProxy.Object);
+            mockSparkContextProxy.Setup(m => m.CreateSparkSession()).Returns(mockSparkSessionProxy.Object);
+            mockSparkSessionProxy.Setup(m => m.SqlContextProxy).Returns(mockSqlContextProxy.Object);
+
+            var mockSparkConfProxy = new Mock<ISparkConfProxy>();
+            mockSparkConfProxy.Setup(m => m.GetSparkConfAsString())
+                .Returns("spark.master=master;spark.app.name=appname;config1=value1;config2=value2;");
+
+            var conf = new SparkConf(mockSparkConfProxy.Object);
+            var sqlContext = new SqlContext(new SparkContext(mockSparkContextProxy.Object, conf));
+            sqlContext.SparkSession.SparkSessionProxy = mockSparkSessionProxy.Object;
 
             // act
             sqlContext.SetConf(key, value);
@@ -175,16 +206,11 @@ namespace AdapterTest
         [Test]
         public void TestSqlContextTable()
         {
-            // arrange
-            var sqlContext = new SqlContext(new SparkContext("", ""), mockSqlContextProxy.Object);
-            var dataFrameProxy = new DataFrameIpcProxy(new JvmObjectReference("1"), mockSqlContextProxy.Object);
-            mockSqlContextProxy.Setup(m => m.Table(It.IsAny<string>())).Returns(dataFrameProxy);
-
-            // act
-            var actualTableDataFrame = sqlContext.Table("table");
-
-            // assert
-            Assert.AreEqual(dataFrameProxy, actualTableDataFrame.DataFrameProxy);
+            var sqlContext = new SqlContext(new SparkContext("", ""));
+            string tableName = "TestTableName";
+            var dataFrame = sqlContext.Table(tableName);
+            var paramValuesToTableMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual(tableName, paramValuesToTableMethod[0]);
         }
 
         [Test]
@@ -292,8 +318,8 @@ namespace AdapterTest
         {
             var sqlContext = new SqlContext(new SparkContext("", ""));
             var dataFrame = sqlContext.Sql("Query of SQL text");
-            var paramValuesToJsonFileMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
-            Assert.AreEqual("Query of SQL text", paramValuesToJsonFileMethod[0]);
+            var paramValuesToSqlMethod = (dataFrame.DataFrameProxy as MockDataFrameProxy).mockDataFrameReference;
+            Assert.AreEqual("Query of SQL text", paramValuesToSqlMethod[0]);
         }
 
         [Test]

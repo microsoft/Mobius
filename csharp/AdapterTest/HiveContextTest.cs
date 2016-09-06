@@ -45,8 +45,21 @@ namespace AdapterTest
         [Test]
         public void TestHiveContextConstructor()
         {
-            var hiveContext = new HiveContext(new SparkContext("", ""));
-            Assert.IsNotNull((hiveContext.SqlContextProxy as MockSqlContextProxy).mockSqlContextReference);
+            var mockSparkContextProxy = new Mock<ISparkContextProxy>();
+
+            var mockSparkSessionProxy = new Mock<ISparkSessionProxy>();
+            var mockCatalogProxy = new Mock<ICatalogProxy>();
+            mockCatalogProxy.Setup(m => m.RefreshTable(It.IsAny<string>()));
+            mockSparkSessionProxy.Setup(m => m.GetCatalog()).Returns(mockCatalogProxy.Object);
+            mockSparkContextProxy.Setup(m => m.CreateSparkSession()).Returns(mockSparkSessionProxy.Object);
+
+            var mockSparkConfProxy = new Mock<ISparkConfProxy>();
+            mockSparkConfProxy.Setup(m => m.GetSparkConfAsString())
+                .Returns("spark.master=master;spark.app.name=appname;config1=value1;config2=value2;");
+
+            var conf = new SparkConf(mockSparkConfProxy.Object);
+            var hiveContext = new HiveContext(new SparkContext(mockSparkContextProxy.Object, conf));
+            Assert.IsNotNull(hiveContext.SparkSession);
         }
         
         [Test]
@@ -54,14 +67,25 @@ namespace AdapterTest
         {
             // arrange
             var mockSparkContextProxy = new Mock<ISparkContextProxy>();
-            mockSqlContextProxy.Setup(m => m.RefreshTable(It.IsAny<string>()));
-            var hiveContext = new HiveContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+            var mockSparkSessionProxy = new Mock<ISparkSessionProxy>();
+            var mockCatalogProxy = new Mock<ICatalogProxy>();
+            mockCatalogProxy.Setup(m => m.RefreshTable(It.IsAny<string>()));
+            mockSparkSessionProxy.Setup(m => m.GetCatalog()).Returns(mockCatalogProxy.Object);
+            mockSparkContextProxy.Setup(m => m.CreateSparkSession()).Returns(mockSparkSessionProxy.Object);
+
+            var mockSparkConfProxy = new Mock<ISparkConfProxy>();
+            mockSparkConfProxy.Setup(m => m.GetSparkConfAsString())
+                .Returns("spark.master=master;spark.app.name=appname;config1=value1;config2=value2;");
+
+            var conf = new SparkConf(mockSparkConfProxy.Object);
+            var hiveContext = new HiveContext(new SparkContext(mockSparkContextProxy.Object, conf));
+            hiveContext.SparkSession.SparkSessionProxy = mockSparkSessionProxy.Object;
 
             // act
             hiveContext.RefreshTable("table");
 
             // assert
-            mockSqlContextProxy.Verify(m => m.RefreshTable("table"));
+            mockCatalogProxy.Verify(m => m.RefreshTable("table"));
         }
     }
 }

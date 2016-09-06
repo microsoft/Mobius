@@ -16,11 +16,11 @@ namespace Microsoft.Spark.CSharp.Samples
 {
     class DataFrameSamples
     {
-        private const string PeopleJson = @"people.json";
-        private const string OrderJson = @"order.json";
-        private const string RequestsLog = @"requestslog.txt";
-        private const string MetricsLog = @"metricslog.txt";
-        private const string CSVTestLog = @"csvtestlog.txt";
+        internal const string PeopleJson = @"people.json";
+        internal const string OrderJson = @"order.json";
+        internal const string RequestsLog = @"requestslog.txt";
+        internal const string MetricsLog = @"metricslog.txt";
+        internal const string CSVTestLog = @"csvtestlog.txt";
 
         private static SqlContext sqlContext;
 

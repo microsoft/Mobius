@@ -112,12 +112,6 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython", new object[] { name, udf });
         }
 
-        public ISqlContextProxy NewSession()
-        {
-            return new SqlContextIpcProxy(
-                new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "newSession")));
-        }
-
         public string GetConf(string key, string defaultValue)
         {
             return (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSqlContextReference, "getConf", new object[] { key, defaultValue });

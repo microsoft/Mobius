@@ -14,7 +14,6 @@ namespace Microsoft.Spark.CSharp.Proxy
     internal interface ISqlContextProxy
     {
         IDataFrameReaderProxy Read();
-        ISqlContextProxy NewSession();
         string GetConf(string key, string defaultValue);
         void SetConf(string key, string value);
         IDataFrameProxy CreateDataFrame(IRDDProxy rddProxy, IStructTypeProxy structTypeProxy);

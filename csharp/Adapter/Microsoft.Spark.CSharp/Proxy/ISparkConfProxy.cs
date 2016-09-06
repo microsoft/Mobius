@@ -18,5 +18,6 @@ namespace Microsoft.Spark.CSharp.Proxy
         void Set(string key, string value);
         int GetInt(string key, int defaultValue);
         string Get(string key, string defaultValue);
+        string GetSparkConfAsString();
     }
 }
