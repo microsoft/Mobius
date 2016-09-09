@@ -7,15 +7,16 @@ package org.apache.spark.api.csharp
 
 import java.io.{DataOutputStream, File, FileOutputStream, IOException}
 import java.net.{InetAddress, InetSocketAddress, ServerSocket, Socket}
-import java.util.concurrent.{LinkedBlockingQueue, BlockingQueue, TimeUnit}
+import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue, TimeUnit}
 
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.channel.{ChannelInitializer, EventLoopGroup, ChannelFuture}
+import io.netty.channel.{ChannelFuture, ChannelInitializer, EventLoopGroup}
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder
 import io.netty.handler.codec.bytes.{ByteArrayDecoder, ByteArrayEncoder}
+import org.apache.spark.internal.Logging
 
 
 /**
@@ -24,9 +25,10 @@ import io.netty.handler.codec.bytes.{ByteArrayDecoder, ByteArrayEncoder}
  * This implementation is identical to RBackend and that can be reused
  * in SparkCLR if the handler is made pluggable
  */
-// Since SparkCLR is a package to Spark and not a part of spark-core it mirrors the implementation of
-// selected parts from RBackend with SparkCLR customizations
-class CSharpBackend { self => // for accessing the this reference in inner class(ChannelInitializer)
+// Since SparkCLR is a package to Spark and not a part of spark-core it mirrors the implementation
+// of selected parts from RBackend with SparkCLR customizations
+class CSharpBackend extends Logging
+{ self => // for accessing the this reference in inner class(ChannelInitializer)
   private[this] var channelFuture: ChannelFuture = null
   private[this] var bootstrap: ServerBootstrap = null
   private[this] var bossGroup: EventLoopGroup = null
@@ -82,7 +84,7 @@ class CSharpBackend { self => // for accessing the this reference in inner class
     bootstrap = null
 
     // Send close to CSharp callback server.
-    println("Requesting to close all call back sockets.")
+    logInfo("Requesting to close all call back sockets.")
     var socket: Socket = null
     do {
       socket = CSharpBackend.callbackSockets.poll()
@@ -94,7 +96,7 @@ class CSharpBackend { self => // for accessing the this reference in inner class
           socket = null
         }
         catch {
-          case e : Exception => println("Exception when closing socket: " + e)
+          case e : Exception => logError("Exception when closing socket: ", e)
         }
       }
     } while (socket != null)
