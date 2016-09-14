@@ -11,6 +11,7 @@
     <AssemblyName>SparkCLRPerf</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <CppDll Condition="Exists('..\..\..\cpp\x64')">HasCpp</CppDll>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,6 +49,16 @@
     </None>
     <None Include="data\deletionbenchmarktestdata.csv" />
   </ItemGroup>
+  <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
+    <None Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.dll</Link>
+    </None>
+    <None Include="$(SolutionDir)..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.pdb</Link>
+    </None>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
       <Project>{ce999a96-f42b-4e80-b208-709d7f49a77c}</Project>
@@ -60,6 +71,10 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent Condition=" '$(OS)' == 'Windows_NT' ">copy /y $(ProjectDir)..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\$(ConfigurationName)\CSharpWorker.* $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent Condition=" '$(OS)' == 'Unix' ">cp -uv $(ProjectDir)../../../csharp/Worker/Microsoft.Spark.CSharp/bin/$(ConfigurationName)/CSharpWorker.* $(TargetDir)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

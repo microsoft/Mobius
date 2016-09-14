@@ -10,7 +10,7 @@ import org.apache.spark.streaming.Duration
 /**
   * Perf benchmark that users Freebase deletions data
   * This data is licensed under CC-BY license (http://creativecommons.org/licenses/by/2.5)
-  * Data is available for download at https://developers.google.com/freebase/data)
+  * Data is available for downloading : "Freebase Deleted Triples" at https://developers.google.com/freebase
   * Data format - CSV, size - 8 GB uncompressed
   * Columns in the dataset are
   *     1. creation_timestamp (Unix epoch time in milliseconds)
@@ -33,10 +33,10 @@ object FreebaseDeletionsBenchmark {
     val elapsed = System.currentTimeMillis - startTime
 
     val elapsedDuration = new Duration(elapsed)
-    val totalSeconds = elapsedDuration.milliseconds/1000
+    val totalSeconds = elapsedDuration.milliseconds / 1000
     PerfBenchmark.executionTimeList += totalSeconds
 
-    println("Count of lines " + count + ". Time elapsed " + elapsedDuration)
+    println("RunRDDLineCount: Count of lines " + count + ". Time elapsed " + elapsedDuration)
   }
 
   @PerfSuite
@@ -58,7 +58,7 @@ object FreebaseDeletionsBenchmark {
     val userDeletions = selectedDeletions.map(s => new Tuple2(s._3, 1))
     val userDeletionsCount = userDeletions.reduceByKey((x, y) => x + y)
     val zeroValue = ("zerovalue", 0)
-    val userWithMaxDeletions = userDeletionsCount.fold(zeroValue)( (kvp1, kvp2) => {
+    val userWithMaxDeletions = userDeletionsCount.fold(zeroValue)((kvp1, kvp2) => {
       if (kvp1._2 > kvp2._2)
         kvp1
       else
@@ -67,11 +67,11 @@ object FreebaseDeletionsBenchmark {
 
     val elapsed = System.currentTimeMillis - startTime
     val elapsedDuration = new Duration(elapsed)
-    val totalSeconds = elapsedDuration.milliseconds/1000
+    val totalSeconds = elapsedDuration.milliseconds / 1000
     PerfBenchmark.executionTimeList += totalSeconds
 
-    println(s"User with max deletions is " + userWithMaxDeletions._1 + ", count of deletions="
-                  + userWithMaxDeletions._2 + s". Elapsed time=$elapsedDuration")
+    println(s"RunRDDMaxDeletionsByUser: User with max deletions is " + userWithMaxDeletions._1 + ", count of deletions="
+      + userWithMaxDeletions._2 + s". Elapsed time=$elapsedDuration")
   }
 
   @PerfSuite
@@ -83,10 +83,10 @@ object FreebaseDeletionsBenchmark {
 
     val elapsed = System.currentTimeMillis - startTime
     val elapsedDuration = new Duration(elapsed)
-    val totalSeconds = elapsedDuration.milliseconds/1000
+    val totalSeconds = elapsedDuration.milliseconds / 1000
     PerfBenchmark.executionTimeList += totalSeconds
 
-    println(s"Count of rows $rowCount. Time elapsed $elapsedDuration")
+    println(s"RunDFLineCount: Count of rows $rowCount. Time elapsed $elapsedDuration")
   }
 
   @PerfSuite
@@ -105,10 +105,10 @@ object FreebaseDeletionsBenchmark {
     //TODO - add perf suite for subquery
     val elapsed = System.currentTimeMillis - startTime
     val elapsedDuration = new Duration(elapsed)
-    val totalSeconds = elapsedDuration.milliseconds/1000
+    val totalSeconds = elapsedDuration.milliseconds / 1000
     PerfBenchmark.executionTimeList += totalSeconds
 
-    println(s"User with max deletions & count of deletions is listed above. Time elapsed $elapsedDuration")
+    println(s"RunDFMaxDeletionsByUser: User with max deletions & count of deletions is listed above. Time elapsed $elapsedDuration")
   }
 
 }
