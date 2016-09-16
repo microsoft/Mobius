@@ -2,25 +2,10 @@
 
 export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export SPARKCLR_HOME="$FWDIR/runtime"
-echo "SPARKCLR_HOME=$SPARKCLR_HOME"
-
-if [ -d "$SPARKCLR_HOME" ];
-then
-  echo "Delete existing $SPARKCLR_HOME ..."
-  rm -r -f "$SPARKCLR_HOME"
-fi
-
-[ ! -d "$SPARKCLR_HOME" ] && mkdir "$SPARKCLR_HOME"
-[ ! -d "$SPARKCLR_HOME/bin" ] && mkdir "$SPARKCLR_HOME/bin"
-[ ! -d "$SPARKCLR_HOME/data" ] && mkdir "$SPARKCLR_HOME/data"
-[ ! -d "$SPARKCLR_HOME/lib" ] && mkdir "$SPARKCLR_HOME/lib"
-[ ! -d "$SPARKCLR_HOME/samples" ] && mkdir "$SPARKCLR_HOME/samples"
-[ ! -d "$SPARKCLR_HOME/scripts" ] && mkdir "$SPARKCLR_HOME/scripts"
-[ ! -d "$SPARKCLR_HOME/dependencies" ] && mkdir "$SPARKCLR_HOME/dependencies"
+[ ! -d "$FWDIR/dependencies" ] && mkdir "$FWDIR/dependencies"
 
 echo "Download Mobius external dependencies"
-pushd "$SPARKCLR_HOME/dependencies"
+pushd "$FWDIR/dependencies"
 
 download_dependency() {
   LINK=$1
@@ -28,7 +13,8 @@ download_dependency() {
 
   if [ ! -e $JAR ];
   then
-    wget $LINK -O $JAR
+    echo "Downloading $JAR"
+    wget -q $LINK -O $JAR
 
     if [ ! -e $JAR ];
     then
@@ -52,6 +38,27 @@ SPARK_STREAMING_KAFKA_JAR="spark-streaming-kafka-0-8-assembly_2.11-2.0.0.jar"
 download_dependency $SPARK_STREAMING_KAFKA_LINK $SPARK_STREAMING_KAFKA_JAR
 
 popd
+
+export SPARKCLR_HOME="$FWDIR/runtime"
+echo "SPARKCLR_HOME=$SPARKCLR_HOME"
+
+if [ -d "$SPARKCLR_HOME" ];
+then
+  echo "Delete existing $SPARKCLR_HOME ..."
+  rm -r -f "$SPARKCLR_HOME"
+fi
+
+[ ! -d "$SPARKCLR_HOME" ] && mkdir "$SPARKCLR_HOME"
+[ ! -d "$SPARKCLR_HOME/bin" ] && mkdir "$SPARKCLR_HOME/bin"
+[ ! -d "$SPARKCLR_HOME/data" ] && mkdir "$SPARKCLR_HOME/data"
+[ ! -d "$SPARKCLR_HOME/lib" ] && mkdir "$SPARKCLR_HOME/lib"
+[ ! -d "$SPARKCLR_HOME/samples" ] && mkdir "$SPARKCLR_HOME/samples"
+[ ! -d "$SPARKCLR_HOME/scripts" ] && mkdir "$SPARKCLR_HOME/scripts"
+[ ! -d "$SPARKCLR_HOME/dependencies" ] && mkdir "$SPARKCLR_HOME/dependencies"
+
+echo "Assemble Mobius external dependencies"
+cp $FWDIR/dependencies/* "$SPARKCLR_HOME/dependencies/"
+[ $? -ne 0 ] && exit 1
 
 echo "Assemble Mobius Scala components"
 pushd "$FWDIR/../scala"
