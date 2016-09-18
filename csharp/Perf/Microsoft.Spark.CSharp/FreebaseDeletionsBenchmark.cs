@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
     /// <summary>
     /// Perf benchmark that users Freebase deletions data
     /// This data is licensed under CC-BY license (http://creativecommons.org/licenses/by/2.5)
-    /// Data is available for download at https://developers.google.com/freebase/data)
+    /// Data is available for downloading : "Freebase Deleted Triples" at https://developers.google.com/freebase
     /// Data format - CSV, size - 8 GB uncompressed
     /// Columns in the dataset are
     ///     1. creation_timestamp (Unix epoch time in milliseconds)
@@ -55,7 +55,7 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
             var lines = PerfBenchmark.SparkContext.TextFile(filePath);
             var parsedRows = lines.Map(s =>
             {
-                var columns = s.Split(new[] {','});
+                var columns = s.Split(new[] { ',' });
 
                 //data has some bad records - use bool flag to indicate corrupt rows
                 if (columns.Length > 4)
@@ -75,7 +75,7 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
                 else
                     return kvp2;
             });
-            
+
             stopwatch.Stop();
             PerfBenchmark.ExecutionTimeList.Add(stopwatch.Elapsed);
 
@@ -114,9 +114,9 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
             stopwatch.Stop();
             PerfBenchmark.ExecutionTimeList.Add(stopwatch.Elapsed);
             Console.WriteLine("User with max deletions & count of deletions is listed above. Time elapsed {0}", stopwatch.Elapsed);
-            
+
         }
-        
-       
+
+
     }
 }
