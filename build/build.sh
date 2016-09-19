@@ -25,12 +25,12 @@ download_dependency() {
   fi
 }
 
-SPARK_CSV_LINK="http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.3.0/spark-csv_2.10-1.3.0.jar"
-SPARK_CSV_JAR="spark-csv_2.10-1.3.0.jar"
+SPARK_CSV_LINK="http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.4.0/spark-csv_2.10-1.4.0.jar"
+SPARK_CSV_JAR="spark-csv_2.10-1.4.0.jar"
 download_dependency $SPARK_CSV_LINK $SPARK_CSV_JAR
 
-COMMONS_CSV_LINK="http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar"
-COMMONS_CSV_JAR="commons-csv-1.1.jar"
+COMMONS_CSV_LINK="http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.4/commons-csv-1.4.jar"
+COMMONS_CSV_JAR="commons-csv-1.4.jar"
 download_dependency $COMMONS_CSV_LINK $COMMONS_CSV_JAR
 
 SPARK_STREAMING_KAFKA_LINK="http://search.maven.org/remotecontent?filepath=org/apache/spark/spark-streaming-kafka-0-8-assembly_2.11/2.0.0/spark-streaming-kafka-0-8-assembly_2.11-2.0.0.jar"
