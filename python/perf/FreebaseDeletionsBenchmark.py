@@ -81,13 +81,13 @@ class FreebaseDeletionsBenchmark:
     def RunDFMaxDeletionsByUser(args, sparkContext, sqlContext):
         startTime = time.time()
         rows = sqlContext.read.format("com.databricks.spark.csv").load(args[2])
-        filtered = rows.filter("C1 = C3")
-        aggregated = filtered.groupBy("C1").agg({"C1" : "count"})
+        filtered = rows.filter("_c1 = _c3")
+        aggregated = filtered.groupBy("_c1").agg({"_c1" : "count"})
         aggregated.registerTempTable("freebasedeletions")
-        max = sqlContext.sql("select max(`count(C1)`) from freebasedeletions")
+        max = sqlContext.sql("select max(`count(_c1)`) from freebasedeletions")
         maxArray = max.collect()
         maxValue = maxArray[0]
-        maxDeletions = sqlContext.sql("select * from freebasedeletions where `count(C1)` = " + str(maxValue[0]))
+        maxDeletions = sqlContext.sql("select * from freebasedeletions where `count(_c1)` = " + str(maxValue[0]))
         maxDeletions.show()
         # TODO - add perf suite for subquery
         elapsedDuration = time.time() - startTime

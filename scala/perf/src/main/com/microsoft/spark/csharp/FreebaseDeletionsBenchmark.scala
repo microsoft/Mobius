@@ -94,13 +94,13 @@ object FreebaseDeletionsBenchmark {
     val startTime = System.currentTimeMillis
 
     val rows = sqlContext.read.format("com.databricks.spark.csv").load(args(1))
-    val filtered = rows.filter("C1 = C3")
-    val aggregated = filtered.groupBy("C1").agg(("C1", "count"))
+    val filtered = rows.filter("_c1 = _c3")
+    val aggregated = filtered.groupBy("_c1").agg(("_c1", "count"))
     aggregated.registerTempTable("freebasedeletions")
-    val max = sqlContext.sql("select max(`count(C1)`) from freebasedeletions")
+    val max = sqlContext.sql("select max(`count(_c1)`) from freebasedeletions")
     val maxArray = max.collect
     val maxValue = maxArray(0)
-    val maxDeletions = sqlContext.sql("select * from freebasedeletions where `count(C1)` = " + maxValue.get(0))
+    val maxDeletions = sqlContext.sql("select * from freebasedeletions where `count(_c1)` = " + maxValue.get(0))
     maxDeletions.show
     //TODO - add perf suite for subquery
     val elapsed = System.currentTimeMillis - startTime
