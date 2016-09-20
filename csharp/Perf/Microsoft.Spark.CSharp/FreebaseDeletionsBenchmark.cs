@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
     /// <summary>
     /// Perf benchmark that users Freebase deletions data
     /// This data is licensed under CC-BY license (http://creativecommons.org/licenses/by/2.5)
-    /// Data is available for download at https://developers.google.com/freebase/data)
+    /// Data is available for downloading : "Freebase Deleted Triples" at https://developers.google.com/freebase
     /// Data format - CSV, size - 8 GB uncompressed
     /// Columns in the dataset are
     ///     1. creation_timestamp (Unix epoch time in milliseconds)
@@ -55,7 +55,7 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
             var lines = PerfBenchmark.SparkContext.TextFile(filePath);
             var parsedRows = lines.Map(s =>
             {
-                var columns = s.Split(new[] {','});
+                var columns = s.Split(new[] { ',' });
 
                 //data has some bad records - use bool flag to indicate corrupt rows
                 if (columns.Length > 4)
@@ -75,7 +75,7 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
                 else
                     return kvp2;
             });
-            
+
             stopwatch.Stop();
             PerfBenchmark.ExecutionTimeList.Add(stopwatch.Elapsed);
 
@@ -101,22 +101,22 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
             stopwatch.Restart();
 
             var rows = PerfBenchmark.SqlContext.TextFile(args[2]);
-            var filtered = rows.Filter("C1 = C3");
-            var aggregated = filtered.GroupBy("C1").Agg(new Dictionary<string, string> { { "C1", "count" } });
+            var filtered = rows.Filter("_c1 = _c3");
+            var aggregated = filtered.GroupBy("_c1").Agg(new Dictionary<string, string> { { "_c1", "count" } });
             aggregated.RegisterTempTable("freebasedeletions");
-            var max = PerfBenchmark.SqlContext.Sql("select max(`count(C1)`) from freebasedeletions");
+            var max = PerfBenchmark.SqlContext.Sql("select max(`count(_c1)`) from freebasedeletions");
             var maxArray = max.Collect();
             var maxValue = maxArray.First();
-            var maxDeletions = PerfBenchmark.SqlContext.Sql("select * from freebasedeletions where `count(C1)` = " + maxValue.Get(0));
+            var maxDeletions = PerfBenchmark.SqlContext.Sql("select * from freebasedeletions where `count(_c1)` = " + maxValue.Get(0));
             maxDeletions.Show();
             //TODO - add perf suite for subquery
 
             stopwatch.Stop();
             PerfBenchmark.ExecutionTimeList.Add(stopwatch.Elapsed);
             Console.WriteLine("User with max deletions & count of deletions is listed above. Time elapsed {0}", stopwatch.Elapsed);
-            
+
         }
-        
-       
+
+
     }
 }
