@@ -6,11 +6,12 @@
 package org.apache.spark.api.csharp
 
 import org.apache.spark.util.Utils
-import java.io.{DataOutputStream, ByteArrayOutputStream, DataInputStream, ByteArrayInputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import java.net.Socket
 
 import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+import org.apache.spark.internal.Logging
 
 // TODO - work with SparkR devs to make this configurable and reuse RBackendHandler
 import org.apache.spark.api.csharp.SerDe._
@@ -24,7 +25,8 @@ import scala.collection.mutable.HashMap
   */
 // Since SparkCLR is a package to Spark and not a part of spark-core, it mirrors the implementation
 // of selected parts from RBackend with SparkCLR customizations
-class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHandler[Array[Byte]] {
+class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHandler[Array[Byte]]
+  with Logging{
 
   override def channelRead0(ctx: ChannelHandlerContext, msg: Array[Byte]): Unit = {
     val reply = handleBackendRequest(msg)
@@ -71,15 +73,13 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
           val t = readObjectType(dis)
           assert(t == 'i')
           val port = readInt(dis)
-          // scalastyle:off println
-          println("[CSharpBackendHandler] Connecting to a callback server at port " + port)
+          logInfo(s"Connecting to a callback server at port $port")
           CSharpBackend.callbackPort = port
           writeInt(dos, 0)
           writeType(dos, "void")
         case "closeCallback" =>
           // Send close to CSharp callback server.
-          println("[CSharpBackendHandler] Requesting to close all call back sockets.")
-          // scalastyle:on
+          logInfo("Requesting to close all call back sockets.")
           var socket: Socket = null
           do {
             socket = CSharpBackend.callbackSockets.poll()
@@ -91,7 +91,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
                 socket = null
               }
               catch {
-                case e: Exception => println("Exception when closing socket: " + e)
+                case e: Exception => logError("Exception when closing socket: ", e)
               }
             }
           } while (socket != null)
@@ -111,10 +111,7 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
     // Close the connection when an exception is raised.
-    // scalastyle:off println
-    println("Exception caught: " + cause.getMessage)
-    // scalastyle:on
-    cause.printStackTrace()
+    logError("Exception caught: ", cause)
     ctx.close()
   }
 
@@ -176,31 +173,26 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
       }
     } catch {
       case e: Exception =>
-        // TODO - logError does not work now..fix //logError(s"$methodName on $objId failed", e)
         val jvmObj = JVMObjectTracker.get(objId)
         val jvmObjName = jvmObj match {
           case Some(jObj) => jObj.getClass.getName
           case None => "NullObject"
         }
-        // scalastyle:off println
-        println(s"[CSharpBackendHandler] $methodName on object of type $jvmObjName failed")
-        println(e.getMessage)
-        println(e.printStackTrace())
+        logError(s"On object of type $jvmObjName failed", e)
         if (methods != null) {
-          println("methods:")
-          methods.foreach(println(_))
+          logError("methods:")
+          methods.foreach(m => logError(m.toString))
         }
         if (args != null) {
-          println("args:")
+          logError("args:")
           args.foreach(arg => {
             if (arg != null) {
-              println("argType: " + arg.getClass.getCanonicalName + ", argValue: " + arg)
+              logError(s"argType: ${arg.getClass.getCanonicalName}, argValue: $arg")
             } else {
-              println("arg: NULL")
+              logError("arg: NULL")
             }
           })
         }
-        // scalastyle:on println
         writeInt(dos, -1)
         writeString(dos, Utils.exceptionString(e.getCause))
     }
@@ -254,16 +246,6 @@ class CSharpBackendHandler(server: CSharpBackend) extends SimpleChannelInboundHa
     true
   }
 
-  // scalastyle:off println
-  def logError(id: String) {
-    println(id)
-  }
-
-  def logWarning(id: String) {
-    println(id)
-  }
-
-  // scalastyle:on println
 
   def logError(id: String, e: Exception): Unit = {
 

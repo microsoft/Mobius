@@ -7,6 +7,43 @@
 
 export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+[ ! -d "$FWDIR/dependencies" ] && mkdir "$FWDIR/dependencies"
+
+echo "Download Mobius external dependencies"
+pushd "$FWDIR/dependencies"
+
+download_dependency() {
+  LINK=$1
+  JAR=$2
+
+  if [ ! -e $JAR ];
+  then
+    echo "Downloading $JAR"
+    wget -q $LINK -O $JAR
+
+    if [ ! -e $JAR ];
+    then
+      echo "Cannot download external dependency $JAR from $LINK"
+      popd
+      exit 1
+    fi
+  fi
+}
+
+SPARK_CSV_LINK="http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.3.0/spark-csv_2.10-1.3.0.jar"
+SPARK_CSV_JAR="spark-csv_2.10-1.3.0.jar"
+download_dependency $SPARK_CSV_LINK $SPARK_CSV_JAR
+
+COMMONS_CSV_LINK="http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar"
+COMMONS_CSV_JAR="commons-csv-1.1.jar"
+download_dependency $COMMONS_CSV_LINK $COMMONS_CSV_JAR
+
+SPARK_STREAMING_KAFKA_LINK="http://search.maven.org/remotecontent?filepath=org/apache/spark/spark-streaming-kafka-0-8-assembly_2.11/2.0.0/spark-streaming-kafka-0-8-assembly_2.11-2.0.0.jar"
+SPARK_STREAMING_KAFKA_JAR="spark-streaming-kafka-0-8-assembly_2.11-2.0.0.jar"
+download_dependency $SPARK_STREAMING_KAFKA_LINK $SPARK_STREAMING_KAFKA_JAR
+
+popd
+
 export SPARKCLR_HOME="$FWDIR/runtime"
 echo "SPARKCLR_HOME=$SPARKCLR_HOME"
 
@@ -22,6 +59,11 @@ fi
 [ ! -d "$SPARKCLR_HOME/lib" ] && mkdir "$SPARKCLR_HOME/lib"
 [ ! -d "$SPARKCLR_HOME/samples" ] && mkdir "$SPARKCLR_HOME/samples"
 [ ! -d "$SPARKCLR_HOME/scripts" ] && mkdir "$SPARKCLR_HOME/scripts"
+[ ! -d "$SPARKCLR_HOME/dependencies" ] && mkdir "$SPARKCLR_HOME/dependencies"
+
+echo "Assemble Mobius external dependencies"
+cp $FWDIR/dependencies/* "$SPARKCLR_HOME/dependencies/"
+[ $? -ne 0 ] && exit 1
 
 echo "Assemble Mobius Scala components"
 pushd "$FWDIR/../scala"
@@ -36,7 +78,7 @@ mvn clean -q
 # build the package
 mvn package -Puber-jar -q
 
-if [ $? -ne 0 ]
+if [ $? -ne 0 ];
 then
 	echo "Build Mobius Scala components failed, stop building."
 	popd

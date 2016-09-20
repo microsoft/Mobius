@@ -181,7 +181,7 @@ class CSharpRDD(
       case e: OverlappingFileLockException =>
         logInfo("Already obtained the lock.")
         waitUnzipOperationDone(doneFlag)
-      case e: Exception => e.printStackTrace()
+      case e: Exception => logError("Exception when unzipping cSharpWorkerWorkingDir", e)
     }
     finally {
       if (lock != null && lock.isValid) lock.release()
