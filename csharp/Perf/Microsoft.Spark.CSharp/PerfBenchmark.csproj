@@ -71,11 +71,10 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-      <Target Name="AfterBuild">
-        <Copy SkipUnchangedFiles="true" SourceFiles="$(ProjectDir)..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\$(ConfigurationName)\CSharpWorker.*" DestinationFiles="$(TargetDir)" />
-      </Target>
-  </PropertyGroup>
+  <Target Name="CopyCSharpWorker"
+      DependsOn="CoreBuild">
+    <Copy SkipUnchangedFiles="true" SourceFiles="$(ProjectDir)..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\$(ConfigurationName)\CSharpWorker.*" DestinationFiles="$(TargetDir)" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
