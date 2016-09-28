@@ -72,8 +72,9 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent Condition=" '$(OS)' == 'Windows_NT' ">copy /y $(ProjectDir)..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\$(ConfigurationName)\CSharpWorker.* $(TargetDir)</PostBuildEvent>
-    <PostBuildEvent Condition=" '$(OS)' == 'Unix' ">cp -uv $(ProjectDir)../../../csharp/Worker/Microsoft.Spark.CSharp/bin/$(ConfigurationName)/CSharpWorker.* $(TargetDir)</PostBuildEvent>
+      <Target Name="AfterBuild">
+        <Copy SkipUnchangedFiles="true" SourceFiles="$(ProjectDir)..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\$(ConfigurationName)\CSharpWorker.*" DestinationFiles="$(TargetDir)" />
+      </Target>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
