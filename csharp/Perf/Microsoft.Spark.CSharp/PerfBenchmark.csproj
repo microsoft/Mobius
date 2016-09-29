@@ -72,7 +72,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyCSharpWorker"
-      DependsOn="CoreBuild">
+      DependsOnTargets="CoreBuild">
     <Copy SkipUnchangedFiles="true" SourceFiles="$(ProjectDir)..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\$(ConfigurationName)\CSharpWorker.*" DestinationFiles="$(TargetDir)" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
