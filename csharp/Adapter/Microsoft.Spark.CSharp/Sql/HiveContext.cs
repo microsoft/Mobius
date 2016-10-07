@@ -7,7 +7,8 @@ using Microsoft.Spark.CSharp.Proxy;
 namespace Microsoft.Spark.CSharp.Sql
 {
     /// <summary>
-    /// A variant of Spark SQL that integrates with data stored in Hive. 
+    /// HiveContext is deprecated. Use SparkSession.Builder().EnableHiveSupport()
+	/// HiveContext is a variant of Spark SQL that integrates with data stored in Hive. 
     /// Configuration for Hive is read from hive-site.xml on the classpath.
     /// It supports running both SQL and HiveQL commands.
     /// </summary>
@@ -18,8 +19,21 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         /// <param name="sparkContext"></param>
         public HiveContext(SparkContext sparkContext)
-            : base(SparkSession.Builder().Config(sparkContext.SparkConf).EnableHiveSupport().GetOrCreate())
+            : base(sparkContext, sparkContext.SparkContextProxy.CreateHiveContext())
+        { }
+
+        internal HiveContext(SparkContext sparkContext, ISqlContextProxy sqlContextProxy)
+            : base(sparkContext, sqlContextProxy)
+        { }
+
+        /// <summary>
+        /// Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'
+        /// </summary>
+        /// <param name="sqlQuery"></param>
+        /// <returns></returns>
+        public new DataFrame Sql(string sqlQuery)
         {
+            return new DataFrame(SqlContextProxy.Sql(sqlQuery), sparkContext);
         }
 
         /// <summary>
@@ -31,7 +45,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="tableName"></param>
         public void RefreshTable(string tableName)
         {
-            SparkSession.Catalog.RefreshTable(tableName);
+            SqlContextProxy.RefreshTable(tableName);
         }
     }
 }

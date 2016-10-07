@@ -15,8 +15,10 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive
 import org.apache.spark.sql.types.{DataType, FloatType, StructType}
 import org.apache.spark.sql._
-import java.util.{List => JList, Map => JMap, ArrayList => JArrayList}
+import java.util.{ArrayList => JArrayList, List => JList, Map => JMap}
+
 import org.apache.spark.broadcast.Broadcast
+import org.apache.spark.sql.hive.HiveContext
 
 /**
  * Utility functions for DataFrame in SparkCLR
@@ -27,6 +29,12 @@ import org.apache.spark.broadcast.Broadcast
 object SQLUtils {
   def createSparkSession(sc: SparkContext): SparkSession = {
        new SparkSession(sc)
+  }
+
+  // this method is for back compat with older versions of Spark (1.4, 1.5 & 1.6)
+  // can be removed once Mobius upgrades to Spark 2.1
+  def createHiveContext(sc: SparkContext): SQLContext = {
+    new HiveContext(sc)
   }
 
   def getSqlContext(ss: SparkSession): SQLContext = {
