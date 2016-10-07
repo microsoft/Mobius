@@ -731,7 +731,8 @@
 ####Summary
   
             
-            A variant of Spark SQL that integrates with data stored in Hive. 
+            HiveContext is deprecated. Use SparkSession.Builder().EnableHiveSupport()
+            HiveContext is a variant of Spark SQL that integrates with data stored in Hive. 
             Configuration for Hive is read from hive-site.xml on the classpath.
             It supports running both SQL and HiveQL commands.
             
