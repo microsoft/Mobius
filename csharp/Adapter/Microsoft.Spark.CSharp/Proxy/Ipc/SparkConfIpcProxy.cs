@@ -60,7 +60,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public string GetSparkConfAsString()
          {
-             return SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.JvmBridgeUtils", "getSparkConfAsString").ToString();
+             return SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.JvmBridgeUtils", "getSparkConfAsString", new object[] { jvmSparkConfReference }).ToString();
          }
 }
 }

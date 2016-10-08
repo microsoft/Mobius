@@ -731,14 +731,15 @@
 ####Summary
   
             
-            A variant of Spark SQL that integrates with data stored in Hive. 
+            HiveContext is deprecated. Use SparkSession.Builder().EnableHiveSupport()
+            HiveContext is a variant of Spark SQL that integrates with data stored in Hive. 
             Configuration for Hive is read from hive-site.xml on the classpath.
             It supports running both SQL and HiveQL commands.
             
         
 ####Methods
 
-<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">RefreshTable</font></td><td>Invalidate and refresh all the cached the metadata of the given table. For performance reasons, Spark SQL or the external data source library it uses might cache certain metadata about a table, such as the location of blocks. When those change outside of Spark SQL, users should call this function to invalidate the cache.</td></tr></table>
+<table><tr><th>Name</th><th>Description</th></tr><tr><td><font color="blue">Sql</font></td><td>Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'</td></tr><tr><td><font color="blue">RefreshTable</font></td><td>Invalidate and refresh all the cached the metadata of the given table. For performance reasons, Spark SQL or the external data source library it uses might cache certain metadata about a table, such as the location of blocks. When those change outside of Spark SQL, users should call this function to invalidate the cache.</td></tr></table>
 
 ---
   

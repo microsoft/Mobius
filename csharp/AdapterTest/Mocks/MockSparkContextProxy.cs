@@ -302,5 +302,9 @@ namespace AdapterTest.Mocks
         {
             return new MockSparkSessionProxy();
         }
+        public ISqlContextProxy CreateHiveContext()
+        {
+            return new MockSqlContextProxy(this);
+        }
     }
 }

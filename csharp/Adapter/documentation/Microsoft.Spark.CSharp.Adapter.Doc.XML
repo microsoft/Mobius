@@ -6176,7 +6176,8 @@
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.HiveContext">
             <summary>
-            A variant of Spark SQL that integrates with data stored in Hive. 
+            HiveContext is deprecated. Use SparkSession.Builder().EnableHiveSupport()
+            HiveContext is a variant of Spark SQL that integrates with data stored in Hive. 
             Configuration for Hive is read from hive-site.xml on the classpath.
             It supports running both SQL and HiveQL commands.
             </summary>
@@ -6186,6 +6187,13 @@
             Creates a HiveContext
             </summary>
             <param name="sparkContext"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.HiveContext.Sql(System.String)">
+            <summary>
+            Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'
+            </summary>
+            <param name="sqlQuery"></param>
+            <returns></returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.HiveContext.RefreshTable(System.String)">
             <summary>
