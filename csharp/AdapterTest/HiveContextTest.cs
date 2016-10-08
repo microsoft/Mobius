@@ -50,10 +50,18 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestHiveContextSql()
+        {
+            mockSqlContextProxy.Setup(m => m.Sql(It.IsAny<string>()));
+            var hiveContext = new HiveContext(new SparkContext("", ""), mockSqlContextProxy.Object);
+            hiveContext.Sql("SELECT * FROM ABC");
+            mockSqlContextProxy.Verify(m => m.Sql("SELECT * FROM ABC"));
+        }
+
+        [Test]
         public void TestHiveContextRefreshTable()
         {
             // arrange
-            var mockSparkContextProxy = new Mock<ISparkContextProxy>();
             mockSqlContextProxy.Setup(m => m.RefreshTable(It.IsAny<string>()));
             var hiveContext = new HiveContext(new SparkContext("", ""), mockSqlContextProxy.Object);
 
