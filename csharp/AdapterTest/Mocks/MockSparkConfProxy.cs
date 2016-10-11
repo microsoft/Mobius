@@ -60,5 +60,10 @@ namespace AdapterTest.Mocks
             }
             return defaultValue;
         }
+
+        public string GetSparkConfAsString()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

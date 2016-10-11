@@ -14,6 +14,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SecurityManager
 import org.apache.spark.api.csharp.CSharpBackend
 import org.apache.spark.deploy.{PythonRunner, SparkHadoopUtil, SparkSubmitArguments}
+import org.apache.spark.internal.Logging
 import org.apache.spark.util.{RedirectThread, Utils}
 import org.apache.spark.util.csharp.{Utils => CSharpSparkUtils}
 
@@ -22,8 +23,7 @@ import org.apache.spark.util.csharp.{Utils => CSharpSparkUtils}
  * gets its port number and launches C# process passing the port number to it.
  * The runner implementation is mostly identical to RRunner with SparkCLR-specific customizations.
  */
-// scalastyle:off println
-object CSharpRunner {
+object CSharpRunner extends Logging{
   val MOBIUS_DEBUG_PORT = 5567
 
   def main(args: Array[String]): Unit = {
@@ -51,7 +51,7 @@ object CSharpRunner {
           zipFileName = downloadDriverFile(zipFileName, driverDir.getAbsolutePath).getName
         }
 
-        println(s"[CSharpRunner.main] Unzipping driver $zipFileName in $driverDir")
+        logInfo(s"Unzipping driver $zipFileName in $driverDir")
         CSharpSparkUtils.unzip(new File(zipFileName), driverDir)
         // reusing windows-specific formatting in PythonRunner
         csharpExecutable = PythonRunner.formatPath(args(1))
@@ -74,7 +74,7 @@ object CSharpRunner {
     processParameters.add(formatPath(csharpExecutable))
     otherArgs.foreach( arg => processParameters.add(arg) )
 
-    println("[CSharpRunner.main] Starting CSharpBackend!")
+    logInfo("Starting CSharpBackend!")
     // Time to wait for CSharpBackend to initialize in seconds
 
     val backendTimeout = sys.env.getOrElse("CSHARPBACKEND_TIMEOUT", "120").toInt
@@ -88,8 +88,7 @@ object CSharpRunner {
         // need to get back csharpBackendPortNumber because if the value passed to init is 0
         // the port number is dynamically assigned in the backend
         csharpBackendPortNumber = csharpBackend.init(csharpBackendPortNumber)
-        println("[CSharpRunner.main] Port number used by CSharpBackend is "
-          + csharpBackendPortNumber) // TODO - send to logger also
+        logInfo(s"Port number used by CSharpBackend is $csharpBackendPortNumber")
         initialized.release()
         csharpBackend.run()
       }
@@ -107,8 +106,7 @@ object CSharpRunner {
 
           for ((key, value) <- Utils.getSystemProperties if key.startsWith("spark.")) {
             env.put(key, value)
-            println("[CSharpRunner.main] adding key=" + key
-              + " and value=" + value + " to environment")
+            logInfo(s"Adding key=$key and value=$value to environment")
           }
           builder.redirectErrorStream(true) // Ugly but needed for stdout and stderr to synchronize
           val process = builder.start()
@@ -123,22 +121,23 @@ object CSharpRunner {
           closeBackend(csharpBackend)
         } catch {
           case t: Throwable =>
-            println("[CSharpRunner.main]" + t.getMessage + "\n" + t.getStackTrace)
+            logError(s"${t.getMessage} \n ${t.getStackTrace}")
         }
 
-        println("[CSharpRunner.main] Return CSharpBackend code " + returnCode)
+        logInfo(s"Return CSharpBackend code $returnCode")
         CSharpSparkUtils.exit(returnCode)
       } else {
+        // scalastyle:off println
         println("***********************************************************************")
         println("* [CSharpRunner.main] Backend running debug mode. Press enter to exit *")
         println("***********************************************************************")
+        // scalastyle:on println
         Console.readLine()
         closeBackend(csharpBackend)
         CSharpSparkUtils.exit(0)
       }
     } else {
-      println("[CSharpRunner.main] CSharpBackend did not initialize in "
-        + backendTimeout + " seconds")
+      logError(s"CSharpBackend did not initialize in $backendTimeout seconds")
       CSharpSparkUtils.exit(-1)
     }
   }
@@ -168,7 +167,7 @@ object CSharpRunner {
     val localFile = new File(driverDir, jarFileName)
 
     if (!localFile.exists()) { // May already exist if running multiple workers on one node
-      println(s"Copying user file $filePath to $driverDir")
+      logInfo(s"Copying user file $filePath to $driverDir")
       Utils.fetchFile(
         hdfsFilePath,
         new File(driverDir),
@@ -187,7 +186,7 @@ object CSharpRunner {
   }
 
   def closeBackend(csharpBackend: CSharpBackend): Unit = {
-    println("[CSharpRunner.main] closing CSharpBackend")
+    logInfo("Closing CSharpBackend")
     csharpBackend.close()
   }
 
@@ -205,4 +204,3 @@ object CSharpRunner {
     (runInDebugMode, portNumber)
   }
 }
-// scalastyle:on println

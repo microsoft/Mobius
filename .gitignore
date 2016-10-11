@@ -11,6 +11,7 @@
 *.class
 *.dll
 *.exe
+*.pyc
 
 # Packages #
 ############
@@ -39,6 +40,10 @@ build/examples/
 build/dependencies/
 *.log
 lib/
+
+# Local databases used for Dataset/frames #
+###########################################
+scala/metastore_db/
 
 # Generated Files #
 ############

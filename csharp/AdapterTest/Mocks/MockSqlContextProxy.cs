@@ -69,11 +69,6 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public ISqlContextProxy NewSession()
-        {
-            throw new NotImplementedException();
-        }
-
         public string GetConf(string key, string defaultValue)
         {
             throw new NotImplementedException();

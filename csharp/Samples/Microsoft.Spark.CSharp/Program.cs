@@ -78,6 +78,7 @@ namespace Microsoft.Spark.CSharp.Samples
             {
                 conf.Set("spark.local.dir", Configuration.SparkLocalDirectoryOverride);
             }
+
             return new SparkContext(conf);
         }
 

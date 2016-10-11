@@ -1,4 +1,10 @@
 @echo off
+
+rem
+rem Copyright (c) Microsoft. All rights reserved.
+rem Licensed under the MIT license. See LICENSE file in the project root for full license information.
+rem
+
 setlocal enabledelayedexpansion
 
 set CMDHOME=%~dp0
@@ -36,7 +42,7 @@ if not exist "%SPARK_JARS_DIR%" (
 
 set SPARK_JARS_CLASSPATH=%SPARK_JARS_DIR%\*
 
-if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.11-2.0.000-PREVIEW-1.jar)
+if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.11-2.0.000-PREVIEW-2.jar)
 echo [sparkclr-submit.cmd] SPARKCLR_JAR=%SPARKCLR_JAR% 
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
 REM SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode

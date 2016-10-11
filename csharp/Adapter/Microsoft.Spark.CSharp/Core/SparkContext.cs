@@ -129,6 +129,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             SparkContextProxy = sparkContextProxy;
             SparkConf = conf;
+            _activeSparkContext = this;
         }
 
         private SparkContext(string master, string appName, string sparkHome, SparkConf conf)
@@ -143,6 +144,25 @@ namespace Microsoft.Spark.CSharp.Core
 
             SparkContextProxy = SparkCLREnvironment.SparkCLRProxy.CreateSparkContext(SparkConf.SparkConfProxy);
             _activeSparkContext = this;
+        }
+
+        /// <summary>
+        /// This function may be used to get or instantiate a SparkContext and register it as a
+        /// singleton object. Because we can only have one active SparkContext per JVM,
+        /// this is useful when applications may wish to share a SparkContext.
+        /// Note: This function cannot be used to create multiple SparkContext instances
+        /// even if multiple contexts are allowed.
+        /// </summary>
+        /// <param name="conf"></param>
+        /// <returns></returns>
+        public static SparkContext GetOrCreate(SparkConf conf)
+        {
+            if (_activeSparkContext == null)
+            {
+                _activeSparkContext = new SparkContext(conf);
+            }
+
+            return _activeSparkContext;
         }
 
         internal void StartAccumulatorServer()

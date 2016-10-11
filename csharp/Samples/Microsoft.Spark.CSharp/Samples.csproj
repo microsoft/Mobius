@@ -47,6 +47,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CatalogSamples.cs" />
     <Compile Include="CommandlineArgumentProcessor.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="DataFrameSamples.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="SamplesRunner.cs" />
     <Compile Include="SparkContextSamples.cs" />
     <Compile Include="RDDSamples.cs" />
+    <Compile Include="SparkSessionSamples.cs" />
     <Compile Include="SqlContextSamples.cs" />
   </ItemGroup>
   <ItemGroup>

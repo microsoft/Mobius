@@ -293,19 +293,18 @@ namespace AdapterTest.Mocks
             return new MockSparkConfProxy();
         }  
 
-        public ISqlContextProxy CreateSqlContext()
-        {
-            return new MockSqlContextProxy(this);
-        }
-
-        public ISqlContextProxy CreateHiveContext()
-        {
-            return new MockSqlContextProxy(this);
-        }
-
         public IRDDProxy Parallelize(IEnumerable<byte[]> values, int numSlices)
         {
             return new MockRddProxy(null);
+        }
+
+        public ISparkSessionProxy CreateSparkSession()
+        {
+            return new MockSparkSessionProxy();
+        }
+        public ISqlContextProxy CreateHiveContext()
+        {
+            return new MockSqlContextProxy(this);
         }
     }
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp.Services
 {
@@ -12,7 +8,20 @@ namespace Microsoft.Spark.CSharp.Services
     /// </summary>
     public class DefaultLoggerService : ILoggerService
     {
-        internal readonly static DefaultLoggerService Instance = new DefaultLoggerService(typeof (Type));
+        internal static readonly DefaultLoggerService Instance = new DefaultLoggerService(typeof(Type));
+        private readonly Type type;
+
+        private DefaultLoggerService(Type t)
+        {
+            type = t;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether logging is enabled for the Debug level.
+        /// Always return true for the DefaultLoggerService object.
+        /// </summary>
+        public bool IsDebugEnabled { get { return true; } }
+
         /// <summary>
         /// Get an instance of ILoggerService by a given type of logger
         /// </summary>
@@ -21,12 +30,6 @@ namespace Microsoft.Spark.CSharp.Services
         public ILoggerService GetLoggerInstance(Type type)
         {
             return new DefaultLoggerService(type);
-        }
-
-        private readonly Type type;
-        private DefaultLoggerService(Type t)
-        {
-            type = t;
         }
         
         /// <summary>
