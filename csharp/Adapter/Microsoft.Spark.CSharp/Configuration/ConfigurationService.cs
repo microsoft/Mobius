@@ -65,7 +65,9 @@ namespace Microsoft.Spark.CSharp.Configuration
                 configuration = new SparkCLRConfiguration(appConfig);
                 runMode = RunMode.CLUSTER;
             }
-            else if (sparkMaster.Equals("yarn-client", StringComparison.OrdinalIgnoreCase) || sparkMaster.Equals("yarn-cluster", StringComparison.OrdinalIgnoreCase))
+            else if (sparkMaster.Equals("yarn-cluster", StringComparison.OrdinalIgnoreCase) ||
+                     sparkMaster.Equals("yarn-client", StringComparison.OrdinalIgnoreCase) ||
+                     sparkMaster.Equals("yarn", StringComparison.OrdinalIgnoreCase)) //supported in Spark 2.0
             {
                 configuration = new SparkCLRConfiguration(appConfig);
                 runMode = RunMode.YARN;
