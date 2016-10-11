@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -20,21 +20,40 @@ namespace Microsoft.Spark.CSharp.Examples
         {
             LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance); //this is optional - DefaultLoggerService will be used if not set
             var logger = LoggerServiceFactory.GetLogger(typeof(HiveDataFrameExample));
-
-            var sparkConf = new SparkConf();
-            var sparkContext = new SparkContext(sparkConf);
-            var hiveContext = new HiveContext(sparkContext);
-            
-            // please give the path to input json file
             var jsonFilePath = args[0];
-            var peopleDataFrame = hiveContext.Read().Json(jsonFilePath);
-
             const string dbName = "SampleHiveDataBaseForMobius";
             const string tableName = "people";
+
+            var builder = SparkSession.Builder().EnableHiveSupport();
+            // The following setting is required to use Spark 2.0 in Windows
+            // It may be provided in command line when running Mobius app
+            //builder = builder.Config("spark.sql.warehouse.dir", "<hdfs or local path>");
+            var session = builder.GetOrCreate();
+            var peopleDataFrame = session.Read().Json(jsonFilePath);
+            session.Sql(string.Format("CREATE DATABASE IF NOT EXISTS {0}", dbName)); // create database if not exists
+            session.Sql(string.Format("USE {0}", dbName));
+            //hiveContext.Sql(string.Format("DROP TABLE {0}", tableName)); // drop table if exists
+
+            peopleDataFrame.Write().Mode(SaveMode.Overwrite).SaveAsTable(tableName); // create table
+            var tablesDataFrame = session.Table(tableName); // get all tables in database
+            logger.LogInfo(string.Format("table count in database {0}: {1}", dbName, tablesDataFrame.Count()));
+            tablesDataFrame.Show();
+
+            session.Sql(string.Format("SELECT * FROM {0}", tableName)).Show(); // select from table
+
+            // Following example is for the deprecated API
+            /*
+            var sparkConf = new SparkConf();
+            // The following setting is required to use Spark 2.0 in Windows
+            // It may be provided in command line when running Mobius app
+            //sparkConf.Set("spark.sql.warehouse.dir", @"<hdfs or local path>");
+            var sparkContext = new SparkContext(sparkConf);
+            var hiveContext = new HiveContext(sparkContext);           
+            var peopleDataFrame = hiveContext.Read().Json(jsonFilePath);
             
             hiveContext.Sql(string.Format("CREATE DATABASE IF NOT EXISTS {0}", dbName)); // create database if not exists
             hiveContext.Sql(string.Format("USE {0}", dbName));
-            hiveContext.Sql(string.Format("DROP TABLE {0}", tableName)); // drop table if exists
+            //hiveContext.Sql(string.Format("DROP TABLE {0}", tableName)); // drop table if exists
 
             peopleDataFrame.Write().Mode(SaveMode.Overwrite).SaveAsTable(tableName); // create table
             var tablesDataFrame = hiveContext.Tables(dbName); // get all tables in database
@@ -42,6 +61,7 @@ namespace Microsoft.Spark.CSharp.Examples
             tablesDataFrame.Show();
 
             hiveContext.Sql(string.Format("SELECT * FROM {0}", tableName)).Show(); // select from table
+            */
         }
     }
 }
