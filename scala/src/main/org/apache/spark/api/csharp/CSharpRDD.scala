@@ -68,7 +68,7 @@ class CSharpRDD(
     val func = SQLUtils.createCSharpFunction(command,
                                                     envVars,
                                                     cSharpIncludes,
-                                                    cSharpWorkerExecutable,
+                                                    cSharpWorker.getAbsolutePath,
                                                     unUsedVersionIdentifier,
                                                     broadcastVars,
                                                     accumulator)
