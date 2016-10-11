@@ -1,4 +1,9 @@
 #
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
+#
 # Input - 
 #     (1) "stage" parameter, accepts either "build" or "run"
 #     (2) "vebose" parameter, accepts "verbose"
@@ -342,14 +347,14 @@ function Download-ExternalDependencies
 	
 	$readMeStream.WriteLine("------------ Dependencies for CSV parsing in Mobius DataFrame API -----------------------------")
 	# Downloading spark-csv package and its depenency. These packages are required for DataFrame operations in Mobius
-	$url = "http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.3.0/spark-csv_2.10-1.3.0.jar"
-    $output="$scriptDir\..\dependencies\spark-csv_2.10-1.3.0.jar"
+	$url = "http://search.maven.org/remotecontent?filepath=com/databricks/spark-csv_2.10/1.4.0/spark-csv_2.10-1.4.0.jar"
+    $output="$scriptDir\..\dependencies\spark-csv_2.10-1.4.0.jar"
     Download-File $url $output
 	Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
 	$readMeStream.WriteLine("$url")
 	
-	$url = "http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar"
-	$output="$scriptDir\..\dependencies\commons-csv-1.1.jar"
+	$url = "http://search.maven.org/remotecontent?filepath=org/apache/commons/commons-csv/1.4/commons-csv-1.4.jar"
+	$output="$scriptDir\..\dependencies\commons-csv-1.4.jar"
 	Download-File $url $output
     Write-Output "[downloadtools.Download-ExternalDependencies] Downloading $url to $scriptDir\..\dependencies"
 	$readMeStream.WriteLine("$url")

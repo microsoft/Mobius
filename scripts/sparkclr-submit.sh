@@ -1,17 +1,22 @@
 #!/bin/bash
 
+#
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
 function spark_home_error() {
 	echo "[sparkclr-submit.sh] Error - SPARK_HOME environment variable is not export"
 	echo "[sparkclr-submit.sh] Note that SPARK_HOME environment variable should not have trailing /"
 	exit 1
 }
-	
+
 function java_home_error() {
 	echo "[sparkclr-submit.sh] Error - JAVA_HOME environment variable is not set"
 	echo "[sparkclr-submit.sh] Note that JAVA_HOME environment variable should not have trailing /"
 	exit 1
 }
-	
+
 function sparkclr_home_error() {
 	echo "[sparkclr-submit.sh] Error - SPARKCLR_HOME environment variable is not set"
 	echo "[sparkclr-submit.sh] SPARKCLR_HOME need to be set to the folder path for csharp-spark*.jar"
@@ -50,9 +55,9 @@ then
   exit 1
 fi
 
-export SPARK_JARS_CLASSPATH="$SPARK_JARS_DIR\*"
+export SPARK_JARS_CLASSPATH="$SPARK_JARS_DIR/*"
 
-export SPARKCLR_JAR=spark-clr_2.11-2.0.000-PREVIEW-1.jar
+export SPARKCLR_JAR=spark-clr_2.11-2.0.000-PREVIEW-2.jar
 export SPARKCLR_CLASSPATH="$SPARKCLR_HOME/lib/$SPARKCLR_JAR"
 # SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode
 [ ! "$SPARKCLR_DEBUGMODE_EXT_JARS" = "" ] && export SPARKCLR_CLASSPATH="$SPARKCLR_CLASSPATH:$SPARKCLR_DEBUGMODE_EXT_JARS"
@@ -66,7 +71,7 @@ else
 
   # The launcher library prints the arguments to be submitted to spark-submit.sh. So read all the output of the launcher into a variable.
   export SPARK_ARGS=`"$JAVA_HOME/bin/java" -cp "$LAUNCH_CLASSPATH" org.apache.spark.launcher.SparkCLRSubmitArguments "$@"`
-  
+
   # launches the Spark job with spark-submit.sh
   echo "[sparkclr-submit.sh] Command to run $SPARK_ARGS"
   "$SPARK_HOME/bin/spark-submit" $SPARK_ARGS

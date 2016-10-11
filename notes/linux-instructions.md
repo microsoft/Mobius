@@ -52,8 +52,7 @@ If you are using CentOS, Fedora, or similar Linux distributions or OS X, follow 
   * Update CSharpWorkerPath setting in Mobius application config (refer to the config files used in Mobius examples like the [config for with Pi example](https://github.com/skaarthik/Mobius/blob/linux/examples/Batch/pi/App.config#L61)) to point to [CSharpWorker.sh.exe](./linux-csharpworker-prefix-script.md) (make sure to set the correct value appropriate for the Spark mode to be used)
 
 ### Mobius in Azure HDInsight Spark Cluster
-* Mono version available in HDInsight cluster is 3.x. Mobius [requires](./linux-instructions.md#prerequisites) 4.2 or above. So, Mono has to be upgraded in HDInsight cluster to use Mobius.
-* Follow [instructions](./linux-instructions.md#requirements) for Ubuntu
+* Refer to [instructions](./mobius-in-hdinsight.md) for running Mobius application in HDI
 
 ### Mobius in Amazon Web Services EMR Spark Cluster
 * Follow [instructions](./linux-instructions.md#requirements) for CentOS

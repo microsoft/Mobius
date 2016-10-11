@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+
 export verbose=
 
 for param in "$@"
@@ -68,9 +73,9 @@ fi
 
 export SPARKCLR_HOME="$FWDIR/../runtime"
 # spark-csv package and its depenedency are required for DataFrame operations in Mobius
-export SPARKCLR_EXT_PATH="$SPARKCLR_HOME\dependencies"
-export SPARKCSV_JAR1PATH="$SPARKCLR_EXT_PATH\spark-csv_2.10-1.3.0.jar"
-export SPARKCSV_JAR2PATH="$SPARKCLR_EXT_PATH\commons-csv-1.1.jar"
+export SPARKCLR_EXT_PATH="$SPARKCLR_HOME/dependencies"
+export SPARKCSV_JAR1PATH="$SPARKCLR_EXT_PATH/spark-csv_2.10-1.4.0.jar"
+export SPARKCSV_JAR2PATH="$SPARKCLR_EXT_PATH/commons-csv-1.4.jar"
 export SPARKCLR_EXT_JARS="$SPARKCSV_JAR1PATH,$SPARKCSV_JAR2PATH"
 
 # run-samples.sh is in local mode, should not load Hadoop or Yarn cluster config. Disable Hadoop/Yarn conf dir.

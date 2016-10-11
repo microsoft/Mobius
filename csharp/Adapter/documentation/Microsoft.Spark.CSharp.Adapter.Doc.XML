@@ -1992,6 +1992,11 @@
             <param name="key">Key to use</param>
             <param name="defaultValue">Default value to use</param>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkConf.GetAll">
+            <summary>
+            Get all parameters as a list of pairs
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.SparkContext">
             <summary>
             Main entry point for Spark functionality. A SparkContext represents the 
@@ -2071,6 +2076,17 @@
             </summary>
             <param name="sparkContextProxy"></param>
             <param name="conf"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.GetOrCreate(Microsoft.Spark.CSharp.Core.SparkConf)">
+            <summary>
+            This function may be used to get or instantiate a SparkContext and register it as a
+            singleton object. Because we can only have one active SparkContext per JVM,
+            this is useful when applications may wish to share a SparkContext.
+            Note: This function cannot be used to create multiple SparkContext instances
+            even if multiple contexts are allowed.
+            </summary>
+            <param name="conf"></param>
+            <returns></returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.TextFile(System.String,System.Int32)">
             <summary>
@@ -4282,6 +4298,12 @@
             Right now it just prints out the messages to Console
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Services.DefaultLoggerService.IsDebugEnabled">
+            <summary>
+            Gets a value indicating whether logging is enabled for the Debug level.
+            Always return true for the DefaultLoggerService object.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Services.DefaultLoggerService.GetLoggerInstance(System.Type)">
             <summary>
             Get an instance of ILoggerService by a given type of logger
@@ -4363,6 +4385,11 @@
         <member name="T:Microsoft.Spark.CSharp.Services.ILoggerService">
             <summary>
             Defines a logger what be used in service
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Services.ILoggerService.IsDebugEnabled">
+            <summary>
+            Gets a value indicating whether logging is enabled for the Debug level.
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Services.ILoggerService.GetLoggerInstance(System.Type)">
@@ -4458,6 +4485,11 @@
             Initializes a instance of Log4NetLoggerService with a specific type.
             </summary>
             <param name="type">The type of the logger</param>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.IsDebugEnabled">
+            <summary>
+            Gets a value indicating whether logging is enabled for the Debug level.
+            </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Services.Log4NetLoggerService.LogDebug(System.String)">
             <summary>
@@ -4560,6 +4592,312 @@
             if there exists xxx.exe.config file and log4net settings, then use log4net
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Builder">
+            <summary>
+            The entry point to programming Spark with the Dataset and DataFrame API.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.Master(System.String)">
+            <summary>
+            Sets the Spark master URL to connect to, such as "local" to run locally, "local[4]" to
+            run locally with 4 cores, or "spark://master:7077" to run on a Spark standalone cluster.
+            </summary>
+            <param name="master">Master URL</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.AppName(System.String)">
+            <summary>
+            Sets a name for the application, which will be shown in the Spark web UI.
+            If no application name is set, a randomly generated name will be used.
+            </summary>
+            <param name="appName">Name of the app</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.Config(System.String,System.String)">
+            <summary>
+            Sets a config option. Options set using this method are automatically propagated to
+            both SparkConf and SparkSession's own configuration.
+            </summary>
+            <param name="key">Key for the configuration</param>
+            <param name="value">value of the configuration</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.Config(System.String,System.Boolean)">
+            <summary>
+            Sets a config option. Options set using this method are automatically propagated to
+            both SparkConf and SparkSession's own configuration.
+            </summary>
+            <param name="key">Key for the configuration</param>
+            <param name="value">value of the configuration</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.Config(System.String,System.Double)">
+            <summary>
+            Sets a config option. Options set using this method are automatically propagated to
+            both SparkConf and SparkSession's own configuration.
+            </summary>
+            <param name="key">Key for the configuration</param>
+            <param name="value">value of the configuration</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.Config(System.String,System.Int64)">
+            <summary>
+            Sets a config option. Options set using this method are automatically propagated to
+            both SparkConf and SparkSession's own configuration.
+            </summary>
+            <param name="key">Key for the configuration</param>
+            <param name="value">value of the configuration</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.Config(Microsoft.Spark.CSharp.Core.SparkConf)">
+            <summary>
+            Sets a list of config options based on the given SparkConf
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.EnableHiveSupport">
+            <summary>
+            Enables Hive support, including connectivity to a persistent Hive metastore, support for
+            Hive serdes, and Hive user-defined functions.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Builder.GetOrCreate">
+            <summary>
+            Gets an existing [[SparkSession]] or, if there is no existing one, creates a new
+            one based on the options set in this builder.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Catalog.Catalog">
+            <summary>
+            Catalog interface for Spark.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.CurrentDatabase">
+            <summary>
+            Returns the current default database in this session.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.ListDatabases">
+            <summary>
+            Returns a list of databases available across all sessions.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.ListTables(System.String)">
+            <summary>
+            Returns a list of tables in the current database or given database
+            This includes all temporary tables.
+            </summary>
+            <param name="dbName">Optional database name. If not provided, current database is used</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.ListColumns(System.String,System.String)">
+            <summary>
+            Returns a list of columns for the given table in the current database or
+            the given temporary table.
+            </summary>
+            <param name="tableName">Name of the table</param>
+            <param name="dbName">Name of the database. If database is not provided, current database is used</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.ListFunctions(System.String)">
+            <summary>
+            Returns a list of functions registered in the specified database.
+            This includes all temporary functions
+            </summary>
+            <param name="dbName">Name of the database. If database is not provided, current database is used</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.SetCurrentDatabase(System.String)">
+            <summary>
+            Sets the current default database in this session.
+            </summary>
+            <param name="dbName">Name of database</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.DropTempView(System.String)">
+            <summary>
+            Drops the temporary view with the given view name in the catalog.
+            If the view has been cached before, then it will also be uncached.
+            </summary>
+            <param name="tempViewName">Name of the table</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.IsCached(System.String)">
+            <summary>
+            Returns true if the table is currently cached in-memory.
+            </summary>
+            <param name="tableName">Name of the table</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.CacheTable(System.String)">
+            <summary>
+            Caches the specified table in-memory.
+            </summary>
+            <param name="tableName">Name of the table</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.UnCacheTable(System.String)">
+            <summary>
+            Removes the specified table from the in-memory cache.
+            </summary>
+            <param name="tableName">Name of the table</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.RefreshTable(System.String)">
+            <summary>
+            Invalidate and refresh all the cached metadata of the given table. For performance reasons,
+            Spark SQL or the external data source library it uses might cache certain metadata about a
+            table, such as the location of blocks.When those change outside of Spark SQL, users should
+            call this function to invalidate the cache.
+            If this table is cached as an InMemoryRelation, drop the original cached version and make the
+            new version cached lazily.
+            </summary>
+            <param name="tableName">Name of the table</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.ClearCache">
+            <summary>
+            Removes all cached tables from the in-memory cache.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.CreateExternalTable(System.String,System.String)">
+            <summary>
+            Creates an external table from the given path and returns the corresponding DataFrame.
+            It will use the default data source configured by spark.sql.sources.default.
+            </summary>
+            <param name="tableName">Name of the table</param>
+            <param name="path">Path to table</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.CreateExternalTable(System.String,System.String,System.String)">
+            <summary>
+            Creates an external table from the given path on a data source and returns DataFrame
+            </summary>
+            <param name="tableName">Name of the table</param>
+            <param name="path">Path to table</param>
+            <param name="source">Data source</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.CreateExternalTable(System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Creates an external table from the given path based on a data source and a set of options.
+            Then, returns the corresponding DataFrame.
+            </summary>
+            <param name="tableName">Name of the table</param>
+            <param name="source">Data source</param>
+            <param name="options">Options to create table</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Catalog.Catalog.CreateExternalTable(System.String,System.String,Microsoft.Spark.CSharp.Sql.StructType,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Create an external table from the given path based on a data source, a schema and
+            a set of options.Then, returns the corresponding DataFrame.
+            </summary>
+            <param name="tableName">Name of the table</param>
+            <param name="source">Data source</param>
+            <param name="schema">Schema of the table</param>
+            <param name="options">Options to create table</param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Catalog.Database">
+            <summary>
+            A database in Spark
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Database.Name">
+            <summary>
+            Name of the database
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Database.Description">
+            <summary>
+            Desciption for the database
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Database.LocationUri">
+            <summary>
+            Location of the database
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Catalog.Table">
+            <summary>
+            A table in Spark
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Table.Name">
+            <summary>
+            Name of the table
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Table.Database">
+            <summary>
+            Name of the database Table belongs to
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Table.Description">
+            <summary>
+            Description of the table
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Table.TableType">
+            <summary>
+            Type of the table (table, view)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Table.IsTemporary">
+            <summary>
+            Whether the table is a temporary table
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Catalog.Column">
+            <summary>
+            A column in Spark
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Column.Name">
+            <summary>
+            Name of the column
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Column.DataType">
+            <summary>
+            Datatype of the column
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Column.Description">
+            <summary>
+            Description of the column
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Column.IsNullable">
+            <summary>
+            Whether the column value can be null
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Column.IsPartition">
+            <summary>
+            Whether the column is a partition column.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Column.IsBucket">
+            <summary>
+            Whether the column is a bucket column.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Catalog.Function">
+            <summary>
+            A user-defined function in Spark
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Function.Name">
+            <summary>
+            Name of the column
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Function.Database">
+            <summary>
+            Name of the database
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Function.Description">
+            <summary>
+            Description of the function
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Function.ClassName">
+            <summary>
+            Fully qualified class name of the function
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Catalog.Function.IsTemporary">
+            <summary>
+            Whether the function is a temporary function or not.
+            </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.Column">
             <summary>
@@ -5769,9 +6107,77 @@
                Format("parquet").Save(path)
             </summary>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Dataset">
+            <summary>
+             Dataset is a strongly typed collection of domain-specific objects that can be transformed
+            in parallel using functional or relational operations.Each Dataset also has an untyped view 
+            called a DataFrame, which is a Dataset of Row.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.Dataset.Item(System.String)">
+            <summary>
+            Selects column based on the column name
+            </summary>
+            <param name="columnName">Name of the column</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.ToDF">
+            <summary>
+            Converts this strongly typed collection of data to generic Dataframe. In contrast to the
+            strongly typed objects that Dataset operations work on, a Dataframe returns generic[[Row]]
+            objects that allow fields to be accessed by ordinal or name.
+            </summary>
+            <returns>DataFrame created from Dataset</returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.PrintSchema">
+            <summary>
+            Prints the schema to the console in a nice tree format.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Explain(System.Boolean)">
+            <summary>
+            Prints the plans (logical and physical) to the console for debugging purposes.
+            </summary>
+            <param name="extended"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Explain">
+            <summary>
+            Prints the physical plan to the console for debugging purposes.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.DTypes">
+            <summary>
+            Returns all column names and their data types as an array.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Columns">
+            <summary>
+            Returns all column names as an array.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Show(System.Int32,System.Boolean)">
+            <summary>
+            Displays the top 20 rows of Dataset in a tabular form. Strings more than 20 characters
+            will be truncated, and all cells will be aligned right.
+            </summary>
+            <param name="numberOfRows">Number of rows - default is 20</param>
+            <param name="truncate">Indicates if rows with more than 20 characters to be truncated</param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.ShowSchema">
+            <summary>
+            Prints schema
+            </summary>
+        </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.Dataset`1">
+            <summary>
+            Dataset of specific types
+            </summary>
+            <typeparam name="T">Type parameter</typeparam>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.HiveContext">
             <summary>
-            A variant of Spark SQL that integrates with data stored in Hive. 
+            HiveContext is deprecated. Use SparkSession.Builder().EnableHiveSupport()
+            HiveContext is a variant of Spark SQL that integrates with data stored in Hive. 
             Configuration for Hive is read from hive-site.xml on the classpath.
             It supports running both SQL and HiveQL commands.
             </summary>
@@ -5781,6 +6187,13 @@
             Creates a HiveContext
             </summary>
             <param name="sparkContext"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.HiveContext.Sql(System.String)">
+            <summary>
+            Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'
+            </summary>
+            <param name="sqlQuery"></param>
+            <returns></returns>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.HiveContext.RefreshTable(System.String)">
             <summary>
@@ -6578,10 +6991,74 @@
             <param name="mode">The given SaveMode</param>
             <returns>The string that represents the given SaveMode</returns>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.SparkSession">
+            <summary>
+            The entry point to programming Spark with the Dataset and DataFrame API.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.SparkSession.Catalog">
+            <summary>
+            Interface through which the user may create, drop, alter or query underlying
+            databases, tables, functions etc.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Builder">
+            <summary>
+            Builder for SparkSession
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.NewSession">
+            <summary>
+            Start a new session with isolated SQL configurations, temporary tables, registered
+            functions are isolated, but sharing the underlying [[SparkContext]] and cached data.
+            Note: Other than the [[SparkContext]], all shared state is initialized lazily.
+            This method will force the initialization of the shared state to ensure that parent
+            and child sessions are set up with the same shared state. If the underlying catalog
+            implementation is Hive, this will initialize the metastore, which may take some time.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Stop">
+            <summary>
+            Stop underlying SparkContext
+            </summary>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Read">
+            <summary>
+            Returns a DataFrameReader that can be used to read non-streaming data in as a DataFrame
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.CreateDataFrame(Microsoft.Spark.CSharp.Core.RDD{System.Object[]},Microsoft.Spark.CSharp.Sql.StructType)">
+            <summary>
+            Creates a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/> from a RDD containing array of object using the given schema.
+            </summary>
+            <param name="rdd">RDD containing array of object. The array acts as a row and items within the array act as columns which the schema is specified in <paramref name="schema"/>. </param>
+            <param name="schema">The schema of DataFrame.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Table(System.String)">
+            <summary>
+            Returns the specified table as a <see cref="T:Microsoft.Spark.CSharp.Sql.DataFrame"/>
+            </summary>
+            <param name="tableName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Sql(System.String)">
+            <summary>
+            Executes a SQL query using Spark, returning the result as a DataFrame. The dialect that is used for SQL parsing can be configured with 'spark.sql.dialect'
+            </summary>
+            <param name="sqlQuery"></param>
+            <returns></returns>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.SqlContext">
             <summary>
             The entry point for working with structured data (rows and columns) in Spark.  
             Allows the creation of [[DataFrame]] objects as well as the execution of SQL queries.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.SqlContext.SparkSession">
+            <summary>
+            Underlying SparkSession
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext)">
