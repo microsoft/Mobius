@@ -35,7 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CSharpWorke">
+    <Reference Include="CSharpWorker">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.SparkCLR.2.0.0-PREVIEW-2\lib\net45\CSharpWorker.exe</HintPath>
     </Reference>
