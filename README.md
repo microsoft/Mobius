@@ -119,6 +119,7 @@ Refer to the [docs folder](docs) for design overview and other info on Mobius
 * [Configuration parameters in Mobius](./notes/configuration-mobius.md)
 * [Troubleshoot errors in Mobius](./notes/troubleshooting-mobius.md)
 * [Debug Mobius apps](./notes/running-mobius-app.md#debug-mode)
+* [Implementing Spark Apps in F# using Mobius](./notes/spark-fsharp-mobius.md)
 
 ## Supported Spark Versions
 
