@@ -52,6 +52,17 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
+        /// Return the SparkContext that created this RDD
+        /// </summary>
+        public SparkContext SparkContext
+        {
+            get
+            {
+                return sparkContext;
+            }
+        }
+
+        /// <summary>
         /// Return whether this RDD has been cached or not
         /// </summary>
         public bool IsCached

@@ -153,6 +153,23 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestRunJob()
+        {
+            // Arrange
+            Mock<ISparkContextProxy> sparkContextProxy = new Mock<ISparkContextProxy>();
+            SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
+            RDD<int> rdd = sc.Parallelize(new int[] {0, 1, 2, 3, 4, 5}, 2);
+            sparkContextProxy.Setup(m => m.RunJob(It.IsAny<IRDDProxy>(), It.IsAny<IEnumerable<int>>()));
+
+            // Act
+            int[] partitions = new int[] { 0, 1 };
+            sc.RunJob(rdd, partitions);
+
+            // Assert
+            sparkContextProxy.Verify(m => m.RunJob(rdd.RddProxy, partitions), Times.Once);
+        }
+
+        [Test]
         public void TestCancelAllJobs()
         {
             // Arrange
