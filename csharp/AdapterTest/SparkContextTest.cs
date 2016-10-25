@@ -163,7 +163,7 @@ namespace AdapterTest
 
             // Act
             int[] partitions = new int[] { 0, 1 };
-            sc.RunJob(rdd, partitions);
+            rdd.SparkContext.RunJob(rdd, partitions);
 
             // Assert
             sparkContextProxy.Verify(m => m.RunJob(rdd.RddProxy, partitions), Times.Once);
