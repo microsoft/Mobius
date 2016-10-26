@@ -552,6 +552,17 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
+        /// Run a job on a given set of partitions of an RDD.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="rdd"></param>
+        /// <param name="partitions"></param>
+        public void RunJob<T>(RDD<T> rdd, IEnumerable<int> partitions)
+        {
+            SparkContextProxy.RunJob(rdd.RddProxy, partitions);
+        }
+
+        /// <summary>
         /// Cancel active jobs for the specified group. See <see cref="SetJobGroup"/> for more information.
         /// </summary>
         /// <param name="groupId"></param>
