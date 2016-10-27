@@ -73,8 +73,16 @@ function Download-File($url, $output)
     $output = [System.IO.Path]::GetFullPath($output)
     if (test-path $output)
     {
-        Write-Output "[downloadtools.Download-File] $output exists. No need to download."
-        return
+        if ((Get-Item $output).Length -gt 0)
+        {
+            Write-Output "[downloadtools.Download-File] $output exists. No need to download."
+            return
+        }
+        else
+        {
+            Write-Output "[downloadtools.Download-File] [WARNING] $output exists but is empty. We need to download a new copy of the file."
+            Remove-Item $output
+        }
     }
 
     $start_time = Get-Date
@@ -122,6 +130,11 @@ function Download-File($url, $output)
     }
 
     Write-Output "[downloadtools.Download-File] Download completed. Time taken: $howlong"
+    
+    if ( !(test-path $output) -or (Get-Item $output).Length -eq 0)
+    {
+        throw [System.IO.FileNotFoundException] "Failed to download file $output from $url"
+    }
 }
 
 function Unzip-File($zipFile, $targetDir)
