@@ -16,7 +16,7 @@ do
 done
 
 # setup Hadoop and Spark versions
-export SPARK_VERSION=2.0.1
+export SPARK_VERSION=2.0.0
 export HADOOP_VERSION=2.6
 echo "[run-samples.sh] SPARK_VERSION=$SPARK_VERSION, HADOOP_VERSION=$HADOOP_VERSION"
 
