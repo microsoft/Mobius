@@ -10,6 +10,9 @@
 #
 Param([string] $stage, [string] $verbose)
 
+$envValue = [Environment]::GetEnvironmentVariable("APACHE_DIST_SERVER")
+$apacheDistServer = if ($envValue -eq $null) { "archive.apache.org" } else { $envValue }
+    
 if ($stage.ToLower() -eq "run")
 {
     # retrieve hadoop and spark versions from environment variables
@@ -19,9 +22,6 @@ if ($stage.ToLower() -eq "run")
     $envValue = [Environment]::GetEnvironmentVariable("SPARK_VERSION")
     $sparkVersion = if ($envValue -eq $null) { "1.6.1" } else { $envValue }
 
-    $envValue = [Environment]::GetEnvironmentVariable("APACHE_DIST_SERVER")
-    $apacheDistServer = if ($envValue -eq $null) { "archive.apache.org" } else { $envValue }
-    
     Write-Output "[downloadtools] hadoopVersion=$hadoopVersion, sparkVersion=$sparkVersion, apacheDistServer=$apacheDistServer"
 }
 
