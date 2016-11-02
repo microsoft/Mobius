@@ -10,6 +10,9 @@
 #
 Param([string] $stage, [string] $verbose)
 
+$envValue = [Environment]::GetEnvironmentVariable("APACHE_DIST_SERVER")
+$apacheDistServer = if ($envValue -eq $null) { "archive.apache.org" } else { $envValue }
+    
 if ($stage.ToLower() -eq "run")
 {
     # retrieve hadoop and spark versions from environment variables
@@ -18,8 +21,8 @@ if ($stage.ToLower() -eq "run")
     
     $envValue = [Environment]::GetEnvironmentVariable("SPARK_VERSION")
     $sparkVersion = if ($envValue -eq $null) { "1.6.1" } else { $envValue }
-    
-    Write-Output "[downloadtools] hadoopVersion=$hadoopVersion, sparkVersion=$sparkVersion"
+
+    Write-Output "[downloadtools] hadoopVersion=$hadoopVersion, sparkVersion=$sparkVersion, apacheDistServer=$apacheDistServer"
 }
 
 function Get-ScriptDirectory
@@ -73,8 +76,16 @@ function Download-File($url, $output)
     $output = [System.IO.Path]::GetFullPath($output)
     if (test-path $output)
     {
-        Write-Output "[downloadtools.Download-File] $output exists. No need to download."
-        return
+        if ((Get-Item $output).Length -gt 0)
+        {
+            Write-Output "[downloadtools.Download-File] $output exists. No need to download."
+            return
+        }
+        else
+        {
+            Write-Output "[downloadtools.Download-File] [WARNING] $output exists but is empty. We need to download a new copy of the file."
+            Remove-Item $output
+        }
     }
 
     $start_time = Get-Date
@@ -122,6 +133,11 @@ function Download-File($url, $output)
     }
 
     Write-Output "[downloadtools.Download-File] Download completed. Time taken: $howlong"
+    
+    if ( !(test-path $output) -or (Get-Item $output).Length -eq 0)
+    {
+        throw [System.IO.FileNotFoundException] "Failed to download file $output from $url"
+    }
 }
 
 function Unzip-File($zipFile, $targetDir)
@@ -252,7 +268,7 @@ function Download-BuildTools
     $mvnCmd = "$toolsDir\$mvnVer\bin\mvn.cmd"
     if (!(test-path $mvnCmd))
     {
-        $url = "http://www.us.apache.org/dist/maven/maven-3/3.3.9/binaries/$mvnVer-bin.tar.gz"
+        $url = "http://$apacheDistServer/dist/maven/maven-3/3.3.9/binaries/$mvnVer-bin.tar.gz"
         $output="$toolsDir\$mvnVer-bin.tar.gz"
         Download-File $url $output
         Untar-File $output $toolsDir
@@ -402,7 +418,7 @@ function Download-RuntimeDependencies
     $sparkSubmit="$S_HOME\bin\spark-submit.cmd"
     if (!(test-path $sparkSubmit))
     {
-        $url = "http://www.us.apache.org/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop$hadoopVersion.tgz"
+        $url = "http://$apacheDistServer/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop$hadoopVersion.tgz"
         $output = "$toolsDir\spark-$sparkVersion-bin-hadoop$hadoopVersion.tgz"
         Download-File $url $output
         Untar-File $output $toolsDir

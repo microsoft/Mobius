@@ -49,7 +49,8 @@ if "%precheck%" == "bad" (goto :EOF)
 @rem
 set SPARK_VERSION=2.0.0
 set HADOOP_VERSION=2.6
-@echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%
+set APACHE_DIST_SERVER=archive.apache.org
+@echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%, APACHE_DIST_SERVER=%APACHE_DIST_SERVER%
 
 @rem download runtime dependencies
 pushd "%CMDHOME%"
