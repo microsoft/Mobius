@@ -105,6 +105,26 @@ namespace AdapterTest
             }
         }
 
+        private class IntWrapper
+        {
+            public IntWrapper(int value)
+            {
+                Value = value;
+            }
+
+            public int Value { get; }
+        }
+
+        [Test]
+        public void TestPairRddReduceByKeyWithObjects()
+        {
+            // The ReduceByKey method below fails with NPE if ReduceByKey
+            // calls CombineByKey with () => default(V) as seed generator
+            pairs
+                .MapValues(value => new IntWrapper(value))
+                .ReduceByKey((x, y) => new IntWrapper(x.Value + y.Value));
+        }
+
         [Test]
         public void TestPairRddFoldByKey()
         {
