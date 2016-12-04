@@ -97,7 +97,11 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static RDD<KeyValuePair<K, V>> ReduceByKey<K, V>(this RDD<KeyValuePair<K, V>> self, Func<V, V, V> reduceFunc, int numPartitions = 0)
         {
-            return CombineByKey(self, () => default(V), reduceFunc, reduceFunc, numPartitions);
+            var locallyCombined = self.MapPartitionsWithIndex(new GroupByMergeHelper<K, V>(reduceFunc).Execute, true);
+
+            var shuffled = locallyCombined.PartitionBy(numPartitions);
+
+            return shuffled.MapPartitionsWithIndex(new GroupByMergeHelper<K, V>(reduceFunc).Execute, true);
         }
 
         /// <summary>
