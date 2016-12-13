@@ -453,7 +453,7 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Boolean,System.Nullable{System.Int32})">
             <summary>
-            Sorts this RDD, which is assumed to consist of KeyValuePair pairs.
+            Sorts this RDD, which is assumed to consist of Tuple pairs.
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>
@@ -464,7 +464,7 @@
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Boolean,System.Nullable{System.Int32},System.Func{``0,``2})">
             <summary>
-            Sorts this RDD, which is assumed to consist of KeyValuePairs. If key is type of string, case is sensitive.
+            Sorts this RDD, which is assumed to consist of Tuples. If Item1 is type of string, case is sensitive.
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>
@@ -472,10 +472,10 @@
             <param name="self"></param>
             <param name="ascending"></param>
             <param name="numPartitions">Number of partitions. Each partition of the sorted RDD contains a sorted range of the elements.</param>
-            <param name="keyFunc">RDD will sort by keyFunc(key) for every key in KeyValuePair. Must not be null.</param>
+            <param name="keyFunc">RDD will sort by keyFunc(key) for every Item1 in Tuple. Must not be null.</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.repartitionAndSortWithinPartitions``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Nullable{System.Int32},System.Func{``0,System.Int32},System.Boolean)">
+        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.repartitionAndSortWithinPartitions``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Nullable{System.Int32},System.Func{``0,System.Int32},System.Boolean)">
              <summary>
              Repartition the RDD according to the given partitioner and, within each resulting partition,
              sort records by their keys.
@@ -2137,7 +2137,7 @@
             
              Do
              {{{
-               RDD&lt;KeyValuePair&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
+               RDD&lt;Tuple&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
              }}}
             
              then `rdd` contains
@@ -2172,7 +2172,7 @@
              }}}
             
              Do
-             RDD&lt;KeyValuePair&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+             RDD&lt;Tuple&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
             
              then `rdd` contains
              {{{
