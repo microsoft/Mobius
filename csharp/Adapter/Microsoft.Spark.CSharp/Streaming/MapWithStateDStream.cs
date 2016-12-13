@@ -29,9 +29,9 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     public class MapWithStateDStream<K, V, S, M> : DStream<M>
     {
-        internal DStream<KeyValuePair<K, S>> snapshotsDStream;
+        internal DStream<Tuple<K, S>> snapshotsDStream;
 
-        internal MapWithStateDStream(DStream<M> mappedDataDStream, DStream<KeyValuePair<K, S>> snapshotsDStream)
+        internal MapWithStateDStream(DStream<M> mappedDataDStream, DStream<Tuple<K, S>> snapshotsDStream)
             : base(mappedDataDStream.DStreamProxy, mappedDataDStream.streamingContext)
         {
             this.snapshotsDStream = snapshotsDStream;
@@ -40,7 +40,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <summary>
         /// Return a pair DStream where each RDD is the snapshot of the state of all the keys.
         /// </summary>
-        public DStream<KeyValuePair<K, S>> StateSnapshots()
+        public DStream<Tuple<K, S>> StateSnapshots()
         {
             return snapshotsDStream;
         }
@@ -87,11 +87,11 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
         }
 
-        public MapWithStateRDDRecord(long t, IEnumerable<KeyValuePair<K, S>> iter)
+        public MapWithStateRDDRecord(long t, IEnumerable<Tuple<K, S>> iter)
         {
             foreach (var p in iter)
             {
-                stateMap[p.Key] = new KeyedState<S>(p.Value, t);
+                stateMap[p.Item1] = new KeyedState<S>(p.Item2, t);
             }
         }
     }
@@ -131,14 +131,14 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             while (enumerator.MoveNext())
             {
-                KeyValuePair<K, V> kv = enumerator.Current;
+                Tuple<K, V> kv = enumerator.Current;
                 KeyedState<S> keyedState;
-                State<S> wrappedState = stateRddRecord.stateMap.TryGetValue(kv.Key, out keyedState) ? new State<S>(keyedState.state) : new State<S>(default(S));
+                State<S> wrappedState = stateRddRecord.stateMap.TryGetValue(kv.Item1, out keyedState) ? new State<S>(keyedState.state) : new State<S>(default(S));
 
                 var mappedData = default(M);
                 try
                 {
-                    mappedData = f(kv.Key, kv.Value, wrappedState);
+                    mappedData = f(kv.Item1, kv.Item2, wrappedState);
                 }
                 catch (Exception e)
                 {
@@ -149,11 +149,11 @@ namespace Microsoft.Spark.CSharp.Streaming
 
                 if (wrappedState.removed)
                 {
-                    stateRddRecord.stateMap.Remove(kv.Key);
+                    stateRddRecord.stateMap.Remove(kv.Item1);
                 }
                 else if (wrappedState.updated || wrappedState.defined)
                 {
-                    stateRddRecord.stateMap[kv.Key] = new KeyedState<S>(wrappedState.state, ticks);
+                    stateRddRecord.stateMap[kv.Item1] = new KeyedState<S>(wrappedState.state, ticks);
                 }
             }
 
@@ -223,7 +223,7 @@ namespace Microsoft.Spark.CSharp.Streaming
                 valuesRDD = prevFunc(t, valuesRDD);
             }
 
-            var values = valuesRDD.ConvertTo<KeyValuePair<K, V>>().PartitionBy(stateSpec.numPartitions);
+            var values = valuesRDD.ConvertTo<Tuple<K, V>>().PartitionBy(stateSpec.numPartitions);
 
             if (stateRDD == null)
             {
@@ -259,12 +259,12 @@ namespace Microsoft.Spark.CSharp.Streaming
             this.ticks = ticks;
         }
 
-        internal IEnumerable<MapWithStateRDDRecord<K, S, M>> Execute(IEnumerable<KeyValuePair<K, S>> iter)
+        internal IEnumerable<MapWithStateRDDRecord<K, S, M>> Execute(IEnumerable<Tuple<K, S>> iter)
         {
             return new[] {new MapWithStateRDDRecord<K, S, M>(ticks, iter)};
         }
 
-        internal IEnumerable<MapWithStateRDDRecord<K, S, M>> ExecuteWithoutInitialState(IEnumerable<KeyValuePair<K, V>> iter)
+        internal IEnumerable<MapWithStateRDDRecord<K, S, M>> ExecuteWithoutInitialState(IEnumerable<Tuple<K, V>> iter)
         {
             return new[] { new MapWithStateRDDRecord<K, S, M>() };
         }
@@ -283,7 +283,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         internal Func<K, V, State<S>, M> mappingFunction;
         internal int numPartitions;
         internal TimeSpan idleDuration = TimeSpan.FromTicks(0);
-        internal RDD<KeyValuePair<K, S>> initialState = null;
+        internal RDD<Tuple<K, S>> initialState = null;
 
         /// <summary>
         /// Create a StateSpec for setting all the specifications of the `mapWithState` operation on a pair DStream.
@@ -325,7 +325,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         /// <param name="initialState">The given initial state</param>
         /// <returns>The new StateSpec object</returns>
-        public StateSpec<K, V, S, M> InitialState(RDD<KeyValuePair<K, S>> initialState)
+        public StateSpec<K, V, S, M> InitialState(RDD<Tuple<K, S>> initialState)
         {
             this.initialState = initialState;
             return this;

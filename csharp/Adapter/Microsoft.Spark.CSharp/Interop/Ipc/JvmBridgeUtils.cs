@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
+using System;
 
 namespace Microsoft.Spark.CSharp.Interop.Ipc
 {
@@ -16,31 +17,31 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
     internal static class JvmBridgeUtils
     {
-        public static JvmObjectReference GetJavaMap<K, V>(IEnumerable<KeyValuePair<K, V>> enumerable)
+        public static JvmObjectReference GetJavaMap<K, V>(IEnumerable<Tuple<K, V>> enumerable)
         {
             var jmap = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.Hashtable", new object[] { });
             if (enumerable != null)
             {
                 foreach (var item in enumerable)
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jmap, "put", new object[] { item.Key, item.Value });
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jmap, "put", new object[] { item.Item1, item.Item2 });
             }
             return jmap;
         }
 
-        public static JvmObjectReference GetJavaHashMap<K, V>(IEnumerable<KeyValuePair<K, V>> enumerable)
+        public static JvmObjectReference GetJavaHashMap<K, V>(IEnumerable<Tuple<K, V>> enumerable)
         {
             var jmap = SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.HashMap", new object[] { });
             if (enumerable != null)
             {
                 foreach (var item in enumerable)
-                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jmap, "put", new object[] { item.Key, item.Value });
+                    SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jmap, "put", new object[] { item.Item1, item.Item2 });
             }
             return jmap;
         }
 
-        public static JvmObjectReference GetScalaMutableMap<K, V>(Dictionary<K, V> mapValues)
+        public static JvmObjectReference GetScalaMutableMap<K, V>(IEnumerable<Tuple<K, V>> mapValues)
         {
-            var hashMapReference = GetJavaHashMap(mapValues.Select(kvp => kvp));
+            var hashMapReference = GetJavaHashMap(mapValues);
             return new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.api.csharp.JvmBridgeUtils", "toMutableMap", new object[] { hashMapReference }).ToString());
         }
 

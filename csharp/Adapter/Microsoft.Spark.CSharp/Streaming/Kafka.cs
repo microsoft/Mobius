@@ -28,7 +28,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="topics">Dict of (topic_name -> numPartitions) to consume. Each partition is consumed in its own thread.</param>
         /// <param name="kafkaParams">Additional params for Kafka</param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, Dictionary<string, int> topics, Dictionary<string, string> kafkaParams)
+        public static DStream<Tuple<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, IEnumerable<Tuple<string, int>> topics, IEnumerable<Tuple<string, string>> kafkaParams)
         {
             return CreateStream(ssc, zkQuorum, groupId, topics, kafkaParams, StorageLevelType.MEMORY_AND_DISK_SER_2);
         }
@@ -43,19 +43,21 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="kafkaParams">Additional params for Kafka</param>
         /// <param name="storageLevelType">RDD storage level.</param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, StorageLevelType storageLevelType)
+        public static DStream<Tuple<byte[], byte[]>> CreateStream(StreamingContext ssc, string zkQuorum, string groupId, IEnumerable<Tuple<string, int>> topics, IEnumerable<Tuple<string, string>> kafkaParams, StorageLevelType storageLevelType)
         {
             if (kafkaParams == null)
-                kafkaParams = new Dictionary<string, string>();
+                kafkaParams = new List<Tuple<string, string>>();
+
+            var kafkaParamsMap = kafkaParams.ToDictionary(x => x.Item1, x => x.Item2);
 
             if (!string.IsNullOrEmpty(zkQuorum))
-                kafkaParams["zookeeper.connect"] = zkQuorum;
+                kafkaParamsMap["zookeeper.connect"] = zkQuorum;
             if (groupId != null)
-                kafkaParams["group.id"] = groupId;
-            if (kafkaParams.ContainsKey("zookeeper.connection.timeout.ms"))
-                kafkaParams["zookeeper.connection.timeout.ms"] = "10000";
+                kafkaParamsMap["group.id"] = groupId;
+            if (kafkaParamsMap.ContainsKey("zookeeper.connection.timeout.ms"))
+                kafkaParamsMap["zookeeper.connection.timeout.ms"] = "10000";
 
-            return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.KafkaStream(topics, kafkaParams, storageLevelType), ssc);
+            return new DStream<Tuple<byte[], byte[]>>(ssc.streamingContextProxy.KafkaStream(topics, kafkaParamsMap.Select(x => Tuple.Create(x.Key, x.Value)), storageLevelType), ssc);
         }
 
         /// <summary>
@@ -82,17 +84,17 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </param>
         /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
         /// <returns>A DStream object</returns>
-        public static DStream<KeyValuePair<byte[], byte[]>> CreateDirectStream(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
-        {
+        public static DStream<Tuple<byte[], byte[]>> CreateDirectStream(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets)
+        {        
             int numPartitions = GetNumPartitionsFromConfig(ssc, topics, kafkaParams);
             if (numPartitions >= 0 ||
                 ssc.SparkContext.SparkConf.SparkConfProxy.Get("spark.mobius.streaming.kafka.CSharpReader.enabled", "false").ToLower() == "true" ||
                 ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.numReceivers", 0) > 0 ||
                 topics.Any(topic => ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.maxMessagesPerTask." + topic, 0) > 0))
             {
-                return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions, null, null), ssc, SerializedMode.Pair);
+                return new DStream<Tuple<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions, null, null), ssc, SerializedMode.Pair);
             }
-            return new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStream(topics, kafkaParams, fromOffsets), ssc, SerializedMode.Pair);
+            return new DStream<Tuple<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStream(topics, kafkaParams, fromOffsets), ssc, SerializedMode.Pair);
         }
 
         /// <summary>
@@ -120,18 +122,18 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
         /// <param name="readFunc">user function to process the kafka data.</param>
         /// <returns>A DStream object</returns>
-        public static DStream<T> CreateDirectStream<T>(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets, Func<int, IEnumerable<KeyValuePair<byte[], byte[]>>, IEnumerable<T>> readFunc)
+        public static DStream<T> CreateDirectStream<T>(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, Func<int, IEnumerable<Tuple<byte[], byte[]>>, IEnumerable<T>> readFunc)
         {
             int numPartitions = GetNumPartitionsFromConfig(ssc, topics, kafkaParams);
             if (ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.numReceivers", 0) <= 0)
             {
-                var dstream = new DStream<KeyValuePair<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions, null, null), ssc, SerializedMode.Pair);
+                var dstream = new DStream<Tuple<byte[], byte[]>>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions, null, null), ssc, SerializedMode.Pair);
                 return dstream.MapPartitionsWithIndex(readFunc, true);
             }
 
-            var mapPartitionsWithIndexHelper = new MapPartitionsWithIndexHelper<KeyValuePair<byte[], byte[]>, T>(readFunc, true); 
-            var transformHelper = new TransformHelper<KeyValuePair<byte[], byte[]>, T>(mapPartitionsWithIndexHelper.Execute);
-            var transformDynamicHelper = new TransformDynamicHelper<KeyValuePair<byte[], byte[]>, T>(transformHelper.Execute);
+            var mapPartitionsWithIndexHelper = new MapPartitionsWithIndexHelper<Tuple<byte[], byte[]>, T>(readFunc, true); 
+            var transformHelper = new TransformHelper<Tuple<byte[], byte[]>, T>(mapPartitionsWithIndexHelper.Execute);
+            var transformDynamicHelper = new TransformDynamicHelper<Tuple<byte[], byte[]>, T>(transformHelper.Execute);
             Func<double, RDD<dynamic>, RDD<dynamic>> func = transformDynamicHelper.Execute;
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
@@ -146,11 +148,11 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static OffsetRange GetOffsetRange(IEnumerable<KeyValuePair<byte[], byte[]>> input)
+        public static OffsetRange GetOffsetRange(IEnumerable<Tuple<byte[], byte[]>> input)
         {
             int count = 2;
             int i = 0;
-            var offsetRange = new KeyValuePair<byte[], byte[]>[count];
+            var offsetRange = new Tuple<byte[], byte[]>[count];
             foreach (var message in input)
             {
                 offsetRange[i++ % count] = message;
@@ -163,12 +165,12 @@ namespace Microsoft.Spark.CSharp.Streaming
                 throw new ArgumentException("Expecting kafka OffsetRange metadata.");
             }
 
-            var topicAndClusterId = SerDe.ToString(offsetRange[0].Key);
+            var topicAndClusterId = SerDe.ToString(offsetRange[0].Item1);
             var topic = topicAndClusterId.Split(',')[0];
             var clusterId = topicAndClusterId.Split(',')[1];
-            var partition = SerDe.ToInt(offsetRange[0].Value);
-            var fromOffset = SerDe.ReadLong(new MemoryStream(offsetRange[1].Key));
-            var untilOffset = SerDe.ReadLong(new MemoryStream(offsetRange[1].Value));
+            var partition = SerDe.ToInt(offsetRange[0].Item2);
+            var fromOffset = SerDe.ReadLong(new MemoryStream(offsetRange[1].Item1));
+            var untilOffset = SerDe.ReadLong(new MemoryStream(offsetRange[1].Item2));
 
             return new OffsetRange(topic, clusterId, partition, fromOffset, untilOffset);
         }
@@ -181,12 +183,13 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="topics"></param>
         /// <param name="kafkaParams"></param>
         /// <returns></returns>
-        private static int GetNumPartitionsFromConfig(StreamingContext ssc, List<string> topics, Dictionary<string, string> kafkaParams)
+        private static int GetNumPartitionsFromConfig(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams)
         {
             if (topics == null || topics.Count == 0)
                 return -1;
 
-            string clusterId = kafkaParams.ContainsKey("cluster.id") ? "." + kafkaParams["cluster.id"] : null;
+            var kafkaParamsMap = kafkaParams.ToDictionary(x => x.Item1, x => x.Item2);
+            string clusterId = kafkaParamsMap.ContainsKey("cluster.id") ? "." + kafkaParamsMap["cluster.id"] : null;
             return ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.numPartitions." + topics[0] + clusterId, -1);
         }
     }

@@ -32,22 +32,22 @@ namespace AdapterTest
             var socketStream = ssc.SocketTextStream(IPAddress.Loopback.ToString(), 12345);
             Assert.IsNotNull(socketStream.DStreamProxy);
 
-            var kafkaStream = KafkaUtils.CreateStream(ssc, IPAddress.Loopback + ":2181", "testGroupId", new Dictionary<string, int> { { "testTopic1", 1 } }, new Dictionary<string, string>());
+            var kafkaStream = KafkaUtils.CreateStream(ssc, IPAddress.Loopback + ":2181", "testGroupId", new [] { Tuple.Create("testTopic1", 1) }, new List<Tuple<string, string>>());
             Assert.IsNotNull(kafkaStream.DStreamProxy);
 
-            var directKafkaStream = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic2" }, new Dictionary<string, string>(), new Dictionary<string, long>());
+            var directKafkaStream = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic2" }, new List<Tuple<string, string>>(), new List<Tuple<string, long>>());
             Assert.IsNotNull(directKafkaStream.DStreamProxy);
-
+                  
             ssc.SparkContext.SparkConf.Set("spark.mobius.streaming.kafka.numPartitions.testTopic3", "10");
 
-            var directKafkaStreamWithRepartition = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic3" }, new Dictionary<string, string>(), new Dictionary<string, long>());
+            var directKafkaStreamWithRepartition = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic3" }, new List<Tuple<string, string>>(), new List<Tuple<string, long>>());
             Assert.IsNotNull(directKafkaStreamWithRepartition.DStreamProxy);
 
             var directKafkaStreamWithRepartitionAndReadFunc = KafkaUtils.CreateDirectStream(
                 ssc,
                 new List<string> { "testTopic3" },
-                new Dictionary<string, string>(), new Dictionary<string, long>(),
-                (int pid, IEnumerable<KeyValuePair<byte[], byte[]>> input) => { return input; });
+                new List<Tuple<string, string>>(), new List<Tuple<string, long>>(),
+                (int pid, IEnumerable<Tuple<byte[], byte[]>> input) => { return input; });
             Assert.IsNotNull(directKafkaStreamWithRepartitionAndReadFunc);
 
             ssc.SparkContext.SparkConf.Set("spark.mobius.streaming.kafka.numReceivers", "10");
@@ -55,8 +55,8 @@ namespace AdapterTest
             var directKafkaReceiver = KafkaUtils.CreateDirectStream(
                 ssc,
                 new List<string> { "testTopic3" },
-                new Dictionary<string, string>(), new Dictionary<string, long>(),
-                (int pid, IEnumerable<KeyValuePair<byte[], byte[]>> input) => { return input; });
+                new List<Tuple<string, string>>(),  new List<Tuple<string, long>>(),
+                (int pid, IEnumerable<Tuple<byte[], byte[]>> input) => { return input; });
             Assert.IsNotNull(directKafkaReceiver.DStreamProxy);
 
             var union = ssc.Union(textFile, socketStream);
@@ -99,10 +99,10 @@ namespace AdapterTest
             byte[] untilOffset = BitConverter.GetBytes(3L);
             Array.Reverse(untilOffset);
 
-            var offsetRange = KafkaUtils.GetOffsetRange(new List<KeyValuePair<byte[], byte[]>>
+            var offsetRange = KafkaUtils.GetOffsetRange(new List<Tuple<byte[], byte[]>>
                 {
-                    new KeyValuePair<byte[], byte[]>(Encoding.UTF8.GetBytes("testTopic,testClusterId"), partition),
-                    new KeyValuePair<byte[], byte[]>(fromOffset, untilOffset)
+                    new Tuple<byte[], byte[]>(Encoding.UTF8.GetBytes("testTopic,testClusterId"), partition),
+                    new Tuple<byte[], byte[]>(fromOffset, untilOffset)
                 });
 
             Assert.AreEqual(offsetRange.Topic, "testTopic");

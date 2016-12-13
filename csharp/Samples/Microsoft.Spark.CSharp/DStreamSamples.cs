@@ -75,14 +75,14 @@ namespace Microsoft.Spark.CSharp
                     var lines = context.TextFileStream(Path.Combine(directory, "test"));
                     lines = context.Union(lines, lines);
                     var words = lines.FlatMap(l => l.Split(' '));
-                    var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+                    var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
                     // since operations like ReduceByKey, Join and UpdateStateByKey are
                     // separate dstream transformations defined in CSharpDStream.scala
                     // an extra CSharpRDD is introduced in between these operations
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
                     var join = wordCounts.Window(2, 2).Join(wordCounts, 2);
-                    var initialStateRdd = sc.Parallelize( new[] {new KeyValuePair<string, int>("AAA", 88), new KeyValuePair<string, int>("BBB", 88)});
+                    var initialStateRdd = sc.Parallelize( new[] {new Tuple<string, int>("AAA", 88), new Tuple<string, int>("BBB", 88)});
                     var state = join.UpdateStateByKey(new UpdateStateHelper(b).Execute, initialStateRdd);
 
                     state.ForeachRDD((time, rdd) =>
@@ -145,13 +145,13 @@ namespace Microsoft.Spark.CSharp
                     StreamingContext context = new StreamingContext(sc, 2000L);
                     context.Checkpoint(checkpointPath);
 
-                    var kafkaParams = new Dictionary<string, string> {
-                        {"metadata.broker.list", brokers},
-                        {"auto.offset.reset", "smallest"}
+                    var kafkaParams = new List<Tuple<string, string>> {
+                        new Tuple<string, string>("metadata.broker.list", brokers),
+                        new Tuple<string, string>("auto.offset.reset", "smallest")
                     };
-
+                                    
                     conf.Set("spark.mobius.streaming.kafka.numPartitions." + topic, partitions.ToString());
-                    var dstream = KafkaUtils.CreateDirectStream(context, new List<string> { topic }, kafkaParams, new Dictionary<string, long>());
+                    var dstream = KafkaUtils.CreateDirectStream(context, new List<string> { topic }, kafkaParams, Enumerable.Empty<Tuple<string, long>>());
 
                     dstream.ForeachRDD((time, rdd) => 
                         {
@@ -256,7 +256,7 @@ namespace Microsoft.Spark.CSharp
             // create the RDD
             var seedRDD = sc.Parallelize(Enumerable.Range(0, 100), numPartitions);
             var numbers = new ConstantInputDStream<int>(seedRDD, ssc);
-            var pairs = numbers.Map(n => new KeyValuePair<int, int>(n % numPartitions, n));
+            var pairs = numbers.Map(n => new Tuple<int, int>(n % numPartitions, n));
             var reduced = pairs.ReduceByKeyAndWindow(
                     (int x, int y) => (x + y),
                     (int x, int y) => (x - y),

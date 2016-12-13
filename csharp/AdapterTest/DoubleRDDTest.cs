@@ -19,7 +19,7 @@ namespace AdapterTest
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
             var words = lines.FlatMap(l => l.Split(' '));
-            doubles = words.Map(w => new KeyValuePair<string, int>(w, 1)).ReduceByKey((x, y) => x + y).Map(kv => (double)kv.Value);
+            doubles = words.Map(w => new Tuple<string, int>(w, 1)).ReduceByKey((x, y) => x + y).Map(kv => (double)kv.Item2);
         }
 
         [Test]
