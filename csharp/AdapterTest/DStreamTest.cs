@@ -281,8 +281,8 @@ namespace AdapterTest
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<string, int> countByWord = (KeyValuePair<string, int>)record;
-                    Assert.AreEqual(countByWord.Key == "The" || countByWord.Key == "dog" || countByWord.Key == "lazy" ? 23 : 22, countByWord.Value);
+                    Tuple<string, int> countByWord = (Tuple<string, int>)record;
+                    Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22, countByWord.Item2);
                 }
             });
 
