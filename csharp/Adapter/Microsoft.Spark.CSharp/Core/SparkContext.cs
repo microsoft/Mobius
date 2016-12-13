@@ -241,7 +241,7 @@ namespace Microsoft.Spark.CSharp.Core
         ///
         /// Do
         /// {{{
-        ///   RDD&lt;KeyValuePair&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
+        ///   RDD&lt;Tuple&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
         /// }}}
         ///
         /// then `rdd` contains
@@ -259,9 +259,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="filePath"></param>
         /// <param name="minPartitions"></param>
         /// <returns></returns>
-        public RDD<KeyValuePair<byte[], byte[]>> WholeTextFiles(string filePath, int? minPartitions = null)
+        public RDD<Tuple<byte[], byte[]>> WholeTextFiles(string filePath, int? minPartitions = null)
         {
-            return new RDD<KeyValuePair<byte[], byte[]>>(SparkContextProxy.WholeTextFiles(filePath, minPartitions ?? DefaultMinPartitions), this, SerializedMode.Pair);
+            return new RDD<Tuple<byte[], byte[]>>(SparkContextProxy.WholeTextFiles(filePath, minPartitions ?? DefaultMinPartitions), this, SerializedMode.Pair);
         }
 
         /// <summary>
@@ -279,7 +279,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// }}}
         ///
         /// Do
-        /// RDD&lt;KeyValuePair&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+        /// RDD&lt;Tuple&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
         ///
         /// then `rdd` contains
         /// {{{
@@ -296,9 +296,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="filePath"></param>
         /// <param name="minPartitions"></param>
         /// <returns></returns>
-        public RDD<KeyValuePair<byte[], byte[]>> BinaryFiles(string filePath, int? minPartitions)
+        public RDD<Tuple<byte[], byte[]>> BinaryFiles(string filePath, int? minPartitions)
         {
-            return new RDD<KeyValuePair<byte[], byte[]>>(SparkContextProxy.BinaryFiles(filePath, minPartitions ?? DefaultMinPartitions), this, SerializedMode.Pair);
+            return new RDD<Tuple<byte[], byte[]>>(SparkContextProxy.BinaryFiles(filePath, minPartitions ?? DefaultMinPartitions), this, SerializedMode.Pair);
         }
 
         /// <summary>

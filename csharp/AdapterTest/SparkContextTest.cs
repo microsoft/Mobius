@@ -372,7 +372,7 @@ namespace AdapterTest
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
             // Act
-            RDD<KeyValuePair<byte[], byte[]>> rdd = sc.WholeTextFiles(filePath, null);
+            RDD<Tuple<byte[], byte[]>> rdd = sc.WholeTextFiles(filePath, null);
 
             // Assert
             Assert.IsNotNull(rdd);
@@ -394,7 +394,7 @@ namespace AdapterTest
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
             // Act
-            RDD<KeyValuePair<byte[], byte[]>> rdd = sc.BinaryFiles(filePath, null);
+            RDD<Tuple<byte[], byte[]>> rdd = sc.BinaryFiles(filePath, null);
 
             // Assert
             Assert.IsNotNull(rdd);

@@ -99,8 +99,8 @@ namespace Microsoft.Spark.CSharp
                         {
                             Console.WriteLine(record);
                             
-                            var countByWord = (KeyValuePair<string, int>)record;
-                            Assert.AreEqual(countByWord.Value, countByWord.Key == "The" || countByWord.Key == "lazy" || countByWord.Key == "dog" ? 92 : 88);
+                            var countByWord = (Tuple<string, int>)record;
+                            Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "lazy" || countByWord.Item1 == "dog" ? 92 : 88);
                         }
                         Console.WriteLine();
 
@@ -283,10 +283,10 @@ namespace Microsoft.Spark.CSharp
 
                 foreach (object record in taken)
                 {
-                    KeyValuePair<int, int> sum = (KeyValuePair<int, int>)record;
-                    Console.WriteLine("Key: {0}, Value: {1}", sum.Key, sum.Value);
+                    Tuple<int, int> sum = (Tuple<int, int>)record;
+                    Console.WriteLine("Key: {0}, Value: {1}", sum.Item1, sum.Item2);
                     // when batch count reaches window size, sum of even/odd number stay at windowDuration / slideDuration * (2450, 2500) respectively
-                    Assert.AreEqual(sum.Value, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / (bacthIntervalMs / 1000) * (sum.Key == 0 ? 2450 : 2500));
+                    Assert.AreEqual(sum.Item2, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / (bacthIntervalMs / 1000) * (sum.Item1 == 0 ? 2450 : 2500));
                 }
             });
 
