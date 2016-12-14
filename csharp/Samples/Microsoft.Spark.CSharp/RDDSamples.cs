@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
@@ -221,7 +222,10 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void RDDCountByValueSample()
         {
-            var countByValue = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 2, 1, 2, 2 }, 2).CountByValue().ToArray();
+            var countByValue = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 2, 1, 2, 2 }, 2)
+                .CountByValue()
+                .ToDictionary(k => k.Item1, v => v.Item2);
+
             foreach (var item in countByValue)
                 Console.WriteLine(item);
 
