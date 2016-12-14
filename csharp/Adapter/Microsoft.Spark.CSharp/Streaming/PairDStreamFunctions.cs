@@ -30,7 +30,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static DStream<Tuple<K, V>> ReduceByKey<K, V>(this DStream<Tuple<K, V>> self, Func<V, V, V> reduceFunc, int numPartitions = 0)
         {
-            return self.CombineByKey(() => default(V), reduceFunc, reduceFunc, numPartitions);
+            var locallyCombined = self.MapPartitionsWithIndex(new GroupByMergeHelper<K, V>(reduceFunc).Execute, true);
+
+            var shuffled = locallyCombined.PartitionBy(numPartitions);
+
+            return shuffled.MapPartitionsWithIndex(new GroupByMergeHelper<K, V>(reduceFunc).Execute, true);
+            //return self.CombineByKey(() => default(V) == null ? (V) Activator.CreateInstance(typeof(V)) : default(V), reduceFunc, reduceFunc, numPartitions);
         }
 
         /// <summary>
@@ -427,6 +432,24 @@ namespace Microsoft.Spark.CSharp.Streaming
     /// for execution, it is necessary to have the type marked [Serializable]. These classes are to work around the limitation
     /// on the serializability of compiler generated types
     /// </summary>
+    [Serializable]
+    internal class GroupByMergeHelper<K, C>
+    {
+        private readonly Func<C, C, C> mergeCombiners;
+        public GroupByMergeHelper(Func<C, C, C> mc)
+        {
+            mergeCombiners = mc;
+        }
+
+        public IEnumerable<Tuple<K, C>> Execute(int pid, IEnumerable<Tuple<K, C>> input)
+        {
+            return input.GroupBy(
+                kvp => kvp.Item1,
+                kvp => kvp.Item2,
+                (k, v) => new Tuple<K, C>(k, v.Aggregate(mergeCombiners))
+                );
+        }
+    }
 
     [Serializable]
     internal class CombineByKeyHelper<K, V, C>
