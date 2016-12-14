@@ -55,14 +55,6 @@ namespace AdapterTest
             var builder = new Builder();
             builder.EnableHiveSupport();
             Assert.True(builder.options["spark.sql.catalogImplementation"].Equals("hive", StringComparison.InvariantCultureIgnoreCase));
-        }
-
-        [Test]
-        public void TestGetOrCreate()
-        {
-            var builder = new Builder();
-            builder.GetOrCreate();
-            Assert.IsEmpty(builder.options);
-        }  
+        } 
     }
 }
