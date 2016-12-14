@@ -212,6 +212,14 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestPairRddSortByKey3()
+        {
+            var expectedSortedRdd = pairs.Collect().OrderByDescending(kv => kv.Item1, StringComparer.OrdinalIgnoreCase).ToArray();
+            var rddSortByKey = pairs.SortByKey(false, 1, key => key.ToLowerInvariant()).Collect();
+            CollectionAssert.AreEqual(expectedSortedRdd, rddSortByKey);
+        }
+
+        [Test]
         public void TestPairRddProxy()
         {
             pairs.SaveAsHadoopDataset(null);
