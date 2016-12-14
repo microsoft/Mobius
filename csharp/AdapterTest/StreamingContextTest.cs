@@ -32,7 +32,7 @@ namespace AdapterTest
             var socketStream = ssc.SocketTextStream(IPAddress.Loopback.ToString(), 12345);
             Assert.IsNotNull(socketStream.DStreamProxy);
 
-            var kafkaStream = KafkaUtils.CreateStream(ssc, IPAddress.Loopback + ":2181", "testGroupId", new [] { Tuple.Create("testTopic1", 1) }, new List<Tuple<string, string>>());
+            var kafkaStream = KafkaUtils.CreateStream(ssc, IPAddress.Loopback + ":2181", "testGroupId", new [] { Tuple.Create("testTopic1", 1) }, null);
             Assert.IsNotNull(kafkaStream.DStreamProxy);
 
             var directKafkaStream = KafkaUtils.CreateDirectStream(ssc, new List<string> { "testTopic2" }, new List<Tuple<string, string>>(), new List<Tuple<string, long>>());
