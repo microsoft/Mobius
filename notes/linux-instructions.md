@@ -6,7 +6,8 @@
 * Maven 3.0.5 or above.
 * Mono 4.2 stable or above. The download and installation instructions for Mono are available in [http://www.mono-project.com/download/#download-lin](http://www.mono-project.com/download/#download-lin) (see [Debian, Ubuntu and derivatives](http://www.mono-project.com/docs/getting-started/install/linux/#debian-ubuntu-and-derivatives) or [CentOS, Fedora, similar Linux distributions or OS X](http://www.mono-project.com/docs/getting-started/install/linux/#centos-7-fedora-19-and-later-and-derivatives))
 * F# for Mono. The download and installation instructions for the F# Mono extension are available in [http://fsharp.org/use/linux/](http://fsharp.org/use/linux/)
-* NuGet.
+* NuGet
+* wget
 * XSLTPROC
 
 The following environment variables should be set properly:
@@ -15,9 +16,10 @@ The following environment variables should be set properly:
 
 ## Instructions
 
-Instructions to build Mobius in Linux are same as [instructions for Windows](./windows-instructions.md#instructions). The only change required is to use the following script files instead of .cmd files:
-* build.sh
-* clean.sh
+Instructions to build Mobius on Linux are same as [instructions for Windows](./windows-instructions.md#instructions). The only change required is to use the following script files instead of `.cmd` files:
+
+* `build.sh`
+* `clean.sh`
 
 # Running Unit Tests in Linux
 
