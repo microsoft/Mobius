@@ -8,7 +8,7 @@ For example, the word count sample in Apache Spark can be implemented in C# as f
 ```c#
 var lines = sparkContext.TextFile(@"hdfs://path/to/input.txt");  
 var words = lines.FlatMap(s => s.Split(' '));
-var wordCounts = words.Map(w => new KeyValuePair<string, int>(w.Trim(), 1))  
+var wordCounts = words.Map(w => new Tuple<string, int>(w.Trim(), 1))  
                       .ReduceByKey((x, y) => x + y);  
 var wordCountCollection = wordCounts.Collect();  
 wordCounts.SaveAsTextFile(@"hdfs://path/to/wordcount.txt");  
@@ -63,7 +63,7 @@ StreamingContext sparkStreamingContext = StreamingContext.GetOrCreate(checkpoint
                                     .Map(kvp => Encoding.UTF8.GetString(kvp.Value))
                                     .Filter(line => line.Contains(","))
                                     .Map(line => line.Split(','))
-                                    .Map(columns => new KeyValuePair<string, int>(
+                                    .Map(columns => new Tuple<string, int>(
                                                           string.Format("{0},{1}", columns[0], columns[1]), 1))
                                     .ReduceByKeyAndWindow((x, y) => x + y, (x, y) => x - y,
                                                           windowDurationInSecs, slideDurationInSecs, 3)

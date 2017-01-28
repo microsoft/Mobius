@@ -20,6 +20,7 @@ namespace AdapterTest
     public class RDDTest
     {
         private static RDD<string> words;
+        private static RDD<string> empty;
 
         [OneTimeSetUp]
         public static void Initialize()
@@ -27,6 +28,7 @@ namespace AdapterTest
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
             words = lines.FlatMap(l => l.Split(' '));
+            empty = sparkContext.EmptyRDD<string>();
         }
 
         [Test]
@@ -42,7 +44,7 @@ namespace AdapterTest
         {
             foreach (var record in words.CountByValue())
             {
-                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value);
+                Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2);
             }
         }
 
@@ -82,6 +84,7 @@ namespace AdapterTest
         public void TestRddTreeAggregate()
         {
             Assert.AreEqual(201, words.Map(w => 1).TreeAggregate(0, (x, y) => x + y, (x, y) => x + y));
+            Assert.Throws<ArgumentException>(() => empty.TreeAggregate(0, (x, y) => 1, (x, y) => x + y, 0));
         }
 
         [Test]
@@ -119,14 +122,14 @@ namespace AdapterTest
         {
             words.GroupBy(w => w).Foreach(record =>
             {
-                Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Count);
+                Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2.Count);
             });
             
             words.GroupBy(w => w).ForeachPartition(iter =>
             {
                 foreach (var record in iter)
                 {
-                    Assert.AreEqual(record.Key == "The" || record.Key == "dog" || record.Key == "lazy" ? 23 : 22, record.Value.Count);
+                    Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2.Count);
                 }
             });
         }
@@ -135,6 +138,7 @@ namespace AdapterTest
         public void TestRddIsEmpty()
         {
             Assert.IsFalse(words.IsEmpty());
+            Assert.IsTrue(empty.IsEmpty());
             Assert.IsTrue(words.Filter(w => w == null).IsEmpty());
         }
 
@@ -144,7 +148,7 @@ namespace AdapterTest
             int index = 0;
             foreach(var record in words.ZipWithIndex().Collect())
             {
-                Assert.AreEqual(index++, record.Value);
+                Assert.AreEqual(index++, record.Item2);
             }
         }
 
@@ -155,7 +159,7 @@ namespace AdapterTest
             int num = words.GetNumPartitions();
             foreach (var record in words.ZipWithUniqueId().Collect())
             {
-                Assert.AreEqual(num * index++, record.Value);
+                Assert.AreEqual(num * index++, record.Item2);
             }
         }
 
@@ -166,6 +170,7 @@ namespace AdapterTest
             Assert.AreEqual(20, words.TakeSample(true, 20, 1).Length);
             Assert.Throws<ArgumentException>(() => words.TakeSample(true, -1, 1));
             Assert.AreEqual(0, words.TakeSample(true, 0, 1).Length);
+            Assert.AreEqual(20, words.TakeSample(false, 20, 1).Length);
         }
 
         [Test]

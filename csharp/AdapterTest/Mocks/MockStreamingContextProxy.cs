@@ -3,12 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.IO;                                        
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Serialization.Formatters.Binary;   
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 
@@ -39,17 +36,17 @@ namespace AdapterTest.Mocks
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy KafkaStream(Dictionary<string, int> topics, Dictionary<string, string> kafkaParams, Microsoft.Spark.CSharp.Core.StorageLevelType storageLevelType)
+        public IDStreamProxy KafkaStream(IEnumerable<Tuple<string, int>> topics, IEnumerable<Tuple<string, string>> kafkaParams, Microsoft.Spark.CSharp.Core.StorageLevelType storageLevelType)
         {
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy DirectKafkaStream(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets)
+        public IDStreamProxy DirectKafkaStream(List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets)
         {
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, Dictionary<string, string> kafkaParams, Dictionary<string, long> fromOffsets,
+        public IDStreamProxy DirectKafkaStreamWithRepartition(List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets,
             int numPartitions, byte[] readFunc, string serializationMode)
         {
             return new MockDStreamProxy();
@@ -92,13 +89,23 @@ namespace AdapterTest.Mocks
 
         public IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
-            RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>) formatter.Deserialize(new MemoryStream(func));
+
+            var ticks = DateTime.UtcNow.Ticks;
+            RDD<dynamic> rdd = f(ticks,
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")),
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
-            return new MockDStreamProxy(rdd.RddProxy);
-        }
 
+            if (invFunc == null) return new MockDStreamProxy(rdd.RddProxy);
+
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> invf = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>) formatter.Deserialize(new MemoryStream(invFunc));
+            RDD<dynamic> invRdd = invf(ticks,
+                new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")),
+                new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
+            var difference = rdd.Subtract(invRdd);
+
+            return new MockDStreamProxy(difference.RddProxy);
+        }
 
         public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string className, string serializationMode, string serializationMode2)
         {
@@ -113,13 +120,13 @@ namespace AdapterTest.Mocks
         {
             return new MockDStreamProxy();
         }
-
+                    
         public IDStreamProxy CreateCSharpInputDStream(byte[] func, string serializationMode)
         {
             return new MockDStreamProxy();
         }
 
-        public IDStreamProxy EventHubsUnionStream(Dictionary<string, string> eventHubsParams, StorageLevelType storageLevelType)
+        public IDStreamProxy EventHubsUnionStream(IEnumerable<Tuple<string, string>> eventHubsParams, StorageLevelType storageLevelType)
         {
             throw new NotImplementedException();
         }

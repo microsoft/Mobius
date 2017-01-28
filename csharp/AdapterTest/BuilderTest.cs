@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
 using NUnit.Framework;
 
@@ -46,5 +48,13 @@ namespace AdapterTest
             builder.Config("doublevalue", 3.5D);
             Assert.True(builder.options["doublevalue"].Equals("3.5", StringComparison.InvariantCultureIgnoreCase));
         }
+
+        [Test]
+        public void TestEnableHiveSupport()
+        {
+            var builder = new Builder();
+            builder.EnableHiveSupport();
+            Assert.True(builder.options["spark.sql.catalogImplementation"].Equals("hive", StringComparison.InvariantCultureIgnoreCase));
+        } 
     }
 }

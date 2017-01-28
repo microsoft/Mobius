@@ -451,9 +451,9 @@
             a function to sort the key.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Boolean,System.Nullable{System.Int32})">
+        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Boolean,System.Nullable{System.Int32})">
             <summary>
-            Sorts this RDD, which is assumed to consist of KeyValuePair pairs.
+            Sorts this RDD, which is assumed to consist of Tuple pairs.
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>
@@ -462,9 +462,9 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Boolean,System.Nullable{System.Int32},System.Func{``0,``2})">
+        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.SortByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Boolean,System.Nullable{System.Int32},System.Func{``0,``2})">
             <summary>
-            Sorts this RDD, which is assumed to consist of KeyValuePairs. If key is type of string, case is sensitive.
+            Sorts this RDD, which is assumed to consist of Tuples. If Item1 is type of string, case is sensitive.
             </summary>
             <typeparam name="K"></typeparam>
             <typeparam name="V"></typeparam>
@@ -472,10 +472,10 @@
             <param name="self"></param>
             <param name="ascending"></param>
             <param name="numPartitions">Number of partitions. Each partition of the sorted RDD contains a sorted range of the elements.</param>
-            <param name="keyFunc">RDD will sort by keyFunc(key) for every key in KeyValuePair. Must not be null.</param>
+            <param name="keyFunc">RDD will sort by keyFunc(key) for every Item1 in Tuple. Must not be null.</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.repartitionAndSortWithinPartitions``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Nullable{System.Int32},System.Func{``0,System.Int32},System.Boolean)">
+        <member name="M:Microsoft.Spark.CSharp.Core.OrderedRDDFunctions.repartitionAndSortWithinPartitions``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Nullable{System.Int32},System.Func{``0,System.Int32},System.Boolean)">
              <summary>
              Repartition the RDD according to the given partitioner and, within each resulting partition,
              sort records by their keys.
@@ -493,16 +493,16 @@
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.PairRDDFunctions">
             <summary>
-            operations only available to KeyValuePair RDD
+            operations only available to Tuple RDD
             
             See also http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.PairRDDFunctions
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.CollectAsMap``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.CollectAsMap``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}})">
              <summary>
              Return the key-value pairs in this RDD to the master as a dictionary.
             
-             var m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).CollectAsMap()
+             var m = sc.Parallelize(new[] { new Tuple&lt;int, int>(1, 2), new Tuple&lt;int, int>(3, 4) }, 1).CollectAsMap()
              m[1]
              2
              m[3]
@@ -514,11 +514,11 @@
              <param name="self"></param>
              <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Keys``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Keys``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}})">
              <summary>
              Return an RDD with the keys of each tuple.
             
-             >>> m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).Keys().Collect()
+             >>> m = sc.Parallelize(new[] { new Tuple&lt;int, int>(1, 2), new Tuple&lt;int, int>(3, 4) }, 1).Keys().Collect()
              [1, 3]
              </summary>
              <typeparam name="K"></typeparam>
@@ -526,11 +526,11 @@
              <param name="self"></param>
              <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Values``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Values``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}})">
              <summary>
              Return an RDD with the values of each tuple.
             
-             >>> m = sc.Parallelize(new[] { new KeyValuePair&lt;int, int>(1, 2), new KeyValuePair&lt;int, int>(3, 4) }, 1).Values().Collect()
+             >>> m = sc.Parallelize(new[] { new Tuple&lt;int, int>(1, 2), new Tuple&lt;int, int>(3, 4) }, 1).Values().Collect()
              [2, 4]
              
              </summary>
@@ -539,7 +539,7 @@
              <param name="self"></param>
              <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.ReduceByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,``1,``1},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.ReduceByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Func{``1,``1,``1},System.Int32)">
             <summary>
             Merge the values for each key using an associative reduce function.
             
@@ -551,9 +551,9 @@
             
             sc.Parallelize(new[] 
             { 
-                new KeyValuePair&lt;string, int>("a", 1), 
-                new KeyValuePair&lt;string, int>("b", 1),
-                new KeyValuePair&lt;string, int>("a", 1)
+                new Tuple&lt;string, int>("a", 1), 
+                new Tuple&lt;string, int>("b", 1),
+                new Tuple&lt;string, int>("a", 1)
             }, 2)
             .ReduceByKey((x, y) => x + y).Collect()
                    
@@ -567,7 +567,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.ReduceByKeyLocally``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,``1,``1})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.ReduceByKeyLocally``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Func{``1,``1,``1})">
             <summary>
             Merge the values for each key using an associative reduce function, but
             return the results immediately to the master as a dictionary.
@@ -577,9 +577,9 @@
             
             sc.Parallelize(new[] 
             { 
-                new KeyValuePair&lt;string, int>("a", 1), 
-                new KeyValuePair&lt;string, int>("b", 1),
-                new KeyValuePair&lt;string, int>("a", 1)
+                new Tuple&lt;string, int>("a", 1), 
+                new Tuple&lt;string, int>("b", 1),
+                new Tuple&lt;string, int>("a", 1)
             }, 2)
             .ReduceByKeyLocally((x, y) => x + y).Collect()
             
@@ -592,15 +592,15 @@
             <param name="reduceFunc"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.CountByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.CountByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}})">
             <summary>
             Count the number of elements for each key, and return the result to the master as a dictionary.
             
             sc.Parallelize(new[] 
             { 
-                new KeyValuePair&lt;string, int>("a", 1), 
-                new KeyValuePair&lt;string, int>("b", 1),
-                new KeyValuePair&lt;string, int>("a", 1)
+                new Tuple&lt;string, int>("a", 1), 
+                new Tuple&lt;string, int>("b", 1),
+                new Tuple&lt;string, int>("a", 1)
             }, 2)
             .CountByKey((x, y) => x + y).Collect()
             
@@ -612,7 +612,7 @@
             <param name="self"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Join``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Join``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return an RDD containing all pairs of elements with matching keys in this RDD and <paramref name="other"/>.
             
@@ -621,9 +621,9 @@
             Performs a hash join across the cluster.
             
             var l = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 1), new Tuple&lt;string, int>("b", 4) }, 1);
             var r = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 2), new KeyValuePair&lt;string, int>("a", 3) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 2), new Tuple&lt;string, int>("a", 3) }, 1);
             var m = l.Join(r, 2).Collect();
             
             [('a', (1, 2)), ('a', (1, 3))]
@@ -637,7 +637,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.LeftOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.LeftOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Perform a left outer join of this RDD and <paramref name="other"/>.
             
@@ -648,9 +648,9 @@
             Hash-partitions the resulting RDD into the given number of partitions.
             
             var l = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 1), new Tuple&lt;string, int>("b", 4) }, 1);
             var r = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 2) }, 1);
             var m = l.LeftOuterJoin(r).Collect();
             
             [('a', (1, 2)), ('b', (4, Option))]
@@ -664,7 +664,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.RightOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.RightOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Perform a right outer join of this RDD and <paramref name="other"/>.
             
@@ -675,9 +675,9 @@
             Hash-partitions the resulting RDD into the given number of partitions.
             
             var l = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 2) }, 1);
             var r = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 1), new Tuple&lt;string, int>("b", 4) }, 1);
             var m = l.RightOuterJoin(r).Collect();
             
             [('a', (2, 1)), ('b', (Option, 4))]
@@ -691,7 +691,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.FullOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.FullOuterJoin``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Perform a full outer join of this RDD and <paramref name="other"/>.
             
@@ -706,9 +706,9 @@
             Hash-partitions the resulting RDD into the given number of partitions.
             
             var l = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 1), KeyValuePair&lt;string, int>("b", 4) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 1), Tuple&lt;string, int>("b", 4) }, 1);
             var r = sc.Parallelize(
-                new[] { new KeyValuePair&lt;string, int>("a", 2), new KeyValuePair&lt;string, int>("c", 8) }, 1);
+                new[] { new Tuple&lt;string, int>("a", 2), new Tuple&lt;string, int>("c", 8) }, 1);
             var m = l.FullOuterJoin(r).Collect();
             
             [('a', (1, 2)), ('b', (4, None)), ('c', (None, 8))]
@@ -722,18 +722,18 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.PartitionBy``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Int32,System.Func{System.Object,System.Int32})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.PartitionBy``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Int32,System.Func{System.Object,System.Int32})">
             <summary>
             Return a copy of the RDD partitioned using the specified partitioner.
             
-            sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x => new KeyValuePair&lt;int, int>(x, x)).PartitionBy(3).Glom().Collect()
+            sc.Parallelize(new[] { 1, 2, 3, 4, 2, 4, 1 }, 1).Map(x => new Tuple&lt;int, int>(x, x)).PartitionBy(3).Glom().Collect()
             </summary>
             <param name="self"></param>
             <param name="numPartitions"></param>
             <param name="partitionFunc"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.CombineByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``2},System.Func{``2,``1,``2},System.Func{``2,``2,``2},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.CombineByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Func{``2},System.Func{``2,``1,``2},System.Func{``2,``2,``2},System.Int32)">
             <summary>
             # TODO: add control over map-side aggregation
             Generic function to combine the elements for each key using a custom
@@ -755,9 +755,9 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new KeyValuePair&lt;string, int>("a", 1), 
-                        new KeyValuePair&lt;string, int>("b", 1),
-                        new KeyValuePair&lt;string, int>("a", 1)
+                        new Tuple&lt;string, int>("a", 1), 
+                        new Tuple&lt;string, int>("b", 1),
+                        new Tuple&lt;string, int>("a", 1)
                     }, 2)
                     .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
                     
@@ -773,7 +773,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.AggregateByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``2},System.Func{``2,``1,``2},System.Func{``2,``2,``2},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.AggregateByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Func{``2},System.Func{``2,``1,``2},System.Func{``2,``2,``2},System.Int32)">
             <summary>
             Aggregate the values of each key, using given combine functions and a neutral
             "zero value". This function can return a different result type, U, than the type
@@ -786,9 +786,9 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new KeyValuePair&lt;string, int>("a", 1), 
-                        new KeyValuePair&lt;string, int>("b", 1),
-                        new KeyValuePair&lt;string, int>("a", 1)
+                        new Tuple&lt;string, int>("a", 1), 
+                        new Tuple&lt;string, int>("b", 1),
+                        new Tuple&lt;string, int>("a", 1)
                     }, 2)
                     .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
                     
@@ -804,7 +804,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.FoldByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1},System.Func{``1,``1,``1},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.FoldByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Func{``1},System.Func{``1,``1,``1},System.Int32)">
             <summary>
             Merge the values for each key using an associative function "func"
             and a neutral "zeroValue" which may be added to the result an
@@ -814,9 +814,9 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new KeyValuePair&lt;string, int>("a", 1), 
-                        new KeyValuePair&lt;string, int>("b", 1),
-                        new KeyValuePair&lt;string, int>("a", 1)
+                        new Tuple&lt;string, int>("a", 1), 
+                        new Tuple&lt;string, int>("b", 1),
+                        new Tuple&lt;string, int>("a", 1)
                     }, 2)
                     .CombineByKey(() => string.Empty, (x, y) => x + y.ToString(), (x, y) => x + y).Collect()
                     
@@ -830,7 +830,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupByKey``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Int32)">
             <summary>
             Group the values for each key in the RDD into a single sequence.
             Hash-partitions the resulting RDD with numPartitions partitions.
@@ -842,9 +842,9 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new KeyValuePair&lt;string, int>("a", 1), 
-                        new KeyValuePair&lt;string, int>("b", 1),
-                        new KeyValuePair&lt;string, int>("a", 1)
+                        new Tuple&lt;string, int>("a", 1), 
+                        new Tuple&lt;string, int>("b", 1),
+                        new Tuple&lt;string, int>("a", 1)
                     }, 2)
                     .GroupByKey().MapValues(l => string.Join(" ", l)).Collect()
                     
@@ -857,7 +857,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.MapValues``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,``2})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.MapValues``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Func{``1,``2})">
             <summary>
             Pass each value in the key-value pair RDD through a map function
             without changing the keys; this also retains the original RDD's partitioning.
@@ -865,8 +865,8 @@
             sc.Parallelize(
                     new[] 
                     { 
-                        new KeyValuePair&lt;string, string[]>("a", new[]{"apple", "banana", "lemon"}), 
-                        new KeyValuePair&lt;string, string[]>("b", new[]{"grapes"})
+                        new Tuple&lt;string, string[]>("a", new[]{"apple", "banana", "lemon"}), 
+                        new Tuple&lt;string, string[]>("b", new[]{"grapes"})
                     }, 2)
                     .MapValues(x => x.Length).Collect()
                     
@@ -880,7 +880,7 @@
             <param name="func"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.FlatMapValues``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,System.Collections.Generic.IEnumerable{``2}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.FlatMapValues``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Func{``1,System.Collections.Generic.IEnumerable{``2}})">
             <summary>
             Pass each value in the key-value pair RDD through a flatMap function
             without changing the keys; this also retains the original RDD's partitioning.
@@ -888,8 +888,8 @@
             x = sc.Parallelize(
                     new[] 
                     { 
-                        new KeyValuePair&lt;string, string[]>("a", new[]{"x", "y", "z"}), 
-                        new KeyValuePair&lt;string, string[]>("b", new[]{"p", "r"})
+                        new Tuple&lt;string, string[]>("a", new[]{"x", "y", "z"}), 
+                        new Tuple&lt;string, string[]>("b", new[]{"p", "r"})
                     }, 2)
                     .FlatMapValues(x => x).Collect()
                     
@@ -903,9 +903,9 @@
             <param name="func"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.MapPartitionsWithIndex``5(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,System.Object}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.MapPartitionsWithIndex``5(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,System.Object}})">
             <summary>
-            explicitly convert KeyValuePair&lt;K, V> to KeyValuePair&lt;K, dynamic>
+            explicitly convert Tuple&lt;K, V> to Tuple&lt;K, dynamic>
             since they are incompatibles types unlike V to dynamic
             </summary>
             <typeparam name="K"></typeparam>
@@ -916,13 +916,13 @@
             <param name="self"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             For each key k in this RDD or <paramref name="other"/>, return a resulting RDD that
             contains a tuple with the list of values for that key in this RDD as well as <paramref name="other"/>.
             
-            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
-            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+            var x = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 1), new Tuple&lt;string, int>("b", 4) }, 2);
+            var y = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 2) }, 1);
             x.GroupWith(y).Collect();
             
             [('a', ([1], [2])), ('b', ([4], []))]
@@ -936,11 +936,11 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``4(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``3}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``4(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``3}},System.Int32)">
             <summary>
-            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 5), new KeyValuePair&lt;string, int>("b", 6) }, 2);
-            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
-            var z = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
+            var x = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 5), new Tuple&lt;string, int>("b", 6) }, 2);
+            var y = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 1), new Tuple&lt;string, int>("b", 4) }, 2);
+            var z = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 2) }, 1);
             x.GroupWith(y, z).Collect();
             </summary>
             <typeparam name="K"></typeparam>
@@ -953,12 +953,12 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``5(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``3}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``4}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.GroupWith``5(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``3}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``4}},System.Int32)">
             <summary>
-            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 5), new KeyValuePair&lt;string, int>("b", 6) }, 2);
-            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 1), new KeyValuePair&lt;string, int>("b", 4) }, 2);
-            var z = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("a", 2) }, 1);
-            var w = sc.Parallelize(new[] { new KeyValuePair&lt;string, int>("b", 42) }, 1);
+            var x = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 5), new Tuple&lt;string, int>("b", 6) }, 2);
+            var y = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 1), new Tuple&lt;string, int>("b", 4) }, 2);
+            var z = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 2) }, 1);
+            var w = sc.Parallelize(new[] { new Tuple&lt;string, int>("b", 42) }, 1);
             var m = x.GroupWith(y, z, w).MapValues(l => string.Join(" ", l.Item1) + " : " + string.Join(" ", l.Item2) + " : " + string.Join(" ", l.Item3) + " : " + string.Join(" ", l.Item4)).Collect();
             </summary>
             <typeparam name="K"></typeparam>
@@ -973,12 +973,12 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SubtractByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SubtractByKey``3(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return each (key, value) pair in this RDD that has no pair with matching key in <paramref name="other"/>.
             
-            var x = sc.Parallelize(new[] { new KeyValuePair&lt;string, int?>("a", 1), new KeyValuePair&lt;string, int?>("b", 4), new KeyValuePair&lt;string, int?>("b", 5), new KeyValuePair&lt;string, int?>("a", 2) }, 2);
-            var y = sc.Parallelize(new[] { new KeyValuePair&lt;string, int?>("a", 3), new KeyValuePair&lt;string, int?>("c", null) }, 2);
+            var x = sc.Parallelize(new[] { new Tuple&lt;string, int?>("a", 1), new Tuple&lt;string, int?>("b", 4), new Tuple&lt;string, int?>("b", 5), new Tuple&lt;string, int?>("a", 2) }, 2);
+            var y = sc.Parallelize(new[] { new Tuple&lt;string, int?>("a", 3), new Tuple&lt;string, int?>("c", null) }, 2);
             x.SubtractByKey(y).Collect();
             
             [('b', 4), ('b', 5)]
@@ -992,14 +992,14 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Lookup``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},``0)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.Lookup``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},``0)">
             <summary>
             Return the list of values in the RDD for key `key`. This operation
             is done efficiently if the RDD has a known partitioner by only
             searching the partition that the key maps to.
             
             >>> l = range(1000)
-            >>> rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) => new KeyValuePair&lt;int, int>(x, y)), 10)
+            >>> rdd = sc.Parallelize(Enumerable.Range(0, 1000).Zip(Enumerable.Range(0, 1000), (x, y) => new Tuple&lt;int, int>(x, y)), 10)
             >>> rdd.lookup(42)
             [42]
             
@@ -1010,7 +1010,7 @@
             <param name="key"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsNewAPIHadoopDataset``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsNewAPIHadoopDataset``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
             system, using the new Hadoop OutputFormat API (mapreduce package). Keys/values are
@@ -1022,7 +1022,7 @@
             <param name="self"></param>
             <param name="conf">Hadoop job configuration, passed in as a dict</param>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsNewAPIHadoopFile``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsNewAPIHadoopFile``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             
             </summary>
@@ -1035,7 +1035,7 @@
             <param name="valueClass">fully qualified classname of value Writable class (e.g. "org.apache.hadoop.io.Text", None by default)</param>
             <param name="conf">Hadoop job configuration, passed in as a dict (None by default)</param>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsHadoopDataset``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsHadoopDataset``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
             system, using the old Hadoop OutputFormat API (mapred package). Keys/values are
@@ -1047,7 +1047,7 @@
             <param name="self"></param>
             <param name="conf">Hadoop job configuration, passed in as a dict</param>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsHadoopFile``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}},System.String)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsHadoopFile``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}},System.String)">
             <summary>
             Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
             system, using the old Hadoop OutputFormat API (mapred package). Key and value types
@@ -1066,7 +1066,7 @@
             <param name="conf">(None by default)</param>
             <param name="compressionCodecClass">(None by default)</param>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsSequenceFile``2(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``1}},System.String,System.String)">
+        <member name="M:Microsoft.Spark.CSharp.Core.PairRDDFunctions.SaveAsSequenceFile``2(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``1}},System.String,System.String)">
             <summary>
             Output a Python RDD of key-value pairs (of form RDD[(K, V)]) to any Hadoop file
             system, using the org.apache.hadoop.io.Writable types that we convert from the
@@ -1169,6 +1169,11 @@
             Indicates whether the RDD is checkpointed.
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.SparkContext">
+            <summary>
+            Return the SparkContext that created this RDD
+            </summary>
+        </member>
         <member name="P:Microsoft.Spark.CSharp.Core.RDD`1.IsCached">
             <summary>
             Return whether this RDD has been cached or not
@@ -1231,7 +1236,7 @@
             <summary>
             Return a new RDD by applying a function to each element of this RDD.
             
-            sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new KeyValuePair&lt;string, int>(x, 1)).Collect()
+            sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new Tuple&lt;string, int>(x, 1)).Collect()
             [('a', 1), ('b', 1), ('c', 1)]
             
             </summary>
@@ -2132,7 +2137,7 @@
             
              Do
              {{{
-               RDD&lt;KeyValuePair&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
+               RDD&lt;Tuple&lt;string, string>> rdd = sparkContext.WholeTextFiles("hdfs://a-hdfs-path")
              }}}
             
              then `rdd` contains
@@ -2167,7 +2172,7 @@
              }}}
             
              Do
-             RDD&lt;KeyValuePair&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
+             RDD&lt;Tuple&lt;string, byte[]>>"/> rdd = sparkContext.dataStreamFiles("hdfs://a-hdfs-path")`,
             
              then `rdd` contains
              {{{
@@ -2206,7 +2211,7 @@
             <param name="minSplits">minimum splits in dataset (default min(2, sc.defaultParallelism))</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.NewAPIHadoopFile(System.String,System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.NewAPIHadoopFile(System.String,System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             Read a 'new API' Hadoop InputFormat with arbitrary key and value class from HDFS,
             a local file system (available on all nodes), or any Hadoop-supported file system URI.
@@ -2224,7 +2229,7 @@
             <param name="conf"> Hadoop configuration, passed in as a dict (None by default)</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.NewAPIHadoopRDD(System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.NewAPIHadoopRDD(System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             Read a 'new API' Hadoop InputFormat with arbitrary key and value class, from an arbitrary
             Hadoop configuration, which is passed in as a Python dict.
@@ -2240,7 +2245,7 @@
             <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.HadoopFile(System.String,System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.HadoopFile(System.String,System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             Read an 'old' Hadoop InputFormat with arbitrary key and value class from HDFS,
             a local file system (available on all nodes), or any Hadoop-supported file system URI.
@@ -2258,7 +2263,7 @@
             <param name="conf">Hadoop configuration, passed in as a dict (None by default)</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.HadoopRDD(System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.HadoopRDD(System.String,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             Read an 'old' Hadoop InputFormat with arbitrary key and value class, from an arbitrary
             Hadoop configuration, which is passed in as a Python dict.
@@ -2390,6 +2395,14 @@
             Valid log levels include: ALL, DEBUG, ERROR, FATAL, INFO, OFF, TRACE, WARN
             </summary>
             <param name="logLevel"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.RunJob``1(Microsoft.Spark.CSharp.Core.RDD{``0},System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Run a job on a given set of partitions of an RDD.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="rdd"></param>
+            <param name="partitions"></param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Core.SparkContext.CancelJobGroup(System.String)">
             <summary>
@@ -7968,7 +7981,7 @@
             Utility for creating streams from 
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.EventHubsUtils.CreateUnionStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.Dictionary{System.String,System.String},Microsoft.Spark.CSharp.Core.StorageLevelType)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.EventHubsUtils.CreateUnionStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}},Microsoft.Spark.CSharp.Core.StorageLevelType)">
              <summary>
              Create a unioned EventHubs stream that receives data from Microsoft Azure Eventhubs
              The unioned stream will receive message from all partitions of the EventHubs
@@ -7998,7 +8011,7 @@
             Utils for Kafka input stream.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.Int32},System.Collections.Generic.Dictionary{System.String,System.String})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.Int32}},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             Create an input stream that pulls messages from a Kafka Broker.
             </summary>
@@ -8009,7 +8022,7 @@
             <param name="kafkaParams">Additional params for Kafka</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.Int32},System.Collections.Generic.Dictionary{System.String,System.String},Microsoft.Spark.CSharp.Core.StorageLevelType)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.String,System.String,System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.Int32}},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}},Microsoft.Spark.CSharp.Core.StorageLevelType)">
             <summary>
             Create an input stream that pulls messages from a Kafka Broker.
             </summary>
@@ -8021,7 +8034,7 @@
             <param name="storageLevelType">RDD storage level.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStream(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.Int64}})">
             <summary>
             Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
             
@@ -8047,7 +8060,7 @@
             <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStream``1(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.Int64},System.Func{System.Int32,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Byte[],System.Byte[]}},System.Collections.Generic.IEnumerable{``0}})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.CreateDirectStream``1(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.Int64}},System.Func{System.Int32,System.Collections.Generic.IEnumerable{System.Tuple{System.Byte[],System.Byte[]}},System.Collections.Generic.IEnumerable{``0}})">
             <summary>
             Create an input stream that directly pulls messages from a Kafka Broker and specific offset.
             
@@ -8074,14 +8087,14 @@
             <param name="readFunc">user function to process the kafka data.</param>
             <returns>A DStream object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.GetOffsetRange(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Byte[],System.Byte[]}})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.GetOffsetRange(System.Collections.Generic.IEnumerable{System.Tuple{System.Byte[],System.Byte[]}})">
             <summary>
             create offset range from kafka messages when CSharpReader is enabled
             </summary>
             <param name="input"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.GetNumPartitionsFromConfig(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.Dictionary{System.String,System.String})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.KafkaUtils.GetNumPartitionsFromConfig(Microsoft.Spark.CSharp.Streaming.StreamingContext,System.Collections.Generic.List{System.String},System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
             <summary>
             topics should contain only one topic if choose to repartitions to a configured numPartitions
             TODO: move to scala and merge into DynamicPartitionKafkaRDD.getPartitions to remove above limitation
@@ -8202,7 +8215,7 @@
             <param name="idleDuration">The idle time of duration</param>
             <returns>The new StateSpec object</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.StateSpec`4.InitialState(Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{`0,`2}})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.StateSpec`4.InitialState(Microsoft.Spark.CSharp.Core.RDD{System.Tuple{`0,`2}})">
             <summary>
             Set the RDD containing the initial states that will be used by mapWithState
             </summary>
@@ -8249,10 +8262,10 @@
         </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions">
             <summary>
-            operations only available to KeyValuePair RDD
+            operations only available to Tuple RDD
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.ReduceByKey``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,``1,``1},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.ReduceByKey``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{``1,``1,``1},System.Int32)">
             <summary>
             Return a new DStream by applying ReduceByKey to each RDD.
             </summary>
@@ -8263,7 +8276,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.CombineByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``2},System.Func{``2,``1,``2},System.Func{``2,``2,``2},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.CombineByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{``2},System.Func{``2,``1,``2},System.Func{``2,``2,``2},System.Int32)">
             <summary>
             Return a new DStream by applying combineByKey to each RDD.
             </summary>
@@ -8277,7 +8290,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.PartitionBy``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.PartitionBy``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Int32)">
             <summary>
             Return a new DStream in which each RDD are partitioned by numPartitions.
             </summary>
@@ -8287,7 +8300,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.MapValues``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,``2})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.MapValues``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{``1,``2})">
             <summary>
             Return a new DStream by applying a map function to the value of
             each key-value pairs in this DStream without changing the key.
@@ -8299,7 +8312,7 @@
             <param name="func"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.FlatMapValues``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,System.Collections.Generic.IEnumerable{``2}})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.FlatMapValues``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{``1,System.Collections.Generic.IEnumerable{``2}})">
             <summary>
             Return a new DStream by applying a flatmap function to the value
             of each key-value pairs in this DStream without changing the key.
@@ -8311,7 +8324,7 @@
             <param name="func"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.GroupByKey``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.GroupByKey``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Int32)">
             <summary>
             Return a new DStream by applying groupByKey on each RDD.
             </summary>
@@ -8321,7 +8334,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.GroupWith``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.GroupWith``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new DStream by applying 'cogroup' between RDDs of this DStream and `other` DStream.
             Hash partitioning is used to generate the RDDs with `numPartitions` partitions.
@@ -8334,7 +8347,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.Join``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.Join``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new DStream by applying 'join' between RDDs of this DStream and `other` DStream.
             Hash partitioning is used to generate the RDDs with `numPartitions` partitions.
@@ -8347,7 +8360,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.LeftOuterJoin``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.LeftOuterJoin``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new DStream by applying 'left outer join' between RDDs of this DStream and `other` DStream.
             Hash partitioning is used to generate the RDDs with `numPartitions` partitions.
@@ -8360,7 +8373,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.RightOuterJoin``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.RightOuterJoin``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new DStream by applying 'right outer join' between RDDs of this DStream and `other` DStream.
             Hash partitioning is used to generate the RDDs with `numPartitions` partitions.
@@ -8373,7 +8386,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.FullOuterJoin``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.FullOuterJoin``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new DStream by applying 'full outer join' between RDDs of this DStream and `other` DStream.
             Hash partitioning is used to generate the RDDs with `numPartitions` partitions.
@@ -8386,7 +8399,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.GroupByKeyAndWindow``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Int32,System.Int32,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.GroupByKeyAndWindow``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Int32,System.Int32,System.Int32)">
             <summary>
             Return a new DStream by applying `GroupByKey` over a sliding window.
             Similar to `DStream.GroupByKey()`, but applies it over a sliding window.
@@ -8403,7 +8416,7 @@
             <param name="numPartitions">Number of partitions of each RDD in the new DStream.</param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.ReduceByKeyAndWindow``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{``1,``1,``1},System.Func{``1,``1,``1},System.Int32,System.Int32,System.Int32,System.Func{System.Collections.Generic.KeyValuePair{``0,``1},System.Boolean})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.ReduceByKeyAndWindow``2(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{``1,``1,``1},System.Func{``1,``1,``1},System.Int32,System.Int32,System.Int32,System.Func{System.Tuple{``0,``1},System.Boolean})">
              <summary>
              Return a new DStream by applying incremental `reduceByKey` over a sliding window.
             
@@ -8424,7 +8437,7 @@
              <param name="filterFunc">function to filter expired key-value pairs; only pairs that satisfy the function are retained set this to null if you do not want to filter</param>
              <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.UpdateStateByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{System.Collections.Generic.IEnumerable{``1},``2,``2},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.UpdateStateByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{System.Collections.Generic.IEnumerable{``1},``2,``2},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new "state" DStream where the state for each key is updated by applying
             the given function on the previous state of the key and the new values of the key.
@@ -8439,9 +8452,9 @@
             </param>
             <param name="initialState">Initial state value of each key</param>
             <param name="numPartitions"></param>
-            <returns></returns>
+            <returns></returns>                                                          
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.UpdateStateByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,System.Tuple{System.Collections.Generic.IEnumerable{``1},``2}}},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``2}}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.UpdateStateByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{System.Collections.Generic.IEnumerable{System.Tuple{``0,System.Tuple{System.Collections.Generic.IEnumerable{``1},``2}}},System.Collections.Generic.IEnumerable{System.Tuple{``0,``2}}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new "state" DStream where the state for each key is updated by applying
             the given function on the previous state of the key and the new values of the key.
@@ -8453,9 +8466,9 @@
             <param name="updateFunc">State update function - IEnumerable[K, [newValues, oldState]] => IEnumerable[K, newState]</param>
             <param name="initialState">Initial state value of each key</param>
             <param name="numPartitions"></param>
-            <returns></returns>
+            <returns></returns>   
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.UpdateStateByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},System.Func{System.Int32,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,System.Tuple{System.Collections.Generic.IEnumerable{``1},``2}}},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``2}}},Microsoft.Spark.CSharp.Core.RDD{System.Collections.Generic.KeyValuePair{``0,``2}},System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.UpdateStateByKey``3(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},System.Func{System.Int32,System.Collections.Generic.IEnumerable{System.Tuple{``0,System.Tuple{System.Collections.Generic.IEnumerable{``1},``2}}},System.Collections.Generic.IEnumerable{System.Tuple{``0,``2}}},Microsoft.Spark.CSharp.Core.RDD{System.Tuple{``0,``2}},System.Int32)">
             <summary>
             Return a new "state" DStream where the state for each key is updated by applying
             the given function on the previous state of the key and the new values of the key.
@@ -8469,7 +8482,7 @@
             <param name="numPartitions"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.MapWithState``4(Microsoft.Spark.CSharp.Streaming.DStream{System.Collections.Generic.KeyValuePair{``0,``1}},Microsoft.Spark.CSharp.Streaming.StateSpec{``0,``1,``2,``3})">
+        <member name="M:Microsoft.Spark.CSharp.Streaming.PairDStreamFunctions.MapWithState``4(Microsoft.Spark.CSharp.Streaming.DStream{System.Tuple{``0,``1}},Microsoft.Spark.CSharp.Streaming.StateSpec{``0,``1,``2,``3})">
             <summary>
             Return a new "state" DStream where the state for each key is updated by applying
             the given function on the previous state of the key and the new values of the key.
