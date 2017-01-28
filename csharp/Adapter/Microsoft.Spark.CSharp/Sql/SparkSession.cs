@@ -48,6 +48,11 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return sparkContext; }
         }
 
+        public UdfRegistration Udf
+        {
+            get { return new UdfRegistration(sparkSessionProxy.Udf); }
+        }
+
         /// <summary>
         /// Builder for SparkSession
         /// </summary>

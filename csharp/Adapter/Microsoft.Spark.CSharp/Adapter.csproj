@@ -157,6 +157,7 @@
     <Compile Include="Sql\SparkSession.cs" />
     <Compile Include="Sql\SqlContext.cs" />
     <Compile Include="Sql\Types.cs" />
+    <Compile Include="Sql\UdfRegistration.cs" />
     <Compile Include="Sql\UserDefinedFunction.cs" />
     <Compile Include="Streaming\ConstantInputDStream.cs" />
     <Compile Include="Streaming\DStream.cs" />
