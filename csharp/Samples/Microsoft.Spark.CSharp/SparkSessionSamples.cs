@@ -185,5 +185,31 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.AreEqual(schemaPeople.Json, dataFramePeople.Schema.Json);
             }
         }
+
+        [Sample]
+        internal static void SparkSessionUdfSample()
+        {
+            GetSparkSession().Udf.RegisterFunction<string, string, string>("FullAddress", (city, state) => city + " " + state);
+            GetSparkSession().Udf.RegisterFunction<bool, string, int>("PeopleFilter", (name, age) => name == "Bill" && age > 80);
+
+            var peopleDataFrame = GetSparkSession().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(DataFrameSamples.PeopleJson));
+            var functionAppliedDF = peopleDataFrame.SelectExpr("name", "age * 2 as age",
+                "FullAddress(address.city, address.state) as address")
+                .Where("PeopleFilter(name, age)");
+
+            functionAppliedDF.ShowSchema();
+            functionAppliedDF.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                var collected = functionAppliedDF.Collect().ToArray();
+                CollectionAssert.AreEquivalent(new[] { "name", "age", "address" },
+                    functionAppliedDF.Schema.Fields.Select(f => f.Name).ToArray());
+                Assert.AreEqual(1, collected.Length);
+                Assert.AreEqual("Bill", collected[0].Get("name"));
+                Assert.AreEqual(86, collected[0].Get("age"));
+                Assert.AreEqual("Seattle Washington", collected[0].Get("address"));
+            }
+        }
     }
 }

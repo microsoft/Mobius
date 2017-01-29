@@ -7675,6 +7675,171 @@
             <param name="json">The Json object used to construct a StructType</param>
             <returns>A new StructType instance</returns>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``1(System.String,System.Func{``0})">
+            <summary>
+            Register UDF with no input argument, e.g:
+                SqlContext.RegisterFunction&lt;bool>("MyFilter", () => true);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter()");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``2(System.String,System.Func{``1,``0})">
+            <summary>
+            Register UDF with 1 input argument, e.g:
+                SqlContext.RegisterFunction&lt;bool, string>("MyFilter", (arg1) => arg1 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``3(System.String,System.Func{``1,``2,``0})">
+            <summary>
+            Register UDF with 2 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string>("MyFilter", (arg1, arg2) => arg1 != null &amp;&amp; arg2 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``4(System.String,System.Func{``1,``2,``3,``0})">
+            <summary>
+            Register UDF with 3 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, string>("MyFilter", (arg1, arg2, arg3) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; arg3 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, columnName3)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``5(System.String,System.Func{``1,``2,``3,``4,``0})">
+            <summary>
+            Register UDF with 4 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg4) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg3 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName4)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``6(System.String,System.Func{``1,``2,``3,``4,``5,``0})">
+            <summary>
+            Register UDF with 5 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg5) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg5 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName5)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``7(System.String,System.Func{``1,``2,``3,``4,``5,``6,``0})">
+            <summary>
+            Register UDF with 6 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg6) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg6 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName6)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``8(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``0})">
+            <summary>
+            Register UDF with 7 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg7) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg7 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName7)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``9(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``0})">
+            <summary>
+            Register UDF with 8 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg8) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg8 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName8)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``10(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``0})">
+            <summary>
+            Register UDF with 9 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg9) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg9 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName9)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <typeparam name="A9"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``11(System.String,System.Func{``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``0})">
+            <summary>
+            Register UDF with 10 input arguments, e.g:
+                SqlContext.RegisterFunction&lt;bool, string, string, ..., string>("MyFilter", (arg1, arg2, ..., arg10) => arg1 != null &amp;&amp; arg2 != null &amp;&amp; ... &amp;&amp; arg10 != null);
+                sqlContext.Sql("SELECT * FROM MyTable where MyFilter(columnName1, columnName2, ..., columnName10)");
+            </summary>
+            <typeparam name="RT"></typeparam>
+            <typeparam name="A1"></typeparam>
+            <typeparam name="A2"></typeparam>
+            <typeparam name="A3"></typeparam>
+            <typeparam name="A4"></typeparam>
+            <typeparam name="A5"></typeparam>
+            <typeparam name="A6"></typeparam>
+            <typeparam name="A7"></typeparam>
+            <typeparam name="A8"></typeparam>
+            <typeparam name="A9"></typeparam>
+            <typeparam name="A10"></typeparam>
+            <param name="name"></param>
+            <param name="f"></param>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Streaming.ConstantInputDStream`1">
             <summary>
             An input stream that always returns the same RDD on each timestep. Useful for testing.
