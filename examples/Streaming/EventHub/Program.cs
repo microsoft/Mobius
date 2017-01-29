@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Streaming;
@@ -42,14 +43,14 @@ namespace Microsoft.Spark.CSharp.Examples
                     var ssc = new StreamingContext(sparkContext, slideDurationInMillis);
                     ssc.Checkpoint(checkpointPath);
 
-                    var stream = EventHubsUtils.CreateUnionStream(ssc, eventhubsParams);
+                    var stream = EventHubsUtils.CreateUnionStream(ssc, eventhubsParams.Select(v => new Tuple<string, string>(v.Key, v.Value)));
                     var countByLogLevelAndTime = stream
                                                     .Map(bytes => Encoding.UTF8.GetString(bytes))
                                                     .Filter(line => line.Contains(","))
                                                     .Map(line => line.Split(','))
-                                                    .Map(columns => new KeyValuePair<string, int>(string.Format("{0},{1}", columns[0], columns[1]), 1))
+                                                    .Map(columns => new Tuple<string, int>(string.Format("{0},{1}", columns[0], columns[1]), 1))
                                                     .ReduceByKeyAndWindow((x, y) => x + y, (x, y) => x - y, windowDurationInSecs, slideDurationInSecs, 3)
-                                                    .Map(logLevelCountPair => string.Format("{0},{1}", logLevelCountPair.Key, logLevelCountPair.Value));
+                                                    .Map(logLevelCountPair => string.Format("{0},{1}", logLevelCountPair.Item1, logLevelCountPair.Item2));
                     
                     countByLogLevelAndTime.ForeachRDD(countByLogLevel =>
                     {

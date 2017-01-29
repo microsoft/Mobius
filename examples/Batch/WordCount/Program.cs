@@ -34,12 +34,12 @@ namespace Microsoft.Spark.CSharp.Examples
                 var lines = sparkContext.TextFile(args[0]);
                 var counts = lines
                     .FlatMap(x =>  x.Split(' '))
-                    .Map(w => new KeyValuePair<string, int>(w, 1))
+                    .Map(w => new Tuple<string, int>(w, 1))
                     .ReduceByKey((x, y) => x + y);
 
                 foreach (var wordcount in counts.Collect())
                 {
-                    Console.WriteLine("{0}: {1}", wordcount.Key, wordcount.Value);
+                    Console.WriteLine("{0}: {1}", wordcount.Item1, wordcount.Item2);
                 }
             }
             catch (Exception ex)
