@@ -7675,6 +7675,11 @@
             <param name="json">The Json object used to construct a StructType</param>
             <returns>A new StructType instance</returns>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Sql.UdfRegistration">
+            <summary>
+            Used for registering User Defined Functions. SparkSession.Udf is used to access instance of this type.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.UdfRegistration.RegisterFunction``1(System.String,System.Func{``0})">
             <summary>
             Register UDF with no input argument, e.g:

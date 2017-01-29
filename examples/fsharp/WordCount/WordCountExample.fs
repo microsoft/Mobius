@@ -21,11 +21,11 @@ let main args =
             let lines = sparkContext.TextFile filePath
             let counts =
                 lines.FlatMap(fun x -> x.Split ' ' :> _)
-                     .Map(fun w -> KeyValuePair(w, 1))
+                     .Map(fun w -> (w, 1))
                      .ReduceByKey(fun x y -> x + y)
                      .Collect()
-            for count in counts do
-                printfn "%s: %d" count.Key count.Value
+            for (word,count) in counts do
+                printfn "%s: %d" word count
         with
         | ex ->
             logger.LogError "Error performing Word Count"
