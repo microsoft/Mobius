@@ -31,13 +31,13 @@ namespace Microsoft.Spark.CSharp.Proxy
         string Name { get; }
         void SetName(string name);
         IRDDProxy RandomSampleWithRange(double lb, double ub, long seed);
-        IRDDProxy SampleByKey(bool withReplacement, Dictionary<string, double> fractions, long seed);
+        IRDDProxy SampleByKey(bool withReplacement, IEnumerable<Tuple<string, double>> fractions, long seed);
         IRDDProxy Zip(IRDDProxy other);
         string ToDebugString();
-        void SaveAsNewAPIHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf);
-        void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf);
-        void SaveAsHadoopDataset(IEnumerable<KeyValuePair<string, string>> conf);
-        void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<KeyValuePair<string, string>> conf, string compressionCodecClass);
+        void SaveAsNewAPIHadoopDataset(IEnumerable<Tuple<string, string>> conf);
+        void SaveAsNewAPIHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<Tuple<string, string>> conf);
+        void SaveAsHadoopDataset(IEnumerable<Tuple<string, string>> conf);
+        void SaveAsHadoopFile(string path, string outputFormatClass, string keyClass, string valueClass, IEnumerable<Tuple<string, string>> conf, string compressionCodecClass);
         void SaveAsSequenceFile(string path, string compressionCodecClass);
         void SaveAsTextFile(string path, string compressionCodecClass);
         long Count();

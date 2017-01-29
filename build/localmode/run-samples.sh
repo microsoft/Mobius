@@ -18,7 +18,8 @@ done
 # setup Hadoop and Spark versions
 export SPARK_VERSION=2.0.0
 export HADOOP_VERSION=2.6
-echo "[run-samples.sh] SPARK_VERSION=$SPARK_VERSION, HADOOP_VERSION=$HADOOP_VERSION"
+export APACHE_DIST_SERVER=archive.apache.org
+echo "[run-samples.sh] SPARK_VERSION=$SPARK_VERSION, HADOOP_VERSION=$HADOOP_VERSION, APACHE_DIST_SERVER=$APACHE_DIST_SERVER"
 
 export FWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -30,7 +31,7 @@ export SPARK=spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION
 export SPARK_HOME="$TOOLS_DIR/$SPARK"
 if [ ! -d "$SPARK_HOME" ];
 then
-  wget "http://www.us.apache.org/dist/spark/spark-$SPARK_VERSION/$SPARK.tgz" -O "$TOOLS_DIR/$SPARK.tgz"
+  wget "http://$APACHE_DIST_SERVER/dist/spark/spark-$SPARK_VERSION/$SPARK.tgz" -O "$TOOLS_DIR/$SPARK.tgz"
   tar xfz "$TOOLS_DIR/$SPARK.tgz" -C "$TOOLS_DIR"
 fi
 export PATH="$SPARK_HOME/bin:$PATH"

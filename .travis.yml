@@ -2,6 +2,8 @@ language: csharp
 solution: csharp/SparkCLR.sln
 sudo: required
 dist: trusty
+env:
+  - JDK=openjdk7
 before_install:
   - sudo apt-get install xsltproc
   - nuget install NUnit.Runners -Version 3.0.0 -OutputDirectory testrunner
@@ -12,6 +14,8 @@ before_install:
   - export M2="$M2_HOME/bin"
   - export PATH="$M2:$PATH"
   - hash -r
+before_script:
+  - jdk_switcher use $JDK
 script:
   - export MAVEN_OPTS="-XX:MaxPermSize=2g -Xmx4g"
   - export JAVA_OPTS="-XX:MaxPermSize=2g -Xmx4g"

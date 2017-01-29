@@ -17,18 +17,13 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         private readonly JvmObjectReference jvmSparkSessionReference;
         private readonly ISqlContextProxy sqlContextProxy;
 
-        private readonly IUdfRegistration udfRegistration;
+        private readonly IUdfRegistrationProxy udfRegistrationProxy;
 
-        public IUdfRegistration Udf
+        public IUdfRegistrationProxy Udf
         {
             get
             {
-                if (udfRegistration == null)
-                {
-                    //TODO implementation needed
-                }
-
-                return udfRegistration;
+                return udfRegistrationProxy;
             }
         }
 
@@ -46,6 +41,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         {
             this.jvmSparkSessionReference = jvmSparkSessionReference;
             sqlContextProxy = new SqlContextIpcProxy(GetSqlContextReference());
+            udfRegistrationProxy = new UdfRegistrationIpcProxy(sqlContextProxy);
         }
 
         private JvmObjectReference GetSqlContextReference()
@@ -96,6 +92,21 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
         public void Stop()
         {
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkSessionReference, "stop");
+        }
+    }
+
+    [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
+    internal class UdfRegistrationIpcProxy : IUdfRegistrationProxy
+    {
+        private readonly ISqlContextProxy sqlContextProxy;
+        internal UdfRegistrationIpcProxy(ISqlContextProxy sqlContextProxy)
+        {
+            this.sqlContextProxy = sqlContextProxy;
+        }
+
+        public void RegisterFunction(string name, byte[] command, string returnType)
+        {
+            sqlContextProxy.RegisterFunction(name, command, returnType);
         }
     }
 }

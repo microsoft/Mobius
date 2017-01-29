@@ -52,6 +52,17 @@ namespace Microsoft.Spark.CSharp.Core
         }
 
         /// <summary>
+        /// Return the SparkContext that created this RDD
+        /// </summary>
+        public SparkContext SparkContext
+        {
+            get
+            {
+                return sparkContext;
+            }
+        }
+
+        /// <summary>
         /// Return whether this RDD has been cached or not
         /// </summary>
         public bool IsCached
@@ -189,7 +200,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Return a new RDD by applying a function to each element of this RDD.
         /// 
-        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new KeyValuePair&lt;string, int>(x, 1)).Collect()
+        /// sc.Parallelize(new string[]{"b", "a", "c"}, 1).Map(x => new Tuple&lt;string, int>(x, 1)).Collect()
         /// [('a', 1), ('b', 1), ('c', 1)]
         /// 
         /// </summary>
@@ -288,7 +299,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Distinct(int numPartitions = 0)
         {
-            return Map(x => new KeyValuePair<T, int>(x, 0)).ReduceByKey((x, y) => x, numPartitions).Map<T>(x => x.Key);
+            return Map(x => new Tuple<T, int>(x, 0)).ReduceByKey((x, y) => x, numPartitions).Map<T>(x => x.Item1);
         }
 
         /// <summary>
@@ -461,9 +472,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Intersection(RDD<T> other)
         {
-            return Map(v => new KeyValuePair<T, int>(v, 0))
-                .GroupWith(other.Map(v => new KeyValuePair<T, int>(v, 0)))
-                .Filter(kv => kv.Value.Item1.Count > 0 && kv.Value.Item2.Count > 0)
+            return Map(v => new Tuple<T, int>(v, 0))
+                .GroupWith(other.Map(v => new Tuple<T, int>(v, 0)))
+                .Filter(kv => kv.Item2.Item1.Count > 0 && kv.Item2.Item2.Count > 0)
                 .Keys();
         }
 
@@ -533,7 +544,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public RDD<KeyValuePair<K, List<T>>> GroupBy<K>(Func<T, K> f, int numPartitions = 0)
+        public RDD<Tuple<K, List<T>>> GroupBy<K>(Func<T, K> f, int numPartitions = 0)
         {
             return KeyBy(f).GroupByKey(numPartitions);
         }
@@ -639,14 +650,14 @@ namespace Microsoft.Spark.CSharp.Core
             if (depth < 1)
                 throw new ArgumentException(string.Format("Depth cannot be smaller than 1 but got {0}.", depth));
 
-            var zeroValue = new KeyValuePair<T, bool>(default(T), true);  // Use the second entry to indicate whether this is a dummy value.
+            var zeroValue = new Tuple<T, bool>(default(T), true);  // Use the second entry to indicate whether this is a dummy value.
 
-            Func<KeyValuePair<T, bool>, KeyValuePair<T, bool>, KeyValuePair<T, bool>> op = new TreeReduceHelper<T>(f).Execute;
+            Func<Tuple<T, bool>, Tuple<T, bool>, Tuple<T, bool>> op = new TreeReduceHelper<T>(f).Execute;
 
-            var reduced = Map<KeyValuePair<T, bool>>(x => new KeyValuePair<T, bool>(x, false)).TreeAggregate(zeroValue, op, op, depth);
-            if (reduced.Value)
+            var reduced = Map<Tuple<T, bool>>(x => new Tuple<T, bool>(x, false)).TreeAggregate(zeroValue, op, op, depth);
+            if (reduced.Item2)
                 throw new ArgumentException("Cannot reduce empty RDD.");
-            return reduced.Key;
+            return reduced.Item1;
         }
 
         /// <summary>
@@ -736,7 +747,7 @@ namespace Microsoft.Spark.CSharp.Core
                 numPartitions /= scale;
 
                 partiallyAggregated = partiallyAggregated
-                    .MapPartitionsWithIndex<KeyValuePair<int, U>>(new TreeAggregateHelper<U>(numPartitions).Execute)
+                    .MapPartitionsWithIndex<Tuple<int, U>>(new TreeAggregateHelper<U>(numPartitions).Execute)
                     .ReduceByKey(combOp, numPartitions)
                     .Values();
             }
@@ -762,9 +773,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public Dictionary<T, long> CountByValue()
+        public IEnumerable<Tuple<T, long>> CountByValue()
         {
-            return Map<KeyValuePair<T, T>>(v => new KeyValuePair<T, T>(v, default(T))).CountByKey();
+            return Map(v => new Tuple<T, T>(v, default(T))).CountByKey();
         }
 
         /// <summary>
@@ -872,9 +883,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Subtract(RDD<T> other, int numPartitions = 0)
         {
-            return Map<KeyValuePair<T, T>>(v => new KeyValuePair<T, T>(v, default(T))).SubtractByKey
+            return Map<Tuple<T, T>>(v => new Tuple<T, T>(v, default(T))).SubtractByKey
                 (
-                    other.Map<KeyValuePair<T, T>>(v => new KeyValuePair<T, T>(v, default(T))),
+                    other.Map<Tuple<T, T>>(v => new Tuple<T, T>(v, default(T))),
                     numPartitions
                 )
                 .Keys();
@@ -890,9 +901,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <typeparam name="K"></typeparam>
         /// <param name="f"></param>
         /// <returns></returns>
-        public RDD<KeyValuePair<K, T>> KeyBy<K>(Func<T, K> f)
+        public RDD<Tuple<K, T>> KeyBy<K>(Func<T, K> f)
         {
-            return Map<KeyValuePair<K, T>>(new KeyByHelper<K, T>(f).Execute);
+            return Map<Tuple<K, T>>(new KeyByHelper<K, T>(f).Execute);
         }
 
         /// <summary>
@@ -950,9 +961,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <typeparam name="U"></typeparam>
         /// <param name="other"></param>
         /// <returns></returns>
-        public RDD<KeyValuePair<T, U>> Zip<U>(RDD<U> other)
+        public RDD<Tuple<T, U>> Zip<U>(RDD<U> other)
         {
-            return new RDD<KeyValuePair<T, U>>(RddProxy.Zip(other.RddProxy), sparkContext, SerializedMode.Pair);
+            return new RDD<Tuple<T, U>>(RddProxy.Zip(other.RddProxy), sparkContext, SerializedMode.Pair);
         }
 
         /// <summary>
@@ -971,7 +982,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public RDD<KeyValuePair<T, long>> ZipWithIndex()
+        public RDD<Tuple<T, long>> ZipWithIndex()
         {
             int num = GetNumPartitions();
             int[] starts = new int[num];
@@ -981,7 +992,7 @@ namespace Microsoft.Spark.CSharp.Core
                 for (int i = 0; i < nums.Length - 1; i++)
                     starts[i + 1] = starts[i] + nums[i];
             }
-            return MapPartitionsWithIndex<KeyValuePair<T, long>>(new ZipWithIndexHelper<T>(starts).Execute);
+            return MapPartitionsWithIndex<Tuple<T, long>>(new ZipWithIndexHelper<T>(starts).Execute);
         }
 
         /// <summary>
@@ -996,10 +1007,10 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public RDD<KeyValuePair<T, long>> ZipWithUniqueId()
+        public RDD<Tuple<T, long>> ZipWithUniqueId()
         {
             int num = GetNumPartitions();
-            return MapPartitionsWithIndex<KeyValuePair<T, long>>(new ZipWithUniqueIdHelper<T>(num).Execute);
+            return MapPartitionsWithIndex<Tuple<T, long>>(new ZipWithUniqueIdHelper<T>(num).Execute);
         }
 
         /// <summary>
@@ -1225,27 +1236,27 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     K key;
                     dynamic value;
-                    if (x is KeyValuePair<K, V>)
+                    if (x is Tuple<K, V>)
                     {
-                        key = ((KeyValuePair<K, V>)x).Key;
-                        value = ((KeyValuePair<K, V>)x).Value;
+                        key = ((Tuple<K, V>)x).Item1;
+                        value = ((Tuple<K, V>)x).Item2;
                     }
-                    else if (x is KeyValuePair<K, W1>)
+                    else if (x is Tuple<K, W1>)
                     {
-                        key = ((KeyValuePair<K, W1>)x).Key;
-                        value = ((KeyValuePair<K, W1>)x).Value;
+                        key = ((Tuple<K, W1>)x).Item1;
+                        value = ((Tuple<K, W1>)x).Item2;
                     }
-                    else if (x is KeyValuePair<K, W2>)
+                    else if (x is Tuple<K, W2>)
                     {
-                        key = ((KeyValuePair<K, W2>)x).Key;
-                        value = ((KeyValuePair<K, W2>)x).Value;
+                        key = ((Tuple<K, W2>)x).Item1;
+                        value = ((Tuple<K, W2>)x).Item2;
                     }
                     else
                     {
-                        key = ((KeyValuePair<K, W3>)x).Key;
-                        value = ((KeyValuePair<K, W3>)x).Value;
+                        key = ((Tuple<K, W3>)x).Item1;
+                        value = ((Tuple<K, W3>)x).Item2;
                     }
-                    return new KeyValuePair<K, dynamic>(key, value);
+                    return new Tuple<K, dynamic>(key, value);
                 })
                 .Cast<dynamic>();
         }
@@ -1405,9 +1416,9 @@ namespace Microsoft.Spark.CSharp.Core
             func = f;
         }
 
-        internal KeyValuePair<K, T> Execute(T input)
+        internal Tuple<K, T> Execute(T input)
         {
-            return new KeyValuePair<K, T>(func(input), input);
+            return new Tuple<K, T>(func(input), input);
         }
     }
     [Serializable]
@@ -1434,9 +1445,9 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.numPartitions = numPartitions;
         }
-        internal IEnumerable<KeyValuePair<int, U>> Execute(int pid, IEnumerable<U> input)
+        internal IEnumerable<Tuple<int, U>> Execute(int pid, IEnumerable<U> input)
         {
-            return input.Select(x => new KeyValuePair<int, U>(pid % numPartitions, x));
+            return input.Select(x => new Tuple<int, U>(pid % numPartitions, x));
         }
     }
     [Serializable]
@@ -1447,14 +1458,14 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.func = func;
         }
-        internal KeyValuePair<T, bool> Execute(KeyValuePair<T, bool> x, KeyValuePair<T, bool> y)
+        internal Tuple<T, bool> Execute(Tuple<T, bool> x, Tuple<T, bool> y)
         {
-            if (x.Value)
+            if (x.Item2)
                 return y;
-            else if (y.Value)
+            else if (y.Item2)
                 return x;
             else
-                return new KeyValuePair<T, bool>(func(x.Key, y.Key), false);
+                return new Tuple<T, bool>(func(x.Item1, y.Item1), false);
         }
     }
     [Serializable]
@@ -1539,12 +1550,12 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.num = num;
         }
-        internal IEnumerable<KeyValuePair<T, long>> Execute(int pid, IEnumerable<T> input)
+        internal IEnumerable<Tuple<T, long>> Execute(int pid, IEnumerable<T> input)
         {
             long l = 0;
             foreach (var item in input)
             {
-                yield return new KeyValuePair<T, long>(item, (l++) * num + pid);
+                yield return new Tuple<T, long>(item, (l++) * num + pid);
             }
         }
     }
@@ -1556,12 +1567,12 @@ namespace Microsoft.Spark.CSharp.Core
         {
             this.starts = starts;
         }
-        internal IEnumerable<KeyValuePair<T, long>> Execute(int pid, IEnumerable<T> input)
+        internal IEnumerable<Tuple<T, long>> Execute(int pid, IEnumerable<T> input)
         {
             long l = 0;
             foreach (var item in input)
             {
-                yield return new KeyValuePair<T, long>(item, (l++) + starts[pid]);
+                yield return new Tuple<T, long>(item, (l++) + starts[pid]);
             }
         }
     }

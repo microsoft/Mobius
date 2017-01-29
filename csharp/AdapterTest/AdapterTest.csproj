@@ -119,6 +119,7 @@
     <Compile Include="PairRDDTest.cs" />
     <Compile Include="ComparableRDDTest.cs" />
     <Compile Include="DoubleRDDTest.cs" />
+    <Compile Include="UdfRegistrationTest.cs" />
     <Compile Include="UserDefinedFunctionTest.cs" />
     <Compile Include="WeakObjectManagerTest.cs" />
   </ItemGroup>

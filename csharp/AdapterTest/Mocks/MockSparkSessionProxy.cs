@@ -13,7 +13,7 @@ namespace AdapterTest.Mocks
     class MockSparkSessionProxy : ISparkSessionProxy
     {
         public ISqlContextProxy SqlContextProxy { get { return new MockSqlContextProxy(new MockSparkContextProxy(new MockSparkConfProxy()));} }
-        public IUdfRegistration Udf { get; }
+        public IUdfRegistrationProxy Udf { get; }
         public ICatalogProxy GetCatalog()
         {
             throw new NotImplementedException();

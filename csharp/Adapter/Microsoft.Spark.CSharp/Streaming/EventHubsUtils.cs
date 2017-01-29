@@ -35,7 +35,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </param>
         /// <param name="storageLevelType">Storage level, by default it is MEMORY_ONLY</param>
         /// <returns>DStream with byte[] representing events from EventHub</returns>
-        public static DStream<byte[]> CreateUnionStream(StreamingContext ssc, Dictionary<string, string> eventhubsParams, StorageLevelType storageLevelType = StorageLevelType.MEMORY_ONLY)
+        public static DStream<byte[]> CreateUnionStream(StreamingContext ssc, IEnumerable<Tuple<string, string>> eventhubsParams, StorageLevelType storageLevelType = StorageLevelType.MEMORY_ONLY)
         {
             return new DStream<byte[]>(ssc.streamingContextProxy.EventHubsUnionStream(eventhubsParams, storageLevelType), ssc, SerializedMode.None);
         }

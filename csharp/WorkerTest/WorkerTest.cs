@@ -573,7 +573,7 @@ namespace WorkerTest
             {
                 WritePayloadHeaderToWorker(s);
                 byte[] command = SparkContext.BuildCommand(
-                    new CSharpWorkerFunc((pid, iter) => iter.Cast<KeyValuePair<byte[], byte[]>>().Select(pair => pair.Key)),
+                    new CSharpWorkerFunc((pid, iter) => iter.Cast<Tuple<byte[], byte[]>>().Select(pair => pair.Item1)),
                     SerializedMode.Pair, SerializedMode.None);
 
                 SerDe.Write(s, command.Length);
@@ -713,7 +713,7 @@ namespace WorkerTest
         /// <summary>
         /// read accumulator
         /// </summary>
-        private IEnumerable<KeyValuePair<int, dynamic>> ReadAccumulator(Stream s, int expectedCount = 0)
+        private IEnumerable<Tuple<int, dynamic>> ReadAccumulator(Stream s, int expectedCount = 0)
         {
             int count = 0;
             var formatter = new BinaryFormatter();
@@ -723,7 +723,7 @@ namespace WorkerTest
                 if (length > 0)
                 {
                     var ms = new MemoryStream(SerDe.ReadBytes(s, length));
-                    yield return (KeyValuePair<int, dynamic>)formatter.Deserialize(ms);
+                    yield return (Tuple<int, dynamic>)formatter.Deserialize(ms);
 
                     if (expectedCount > 0 && ++count >= expectedCount)
                     {
@@ -780,8 +780,8 @@ namespace WorkerTest
                 int accumulatorsCount = SerDe.ReadInt(s);
                 Assert.IsTrue(accumulatorsCount == 1);
                 var accumulatorFromWorker = ReadAccumulator(s, accumulatorsCount).First();
-                Assert.AreEqual(accumulatorId, accumulatorFromWorker.Key);
-                Assert.AreEqual(expectedCount, accumulatorFromWorker.Value);
+                Assert.AreEqual(accumulatorId, accumulatorFromWorker.Item1);
+                Assert.AreEqual(expectedCount, accumulatorFromWorker.Item2);
 
                 SerDe.ReadInt(s);
             }

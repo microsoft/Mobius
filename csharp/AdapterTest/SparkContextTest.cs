@@ -153,6 +153,23 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestRunJob()
+        {
+            // Arrange
+            Mock<ISparkContextProxy> sparkContextProxy = new Mock<ISparkContextProxy>();
+            SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
+            RDD<int> rdd = sc.Parallelize(new int[] {0, 1, 2, 3, 4, 5}, 2);
+            sparkContextProxy.Setup(m => m.RunJob(It.IsAny<IRDDProxy>(), It.IsAny<IEnumerable<int>>()));
+
+            // Act
+            int[] partitions = new int[] { 0, 1 };
+            rdd.SparkContext.RunJob(rdd, partitions);
+
+            // Assert
+            sparkContextProxy.Verify(m => m.RunJob(rdd.RddProxy, partitions), Times.Once);
+        }
+
+        [Test]
         public void TestCancelAllJobs()
         {
             // Arrange
@@ -355,7 +372,7 @@ namespace AdapterTest
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
             // Act
-            RDD<KeyValuePair<byte[], byte[]>> rdd = sc.WholeTextFiles(filePath, null);
+            RDD<Tuple<byte[], byte[]>> rdd = sc.WholeTextFiles(filePath, null);
 
             // Assert
             Assert.IsNotNull(rdd);
@@ -377,7 +394,7 @@ namespace AdapterTest
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
             // Act
-            RDD<KeyValuePair<byte[], byte[]>> rdd = sc.BinaryFiles(filePath, null);
+            RDD<Tuple<byte[], byte[]>> rdd = sc.BinaryFiles(filePath, null);
 
             // Assert
             Assert.IsNotNull(rdd);
@@ -428,7 +445,7 @@ namespace AdapterTest
 
             Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
             Mock<ISparkContextProxy> sparkContextProxy = new Mock<ISparkContextProxy>();
-            sparkContextProxy.Setup(m => m.NewAPIHadoopFile(filePath, It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<int>()))
+            sparkContextProxy.Setup(m => m.NewAPIHadoopFile(filePath, It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<Tuple<string, string>>>(), It.IsAny<int>()))
                 .Returns(rddProxy.Object);
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
@@ -456,7 +473,7 @@ namespace AdapterTest
 
             Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
             Mock<ISparkContextProxy> sparkContextProxy = new Mock<ISparkContextProxy>();
-            sparkContextProxy.Setup(m => m.HadoopFile(filePath, It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<int>()))
+            sparkContextProxy.Setup(m => m.HadoopFile(filePath, It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<Tuple<string, string>>>(), It.IsAny<int>()))
                 .Returns(rddProxy.Object);
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
@@ -482,12 +499,12 @@ namespace AdapterTest
 
             Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
             Mock<ISparkContextProxy> sparkContextProxy = new Mock<ISparkContextProxy>();
-            sparkContextProxy.Setup(m => m.NewAPIHadoopRDD(It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<int>()))
+            sparkContextProxy.Setup(m => m.NewAPIHadoopRDD(It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<Tuple<string, string>>>(), It.IsAny<int>()))
                 .Returns(rddProxy.Object);
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
             const string inputFormatClass = "org.apache.hadoop.mapreduce.lib.input.TextInputFormat";
-            var conf = new KeyValuePair<string, string>[] { };
+            var conf = new Tuple<string, string>[] { };
             // Act
             RDD<byte[]> rdd = sc.NewAPIHadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf);
 
@@ -509,12 +526,12 @@ namespace AdapterTest
 
             Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
             Mock<ISparkContextProxy> sparkContextProxy = new Mock<ISparkContextProxy>();
-            sparkContextProxy.Setup(m => m.HadoopRDD(It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<int>()))
+            sparkContextProxy.Setup(m => m.HadoopRDD(It.IsAny<string>(), keyClass, valueClass, keyConverterClass, valueConverterClass, It.IsAny<IEnumerable<Tuple<string, string>>>(), It.IsAny<int>()))
                 .Returns(rddProxy.Object);
             SparkContext sc = new SparkContext(sparkContextProxy.Object, null);
 
             const string inputFormatClass = "org.apache.hadoop.mapreduce.lib.input.TextInputFormat";
-            var conf = new KeyValuePair<string, string>[] { };
+            var conf = new Tuple<string, string>[] { };
             // Act
             RDD<byte[]> rdd = sc.HadoopRDD(inputFormatClass, keyClass, valueClass, keyConverterClass, valueConverterClass, conf);
 

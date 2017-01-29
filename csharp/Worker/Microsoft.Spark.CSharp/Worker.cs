@@ -533,7 +533,7 @@ namespace Microsoft.Spark.CSharp
                         .GetField("value", BindingFlags.NonPublic | BindingFlags.Instance)
                         .GetValue(item.Value);
                 logger.LogDebug("({0}, {1})", item.Key, value);
-                formatter.Serialize(ms, new KeyValuePair<int, dynamic>(item.Key, value));
+                formatter.Serialize(ms, new Tuple<int, dynamic>(item.Key, value));
                 byte[] buffer = ms.ToArray();
                 SerDe.Write(networkStream, buffer.Length);
                 SerDe.Write(networkStream, buffer);
@@ -649,7 +649,7 @@ namespace Microsoft.Spark.CSharp
                                 }
                                 watch.Stop();
 
-                                yield return new KeyValuePair<byte[], byte[]>(pairKey, pairValue);
+                                yield return new Tuple<byte[], byte[]>(pairKey, pairValue);
                                 break;
                             }
 
