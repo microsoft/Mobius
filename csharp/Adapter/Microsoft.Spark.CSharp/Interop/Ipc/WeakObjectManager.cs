@@ -69,8 +69,8 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 int previousReferencesCountBenchmark = referencesCountBenchmark;
                 checkCount *= 2;
                 referencesCountBenchmark = referencesCountBenchmark + referencesCountBenchmark / 2;
-                logger.LogDebug("Adjust checkCount from {0} to {1}, referencesCountBenchmark from {2} to {3}",
-                    previousCheckCount, checkCount, previousReferencesCountBenchmark, referencesCountBenchmark);
+                //logger.LogDebug("Adjust checkCount from {0} to {1}, referencesCountBenchmark from {2} to {3}",
+                //    previousCheckCount, checkCount, previousReferencesCountBenchmark, referencesCountBenchmark);
             }
             return checkCount;
         }
@@ -134,14 +134,14 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         private void RunReleaseObjectLoop()
         {
-            logger.LogDebug("Checking objects thread start ...");
+            //logger.LogDebug("Checking objects thread start ...");
             while (shouldKeepRunning)
             {
                 ReleseGarbageCollectedObjects();
                 Thread.Sleep(CheckInterval);
             }
 
-            logger.LogDebug("Checking objects thread stopped.");
+            //logger.LogDebug("Checking objects thread stopped.");
         }
 
         ~WeakObjectManagerImpl()
@@ -165,13 +165,13 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             int referencesCount = weakReferences.Count;
             if (referencesCount == 0)
             {
-                logger.LogDebug("check begin : quit as weakReferences.Count = 0");
+                //logger.LogDebug("check begin : quit as weakReferences.Count = 0");
                 return;
             }
 
             var beginTime = DateTime.Now;
             int checkCount = checkCountController.AdjustCheckCount(referencesCount);
-            logger.LogDebug("check begin : weakReferences.Count = {0}, checkCount: {1}", referencesCount, checkCount);
+            //logger.LogDebug("check begin : weakReferences.Count = {0}, checkCount: {1}", referencesCount, checkCount);
             int garbageCount;
             var aliveList = ReleseGarbageCollectedObjects(checkCount, out garbageCount);
 
@@ -179,11 +179,11 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             aliveList.ForEach(item => weakReferences.Enqueue(item));
             var timeStoreAlive = DateTime.Now;
 
-            logger.LogDebug("check end : released {0} garbage, remain {1} alive, used {2} ms : release garbage used {3} ms, store alive used {4} ms",
-                    garbageCount, weakReferences.Count, (DateTime.Now - beginTime).TotalMilliseconds,
-                    (timeReleaseGarbage - beginTime).TotalMilliseconds,
-                    (timeStoreAlive - timeReleaseGarbage).TotalMilliseconds
-                );
+            //logger.LogDebug("check end : released {0} garbage, remain {1} alive, used {2} ms : release garbage used {3} ms, store alive used {4} ms",
+            //        garbageCount, weakReferences.Count, (DateTime.Now - beginTime).TotalMilliseconds,
+            //        (timeReleaseGarbage - beginTime).TotalMilliseconds,
+            //        (timeStoreAlive - timeReleaseGarbage).TotalMilliseconds
+            //    );
         }
 
         private List<WeakReferenceObjectIdPair> ReleseGarbageCollectedObjects(int checkCount, out int garbageCount)
@@ -208,7 +208,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
                 i++;
                 if (i >= checkCount)
                 {
-                    logger.LogDebug("Stop releasing as exceeded allowed checkCount: {0}", checkCount);
+                    //logger.LogDebug("Stop releasing as exceeded allowed checkCount: {0}", checkCount);
                     break;
                 }
             }
@@ -238,7 +238,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public virtual void Dispose()
         {
-            logger.LogInfo("Dispose {0}", this.GetType());
+            //logger.LogInfo("Dispose {0}", this.GetType());
             shouldKeepRunning = false;
         }
     }
