@@ -47,7 +47,7 @@ if "%precheck%" == "bad" (goto :EOF)
 @rem 
 @rem setup Hadoop and Spark versions
 @rem
-set SPARK_VERSION=2.0.0
+set SPARK_VERSION=2.0.2
 set HADOOP_VERSION=2.6
 set APACHE_DIST_SERVER=archive.apache.org
 @echo [RunSamples.cmd] SPARK_VERSION=%SPARK_VERSION%, HADOOP_VERSION=%HADOOP_VERSION%, APACHE_DIST_SERVER=%APACHE_DIST_SERVER%
