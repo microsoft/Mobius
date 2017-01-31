@@ -35,7 +35,6 @@ namespace Microsoft.Spark.CSharp.Streaming
             var shuffled = locallyCombined.PartitionBy(numPartitions);
 
             return shuffled.MapPartitionsWithIndex(new GroupByMergeHelper<K, V>(reduceFunc).Execute, true);
-            //return self.CombineByKey(() => default(V) == null ? (V) Activator.CreateInstance(typeof(V)) : default(V), reduceFunc, reduceFunc, numPartitions);
         }
 
         /// <summary>
