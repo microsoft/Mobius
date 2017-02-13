@@ -68,11 +68,12 @@ namespace AdapterTest
         /// Test StatusTracker.GetJobInfo() and methods of class SparkJobInfo.
         /// </summary>
         [Test]
-        public void TestSparkJobInfo()
+        public void TestSparkJobInfo(
+            [Values(JobExecutionStatus.Failed, JobExecutionStatus.Running, JobExecutionStatus.Succeeded, JobExecutionStatus.Unknown)] JobExecutionStatus status
+            )
         {
             const int jobId = 65536;
             int[] stageIds = new[] { 100, 102, 104 };
-            const string status = "RUNNING";
 
             // arrange
             Mock<IStatusTrackerProxy> statusTrackerProxy = new Mock<IStatusTrackerProxy>();

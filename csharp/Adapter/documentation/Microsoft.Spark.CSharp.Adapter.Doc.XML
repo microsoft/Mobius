@@ -2559,12 +2559,37 @@
             <param name="stageId"></param>
             <returns></returns>
         </member>
+        <member name="T:Microsoft.Spark.CSharp.Core.JobExecutionStatus">
+            <summary>
+            Status associated with a job information of Spark
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.JobExecutionStatus.Failed">
+            <summary>
+            Spark Job execution has failed
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.JobExecutionStatus.Running">
+            <summary>
+            Spark Job execution is currently running
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.JobExecutionStatus.Succeeded">
+            <summary>
+            Spark Job execution has succeeded
+            </summary>
+        </member>
+        <member name="F:Microsoft.Spark.CSharp.Core.JobExecutionStatus.Unknown">
+            <summary>
+            Spark Job status is unknown
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Core.SparkJobInfo">
             <summary>
             SparkJobInfo represents a job information of Spark
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Core.SparkJobInfo.#ctor(System.Int32,System.Int32[],System.String)">
+        <member name="M:Microsoft.Spark.CSharp.Core.SparkJobInfo.#ctor(System.Int32,System.Int32[],Microsoft.Spark.CSharp.Core.JobExecutionStatus)">
             <summary>
             Initializes a SparkJobInfo instance with a given job Id, stage Ids, and status
             </summary>
@@ -2642,7 +2667,7 @@
         </member>
         <member name="P:Microsoft.Spark.CSharp.Core.SparkStageInfo.NumFailedTasks">
             <summary>
-            Gets the number of failed tasks of this SparkStageInfro
+            Gets the number of failed tasks of this SparkStageInfo
             </summary>
         </member>
         <member name="T:Microsoft.Spark.CSharp.Core.StorageLevelType">
