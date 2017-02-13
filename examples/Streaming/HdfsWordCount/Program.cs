@@ -40,7 +40,7 @@ namespace Microsoft.Spark.CSharp.Examples
 
                     var lines = context.TextFileStream(inputDir);
                     var words = lines.FlatMap(l => l.Split(' '));
-                    var pairs = words.Map(w => new KeyValuePair<string, int>(w, 1));
+                    var pairs = words.Map(w => new Tuple<string, int>(w, 1));
                     var wordCounts = pairs.ReduceByKey((x, y) => x + y);
 
                     wordCounts.ForeachRDD((time, rdd) =>
