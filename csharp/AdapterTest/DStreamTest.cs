@@ -244,6 +244,33 @@ namespace AdapterTest
         }
 
         [Test]
+        public void TestDStreamGroupByKeyAndWindow()
+        {
+            var ssc = new StreamingContext(new SparkContext("", ""), 1000L);
+            Assert.IsNotNull((ssc.streamingContextProxy as MockStreamingContextProxy));
+
+            var lines = ssc.TextFileStream(Path.GetTempPath());
+            Assert.IsNotNull(lines.DStreamProxy);
+
+            var words = lines.FlatMap(l => l.Split(' '));
+
+            var pairs = words.Map(w => new Tuple<string, int>(w, 1));
+
+            var doubleCounts = pairs.GroupByKeyAndWindow(1000, 0).FlatMapValues(vs => vs).ReduceByKey((x, y) => x + y);
+            doubleCounts.ForeachRDD((time, rdd) =>
+            {
+                var taken = rdd.Collect();
+                Assert.AreEqual(taken.Length, 9);
+
+                foreach (object record in taken)
+                {
+                    Tuple<string, int> countByWord = (Tuple<string, int>) record;    
+                    Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 2 * 23 : 2 * 22, countByWord.Item2);
+                }
+            });
+        }
+
+        [Test]
         public void TestDStreamUpdateStateByKey()
         {
             var ssc = new StreamingContext(new SparkContext("", ""), 1000L);
@@ -265,7 +292,7 @@ namespace AdapterTest
                 foreach (object record in taken)
                 {
                     Tuple<string, int> countByWord = (Tuple<string, int>)record;
-                    Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 2 * 23 : 2 * 22);
+                    Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 2 * 23 : 2 * 22, countByWord.Item2);
                 }
             });
 

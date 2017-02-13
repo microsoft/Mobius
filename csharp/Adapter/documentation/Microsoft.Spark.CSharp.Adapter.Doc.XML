@@ -8683,7 +8683,7 @@
             the given function on the previous state of the key and the new values of the key.
             </summary>
         </member>
-        <member name="T:Microsoft.Spark.CSharp.Streaming.CombineByKeyHelper`3">
+        <member name="T:Microsoft.Spark.CSharp.Streaming.GroupByMergeHelper`2">
             <summary>
             Following classes are defined explicitly instead of using anonymous method as delegate to prevent C# compiler from generating
             private anonymous type that is not marked serializable. Since the delegate has to be serialized and sent to the Spark workers
