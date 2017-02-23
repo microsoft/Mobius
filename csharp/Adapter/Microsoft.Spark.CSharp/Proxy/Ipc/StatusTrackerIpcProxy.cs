@@ -44,7 +44,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
             JvmObjectReference jJobInfo = new JvmObjectReference((string)jobInfoId);
             int[] stageIds = (int[])SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jJobInfo, "stageIds");
-            string status = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jJobInfo, "status").ToString();
+            string statusString = SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jJobInfo, "status").ToString();
+            var status = (JobExecutionStatus) Enum.Parse(typeof(JobExecutionStatus), statusString, true);
 
             return new SparkJobInfo(jobId, stageIds, status);
         }

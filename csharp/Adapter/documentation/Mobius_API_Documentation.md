@@ -362,6 +362,13 @@
 ---
   
   
+###<font color="#68228B">Microsoft.Spark.CSharp.Core.JobExecutionStatus</font>
+####Summary
+  
+            
+            Status associated with a job information of Spark
+            
+        
 ###<font color="#68228B">Microsoft.Spark.CSharp.Core.SparkJobInfo</font>
 ####Summary
   

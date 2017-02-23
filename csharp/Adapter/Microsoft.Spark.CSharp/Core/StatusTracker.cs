@@ -80,13 +80,36 @@ namespace Microsoft.Spark.CSharp.Core
     }
 
     /// <summary>
+    /// Status associated with a job information of Spark
+    /// </summary>
+    public enum JobExecutionStatus
+    {
+        /// <summary>
+        /// Spark Job execution has failed
+        /// </summary>
+        Failed,
+        /// <summary>
+        /// Spark Job execution is currently running
+        /// </summary>
+        Running,
+        /// <summary>
+        /// Spark Job execution has succeeded
+        /// </summary>
+        Succeeded,
+        /// <summary>
+        /// Spark Job status is unknown
+        /// </summary>
+        Unknown,
+    }
+
+    /// <summary>
     /// SparkJobInfo represents a job information of Spark
     /// </summary>
     public class SparkJobInfo
     {
         readonly int jobId;
         readonly int[] stageIds;
-        readonly string status;
+        readonly JobExecutionStatus status;
 
         /// <summary>
         /// Initializes a SparkJobInfo instance with a given job Id, stage Ids, and status
@@ -94,7 +117,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="jobId"></param>
         /// <param name="stageIds"></param>
         /// <param name="status"></param>
-        public SparkJobInfo(int jobId, int[] stageIds, string status)
+        public SparkJobInfo(int jobId, int[] stageIds, JobExecutionStatus status)
         {
             this.jobId = jobId;
             this.stageIds = stageIds;
@@ -114,7 +137,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// Gets the status of this Spark job
         /// </summary>
-        public string Status { get { return status; } }
+        public JobExecutionStatus Status { get { return status; } }
 
     }
 
@@ -191,7 +214,7 @@ namespace Microsoft.Spark.CSharp.Core
         public int NumCompletedTasks { get { return numCompletedTasks; } }
 
         /// <summary>
-        /// Gets the number of failed tasks of this SparkStageInfro
+        /// Gets the number of failed tasks of this SparkStageInfo
         /// </summary>
         public int NumFailedTasks { get { return numFailedTasks; } }
     }
