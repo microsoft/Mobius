@@ -25,6 +25,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>

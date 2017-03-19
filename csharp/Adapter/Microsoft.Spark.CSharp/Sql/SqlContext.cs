@@ -18,12 +18,12 @@ namespace Microsoft.Spark.CSharp.Sql
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SqlContext));
 
         private readonly ISqlContextProxy sqlContextProxy;
-        protected readonly SparkContext sparkContext;
         internal ISqlContextProxy SqlContextProxy { get { return sqlContextProxy; } }
 
         private static SqlContext instance;
 
-        private SparkSession sparkSession;
+        private readonly SparkSession sparkSession;
+        private readonly SparkContext sparkContext;
         private bool isRootContext;
 
         /// <summary>
@@ -32,6 +32,14 @@ namespace Microsoft.Spark.CSharp.Sql
         public SparkSession SparkSession
         {
             get { return sparkSession; }
+        }
+
+        /// <summary>
+        /// Underlying SparkContext
+        /// </summary>
+        public SparkContext SparkContext
+        {
+            get { return sparkContext; }
         }
 
         internal SqlContext(SparkSession sparkSession, bool isRootContext)
