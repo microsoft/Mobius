@@ -23,7 +23,6 @@ namespace Microsoft.Spark.CSharp.Sql
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(SparkSession));
 
         private ISparkSessionProxy sparkSessionProxy;
-        private readonly SparkContext sparkContext;
 
         internal ISparkSessionProxy SparkSessionProxy
         {
@@ -43,10 +42,10 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return catalog ?? (catalog = new Catalog.Catalog(SparkSessionProxy.GetCatalog())); }
         }
 
-        internal SparkContext SparkContext
-        {
-            get { return sparkContext; }
-        }
+        /// <summary>
+        /// Interface through which the user may access the underlying SparkContext.
+        /// </summary>
+        public SparkContext SparkContext { get; private set; }
 
         public UdfRegistration Udf
         {
@@ -64,7 +63,7 @@ namespace Microsoft.Spark.CSharp.Sql
         internal SparkSession(SparkContext sparkContext)
         {
             sparkSessionProxy = sparkContext.SparkContextProxy.CreateSparkSession();
-            this.sparkContext = sparkContext;
+            SparkContext = sparkContext;
         }
 
         internal SparkSession(ISparkSessionProxy sparkSessionProxy)
@@ -100,7 +99,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrameReader Read()
         {
             logger.LogInfo("Using DataFrameReader to read input data from external data source");
-            return new DataFrameReader(sparkSessionProxy.Read(), sparkContext);
+            return new DataFrameReader(sparkSessionProxy.Read(), SparkContext);
         }
 
         /// <summary>
@@ -118,7 +117,7 @@ namespace Microsoft.Spark.CSharp.Sql
             var rddRow = rdd.Map(r => r);
             rddRow.serializedMode = SerializedMode.Row;
 
-            return new DataFrame(sparkSessionProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext);
+            return new DataFrame(sparkSessionProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), SparkContext);
         }
 
         /// <summary>
@@ -128,7 +127,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public DataFrame Table(string tableName)
         {
-            return new DataFrame(sparkSessionProxy.Table(tableName), sparkContext);
+            return new DataFrame(sparkSessionProxy.Table(tableName), SparkContext);
         }
 
         /// <summary>
@@ -139,7 +138,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public DataFrame Sql(string sqlQuery)
         {
             logger.LogInfo("SQL query to execute on the dataframe is {0}", sqlQuery);
-            return new DataFrame(sparkSessionProxy.Sql(sqlQuery), sparkContext);
+            return new DataFrame(sparkSessionProxy.Sql(sqlQuery), SparkContext);
         }
     }
 }
