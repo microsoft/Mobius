@@ -7045,6 +7045,11 @@
             Interface through which the user may register User Defined Functions.
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.SparkSession.SparkContext">
+            <summary>
+            Interface through which the user may access the underlying SparkContext.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Builder">
             <summary>
             Builder for SparkSession
