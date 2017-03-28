@@ -145,7 +145,7 @@ The following sample commands show how to run Mobius examples in local mode. Usi
 Computes the _approximate_ value of Pi using two appropaches and displays the value.
 
 ### WordCount Example (Batch)
-* Run `sparkclr-submit.cmd --exe SparkClrPi.exe C:\Git\Mobius\examples\Batch\WordCount\bin\Debug <InputFilePath>`
+* Run `sparkclr-submit.cmd --exe SparkClrWordCount.exe C:\Git\Mobius\examples\Batch\WordCount\bin\Debug <InputFilePath>`
 
 `InputFilePath` should be in one of the following formats:
 * `hdfs://path/to/inputfile`
