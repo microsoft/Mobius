@@ -318,7 +318,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Sample(bool withReplacement, double fraction, long seed)
         {
-            return new RDD<T>(RddProxy.Sample(withReplacement, fraction, seed), sparkContext);
+            return new RDD<T>(RddProxy.Sample(withReplacement, fraction, seed), sparkContext, serializedMode);
         }
 
         /// <summary>
@@ -335,7 +335,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns>split RDDs in a list</returns>
         public RDD<T>[] RandomSplit(double[] weights, long seed)
         {
-            return RddProxy.RandomSplit(weights, seed).Select(r => new RDD<T>(r, sparkContext)).ToArray();
+            return RddProxy.RandomSplit(weights, seed).Select(r => new RDD<T>(r, sparkContext, serializedMode)).ToArray();
         }
 
         /// <summary>
@@ -450,7 +450,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Union(RDD<T> other)
         {
-            var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext);
+            var rdd = new RDD<T>(RddProxy.Union(other.RddProxy), sparkContext, serializedMode);
             if (partitioner == other.partitioner && RddProxy.GetNumPartitions() == rdd.RddProxy.GetNumPartitions())
                 rdd.partitioner = partitioner;
             return rdd;
@@ -559,7 +559,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<string> Pipe(string command)
         {
-            return new RDD<string>(RddProxy.Pipe(command), sparkContext);
+            return new RDD<string>(RddProxy.Pipe(command), sparkContext, SerializedMode.String);
         }
 
         /// <summary>
@@ -925,7 +925,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Repartition(int numPartitions)
         {
-            return new RDD<T>(RddProxy.Repartition(numPartitions), sparkContext);
+            return new RDD<T>(RddProxy.Repartition(numPartitions), sparkContext, serializedMode);
         }
 
         /// <summary>
@@ -942,7 +942,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T> Coalesce(int numPartitions, bool shuffle = false)
         {
-            return new RDD<T>(RddProxy.Coalesce(numPartitions, shuffle), sparkContext);
+            return new RDD<T>(RddProxy.Coalesce(numPartitions, shuffle), sparkContext, serializedMode);
         }
 
         /// <summary>
@@ -1080,7 +1080,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns>A random sub-sample of the RDD without replacement.</returns>
         internal RDD<T> RandomSampleWithRange(double lb, double ub, long seed)
         {
-            return new RDD<T>(RddProxy.RandomSampleWithRange(lb, ub, seed), sparkContext);
+            return new RDD<T>(RddProxy.RandomSampleWithRange(lb, ub, seed), sparkContext, serializedMode);
         }
 
         internal int GetDefaultPartitionNum()
