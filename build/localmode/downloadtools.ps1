@@ -247,7 +247,8 @@ function Download-BuildTools
     $tarToolExe = "$toolsDir\TarTool.exe"
     if (!(test-path $tarToolExe))
     {
-        $url = "http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=tartool&DownloadId=79064&FileTime=128946542158770000&Build=21046"
+        #$url = "http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=tartool&DownloadId=79064&FileTime=128946542158770000&Build=21046"
+	$url = "https://github.com/MobiusForSpark/build/blob/master/TarTool.zip?raw=true"
         $output="$toolsDir\TarTool.zip"
         Download-File $url $output
         Unzip-File $output $toolsDir
