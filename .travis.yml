@@ -25,3 +25,7 @@ script:
   - ../csharp/test.sh
   - cd ./localmode
   - ./run-samples.sh --validate
+notifications:
+  email:
+    recipients:
+      - sparkclrbld@microsoft.com
