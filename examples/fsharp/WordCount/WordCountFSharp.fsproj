@@ -25,6 +25,8 @@
     <DocumentationFile>bin\Debug\WordCountFSharp.XML</DocumentationFile>
     <StartArguments>
     </StartArguments>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

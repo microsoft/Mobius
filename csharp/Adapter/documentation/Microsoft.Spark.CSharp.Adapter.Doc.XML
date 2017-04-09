@@ -7045,6 +7045,11 @@
             Interface through which the user may access the underlying SparkContext.
             </summary>
         </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.SparkSession.Udf">
+            <summary>
+            Interface through which the user may register User Defined Functions.
+            </summary>
+        </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.SparkSession.Builder">
             <summary>
             Builder for SparkSession
@@ -7102,6 +7107,11 @@
         <member name="P:Microsoft.Spark.CSharp.Sql.SqlContext.SparkSession">
             <summary>
             Underlying SparkSession
+            </summary>
+        </member>
+        <member name="P:Microsoft.Spark.CSharp.Sql.SqlContext.SparkContext">
+            <summary>
+            Underlying SparkContext
             </summary>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.SqlContext.#ctor(Microsoft.Spark.CSharp.Core.SparkContext)">

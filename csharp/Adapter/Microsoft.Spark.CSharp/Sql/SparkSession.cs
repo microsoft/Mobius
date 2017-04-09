@@ -47,6 +47,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public SparkContext SparkContext { get; private set; }
 
+        /// <summary>
+        /// Interface through which the user may register User Defined Functions.
+        /// </summary>
         public UdfRegistration Udf
         {
             get { return new UdfRegistration(sparkSessionProxy.Udf); }

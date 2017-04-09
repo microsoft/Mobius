@@ -33,7 +33,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <returns></returns>
         public new DataFrame Sql(string sqlQuery)
         {
-            return new DataFrame(SqlContextProxy.Sql(sqlQuery), sparkContext);
+            return new DataFrame(SqlContextProxy.Sql(sqlQuery), SparkContext);
         }
 
         /// <summary>
