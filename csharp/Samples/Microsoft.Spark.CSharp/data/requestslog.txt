@@ -1,0 +1,10 @@
+4628deca-139d-4121-b540-8341b9c05c2a,iowa,ABTest123,production
+04b2cb96-20af-4fe3-bd0e-f474d5b077a8,texas,ABTest123,test
+145ee055-62a3-4d7b-951d-a5b461f151c6,illinois,ABTest456,production
+4dc71a6c-da79-4fc4-a72a-861f2809e6ad,osaka,ABTest123,production
+dd7a906f-8aaf-423f-b7fe-69c48d59d29b,singapore,ABTest456,test
+03991dd8-f9a6-4ac4-8fd7-d81c6c61ff0d,ireland,ABTest456,test
+9f819282-fd7f-47b0-8e9c-f0d134c33d58,iowa,ABTest123,production
+99d549fb-c5c5-40da-b1f0-5dc212ece02a,texas,ABTest789,production
+764a0280-efb0-48a0-b64d-31e3b34918d1,singapore,ABTest789,production
+ff8fae98-4318-48da-bd22-ac1bab9978f5,iowa,ABTest456,test

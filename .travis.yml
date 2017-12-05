@@ -1,0 +1,27 @@
+language: csharp
+solution: csharp/SparkCLR.sln
+sudo: required
+dist: trusty
+env:
+  - JDK=openjdk7
+before_install:
+  - sudo apt-get install xsltproc
+  - nuget install NUnit.Runners -Version 3.0.0 -OutputDirectory testrunner
+  # install maven 3.3.3
+  - wget http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+  - tar zxf apache-maven-3.3.9-bin.tar.gz && rm apache-maven-3.3.9-bin.tar.gz
+  - export M2_HOME="$PWD/apache-maven-3.3.9"
+  - export M2="$M2_HOME/bin"
+  - export PATH="$M2:$PATH"
+  - hash -r
+before_script:
+  - jdk_switcher use $JDK
+script:
+  - export MAVEN_OPTS="-XX:MaxPermSize=2g -Xmx4g"
+  - export JAVA_OPTS="-XX:MaxPermSize=2g -Xmx4g"
+  - export NUNITCONSOLE="`pwd`/testrunner/NUnit.Console.3.0.0/tools/nunit3-console.exe"
+  - cd ./build
+  - ./build.sh
+  - ../csharp/test.sh
+  - cd ./localmode
+  - ./run-samples.sh --validate
