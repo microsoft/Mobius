@@ -18,11 +18,13 @@ namespace Microsoft.Spark.CSharp.Sql
         [NonSerialized]
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(Row));
 
-        /// <summary>
-        /// Number of elements in the Row.
-        /// </summary>
-        /// <returns>elements count in this row</returns>
-        public abstract int Size();
+	    public abstract dynamic[] Values { get; }
+
+		/// <summary>
+		/// Number of elements in the Row.
+		/// </summary>
+		/// <returns>elements count in this row</returns>
+		public abstract int Size();
 
         /// <summary>
         /// Schema for the row.
@@ -86,7 +88,7 @@ namespace Microsoft.Spark.CSharp.Sql
     {
         private readonly StructType schema;
 
-	    public dynamic[] Values
+	    public override dynamic[] Values
 	    {
 		    get
 		    {

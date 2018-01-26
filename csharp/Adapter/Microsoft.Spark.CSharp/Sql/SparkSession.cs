@@ -114,18 +114,30 @@ namespace Microsoft.Spark.CSharp.Sql
             // The below sqlContextProxy.CreateDataFrame() will call byteArrayRDDToAnyArrayRDD() of SQLUtils.scala which only accept RDD of type RDD[Array[Byte]].
             // In byteArrayRDDToAnyArrayRDD() of SQLUtils.scala, the SerDeUtil.pythonToJava() will be called which is a mapPartitions inside. 
             // It will be executed until the CSharpWorker finishes Pickling to RDD[Array[Byte]].
-            var rddRow = rdd.Map(r => r);
+	        var rddRow = rdd.MapPartitions(r => r.Select(rr => rr));
             rddRow.serializedMode = SerializedMode.Row;
 
             return new DataFrame(sparkSessionProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), SparkContext);
         }
 
-        /// <summary>
-        /// Returns the specified table as a <see cref="DataFrame"/>
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public DataFrame Table(string tableName)
+		public DataFrame CreateDataFrame(RDD<Row> rdd, StructType schema)
+		{
+			// Note: This is for pickling RDD, convert to RDD<byte[]> which happens in CSharpWorker. 
+			// The below sqlContextProxy.CreateDataFrame() will call byteArrayRDDToAnyArrayRDD() of SQLUtils.scala which only accept RDD of type RDD[Array[Byte]].
+			// In byteArrayRDDToAnyArrayRDD() of SQLUtils.scala, the SerDeUtil.pythonToJava() will be called which is a mapPartitions inside. 
+			// It will be executed until the CSharpWorker finishes Pickling to RDD[Array[Byte]].
+			var rddRow = rdd.MapPartitions(rows => rows.Select(r => r.Values));
+			rddRow.serializedMode = SerializedMode.Row;
+
+			return new DataFrame(sparkSessionProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), SparkContext);
+		}
+
+		/// <summary>
+		/// Returns the specified table as a <see cref="DataFrame"/>
+		/// </summary>
+		/// <param name="tableName"></param>
+		/// <returns></returns>
+		public DataFrame Table(string tableName)
         {
             return new DataFrame(sparkSessionProxy.Table(tableName), SparkContext);
         }

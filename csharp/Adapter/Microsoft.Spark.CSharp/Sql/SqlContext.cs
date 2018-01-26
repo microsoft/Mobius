@@ -151,13 +151,25 @@ namespace Microsoft.Spark.CSharp.Sql
             return new DataFrame(sqlContextProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext);
         }
 
-        /// <summary>
-        /// Registers the given <see cref="DataFrame"/> as a temporary table in the catalog.
-        /// Temporary tables exist only during the lifetime of this instance of SqlContext.
-        /// </summary>
-        /// <param name="dataFrame"></param>
-        /// <param name="tableName"></param>
-        public void RegisterDataFrameAsTable(DataFrame dataFrame, string tableName)
+		public DataFrame CreateDataFrame(RDD<Row> rdd, StructType schema)
+		{
+			// Note: This is for pickling RDD, convert to RDD<byte[]> which happens in CSharpWorker. 
+			// The below sqlContextProxy.CreateDataFrame() will call byteArrayRDDToAnyArrayRDD() of SQLUtils.scala which only accept RDD of type RDD[Array[Byte]].
+			// In byteArrayRDDToAnyArrayRDD() of SQLUtils.scala, the SerDeUtil.pythonToJava() will be called which is a mapPartitions inside. 
+			// It will be executed until the CSharpWorker finishes Pickling to RDD[Array[Byte]].
+			var rddRow = rdd.Map(r => r);
+			rddRow.serializedMode = SerializedMode.Row;
+
+			return new DataFrame(sqlContextProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext);
+		}
+
+		/// <summary>
+		/// Registers the given <see cref="DataFrame"/> as a temporary table in the catalog.
+		/// Temporary tables exist only during the lifetime of this instance of SqlContext.
+		/// </summary>
+		/// <param name="dataFrame"></param>
+		/// <param name="tableName"></param>
+		public void RegisterDataFrameAsTable(DataFrame dataFrame, string tableName)
         {
             sqlContextProxy.RegisterDataFrameAsTable(dataFrame.DataFrameProxy, tableName);
         }
