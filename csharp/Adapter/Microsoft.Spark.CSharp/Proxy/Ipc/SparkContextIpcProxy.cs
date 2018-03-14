@@ -238,7 +238,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void SetJobGroup(string groupId, string description, bool interruptOnCancel)
         {
-            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "setCheckpointDir", new object[] { groupId, description, interruptOnCancel });
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "setJobGroup", new object[] { groupId, description, interruptOnCancel });
         }
 
         public void SetLocalProperty(string key, string value)

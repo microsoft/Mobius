@@ -60,6 +60,7 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 return sparkContext;
             }
+	        set { sparkContext = value; }
         }
 
         /// <summary>
