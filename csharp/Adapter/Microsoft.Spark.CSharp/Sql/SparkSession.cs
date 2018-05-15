@@ -9,7 +9,9 @@ using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Services;
 using Microsoft.Spark.CSharp.Sql.Catalog;
 
@@ -42,10 +44,12 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return catalog ?? (catalog = new Catalog.Catalog(SparkSessionProxy.GetCatalog())); }
         }
 
-        /// <summary>
-        /// Interface through which the user may access the underlying SparkContext.
-        /// </summary>
-        public SparkContext SparkContext { get; private set; }
+		public JvmObjectReference JvmReference => (sparkSessionProxy as SparkSessionIpcProxy)?.JvmReference;
+
+		/// <summary>
+		/// Interface through which the user may access the underlying SparkContext.
+		/// </summary>
+		public SparkContext SparkContext { get; private set; }
 
         public UdfRegistration Udf
         {

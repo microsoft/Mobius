@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Sql
@@ -66,10 +68,12 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
-        /// <summary>
-        /// Returns true if the collect and take methods can be run locally (without any Spark executors).
-        /// </summary>
-        public bool IsLocal
+	    public JvmObjectReference JvmReference => (dataFrameProxy as DataFrameIpcProxy)?.JvmDataFrameReference;
+
+		/// <summary>
+		/// Returns true if the collect and take methods can be run locally (without any Spark executors).
+		/// </summary>
+		public bool IsLocal
         {
             get
             {

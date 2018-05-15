@@ -31,7 +31,9 @@ namespace Microsoft.Spark.CSharp.Interop
             }
         }
 
-        internal static IConfigurationService configurationService;
+		public static IJvmBridge JvmBridge => SparkCLRIpcProxy.JvmBridge;
+
+	    internal static IConfigurationService configurationService;
 
         internal static IConfigurationService ConfigurationService
         {

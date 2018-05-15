@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// Reference to object created in JVM
     /// </summary>
     [Serializable]
-    internal class JvmObjectReference
+    public class JvmObjectReference
     {
         public string Id { get; private set; }
         private DateTime creationTime;

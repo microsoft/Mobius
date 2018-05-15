@@ -19,7 +19,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// supporting async JVM calls like StreamingContext.AwaitTermination()
     /// </summary>
     [ExcludeFromCodeCoverage] //IPC calls to JVM validated using validation-enabled samples - unit test coverage not reqiured
-    internal class JvmBridge : IJvmBridge
+    public class JvmBridge : IJvmBridge
     {
         private int portNumber;
         private readonly ConcurrentQueue<ISocketWrapper> sockets = new ConcurrentQueue<ISocketWrapper>();
