@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Spark.CSharp.Network;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -11,6 +12,6 @@ namespace Microsoft.Spark.CSharp.Core
     /// </summary>
     interface IRDDCollector
     {
-        IEnumerable<dynamic> Collect(int port, SerializedMode serializedMode, Type type);
+        IEnumerable<dynamic> Collect(SocketInfo info, SerializedMode serializedMode, Type type);
     }
 }

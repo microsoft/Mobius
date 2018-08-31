@@ -48,6 +48,11 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             return base.GetHashCode();
         }
 
+	    public string ObjectToString()
+	    {
+			return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(this, "toString").ToString();
+		}
+
         public string GetDebugInfo()
         {
             var javaObjectReferenceForClassObject = new JvmObjectReference(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(this, "getClass").ToString());

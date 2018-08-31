@@ -3513,7 +3513,7 @@
             Close the socket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>
@@ -3612,12 +3612,13 @@
             Close the ISocket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>
             <param name="remoteaddr">The IP address of the remote host</param>
             <param name="port">The port number of the remote host</param>
+            <param name="secret">The secret to connect, can be null</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.GetStream">
             <summary>
@@ -3770,7 +3771,7 @@
             Close the ISocket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>
@@ -3912,7 +3913,7 @@
             Close the ISocket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Services;
 
@@ -593,13 +594,13 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public T[] Collect()
         {
-            int port = RddProxy.CollectAndServe();
-            return Collect(port).Cast<T>().ToArray();
+            var info = RddProxy.CollectAndServe();
+            return Collect(info).Cast<T>().ToArray();
         }
 
-        internal IEnumerable<dynamic> Collect(int port)
+        internal IEnumerable<dynamic> Collect(SocketInfo info)
         {
-            return RddProxy.RDDCollector.Collect(port, serializedMode, typeof(T));
+            return RddProxy.RDDCollector.Collect(info, serializedMode, typeof(T));
         }
 
         /// <summary>
@@ -831,9 +832,9 @@ namespace Microsoft.Spark.CSharp.Core
 
 
                 var mappedRDD = MapPartitionsWithIndex<T>(new TakeHelper<T>(left).Execute);
-                int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, partitions);
+                var info = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, partitions);
 
-                IEnumerable<T> res = Collect(port).Cast<T>();
+                IEnumerable<T> res = Collect(info).Cast<T>();
 
                 items.AddRange(res);
                 partsScanned += numPartsToTry;
@@ -1066,8 +1067,8 @@ namespace Microsoft.Spark.CSharp.Core
             foreach (int partition in Enumerable.Range(0, GetNumPartitions()))
             {
                 var mappedRDD = MapPartitionsWithIndex<T>((pid, iter) => iter);
-                int port = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, Enumerable.Range(partition, 1));
-                foreach (T row in Collect(port))
+                var info = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, Enumerable.Range(partition, 1));
+                foreach (T row in Collect(info))
                     yield return row;
             }
         }

@@ -86,9 +86,9 @@ namespace AdapterTest
             Assert.Throws<InvalidOperationException>(() => clientSock.GetStream());
             Assert.Throws<InvalidOperationException>(() => clientSock.Receive());
             Assert.Throws<InvalidOperationException>(() => clientSock.Send(null));
-            Assert.Throws<SocketException>(() => clientSock.Connect(IPAddress.Any, 1024));
+            Assert.Throws<SocketException>(() => clientSock.Connect(IPAddress.Any, 1024, null));
 
-            clientSock.Connect(IPAddress.Loopback, port);
+            clientSock.Connect(IPAddress.Loopback, port, null);
 
             // Valid invalid operation
             var byteBuf = ByteBufPool.Default.Allocate();

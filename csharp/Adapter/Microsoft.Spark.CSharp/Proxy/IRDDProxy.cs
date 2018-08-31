@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Network;
 
 namespace Microsoft.Spark.CSharp.Proxy
 {
@@ -41,6 +42,6 @@ namespace Microsoft.Spark.CSharp.Proxy
         void SaveAsSequenceFile(string path, string compressionCodecClass);
         void SaveAsTextFile(string path, string compressionCodecClass);
         long Count();
-        int CollectAndServe();
+        SocketInfo CollectAndServe();
     }
 }

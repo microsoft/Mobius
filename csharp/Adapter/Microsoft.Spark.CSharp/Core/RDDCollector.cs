@@ -11,6 +11,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
+using Microsoft.Spark.CSharp.Services;
 using Microsoft.Spark.CSharp.Sql;
 
 namespace Microsoft.Spark.CSharp.Core
@@ -20,14 +21,28 @@ namespace Microsoft.Spark.CSharp.Core
     /// </summary>
     class RDDCollector : IRDDCollector
     {
-        public IEnumerable<dynamic> Collect(int port, SerializedMode serializedMode, Type type)
+		private static ILoggerService logger;
+		private static ILoggerService Logger
+		{
+			get
+			{
+				if (logger != null) return logger;
+				logger = LoggerServiceFactory.GetLogger(typeof(RDDCollector));
+				return logger;
+			}
+		}
+
+		public IEnumerable<dynamic> Collect(SocketInfo info, SerializedMode serializedMode, Type type)
         {
             IFormatter formatter = new BinaryFormatter();
             var sock = SocketFactory.CreateSocket();
-            sock.Connect(IPAddress.Loopback, port);
+            sock.Connect(IPAddress.Loopback, info.Port, null);
 
             using (var s = sock.GetStream())
             {
+				SerDe.Write(s,info.Secret);
+	            var reply = SerDe.ReadString(s);
+				Logger.LogDebug("Connect back to JVM: " + reply);
                 byte[] buffer;
                 while ((buffer = SerDe.ReadBytes(s)) != null && buffer.Length > 0)
                 {

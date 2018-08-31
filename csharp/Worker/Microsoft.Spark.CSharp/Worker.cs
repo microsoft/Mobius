@@ -81,11 +81,13 @@ namespace Microsoft.Spark.CSharp
                 InitializeLogger();
                 logger.LogInfo("RunSimpleWorker ...");
                 PrintFiles();
-
-                int javaPort = int.Parse(Console.ReadLine()); //reading port number written from JVM
-                logger.LogDebug("Port number used to pipe in/out data between JVM and CLR {0}", javaPort);
+                //int javaPort = int.Parse(Console.ReadLine()); //reading port number written from JVM
+	            var javaPort = int.Parse(Environment.GetEnvironmentVariable("PYTHON_WORKER_FACTORY_PORT"));
+	            var secret = Environment.GetEnvironmentVariable("PYTHON_WORKER_FACTORY_SECRET");
+				logger.LogDebug("Port and secret number used to pipe in/out data between JVM and CLR {0} {1}", javaPort, secret);
                 var socket = InitializeSocket(javaPort);
-                TaskRunner taskRunner = new TaskRunner(0, socket, false);
+	            //Microsoft.Spark.CSharp.Network.Utils.DoServerAuth(socket, secret);
+				TaskRunner taskRunner = new TaskRunner(0, socket, false, secret);
                 taskRunner.Run();
             }
             catch (Exception e)
@@ -119,7 +121,7 @@ namespace Microsoft.Spark.CSharp
         private static ISocketWrapper InitializeSocket(int javaPort)
         {
             var socket = SocketFactory.CreateSocket();
-            socket.Connect(IPAddress.Loopback, javaPort);
+            socket.Connect(IPAddress.Loopback, javaPort, null);
             return socket;
         }
 
@@ -138,9 +140,13 @@ namespace Microsoft.Spark.CSharp
                 //// initialize global state
                 //shuffle.MemoryBytesSpilled = 0
                 //shuffle.DiskBytesSpilled = 0
+	            SerDe.ReadInt(inputStream);
+				SerDe.ReadInt(inputStream);
+				SerDe.ReadInt(inputStream);
+				SerDe.ReadLong(inputStream);
 
-                // fetch name of workdir
-                string sparkFilesDir = SerDe.ReadString(inputStream);
+				// fetch name of workdir
+				string sparkFilesDir = SerDe.ReadString(inputStream);
                 logger.LogDebug("spark_files_dir: " + sparkFilesDir);
                 //SparkFiles._root_directory = sparkFilesDir
                 //SparkFiles._is_running_on_worker = True
@@ -149,7 +155,7 @@ namespace Microsoft.Spark.CSharp
 
                 ProcessBroadcastVariables(inputStream);
 
-                Accumulator.threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
+	            Accumulator.threadLocalAccumulatorRegistry = new Dictionary<int, Accumulator>();
 
                 var formatter = ProcessCommand(inputStream, outputStream, splitIndex, bootTime);
 

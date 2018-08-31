@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
+using Microsoft.Spark.CSharp.Network;
 
 
 namespace Microsoft.Spark.CSharp.Proxy
@@ -50,7 +51,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         void CancelJobGroup(string groupId);
         void CancelAllJobs();
         IStatusTrackerProxy StatusTracker { get; }
-        int RunJob(IRDDProxy rdd, IEnumerable<int> partitions);
+        SocketInfo RunJob(IRDDProxy rdd, IEnumerable<int> partitions);
         IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId);
         IRDDProxy CreateCSharpRdd(IRDDProxy prefvJavaRddReference, byte[] command, Dictionary<string, string> environmentVariables, List<string> pythonIncludes, bool preservePartitioning, List<Broadcast> broadcastVariables, List<byte[]> accumulator);
         IRDDProxy CreatePairwiseRDD(IRDDProxy javaReferenceInByteArrayRdd, int numPartitions, long partitionFuncId);

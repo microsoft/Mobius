@@ -119,7 +119,7 @@ namespace WorkerTest
         private ISocketWrapper CreateSocket(int serverPort)
         {
             var socket =SocketFactory.CreateSocket();
-            socket.Connect(IPAddress.Loopback, serverPort);
+            socket.Connect(IPAddress.Loopback, serverPort, null);
             return socket;
         }
 

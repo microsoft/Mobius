@@ -170,8 +170,8 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public IEnumerable<Row> Collect()
         {
-            int port = RddProxy.CollectAndServe();
-            return Rdd.Collect(port).Cast<Row>();
+            var info = RddProxy.CollectAndServe();
+            return Rdd.Collect(info).Cast<Row>();
         }
 
         //TODO - add this method if needed to convert Row to collection of T

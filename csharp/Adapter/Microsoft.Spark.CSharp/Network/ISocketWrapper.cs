@@ -11,7 +11,7 @@ namespace Microsoft.Spark.CSharp.Network
     /// ISocketWrapper interface defines the common methods to operate a socket (traditional socket or 
     /// Windows Registered IO socket)
     /// </summary>
-    internal interface ISocketWrapper : IDisposable
+    public interface ISocketWrapper : IDisposable
     {
         /// <summary>
         /// Accepts a incoming connection request.
@@ -24,12 +24,13 @@ namespace Microsoft.Spark.CSharp.Network
         /// </summary>
         void Close();
 
-        /// <summary>
-        /// Establishes a connection to a remote host that is specified by an IP address and a port number
-        /// </summary>
-        /// <param name="remoteaddr">The IP address of the remote host</param>
-        /// <param name="port">The port number of the remote host</param>
-        void Connect(IPAddress remoteaddr, int port);
+	    /// <summary>
+	    /// Establishes a connection to a remote host that is specified by an IP address and a port number
+	    /// </summary>
+	    /// <param name="remoteaddr">The IP address of the remote host</param>
+	    /// <param name="port">The port number of the remote host</param>
+	    /// <param name="secret">The secret to connect, can be null</param>
+	    void Connect(IPAddress remoteaddr, int port, string secret);
 
         /// <summary>
         /// Returns a stream used to send and receive data.

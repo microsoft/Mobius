@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
@@ -341,10 +342,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         }
         
-        public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
+        public SocketInfo RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
         {
             var jpartitions = JvmBridgeUtils.GetJavaList<int>(partitions);
-            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "runJob", new object[] { jvmSparkContextReference, (rdd as RDDIpcProxy).JvmRddReference, jpartitions }).ToString());
+            return SocketInfo.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "runJob", new object[] { jvmSparkContextReference, (rdd as RDDIpcProxy).JvmRddReference, jpartitions }));
         }
 
         public IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId)

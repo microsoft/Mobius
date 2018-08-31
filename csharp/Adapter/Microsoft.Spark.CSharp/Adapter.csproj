@@ -101,6 +101,7 @@
     <Compile Include="Network\RioNative.cs" />
     <Compile Include="Network\RioSocketWrapper.cs" />
     <Compile Include="Network\SaeaSocketWrapper.cs" />
+    <Compile Include="Network\SocketInfo.cs" />
     <Compile Include="Network\SocketStream.cs" />
     <Compile Include="Network\SockDataToken.cs" />
     <Compile Include="Network\SocketFactory.cs" />
@@ -187,6 +188,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
