@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -17,8 +16,6 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
-using Microsoft.Spark.CSharp.Sql;
-using Razorvine.Pickle;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -31,7 +28,6 @@ namespace Microsoft.Spark.CSharp
     /// </summary>
     public class Worker
     {
-        private static readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private static ILoggerService logger;
         private static SparkCLRAssemblyHandler assemblyHandler;
 
@@ -276,12 +272,15 @@ namespace Microsoft.Spark.CSharp
                     int stageId;
                     string deserializerMode;
                     string serializerMode;
-                    CSharpWorkerFunc workerFunc;
+                    CSharpWorkerFunc cSharpWorkerFunc;
                     ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
-                        out workerFunc);
+                        out cSharpWorkerFunc);
 
-                    ExecuteCommand(inputStream, outputStream, splitIndex, bootTime, deserializerMode, workerFunc, serializerMode,
-                        formatter, commandProcessWatch, stageId, isSqlUdf);
+                    Command command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode, 
+                        serializerMode, formatter, commandProcessWatch, isSqlUdf, 
+                        new List<WorkerFunc>() { new WorkerFunc(cSharpWorkerFunc, 0, stageId) });
+
+                    command.Execute();
                 }
                 else
                 {
@@ -294,8 +293,16 @@ namespace Microsoft.Spark.CSharp
                 var udfCount = SerDe.ReadInt(inputStream);
                 logger.LogDebug("Count of UDFs = {0}", udfCount);
 
-                if (udfCount == 1)
+                int iterCount = 0;
+                int stageId = -1;
+                string deserializerMode = null;
+                string serializerMode = null;
+                var commandProcessWatch = new Stopwatch();
+                List<WorkerFunc> workerFuncList = new List<WorkerFunc>();
+
+                do
                 {
+                    iterCount++;
                     CSharpWorkerFunc func = null;
                     var argCount = SerDe.ReadInt(inputStream);
                     logger.LogDebug("Count of args = {0}", argCount);
@@ -308,18 +315,14 @@ namespace Microsoft.Spark.CSharp
                         logger.LogDebug("UDF argIndex = {0}, Offset = {1}", argIndex, offset);
                         argOffsets.Add(offset);
                     }
+
                     var chainedFuncCount = SerDe.ReadInt(inputStream);
                     logger.LogDebug("Count of chained func = {0}", chainedFuncCount);
 
-                    var commandProcessWatch = new Stopwatch();
-                    int stageId = -1;
-                    string deserializerMode = null;
-                    string serializerMode = null;
                     for (int funcIndex = 0; funcIndex < chainedFuncCount; funcIndex++)
                     {
                         int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
-                        logger.LogDebug("UDF command length: " + lengthOfCommandByteArray)
-                        ;
+                        logger.LogDebug("UDF command length: " + lengthOfCommandByteArray);
 
                         if (lengthOfCommandByteArray > 0)
                         {
@@ -339,13 +342,14 @@ namespace Microsoft.Spark.CSharp
                     Debug.Assert(deserializerMode != null);
                     Debug.Assert(serializerMode != null);
                     Debug.Assert(func != null);
-                    ExecuteCommand(inputStream, outputStream, splitIndex, bootTime, deserializerMode, func, serializerMode, formatter,
-                        commandProcessWatch, stageId, isSqlUdf);
-                }
-                else
-                {
-                    throw new NotSupportedException(); //TODO - add support for multiple UDFs
-                }
+
+                    workerFuncList.Add(new WorkerFunc(func, argCount, stageId));
+                } while (iterCount < udfCount);
+
+                Command command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
+                        serializerMode, formatter, commandProcessWatch, isSqlUdf, workerFuncList);
+
+                command.Execute();
             }
 
             return formatter;
@@ -394,116 +398,7 @@ namespace Microsoft.Spark.CSharp
                 "--------------------------------------------------------------------------------------------------------------");
             logger.LogDebug(sb.ToString());
         }
-
-        private static void ExecuteCommand(Stream inputStream, Stream outputStream, int splitIndex, DateTime bootTime,
-                     string deserializerMode, CSharpWorkerFunc workerFunc, string serializerMode,
-                     IFormatter formatter, Stopwatch commandProcessWatch, int stageId, int isSqlUdf)
-        {
-            int count = 0;
-            int nullMessageCount = 0;
-            logger.LogDebug("Beginning to execute func");
-            var func = workerFunc.Func;
-
-            var funcProcessWatch = Stopwatch.StartNew();
-            DateTime initTime = DateTime.UtcNow;
-            foreach (var message in func(splitIndex, GetIterator(inputStream, deserializerMode, isSqlUdf)))
-            {
-                funcProcessWatch.Stop();
-
-                if (object.ReferenceEquals(null, message))
-                {
-                    nullMessageCount++;
-                    continue;
-                }
-
-                try
-                {
-                    WriteOutput(outputStream, serializerMode, message, formatter);
-                }
-                catch (Exception)
-                {
-                    logger.LogError("WriteOutput() failed at iteration {0}", count);
-                    throw;
-                }
-
-                count++;
-                funcProcessWatch.Start();
-            }
-
-            logger.LogInfo("Output entries count: " + count);
-            logger.LogDebug("Null messages count: " + nullMessageCount);
-
-            //if profiler:
-            //    profiler.profile(process)
-            //else:
-            //    process()
-
-            WriteDiagnosticsInfo(outputStream, bootTime, initTime);
-
-            commandProcessWatch.Stop();
-
-            // log statistics
-            logger.LogInfo("func process time: {0}", funcProcessWatch.ElapsedMilliseconds);
-            logger.LogInfo("stage {0}, command process time: {1}", stageId, commandProcessWatch.ElapsedMilliseconds);
-        }
-
-        private static void WriteOutput(Stream networkStream, string serializerMode, dynamic message, IFormatter formatter)
-        {
-            var buffer = GetSerializedMessage(serializerMode, message, formatter);
-            if (buffer == null)
-            {
-                logger.LogError("Buffer is null");
-            }
-
-            if (buffer.Length <= 0)
-            {
-                logger.LogError("Buffer length {0} cannot be <= 0", buffer.Length);
-            }
-
-            //Debug.Assert(buffer != null);
-            //Debug.Assert(buffer.Length > 0);
-            SerDe.Write(networkStream, buffer.Length);
-            SerDe.Write(networkStream, buffer);
-        }
-
-        private static byte[] GetSerializedMessage(string serializerMode, dynamic message, IFormatter formatter)
-        {
-            byte[] buffer;
-
-            switch ((SerializedMode)Enum.Parse(typeof(SerializedMode), serializerMode))
-            {
-                case SerializedMode.None:
-                    buffer = message as byte[];
-                    break;
-
-                case SerializedMode.String:
-                    buffer = SerDe.ToBytes(message as string);
-                    break;
-
-                case SerializedMode.Row:
-                    var pickler = new Pickler();
-                    buffer = pickler.dumps(new ArrayList { message });
-                    break;
-
-                default:
-                    try
-                    {
-                        var ms = new MemoryStream();
-                        formatter.Serialize(ms, message);
-                        buffer = ms.ToArray();
-                    }
-                    catch (Exception)
-                    {
-                        logger.LogError("Exception serializing output");
-                        logger.LogError("{0} : {1}", message.GetType().Name, message.GetType().FullName);
-                        throw;
-                    }
-                    break;
-            }
-
-            return buffer;
-        }
-
+                
         private static int ReadDiagnosticsInfo(Stream networkStream)
         {
             int rddId = SerDe.ReadInt(networkStream);
@@ -511,22 +406,7 @@ namespace Microsoft.Spark.CSharp
             int partitionId = SerDe.ReadInt(networkStream);
             logger.LogInfo("rddInfo: rddId {0}, stageId {1}, partitionId {2}", rddId, stageId, partitionId);
             return stageId;
-        }
-
-        private static void WriteDiagnosticsInfo(Stream networkStream, DateTime bootTime, DateTime initTime)
-        {
-            DateTime finishTime = DateTime.UtcNow;
-            const string format = "MM/dd/yyyy hh:mm:ss.fff tt";
-            logger.LogDebug("bootTime: {0}, initTime: {1}, finish_time: {2}",
-                bootTime.ToString(format), initTime.ToString(format), finishTime.ToString(format));
-            SerDe.Write(networkStream, (int)SpecialLengths.TIMING_DATA);
-            SerDe.Write(networkStream, ToUnixTime(bootTime));
-            SerDe.Write(networkStream, ToUnixTime(initTime));
-            SerDe.Write(networkStream, ToUnixTime(finishTime));
-
-            SerDe.Write(networkStream, 0L); //shuffle.MemoryBytesSpilled  
-            SerDe.Write(networkStream, 0L); //shuffle.DiskBytesSpilled
-        }
+        }       
 
         private static void WriteAccumulatorValues(Stream networkStream, IFormatter formatter)
         {
@@ -570,125 +450,7 @@ namespace Microsoft.Spark.CSharp
 
             logger.LogDebug("Files available in executor");
             logger.LogDebug("Location: {0}{1}{2}", folder, Environment.NewLine, outfiles.ToString());
-        }
-
-        private static long ToUnixTime(DateTime dt)
-        {
-            return (long)(dt - UnixTimeEpoch).TotalMilliseconds;
-        }
-
-        private static IEnumerable<dynamic> GetIterator(Stream inputStream, string serializedMode, int isFuncSqlUdf)
-        {
-            logger.LogInfo("Serialized mode in GetIterator: " + serializedMode);
-            IFormatter formatter = new BinaryFormatter();
-            var mode = (SerializedMode)Enum.Parse(typeof(SerializedMode), serializedMode);
-            int messageLength;
-            Stopwatch watch = Stopwatch.StartNew();
-	        Row tempRow = null;
-
-            while ((messageLength = SerDe.ReadInt(inputStream)) != (int)SpecialLengths.END_OF_DATA_SECTION)
-            {
-                watch.Stop();
-                if (messageLength > 0 || messageLength == (int)SpecialLengths.NULL)
-                {
-                    watch.Start();
-                    byte[] buffer = messageLength > 0 ? SerDe.ReadBytes(inputStream, messageLength) : null;
-                    watch.Stop();
-                    switch (mode)
-                    {
-                        case SerializedMode.String:
-                            {
-                                if (messageLength > 0)
-                                {
-                                    if (buffer == null)
-                                    {
-                                        logger.LogDebug("Buffer is null. Message length is {0}", messageLength);
-                                    }
-                                    yield return SerDe.ToString(buffer);
-                                }
-                                else
-                                {
-                                    yield return null;
-                                }
-                                break;
-                            }
-
-                        case SerializedMode.Row:
-                            {
-                                Debug.Assert(messageLength > 0);
-                                var unpickledObjects = PythonSerDe.GetUnpickledObjects(buffer);
-
-                                if (isFuncSqlUdf == 0)
-                                {
-									foreach (var row in unpickledObjects.Select(item => item as RowConstructor))
-									{
-										if (tempRow == null) tempRow = row.GetRow();
-										else tempRow.ResetValues(row.Values); // TODO: should we use ResetValues(tempRow.GetValues(row.Values)) or it this overkill
-										yield return tempRow;
-									}
-								}
-                                else
-                                {
-                                    foreach (var row in unpickledObjects)
-                                    {
-                                        yield return row;
-                                    }
-                                }
-
-                                break;
-                            }
-
-                        case SerializedMode.Pair:
-                            {
-                                byte[] pairKey = buffer;
-                                byte[] pairValue;
-
-                                watch.Start();
-                                int valueLength = SerDe.ReadInt(inputStream);
-                                if (valueLength > 0)
-                                {
-                                    pairValue = SerDe.ReadBytes(inputStream, valueLength);
-                                }
-                                else if (valueLength == (int)SpecialLengths.NULL)
-                                {
-                                    pairValue = null;
-                                }
-                                else
-                                {
-                                    throw new Exception(string.Format("unexpected valueLength: {0}", valueLength));
-                                }
-                                watch.Stop();
-
-                                yield return new Tuple<byte[], byte[]>(pairKey, pairValue);
-                                break;
-                            }
-
-                        case SerializedMode.None: //just return raw bytes
-                            {
-                                yield return buffer;
-                                break;
-                            }
-
-                        default:
-                            {
-                                if (buffer != null)
-                                {
-                                    var ms = new MemoryStream(buffer);
-                                    yield return formatter.Deserialize(ms);
-                                }
-                                else
-                                {
-                                    yield return null;
-                                }
-                                break;
-                            }
-                    }
-                }
-                watch.Start();
-            }
-
-            logger.LogInfo("total receive time: {0}", watch.ElapsedMilliseconds);
-        }
+        }                
 
         internal class SparkCLRAssemblyHandler
         {
