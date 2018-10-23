@@ -11,8 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -67,7 +65,58 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        internal void Execute()
+        internal void ExecuteNonSqlUDF()
+        {
+            int count = 0;
+            int nullMessageCount = 0;
+            logger.LogDebug("Beginning to execute non sql func");
+            WorkerFunc workerFunc = workerFuncList[0];
+            var func = workerFunc.Func.Func;
+
+            var funcProcessWatch = Stopwatch.StartNew();
+            DateTime initTime = DateTime.UtcNow;
+            foreach (var message in func(splitIndex, GetIterator(inputStream, deserializerMode, isSqlUdf)))
+            {
+                funcProcessWatch.Stop();
+
+                if (object.ReferenceEquals(null, message))
+                {
+                    nullMessageCount++;
+                    continue;
+                }
+
+                try
+                {
+                    WriteOutput(outputStream, serializerMode, message, formatter);
+                }
+                catch (Exception)
+                {
+                    logger.LogError("WriteOutput() failed at iteration {0}", count);
+                    throw;
+                }
+
+                count++;
+                funcProcessWatch.Start();
+            }
+
+            logger.LogInfo("Output entries count: " + count);
+            logger.LogDebug("Null messages count: " + nullMessageCount);
+
+            //if profiler:
+            //    profiler.profile(process)
+            //else:
+            //    process()
+
+            WriteDiagnosticsInfo(outputStream, bootTime, initTime);
+
+            commandProcessWatch.Stop();
+
+            // log statistics
+            logger.LogInfo("func process time: {0}", funcProcessWatch.ElapsedMilliseconds);
+            logger.LogInfo("stage {0}, command process time: {1}", workerFunc.StageId, commandProcessWatch.ElapsedMilliseconds);
+        }
+
+        internal void ExecuteSqlUDF()
         {
             int count = 0;
             int nullMessageCount = 0;
@@ -95,10 +144,7 @@ namespace Microsoft.Spark.CSharp
                         messages.Add(message);
                     }
 
-                    if (isSqlUdf != 0)
-                    {
-                        Array.Copy(rowDup, workerFunc.ArgsCount, rowDup, 0, rowDup.Length - workerFunc.ArgsCount);
-                    }
+                    Array.Copy(rowDup, workerFunc.ArgsCount, rowDup, 0, rowDup.Length - workerFunc.ArgsCount);
                 }
 
                 try

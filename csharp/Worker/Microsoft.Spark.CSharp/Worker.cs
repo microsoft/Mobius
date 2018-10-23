@@ -280,7 +280,7 @@ namespace Microsoft.Spark.CSharp
                         serializerMode, formatter, commandProcessWatch, isSqlUdf, 
                         new List<WorkerFunc>() { new WorkerFunc(cSharpWorkerFunc, 0, stageId) });
 
-                    command.Execute();
+                    command.ExecuteNonSqlUDF();
                 }
                 else
                 {
@@ -349,7 +349,7 @@ namespace Microsoft.Spark.CSharp
                 Command command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
                         serializerMode, formatter, commandProcessWatch, isSqlUdf, workerFuncList);
 
-                command.Execute();
+                command.ExecuteSqlUDF();
             }
 
             return formatter;
