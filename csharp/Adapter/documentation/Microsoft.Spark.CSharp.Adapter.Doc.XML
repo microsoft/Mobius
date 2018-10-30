@@ -5191,12 +5191,13 @@
             </summary>
             <returns>row count</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Show(System.Int32,System.Boolean)">
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Show(System.Int32,System.Int32,System.Boolean)">
             <summary>
             Displays rows of the DataFrame in tabular form
             </summary>
             <param name="numberOfRows">Number of rows to display - default 20</param>
             <param name="truncate">Indicates if strings more than 20 characters long will be truncated</param>
+            <param name="vertical">If set to True, print output rows vertically (one line per column value).</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.ShowSchema">
             <summary>
@@ -6211,13 +6212,14 @@
             Returns all column names as an array.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Show(System.Int32,System.Boolean)">
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Show(System.Int32,System.Int32,System.Boolean)">
             <summary>
             Displays the top 20 rows of Dataset in a tabular form. Strings more than 20 characters
             will be truncated, and all cells will be aligned right.
             </summary>
             <param name="numberOfRows">Number of rows - default is 20</param>
             <param name="truncate">Indicates if rows with more than 20 characters to be truncated</param>
+            <param name="vertical">If set to true, prints output rows vertically (one line per column value).</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.ShowSchema">
             <summary>

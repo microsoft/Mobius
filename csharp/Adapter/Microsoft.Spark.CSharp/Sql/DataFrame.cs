@@ -149,10 +149,11 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         /// <param name="numberOfRows">Number of rows to display - default 20</param>
         /// <param name="truncate">Indicates if strings more than 20 characters long will be truncated</param>
-        public void Show(int numberOfRows = 20, bool truncate = true)
+        /// <param name="vertical">If set to True, print output rows vertically (one line per column value).</param>
+        public void Show(int numberOfRows = 20, int truncate = 20, bool vertical = false)
         {
             logger.LogInfo("Writing {0} rows in the DataFrame to Console output", numberOfRows);
-            Console.WriteLine(dataFrameProxy.GetShowString(numberOfRows, truncate));
+            Console.WriteLine(dataFrameProxy.GetShowString(numberOfRows, truncate, vertical));
         }
 
         /// <summary>

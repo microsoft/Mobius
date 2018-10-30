@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -102,6 +103,11 @@ namespace Microsoft.Spark.CSharp
             logger.LogInfo("Output entries count: " + count);
             logger.LogDebug("Null messages count: " + nullMessageCount);
 
+            //if profiler:
+            //    profiler.profile(process)
+            //else:
+            //    process()
+
             WriteDiagnosticsInfo(outputStream, bootTime, initTime);
 
             commandProcessWatch.Stop();
@@ -119,7 +125,8 @@ namespace Microsoft.Spark.CSharp
 
             var funcProcessWatch = Stopwatch.StartNew();
             DateTime initTime = DateTime.UtcNow;
-
+            Console.WriteLine("sleeeping");
+            //Thread.Sleep(30000);
             foreach (var row in GetIterator(inputStream, deserializerMode, isSqlUdf))
             {
                 funcProcessWatch.Stop();                
@@ -190,6 +197,8 @@ namespace Microsoft.Spark.CSharp
                 logger.LogError("Buffer length {0} cannot be <= 0", buffer.Length);
             }
 
+            //Debug.Assert(buffer != null);
+            //Debug.Assert(buffer.Length > 0);
             SerDe.Write(networkStream, buffer.Length);
             SerDe.Write(networkStream, buffer);
         }
@@ -236,10 +245,8 @@ namespace Microsoft.Spark.CSharp
         {
             DateTime finishTime = DateTime.UtcNow;
             const string format = "MM/dd/yyyy hh:mm:ss.fff tt";
-
             logger.LogDebug("bootTime: {0}, initTime: {1}, finish_time: {2}",
                 bootTime.ToString(format), initTime.ToString(format), finishTime.ToString(format));
-
             SerDe.Write(networkStream, (int)SpecialLengths.TIMING_DATA);
             SerDe.Write(networkStream, ToUnixTime(bootTime));
             SerDe.Write(networkStream, ToUnixTime(initTime));
@@ -256,7 +263,8 @@ namespace Microsoft.Spark.CSharp
 
         private IEnumerable<dynamic> GetIterator(Stream inputStream, string serializedMode, int isFuncSqlUdf)
         {
-            logger.LogInfo("Serialized mode in GetIterator: " + serializedMode);           
+            logger.LogInfo("Serialized mode in GetIterator: " + serializedMode);
+            //Thread.Sleep(30000);
             IFormatter formatter = new BinaryFormatter();
             var mode = (SerializedMode)Enum.Parse(typeof(SerializedMode), serializedMode);
             int messageLength;
@@ -301,6 +309,12 @@ namespace Microsoft.Spark.CSharp
                                     {
                                         yield return row;
                                     }
+                                    //foreach (var row in unpickledObjects.Select(item => item as RowConstructor))
+                                    //{
+                                    //    if (tempRow == null) tempRow = row.GetRow();
+                                    //    else tempRow.ResetValues(row.Values); // TODO: should we use ResetValues(tempRow.GetValues(row.Values)) or it this overkill
+                                    //    yield return tempRow;
+                                    //}
                                 }
                                 else
                                 {

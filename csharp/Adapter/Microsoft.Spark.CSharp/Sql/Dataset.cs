@@ -92,7 +92,8 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         /// <param name="numberOfRows">Number of rows - default is 20</param>
         /// <param name="truncate">Indicates if rows with more than 20 characters to be truncated</param>
-        public void Show(int numberOfRows = 20, bool truncate = true)
+        /// <param name="vertical">If set to true, prints output rows vertically (one line per column value).</param>
+        public void Show(int numberOfRows = 20, int truncate = 20, bool vertical = false)
         {
             ToDF().Show(numberOfRows, truncate);
         }

@@ -135,8 +135,9 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void Accumulator(int port)
         {
-			jvmAccumulatorReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorV2", IPAddress.Loopback.ToString(), port);
-		}
+            jvmAccumulatorReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorV2", IPAddress.Loopback.ToString(), port);
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkContextReference, "register", new object[] { jvmAccumulatorReference });
+        }
 
         public void Stop()
         {

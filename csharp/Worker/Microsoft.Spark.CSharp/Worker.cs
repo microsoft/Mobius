@@ -278,7 +278,7 @@ namespace Microsoft.Spark.CSharp
 
                     Command command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode, 
                         serializerMode, formatter, commandProcessWatch, isSqlUdf, 
-                        new List<WorkerFunc>() { new WorkerFunc(cSharpWorkerFunc, 0, stageId) });
+                        new List<WorkerFunc>() { new WorkerFunc(cSharpWorkerFunc, 0, null, stageId) });
 
                     command.ExecuteNonSqlUDF();
                 }
@@ -307,8 +307,7 @@ namespace Microsoft.Spark.CSharp
                     var argCount = SerDe.ReadInt(inputStream);
                     logger.LogDebug("Count of args = {0}", argCount);
 
-                    var argOffsets = new List<int>();
-
+                    List<int> argOffsets = new List<int>();
                     for (int argIndex = 0; argIndex < argCount; argIndex++)
                     {
                         var offset = SerDe.ReadInt(inputStream);
@@ -343,7 +342,7 @@ namespace Microsoft.Spark.CSharp
                     Debug.Assert(serializerMode != null);
                     Debug.Assert(func != null);
 
-                    workerFuncList.Add(new WorkerFunc(func, argCount, stageId));
+                    workerFuncList.Add(new WorkerFunc(func, argCount, argOffsets, stageId));
                 } while (iterCount < udfCount);
 
                 Command command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
