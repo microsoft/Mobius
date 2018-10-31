@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HdfsWordCount", "Streaming\HdfsWordCount\HdfsWordCount.csproj", "{6A2C7CF9-D64E-490D-9841-269EE14F7932}"
 EndProject
@@ -29,8 +29,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FSharpExamples", "FSharpExamples", "{57B99251-5489-49C1-AEBA-E4B07D3F7E47}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WordCountFSharp", "fsharp\WordCount\WordCountFSharp.fsproj", "{17B63D32-EFC8-4EF5-831A-197A4FC29F06}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "JsonDataFrame", "fsharp\JsonDataFrame\JsonDataFrame.fsproj", "{27F88C0D-9D19-4709-8C88-FDB768BAD5AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -78,10 +76,6 @@ Global
 		{17B63D32-EFC8-4EF5-831A-197A4FC29F06}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17B63D32-EFC8-4EF5-831A-197A4FC29F06}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17B63D32-EFC8-4EF5-831A-197A4FC29F06}.Release|Any CPU.Build.0 = Release|Any CPU
-		{27F88C0D-9D19-4709-8C88-FDB768BAD5AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{27F88C0D-9D19-4709-8C88-FDB768BAD5AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{27F88C0D-9D19-4709-8C88-FDB768BAD5AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{27F88C0D-9D19-4709-8C88-FDB768BAD5AC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +91,5 @@ Global
 		{5C97498A-C4DB-43DD-86AD-4E50DEE8D405} = {28600A86-E011-41C9-AB41-591580EDB9F1}
 		{9FCC75C4-347F-44E8-9B07-C5273066DF9C} = {28600A86-E011-41C9-AB41-591580EDB9F1}
 		{17B63D32-EFC8-4EF5-831A-197A4FC29F06} = {57B99251-5489-49C1-AEBA-E4B07D3F7E47}
-		{27F88C0D-9D19-4709-8C88-FDB768BAD5AC} = {57B99251-5489-49C1-AEBA-E4B07D3F7E47}
 	EndGlobalSection
 EndGlobal

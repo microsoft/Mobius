@@ -921,7 +921,7 @@ namespace Microsoft.Spark.CSharp.Sql
             {typeof(double), "double"},
             {typeof(float), "float"},
             {typeof(byte), "tinyint"},
-            {typeof(int), "int"},
+            {typeof(int), "integer"},
             {typeof(long), "bigint"},
             {typeof(short), "smallint"}
         };

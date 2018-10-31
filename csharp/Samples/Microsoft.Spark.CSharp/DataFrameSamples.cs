@@ -1867,5 +1867,72 @@ namespace Microsoft.Spark.CSharp.Samples
             SparkCLRSamples.FileSystemHelper.DeleteDirectory(path, true);
             Console.WriteLine("Remove directory: {0}", path);
         }
+
+        /// <summary>
+        /// Single UDF Sample
+        /// </summary>
+        [Sample]
+        internal static void SingleUDFSample()
+        {
+            var sqlContext = GetSqlContext();
+            var peopleDataFrame = sqlContext.Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.RegisterTempTable("peopleDataFrame");
+
+            sqlContext.RegisterFunction("UDF", (int x, int y) => { return x + y; });
+
+            var rowSet = sqlContext.Sql("SELECT * FROM peopleDataFrame where UDF(age, 20) > 60");
+
+            rowSet.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(rowSet.Count() ,2);
+            }
+        }
+
+        /// <summary>
+        /// Single UDF Sample with duplicate values
+        /// </summary>
+        [Sample]
+        internal static void SingleUDFWithDupSample()
+        {
+            var sqlContext = GetSqlContext();
+            var peopleDataFrame = sqlContext.Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.RegisterTempTable("peopleDataFrame");
+
+            sqlContext.RegisterFunction("UDF", (int x, int y) => { return x + y; });
+
+            var rowSet = sqlContext.Sql("SELECT * FROM peopleDataFrame where UDF(age, age) < 50");
+
+            rowSet.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(rowSet.Count(), 1);
+            }
+        }
+
+        /// <summary>
+        /// Multiple UDFs sample
+        /// </summary>
+        [Sample]
+        internal static void MultipleUDFSample()
+        {
+            var sqlContext = GetSqlContext();
+            var peopleDataFrame = sqlContext.Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
+            peopleDataFrame.RegisterTempTable("peopleDataFrame");
+
+            sqlContext.RegisterFunction("UDF1", (int x, int y) => { return x + y; });
+            sqlContext.RegisterFunction("UDF2", (string name, string id) => { return name + ":"  + id; });
+
+            var rowSet = sqlContext.Sql("SELECT id, name, UDF1(age, 20) AS UDF1, UDF2(name, id) AS UDF2 FROM peopleDataFrame where UDF1(age, 20) > 60");
+
+            rowSet.Show();
+
+            if (SparkCLRSamples.Configuration.IsValidationEnabled)
+            {
+                Assert.AreEqual(rowSet.Count(), 2);
+            }
+        }
     }
 }

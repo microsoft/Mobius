@@ -71,20 +71,17 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CSharpWorker">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.2.0.200\lib\net45\CSharpWorker.exe</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\Debug\CSharpWorker.exe</HintPath>
     </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\..\packages\FSharp.Core.4.0.0.1\lib\net40\FSharp.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="log4net">
-      <HintPath>..\..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\Debug\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Spark.CSharp.Adapter">
-      <HintPath>..\..\packages\Microsoft.SparkCLR.2.0.200\lib\net45\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\csharp\Worker\Microsoft.Spark.CSharp\bin\Debug\Microsoft.Spark.CSharp.Adapter.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="Newtonsoft.Json">
