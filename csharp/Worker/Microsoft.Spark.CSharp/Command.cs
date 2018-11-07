@@ -1,4 +1,7 @@
-﻿using Microsoft.Spark.CSharp.Core;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Services;
 using Microsoft.Spark.CSharp.Sql;
@@ -28,10 +31,11 @@ namespace Microsoft.Spark.CSharp
         private Stopwatch commandProcessWatch;
         private int isSqlUdf;
         private List<WorkerFunc> workerFuncList;
+        private int stageId;
 
         public Command(Stream inputStream, Stream outputStream, int splitIndex, DateTime bootTime, 
             string deserializerMode, string serializerMode, IFormatter formatter, 
-            Stopwatch commandProcessWatch, int isSqlUdf, List<WorkerFunc> workerFuncList)
+            Stopwatch commandProcessWatch, int isSqlUdf, List<WorkerFunc> workerFuncList, int stageId)
         {
             this.inputStream = inputStream;
             this.outputStream = outputStream;
@@ -43,6 +47,7 @@ namespace Microsoft.Spark.CSharp
             this.commandProcessWatch = commandProcessWatch;
             this.isSqlUdf = isSqlUdf;
             this.workerFuncList = workerFuncList;
+            this.stageId = stageId;
 
             InitializeLogger();
         }
@@ -65,13 +70,25 @@ namespace Microsoft.Spark.CSharp
             }
         }
 
-        internal void ExecuteNonSqlUDF()
+        internal void Execute()
+        {
+            if (isSqlUdf == 0)
+            {
+                ExecuteNonSqlUDF();
+            }
+            else
+            {
+                ExecuteSqlUDF();
+            }
+        }
+
+        private void ExecuteNonSqlUDF()
         {
             int count = 0;
             int nullMessageCount = 0;
             logger.LogDebug("Beginning to execute non sql func");
             WorkerFunc workerFunc = workerFuncList[0];
-            var func = workerFunc.Func.Func;
+            var func = workerFunc.CharpWorkerFunc.Func;
 
             var funcProcessWatch = Stopwatch.StartNew();
             DateTime initTime = DateTime.UtcNow;
@@ -108,10 +125,10 @@ namespace Microsoft.Spark.CSharp
 
             // log statistics
             logger.LogInfo("func process time: {0}", funcProcessWatch.ElapsedMilliseconds);
-            logger.LogInfo("stage {0}, command process time: {1}", workerFunc.StageId, commandProcessWatch.ElapsedMilliseconds);
+            logger.LogInfo("stage {0}, command process time: {1}", stageId, commandProcessWatch.ElapsedMilliseconds);
         }
 
-        internal void ExecuteSqlUDF()
+        private void ExecuteSqlUDF()
         {
             int count = 0;
             int nullMessageCount = 0;
@@ -121,8 +138,7 @@ namespace Microsoft.Spark.CSharp
             DateTime initTime = DateTime.UtcNow;
 
             foreach (var row in GetIterator(inputStream, deserializerMode, isSqlUdf))
-            {
-                funcProcessWatch.Stop();                
+            {                               
                 List<Object> messages = new List<Object>();
                
                 foreach (WorkerFunc workerFunc in workerFuncList)
@@ -133,8 +149,10 @@ namespace Microsoft.Spark.CSharp
                         args.Add(row[offset]);
                     }
 
-                    foreach (var message in workerFunc.Func.Func(splitIndex, new[] { args.ToArray()}))
+                    foreach (var message in workerFunc.CharpWorkerFunc.Func(splitIndex, new[] { args.ToArray()}))
                     {
+                        funcProcessWatch.Stop();
+
                         if (object.ReferenceEquals(null, message))
                         {
                             nullMessageCount++;
@@ -174,7 +192,7 @@ namespace Microsoft.Spark.CSharp
 
             // log statistics
             logger.LogInfo("func process time: {0}", funcProcessWatch.ElapsedMilliseconds);
-            logger.LogInfo("command process time: {0}", commandProcessWatch.ElapsedMilliseconds);
+            logger.LogInfo("stage {0}, command process time: {0}", stageId, commandProcessWatch.ElapsedMilliseconds);
         }
 
         private void WriteOutput(Stream networkStream, string serializerMode, dynamic message, IFormatter formatter)

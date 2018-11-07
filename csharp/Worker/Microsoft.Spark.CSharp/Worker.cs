@@ -257,101 +257,117 @@ namespace Microsoft.Spark.CSharp
             logger.LogDebug("Is func Sql UDF = {0}", isSqlUdf);
 
             IFormatter formatter = new BinaryFormatter();
+            Command command = null;
 
             if (isSqlUdf == 0)
             {
-                logger.LogDebug("Processing non-UDF command");
-                int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
-                logger.LogDebug("Command length: " + lengthOfCommandByteArray);
-
-                if (lengthOfCommandByteArray > 0)
-                {
-                    var commandProcessWatch = new Stopwatch();
-                    commandProcessWatch.Start();
-
-                    int stageId;
-                    string deserializerMode;
-                    string serializerMode;
-                    CSharpWorkerFunc cSharpWorkerFunc;
-                    ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
-                        out cSharpWorkerFunc);
-
-                    Command command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode, 
-                        serializerMode, formatter, commandProcessWatch, isSqlUdf, 
-                        new List<WorkerFunc>() { new WorkerFunc(cSharpWorkerFunc, 0, null, stageId) });
-
-                    command.ExecuteNonSqlUDF();
-                }
-                else
-                {
-                    logger.LogWarn("lengthOfCommandByteArray = 0. Nothing to execute :-(");
-                }
+                command = ProcessNonUdfCommand(inputStream, outputStream, splitIndex, bootTime, formatter, isSqlUdf);
             }
             else
             {
-                logger.LogDebug("Processing UDF command");
-                var udfCount = SerDe.ReadInt(inputStream);
-                logger.LogDebug("Count of UDFs = {0}", udfCount);
+                command = ProcessUdfCommand(inputStream, outputStream, splitIndex, bootTime, formatter, isSqlUdf);
+            }
 
-                int iterCount = 0;
-                int stageId = -1;
-                string deserializerMode = null;
-                string serializerMode = null;
-                var commandProcessWatch = new Stopwatch();
-                List<WorkerFunc> workerFuncList = new List<WorkerFunc>();
-
-                do
-                {
-                    iterCount++;
-                    CSharpWorkerFunc func = null;
-                    var argCount = SerDe.ReadInt(inputStream);
-                    logger.LogDebug("Count of args = {0}", argCount);
-
-                    List<int> argOffsets = new List<int>();
-                    for (int argIndex = 0; argIndex < argCount; argIndex++)
-                    {
-                        var offset = SerDe.ReadInt(inputStream);
-                        logger.LogDebug("UDF argIndex = {0}, Offset = {1}", argIndex, offset);
-                        argOffsets.Add(offset);
-                    }
-
-                    var chainedFuncCount = SerDe.ReadInt(inputStream);
-                    logger.LogDebug("Count of chained func = {0}", chainedFuncCount);
-
-                    for (int funcIndex = 0; funcIndex < chainedFuncCount; funcIndex++)
-                    {
-                        int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
-                        logger.LogDebug("UDF command length: " + lengthOfCommandByteArray);
-
-                        if (lengthOfCommandByteArray > 0)
-                        {
-                            CSharpWorkerFunc workerFunc;
-                            ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
-                                out workerFunc);
-
-                            func = func == null ? workerFunc : CSharpWorkerFunc.Chain(func, workerFunc);
-                        }
-                        else
-                        {
-                            logger.LogWarn("UDF lengthOfCommandByteArray = 0. Nothing to execute :-(");
-                        }
-                    }
-
-                    Debug.Assert(stageId != -1);
-                    Debug.Assert(deserializerMode != null);
-                    Debug.Assert(serializerMode != null);
-                    Debug.Assert(func != null);
-
-                    workerFuncList.Add(new WorkerFunc(func, argCount, argOffsets, stageId));
-                } while (iterCount < udfCount);
-
-                Command command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
-                        serializerMode, formatter, commandProcessWatch, isSqlUdf, workerFuncList);
-
-                command.ExecuteSqlUDF();
+            if (command != null)
+            {
+                command.Execute();
             }
 
             return formatter;
+        }
+
+        private static Command ProcessNonUdfCommand(Stream inputStream, Stream outputStream, int splitIndex, 
+            DateTime bootTime, IFormatter formatter, int isSqlUdf)
+        {
+            logger.LogDebug("Processing non-UDF command");
+            int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
+            logger.LogDebug("Command length: " + lengthOfCommandByteArray);
+
+            Command command = null;
+            if (lengthOfCommandByteArray > 0)
+            {
+                var commandProcessWatch = new Stopwatch();
+                commandProcessWatch.Start();
+
+                int stageId;
+                string deserializerMode;
+                string serializerMode;
+                CSharpWorkerFunc cSharpWorkerFunc;
+                ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
+                    out cSharpWorkerFunc);
+
+                command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
+                    serializerMode, formatter, commandProcessWatch, isSqlUdf,
+                    new List<WorkerFunc>() { new WorkerFunc(cSharpWorkerFunc, 0, null) }, stageId);
+
+            }
+            else
+            {
+                logger.LogWarn("lengthOfCommandByteArray = 0. Nothing to execute :-(");
+            }
+
+            return command;
+        }
+
+        private static Command ProcessUdfCommand(Stream inputStream, Stream outputStream, int splitIndex,
+            DateTime bootTime, IFormatter formatter, int isSqlUdf)
+        {
+            logger.LogDebug("Processing UDF command");
+            var udfCount = SerDe.ReadInt(inputStream);
+            logger.LogDebug("Count of UDFs = {0}", udfCount);
+
+            int stageId = -1;
+            string deserializerMode = null;
+            string serializerMode = null;
+            var commandProcessWatch = new Stopwatch();
+            List<WorkerFunc> workerFuncList = new List<WorkerFunc>();
+
+            for(int i = 0; i< udfCount; i++)
+            { 
+                CSharpWorkerFunc func = null;
+                var argCount = SerDe.ReadInt(inputStream);
+                logger.LogDebug("Count of args = {0}", argCount);
+
+                List<int> argOffsets = new List<int>();
+                for (int argIndex = 0; argIndex < argCount; argIndex++)
+                {
+                    var offset = SerDe.ReadInt(inputStream);
+                    logger.LogDebug("UDF argIndex = {0}, Offset = {1}", argIndex, offset);
+                    argOffsets.Add(offset);
+                }
+
+                var chainedFuncCount = SerDe.ReadInt(inputStream);
+                logger.LogDebug("Count of chained func = {0}", chainedFuncCount);
+
+                for (int funcIndex = 0; funcIndex < chainedFuncCount; funcIndex++)
+                {
+                    int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
+                    logger.LogDebug("UDF command length: " + lengthOfCommandByteArray);
+
+                    if (lengthOfCommandByteArray > 0)
+                    {
+                        CSharpWorkerFunc workerFunc;
+                        ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
+                            out workerFunc);
+
+                        func = func == null ? workerFunc : CSharpWorkerFunc.Chain(func, workerFunc);
+                    }
+                    else
+                    {
+                        logger.LogWarn("UDF lengthOfCommandByteArray = 0. Nothing to execute :-(");
+                    }
+                }
+
+                Debug.Assert(stageId != -1);
+                Debug.Assert(deserializerMode != null);
+                Debug.Assert(serializerMode != null);
+                Debug.Assert(func != null);
+
+                workerFuncList.Add(new WorkerFunc(func, argCount, argOffsets));
+            }
+
+            return new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
+                    serializerMode, formatter, commandProcessWatch, isSqlUdf, workerFuncList, stageId);
         }
 
         private static void ReadCommand(Stream networkStream, IFormatter formatter, out int stageId,
