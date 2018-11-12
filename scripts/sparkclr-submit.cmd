@@ -105,4 +105,4 @@ goto :eof
 	@echo Example 2:
 	@echo sparkclr-submit.cmd [--verbose] [--master local] [--deploy-mode client] [--name testapp] --exe csdriver.exe c:\sparkclrapp\driver.zip arg1 arg2 arg3
 	@echo Example 3:
-	@echo sparkclr-submit.cmd [--verbose] --master spark://host:port --deploy-mode cluster [--name testapp] --exe csdriver.exe --remote-sparkclr-jar hdfs://path/to/spark-clr-1.6.1-SNAPSHOT.jar hdfs://path/to/driver.zip arg1 arg2 arg3
+	@echo sparkclr-submit.cmd [--verbose] --master spark://host:port --deploy-mode cluster [--name testapp] --exe csdriver.exe --remote-sparkclr-jar hdfs://path/to/spark-clr_2.11-2.3.1-SNAPSHOT.jar hdfs://path/to/driver.zip arg1 arg2 arg3

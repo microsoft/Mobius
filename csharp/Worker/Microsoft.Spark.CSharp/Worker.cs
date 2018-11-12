@@ -257,7 +257,7 @@ namespace Microsoft.Spark.CSharp
             logger.LogDebug("Is func Sql UDF = {0}", isSqlUdf);
 
             IFormatter formatter = new BinaryFormatter();
-            Command command = null;
+            UDFCommand command = null;
 
             if (isSqlUdf == 0)
             {
@@ -276,14 +276,14 @@ namespace Microsoft.Spark.CSharp
             return formatter;
         }
 
-        private static Command ProcessNonUdfCommand(Stream inputStream, Stream outputStream, int splitIndex, 
+        private static UDFCommand ProcessNonUdfCommand(Stream inputStream, Stream outputStream, int splitIndex, 
             DateTime bootTime, IFormatter formatter, int isSqlUdf)
         {
             logger.LogDebug("Processing non-UDF command");
             int lengthOfCommandByteArray = SerDe.ReadInt(inputStream);
             logger.LogDebug("Command length: " + lengthOfCommandByteArray);
 
-            Command command = null;
+            UDFCommand command = null;
             if (lengthOfCommandByteArray > 0)
             {
                 var commandProcessWatch = new Stopwatch();
@@ -296,7 +296,7 @@ namespace Microsoft.Spark.CSharp
                 ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
                     out cSharpWorkerFunc);
 
-                command = new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
+                command = new UDFCommand(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
                     serializerMode, formatter, commandProcessWatch, isSqlUdf,
                     new List<WorkerFunc>() { new WorkerFunc(cSharpWorkerFunc, 0, null) }, stageId);
 
@@ -309,7 +309,7 @@ namespace Microsoft.Spark.CSharp
             return command;
         }
 
-        private static Command ProcessUdfCommand(Stream inputStream, Stream outputStream, int splitIndex,
+        private static UDFCommand ProcessUdfCommand(Stream inputStream, Stream outputStream, int splitIndex,
             DateTime bootTime, IFormatter formatter, int isSqlUdf)
         {
             logger.LogDebug("Processing UDF command");
@@ -322,7 +322,7 @@ namespace Microsoft.Spark.CSharp
             var commandProcessWatch = new Stopwatch();
             List<WorkerFunc> workerFuncList = new List<WorkerFunc>();
 
-            for(int i = 0; i< udfCount; i++)
+            for(int udfIter = 0; udfIter < udfCount; udfIter++)
             { 
                 CSharpWorkerFunc func = null;
                 var argCount = SerDe.ReadInt(inputStream);
@@ -366,7 +366,7 @@ namespace Microsoft.Spark.CSharp
                 workerFuncList.Add(new WorkerFunc(func, argCount, argOffsets));
             }
 
-            return new Command(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
+            return new UDFCommand(inputStream, outputStream, splitIndex, bootTime, deserializerMode,
                     serializerMode, formatter, commandProcessWatch, isSqlUdf, workerFuncList, stageId);
         }
 

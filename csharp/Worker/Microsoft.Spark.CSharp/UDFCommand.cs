@@ -17,7 +17,11 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Microsoft.Spark.CSharp
 {
-    internal class Command
+    /// <summary>
+    /// This class execute user defined methods.    
+    /// </summary>
+
+    internal class UDFCommand
     {
         private readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private ILoggerService logger;
@@ -33,7 +37,7 @@ namespace Microsoft.Spark.CSharp
         private List<WorkerFunc> workerFuncList;
         private int stageId;
 
-        public Command(Stream inputStream, Stream outputStream, int splitIndex, DateTime bootTime, 
+        public UDFCommand(Stream inputStream, Stream outputStream, int splitIndex, DateTime bootTime, 
             string deserializerMode, string serializerMode, IFormatter formatter, 
             Stopwatch commandProcessWatch, int isSqlUdf, List<WorkerFunc> workerFuncList, int stageId)
         {
@@ -61,7 +65,8 @@ namespace Microsoft.Spark.CSharp
                 {
                     LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance);
                 }
-                logger = LoggerServiceFactory.GetLogger(typeof(Command));
+
+                logger = LoggerServiceFactory.GetLogger(typeof(UDFCommand));
             }
             catch (Exception e)
             {
@@ -106,9 +111,9 @@ namespace Microsoft.Spark.CSharp
                 {
                     WriteOutput(outputStream, serializerMode, message, formatter);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    logger.LogError("WriteOutput() failed at iteration {0}", count);
+                    logger.LogError("WriteOutput() failed at iteration {0}, execption {1}", count, ex);
                     throw;
                 }
 
@@ -238,9 +243,9 @@ namespace Microsoft.Spark.CSharp
                         formatter.Serialize(ms, message);
                         buffer = ms.ToArray();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        logger.LogError("Exception serializing output");
+                        logger.LogError("Exception serializing output: " + ex);
                         logger.LogError("{0} : {1}", message.GetType().Name, message.GetType().FullName);
                         throw;
                     }
