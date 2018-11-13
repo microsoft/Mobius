@@ -40,9 +40,12 @@ namespace Microsoft.Spark.CSharp.Core
 
             using (var s = sock.GetStream())
             {
-				SerDe.Write(s,info.Secret);
-	            var reply = SerDe.ReadString(s);
-				Logger.LogDebug("Connect back to JVM: " + reply);
+                if (info.Secret != null)
+                {
+                    SerDe.Write(s, info.Secret);
+                    var reply = SerDe.ReadString(s);
+                    Logger.LogDebug("Connect back to JVM: " + reply);
+                }
                 byte[] buffer;
                 while ((buffer = SerDe.ReadBytes(s)) != null && buffer.Length > 0)
                 {
