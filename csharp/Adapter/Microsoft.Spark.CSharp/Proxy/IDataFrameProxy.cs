@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IRDDProxy JavaToCSharp();
         string GetQueryExecution();
         string GetExecutedPlan();
-        string GetShowString(int numberOfRows, bool truncate);
+        string GetShowString(int numberOfRows, int truncate, bool vertical);
         bool IsLocal();
         IStructTypeProxy GetSchema();
         IRDDProxy ToJSON();

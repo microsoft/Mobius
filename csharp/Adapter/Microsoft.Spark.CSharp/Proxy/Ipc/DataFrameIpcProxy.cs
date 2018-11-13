@@ -79,12 +79,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(executedPlanReference, "toString", new object[] { }).ToString();
         }
 
-        public string GetShowString(int numberOfRows, bool truncate)
+        public string GetShowString(int numberOfRows, int truncate, bool vertical)
         {
             return
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                     jvmDataFrameReference, "showString",
-                    new object[] { numberOfRows, truncate }).ToString(); 
+                    new object[] { numberOfRows, truncate, vertical}).ToString(); 
         }
 
         public bool IsLocal()

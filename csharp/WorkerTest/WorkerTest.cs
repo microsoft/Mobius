@@ -93,6 +93,7 @@ namespace WorkerTest
                 }
             };
 
+            Environment.SetEnvironmentVariable("PYTHON_WORKER_FACTORY_PORT", port.ToString());
             lock (syncLock)
             {
                 output.Clear();
@@ -125,6 +126,10 @@ namespace WorkerTest
         {
             SerDe.Write(s, splitIndex);
             SerDe.Write(s, ver);
+            SerDe.Write(s, 0);
+            SerDe.Write(s, 0);
+            SerDe.Write(s, 0);
+            SerDe.Write(s, 0L);
             SerDe.Write(s, sparkFilesDir);
             SerDe.Write(s, numberOfIncludesItems);
             SerDe.Write(s, numBroadcastVariables);
@@ -631,6 +636,10 @@ namespace WorkerTest
             {
                 SerDe.Write(s, splitIndex);
                 SerDe.Write(s, ver);
+                SerDe.Write(s, 0);
+                SerDe.Write(s, 0);
+                SerDe.Write(s, 0);
+                SerDe.Write(s, 0L);
                 SerDe.Write(s, sparkFilesDir);
                 SerDe.Write(s, numberOfIncludesItems);
 
@@ -802,6 +811,10 @@ namespace WorkerTest
             using (var inputStream = new MemoryStream(500))
             {
                 SerDe.Write(inputStream, "1.0"); //version
+                SerDe.Write(inputStream, 0);
+                SerDe.Write(inputStream, 0);
+                SerDe.Write(inputStream, 0);
+                SerDe.Write(inputStream, 0L);
                 SerDe.Write(inputStream, ""); //includes directory
                 SerDe.Write(inputStream, 0); //number of included items
                 SerDe.Write(inputStream, 0); //number of broadcast variables

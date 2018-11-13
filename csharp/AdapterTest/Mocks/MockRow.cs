@@ -8,6 +8,13 @@ namespace AdapterTest.Mocks
 {
     public class MockRow : Row
     {
+        public override dynamic[] Values
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         public override int Size()
         {

@@ -65,7 +65,7 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public string GetShowString(int numberOfRows, bool truncate)
+        public string GetShowString(int numberOfRows, int truncate, bool vertical)
         {
             throw new NotImplementedException();
         }

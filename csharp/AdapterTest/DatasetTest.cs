@@ -38,12 +38,12 @@ namespace AdapterTest
         public void TestShow()
         {
             Mock<IDataFrameProxy> mockDataFrameProxy = new Mock<IDataFrameProxy>();
-            mockDataFrameProxy.Setup(m => m.GetShowString(It.IsAny<int>(), It.IsAny<bool>())).Returns("Show");
+            mockDataFrameProxy.Setup(m => m.GetShowString(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns("Show");
             mockDatasetProxy.Setup(m => m.ToDF()).Returns(mockDataFrameProxy.Object);
 
             var dataset = new Dataset(mockDatasetProxy.Object);
             dataset.Show();
-            mockDataFrameProxy.Verify(m => m.GetShowString(20, true), Times.Once);
+            mockDataFrameProxy.Verify(m => m.GetShowString(20, 20, false), Times.Once);
         }
 
         [Test]

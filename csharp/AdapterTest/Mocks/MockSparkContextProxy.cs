@@ -195,7 +195,7 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        internal static int RunJob(IRDDProxy rdd)
+        internal static SocketInfo RunJob(IRDDProxy rdd)
         {
             var mockRdd = (rdd as MockRddProxy);
             IEnumerable<byte[]> result = mockRdd.pickle ? mockRdd.result.Cast<byte[]>() :
@@ -222,10 +222,12 @@ namespace AdapterTest.Mocks
                     ns.Flush();
                 }
             });
-            return (listener.LocalEndPoint as IPEndPoint).Port;
+
+            SocketInfo socketInfo = new SocketInfo((listener.LocalEndPoint as IPEndPoint).Port, null);
+            return  socketInfo;
         }
 
-        public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
+        public SocketInfo RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
         {
             return RunJob(rdd);
         }
