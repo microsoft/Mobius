@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D5C2C46E-3FEC-473B-8ABA-3B0FC5A7319C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AdapterTest</RootNamespace>
+    <AssemblyName>AdapterTest</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
+    <IsCodedUITest>False</IsCodedUITest>
+    <TestProjectType>UnitTest</TestProjectType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Moq, Version=4.2.1510.2205, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <HintPath>..\packages\Moq.4.2.1510.2205\lib\net40\Moq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework, Version=3.0.5813.39031, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.3.0.1\lib\net45\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Razorvine.Pyrolite, Version=4.10.0.26455, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Razorvine.Pyrolite.4.10.0.0\lib\net40\Razorvine.Pyrolite.dll</HintPath>
+    </Reference>
+    <Reference Include="Razorvine.Serpent, Version=1.12.0.35091, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Razorvine.Serpent.1.12.0.0\lib\net40\Razorvine.Serpent.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+      </ItemGroup>
+    </When>
+    <Otherwise />
+  </Choose>
+  <ItemGroup>
+    <Compile Include="BuilderTest.cs" />
+    <Compile Include="ByteBufChunkListTest.cs" />
+    <Compile Include="ByteBufChunkTest.cs" />
+    <Compile Include="ByteBufPoolTest.cs" />
+    <Compile Include="ByteBufTest.cs" />
+    <Compile Include="CatalogTest.cs" />
+    <Compile Include="ColumnTest.cs" />
+    <Compile Include="AccumulatorTest.cs" />
+    <Compile Include="BroadcastTest.cs" />
+    <Compile Include="ConfigurationServiceTest.cs" />
+    <Compile Include="DataFrameNaFunctionsTest.cs" />
+    <Compile Include="DataFrameReaderTest.cs" />
+    <Compile Include="DataFrameWriterTest.cs" />
+    <Compile Include="DatasetTest.cs" />
+    <Compile Include="EventHubsUtilsTest.cs" />
+    <Compile Include="HadoopConfigurationTest.cs" />
+    <Compile Include="JsonSerDeTest.cs" />
+    <Compile Include="FunctionsTest.cs" />
+    <Compile Include="Mocks\MockDataFrameReaderProxy.cs" />
+    <Compile Include="Mocks\MockRDDCollector.cs" />
+    <Compile Include="Mocks\MockRow.cs" />
+    <Compile Include="Mocks\MockSparkSessionProxy.cs" />
+    <Compile Include="PayloadHelperTest.cs" />
+    <Compile Include="PriorityQueueTest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RowTest.cs" />
+    <Compile Include="SocketStreamTest.cs" />
+    <Compile Include="SocketWrapperTest.cs" />
+    <Compile Include="SerDeTest.cs" />
+    <Compile Include="HiveContextTest.cs" />
+    <Compile Include="SparkSessionTest.cs" />
+    <Compile Include="StatusTrackerTest.cs" />
+    <Compile Include="TestWithMoqDemo.cs" />
+    <Compile Include="Mocks\MockStructTypeProxy.cs" />
+    <Compile Include="DStreamTest.cs" />
+    <Compile Include="Mocks\MockDStreamProxy.cs" />
+    <Compile Include="Mocks\MockStreamingContextProxy.cs" />
+    <Compile Include="SparkCLRTestEnvironment.cs" />
+    <Compile Include="DataFrameTest.cs" />
+    <Compile Include="Mocks\MockSparkCLRProxy.cs" />
+    <Compile Include="Mocks\MockConfigurationService.cs" />
+    <Compile Include="Mocks\MockDataFrameProxy.cs" />
+    <Compile Include="Mocks\MockRddProxy.cs" />
+    <Compile Include="Mocks\MockSparkConfProxy.cs" />
+    <Compile Include="Mocks\MockSparkContextProxy.cs" />
+    <Compile Include="Mocks\MockSqlContextProxy.cs" />
+    <Compile Include="RDDTest.cs" />
+    <Compile Include="SparkConfTest.cs" />
+    <Compile Include="SparkContextTest.cs" />
+    <Compile Include="SqlContextTest.cs" />
+    <Compile Include="StreamingContextTest.cs" />
+    <Compile Include="PairRDDTest.cs" />
+    <Compile Include="ComparableRDDTest.cs" />
+    <Compile Include="DoubleRDDTest.cs" />
+    <Compile Include="UdfRegistrationTest.cs" />
+    <Compile Include="UserDefinedFunctionTest.cs" />
+    <Compile Include="WeakObjectManagerTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Adapter\Microsoft.Spark.CSharp\Adapter.csproj">
+      <Project>{ce999a96-f42b-4e80-b208-709d7f49a77c}</Project>
+      <Name>Adapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tests.Common\Tests.Common.csproj">
+      <Project>{e4479c4c-e106-4b90-bf0c-319561cea9c4}</Project>
+      <Name>Tests.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
+      <ItemGroup>
+        <Reference Include="Microsoft.VisualStudio.QualityTools.CodedUITestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+        </Reference>
+        <Reference Include="Microsoft.VisualStudio.TestTools.UITest.Common, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+        </Reference>
+        <Reference Include="Microsoft.VisualStudio.TestTools.UITest.Extension, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+        </Reference>
+        <Reference Include="Microsoft.VisualStudio.TestTools.UITesting, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+          <Private>False</Private>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

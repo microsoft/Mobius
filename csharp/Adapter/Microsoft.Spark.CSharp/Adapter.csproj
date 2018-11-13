@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CE999A96-F42B-4E80-B208-709D7F49A77C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Spark.CSharp</RootNamespace>
+    <AssemblyName>Microsoft.Spark.CSharp.Adapter</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <CppDll Condition="Exists('..\..\..\cpp\x64')">HasCpp</CppDll>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Razorvine.Pyrolite">
+      <HintPath>..\..\packages\Razorvine.Pyrolite.4.10.0.0\lib\net40\Razorvine.Pyrolite.dll</HintPath>
+    </Reference>
+    <Reference Include="Razorvine.Serpent">
+      <HintPath>..\..\packages\Razorvine.Serpent.1.12.0.0\lib\net40\Razorvine.Serpent.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Configuration\ConfigurationService.cs" />
+    <Compile Include="Configuration\IConfigurationService.cs" />
+    <Compile Include="Core\Accumulator.cs" />
+    <Compile Include="Core\Broadcast.cs" />
+    <Compile Include="Core\CSharpWorkerFunc.cs" />
+    <Compile Include="Core\HadoopConfiguration.cs" />
+    <Compile Include="Core\Option.cs" />
+    <Compile Include="Core\Partitioner.cs" />
+    <Compile Include="Core\RDDCollector.cs" />
+    <Compile Include="Core\DoubleRDDFunctions.cs" />
+    <Compile Include="Core\IRDDCollector.cs" />
+    <Compile Include="Core\OrderedRDDFunctions.cs" />
+    <Compile Include="Core\PairRDDFunctions.cs" />
+    <Compile Include="Core\PipelinedRDD.cs" />
+    <Compile Include="Core\PriorityQueue.cs" />
+    <Compile Include="Core\Profiler.cs" />
+    <Compile Include="Core\RDD.cs" />
+    <Compile Include="Core\SparkConf.cs" />
+    <Compile Include="Core\SparkContext.cs" />
+    <Compile Include="Core\StatCounter.cs" />
+    <Compile Include="Core\StatusTracker.cs" />
+    <Compile Include="Core\StorageLevel.cs" />
+    <Compile Include="Interop\Ipc\JsonSerDe.cs" />
+    <Compile Include="Interop\Ipc\JvmBridgeUtils.cs" />
+    <Compile Include="Interop\Ipc\WeakObjectManager.cs" />
+    <Compile Include="Interop\SparkCLREnvironment.cs" />
+    <Compile Include="Interop\Ipc\IJvmBridge.cs" />
+    <Compile Include="Interop\Ipc\JvmBridge.cs" />
+    <Compile Include="Interop\Ipc\JvmObjectReference.cs" />
+    <Compile Include="Interop\Ipc\PayloadHelper.cs" />
+    <Compile Include="Interop\Ipc\SerDe.cs" />
+    <Compile Include="Network\ByteBuf.cs" />
+    <Compile Include="Network\ByteBufChunk.cs" />
+    <Compile Include="Network\ByteBufChunkList.cs" />
+    <Compile Include="Network\ByteBufPool.cs" />
+    <Compile Include="Network\DefaultSocketWrapper.cs" />
+    <Compile Include="Network\ISocketWrapper.cs" />
+    <Compile Include="Network\RioNative.cs" />
+    <Compile Include="Network\RioSocketWrapper.cs" />
+    <Compile Include="Network\SaeaSocketWrapper.cs" />
+    <Compile Include="Network\SocketInfo.cs" />
+    <Compile Include="Network\SocketStream.cs" />
+    <Compile Include="Network\SockDataToken.cs" />
+    <Compile Include="Network\SocketFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Proxy\ICatalogProxy.cs" />
+    <Compile Include="Proxy\IDataFrameNaFunctionsProxy.cs" />
+    <Compile Include="Proxy\IDataFrameProxy.cs" />
+    <Compile Include="Proxy\IDataFrameReaderProxy.cs" />
+    <Compile Include="Proxy\IDataFrameWriterProxy.cs" />
+    <Compile Include="Proxy\IDatasetProxy.cs" />
+    <Compile Include="Proxy\IDStreamProxy.cs" />
+    <Compile Include="Proxy\IHadoopConfigurationProxy.cs" />
+    <Compile Include="Proxy\Ipc\CatalogIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DataFrameIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DataFrameNaFunctionsIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DataFrameReaderIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DataFrameWriterIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DatasetIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\DStreamIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\HadoopConfigurationIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\RDDIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\SparkCLRIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\SparkSessionIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\SqlContextIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\StatusTrackerIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\StreamingContextIpcProxy.cs" />
+    <Compile Include="Proxy\Ipc\StructIpcProxy.cs" />
+    <Compile Include="Proxy\IRDDProxy.cs" />
+    <Compile Include="Proxy\ISparkCLRProxy.cs" />
+    <Compile Include="Proxy\ISparkConfProxy.cs" />
+    <Compile Include="Proxy\ISparkContextProxy.cs" />
+    <Compile Include="Proxy\Ipc\SparkConfIpcProxy.cs" />
+    <Compile Include="Proxy\ISparkSessionProxy.cs" />
+    <Compile Include="Proxy\ISqlContextProxy.cs" />
+    <Compile Include="Proxy\IStatusTrackerProxy.cs" />
+    <Compile Include="Proxy\IStreamingContextProxy.cs" />
+    <Compile Include="Proxy\IStructProxy.cs" />
+    <Compile Include="Proxy\Ipc\SparkContextIpcProxy.cs" />
+    <Compile Include="Services\DefaultLoggerService.cs" />
+    <Compile Include="Services\ILoggerService.cs" />
+    <Compile Include="Services\Log4NetLoggerService.cs" />
+    <Compile Include="Services\LoggerServiceFactory.cs" />
+    <Compile Include="Sql\Builder.cs" />
+    <Compile Include="Sql\Catalog.cs" />
+    <Compile Include="Sql\Column.cs" />
+    <Compile Include="Sql\DataFrame.cs" />
+    <Compile Include="Sql\DataFrameNaFunctions.cs" />
+    <Compile Include="Sql\DataFrameReader.cs" />
+    <Compile Include="Sql\DataFrameWriter.cs" />
+    <Compile Include="Sql\Dataset.cs" />
+    <Compile Include="Sql\HiveContext.cs" />
+    <Compile Include="Sql\PythonSerDe.cs" />
+    <Compile Include="Sql\RowConstructor.cs" />
+    <Compile Include="Sql\Row.cs" />
+    <Compile Include="Sql\Functions.cs" />
+    <Compile Include="Sql\SaveMode.cs" />
+    <Compile Include="Sql\SparkSession.cs" />
+    <Compile Include="Sql\SqlContext.cs" />
+    <Compile Include="Sql\Types.cs" />
+    <Compile Include="Sql\UdfRegistration.cs" />
+    <Compile Include="Sql\UserDefinedFunction.cs" />
+    <Compile Include="Streaming\ConstantInputDStream.cs" />
+    <Compile Include="Streaming\DStream.cs" />
+    <Compile Include="Streaming\EventHubsUtils.cs" />
+    <Compile Include="Streaming\Kafka.cs" />
+    <Compile Include="Streaming\MapWithStateDStream.cs" />
+    <Compile Include="Streaming\PairDStreamFunctions.cs" />
+    <Compile Include="Streaming\CSharpInputDStreamUtils.cs" />
+    <Compile Include="Streaming\StreamingContext.cs" />
+    <Compile Include="Streaming\TransformedDStream.cs" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(CppDll)' == 'HasCpp' ">
+    <ContentWithTargetPath Include="..\..\..\cpp\x64\$(ConfigurationName)\Riosock.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.dll</Link>
+      <TargetPath>Riosock.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="..\..\..\cpp\x64\$(ConfigurationName)\Riosock.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Cpp\Riosock.dll</Link>
+      <TargetPath>Riosock.pdb</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="AfterBuild">
+    <XslTransformation XslInputPath="..\documentation\DocFormatter.xsl" XmlInputPaths="..\documentation\Microsoft.Spark.CSharp.Adapter.Doc.XML" OutputPaths="..\documentation\Mobius_API_Documentation.md" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="xsltproc -o ../documentation/Mobius_API_Documentation.md ../documentation/DocFormatter.xsl ../documentation/Microsoft.Spark.CSharp.Adapter.Doc.XML" Condition="'$(OS)' != 'Windows_NT'" />
+  </Target>
+</Project>

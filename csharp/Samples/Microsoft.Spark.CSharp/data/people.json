@@ -1,0 +1,4 @@
+{"id":"123", "name":"Bill", "age":34, "address":{"city":"Columbus","state":"Ohio"}}
+{"id":"456", "name":"Steve", "age":14, "address":{"city":null, "state":"California"}}
+{ "id": "789", "name": "Bill", "age": 43, "address": { "city": "Seattle", "state": "Washington" } }
+{ "id": "531", "name": "Satya", "age": 46, "address": null }
