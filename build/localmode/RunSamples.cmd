@@ -100,7 +100,7 @@ if "!USER_EXE!"=="" (
     call sparkclr-submit.cmd --conf spark.sql.warehouse.dir=%TEMP_DIR% %*
 )
 
-@if ERRORLEVEL 1 GOTO :ErrorStop
+@if ERRORLEVEL 2 GOTO :ErrorStop
 
 @GOTO :EOF
 
