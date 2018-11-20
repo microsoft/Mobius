@@ -44,7 +44,7 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return catalog ?? (catalog = new Catalog.Catalog(SparkSessionProxy.GetCatalog())); }
         }
 
-		public JvmObjectReference JvmReference => (sparkSessionProxy as SparkSessionIpcProxy)?.JvmReference;
+		internal JvmObjectReference JvmReference => (sparkSessionProxy as SparkSessionIpcProxy)?.JvmReference;
 
 		/// <summary>
 		/// Interface through which the user may access the underlying SparkContext.

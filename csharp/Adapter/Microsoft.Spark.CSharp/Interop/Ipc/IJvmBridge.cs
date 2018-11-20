@@ -12,7 +12,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// <summary>
     /// Behavior of the bridge used for the IPC interop between JVM and CLR
     /// </summary>
-    public interface IJvmBridge : IDisposable
+    internal interface IJvmBridge : IDisposable
     {
         void Initialize(int portNo);
         JvmObjectReference CallConstructor(string className, params object[] parameters);

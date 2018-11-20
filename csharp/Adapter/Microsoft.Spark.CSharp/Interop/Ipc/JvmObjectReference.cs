@@ -17,7 +17,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         public string Id { get; private set; }
         private DateTime creationTime;
 
-        public JvmObjectReference(string jvmReferenceId)
+        internal JvmObjectReference(string jvmReferenceId)
         {
             Id = jvmReferenceId;
             creationTime = DateTime.UtcNow;

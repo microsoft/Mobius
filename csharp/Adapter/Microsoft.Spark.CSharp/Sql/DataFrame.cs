@@ -68,7 +68,7 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
-	    public JvmObjectReference JvmReference => (dataFrameProxy as DataFrameIpcProxy)?.JvmDataFrameReference;
+	    internal JvmObjectReference JvmReference => (dataFrameProxy as DataFrameIpcProxy)?.JvmDataFrameReference;
 
 		/// <summary>
 		/// Returns true if the collect and take methods can be run locally (without any Spark executors).

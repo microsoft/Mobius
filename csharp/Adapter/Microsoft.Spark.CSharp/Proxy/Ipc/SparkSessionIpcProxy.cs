@@ -27,7 +27,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             }
         }
 
-	    public JvmObjectReference JvmReference => jvmSparkSessionReference;
+	    internal JvmObjectReference JvmReference => jvmSparkSessionReference;
 
 		public ISqlContextProxy SqlContextProxy
         {
