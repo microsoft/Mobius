@@ -8,6 +8,7 @@ package org.apache.spark.sql.api.csharp
 import java.io.{ByteArrayOutputStream, DataOutputStream}
 
 import org.apache.spark.{Accumulator, SparkContext}
+import org.apache.spark.api.python.PythonAccumulatorV2
 import org.apache.spark.api.csharp.SerDe
 import org.apache.spark.api.java.{JavaRDD, JavaSparkContext}
 import org.apache.spark.api.python.{PythonBroadcast, PythonFunction, SerDeUtil}
@@ -51,7 +52,7 @@ object SQLUtils {
                            cSharpWorkerExecutable: String,
                            unUsedVersionIdentifier: String,
                            broadcastVars: JList[Broadcast[PythonBroadcast]],
-                           accumulator: Accumulator[JList[Array[Byte]]]) : PythonFunction = {
+                           accumulator: PythonAccumulatorV2) : PythonFunction = {
     PythonFunction(command, envVars, cSharpIncludes, cSharpWorkerExecutable,
       unUsedVersionIdentifier, broadcastVars, accumulator)
   }

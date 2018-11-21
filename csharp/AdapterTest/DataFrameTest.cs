@@ -12,6 +12,7 @@ using Microsoft.Spark.CSharp.Sql;
 using Microsoft.Spark.CSharp.Proxy;
 using NUnit.Framework;
 using Moq;
+using Microsoft.Spark.CSharp.Network;
 
 namespace AdapterTest
 {
@@ -65,10 +66,10 @@ namespace AdapterTest
         [Test]
         public void TestShow()
         {
-            mockDataFrameProxy.Setup(m => m.GetShowString(It.IsAny<int>(), It.IsAny<bool>())).Returns("Show");
+            mockDataFrameProxy.Setup(m => m.GetShowString(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns("Show");
             var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
             dataFrame.Show();
-            mockDataFrameProxy.Verify(m => m.GetShowString(20, true), Times.Once);
+            mockDataFrameProxy.Verify(m => m.GetShowString(20, 20, false), Times.Once);
         }
 
         [Test]
@@ -135,9 +136,9 @@ namespace AdapterTest
             var expectedRows = new Row[] {new MockRow(), new MockRow()};
             var mockRddProxy = new Mock<IRDDProxy>();
             var mockRddCollector = new Mock<IRDDCollector>();
-            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<SocketInfo>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
                 .Returns(expectedRows);
-            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(new SocketInfo(123,null));
             mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
             mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
             var dataFrame = new DataFrame(mockDataFrameProxy.Object, null);
@@ -838,9 +839,9 @@ namespace AdapterTest
             var expectedRows = new Row[] {new MockRow(), new MockRow(), new MockRow(), new MockRow(), new MockRow()};
             var mockRddProxy = new Mock<IRDDProxy>();
             var mockRddCollector = new Mock<IRDDCollector>();
-            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<SocketInfo>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
                 .Returns(expectedRows);
-            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(new SocketInfo(123, null));
             mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
             mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
             mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(mockDataFrameProxy.Object);
@@ -868,9 +869,9 @@ namespace AdapterTest
             var expectedRows = new Row[] { new MockRow(), new MockRow(), new MockRow(), new MockRow(), new MockRow() };
             var mockRddProxy = new Mock<IRDDProxy>();
             var mockRddCollector = new Mock<IRDDCollector>();
-            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<SocketInfo>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
                 .Returns(expectedRows);
-            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(new SocketInfo(123, null));
             mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
             mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
             mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(mockDataFrameProxy.Object);
@@ -892,9 +893,9 @@ namespace AdapterTest
             var expectedRows = new Row[] { new MockRow(), new MockRow(), new MockRow(), new MockRow(), new MockRow() };
             var mockRddProxy = new Mock<IRDDProxy>();
             var mockRddCollector = new Mock<IRDDCollector>();
-            mockRddCollector.Setup(m => m.Collect(It.IsAny<int>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
+            mockRddCollector.Setup(m => m.Collect(It.IsAny<SocketInfo>(), It.IsAny<SerializedMode>(), It.IsAny<Type>()))
                 .Returns(expectedRows);
-            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(123);
+            mockRddProxy.Setup(m => m.CollectAndServe()).Returns(new SocketInfo(123, null));
             mockRddProxy.Setup(m => m.RDDCollector).Returns(mockRddCollector.Object);
             mockDataFrameProxy.Setup(m => m.JavaToCSharp()).Returns(mockRddProxy.Object);
             mockDataFrameProxy.Setup(m => m.Limit(It.IsAny<int>())).Returns(mockDataFrameProxy.Object);

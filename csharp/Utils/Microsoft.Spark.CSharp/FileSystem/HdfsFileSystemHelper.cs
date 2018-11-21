@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
+using Microsoft.Spark.CSharp.Utils.FileSystem;
 
 namespace Microsoft.Spark.CSharp.Utils
 {
@@ -18,7 +21,7 @@ namespace Microsoft.Spark.CSharp.Utils
 
         public HdfsFileSystemHelper()
         {
-            var jvmConfReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.conf.Configuration");
+	        var jvmConfReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.conf.Configuration");
             jvmHdfsReference = new JvmObjectReference((string) SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.hadoop.fs.FileSystem", "get", jvmConfReference));
         }
 
@@ -39,16 +42,25 @@ namespace Microsoft.Spark.CSharp.Utils
             for (var i = 0; i < statusList.Count; i++)
             {
                 var subPathJvmReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(statusList[i], "getPath"));
-                files[i] = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(subPathJvmReference, "getName");
+                files[i] = (string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(subPathJvmReference, "getName");	
             }
 
             return files;
         }
 
-        /// <summary>
-        /// Build a temp file path under '/tmp' path on HDFS.
-        /// </summary>
-        public string GetTempFileName()
+		/// <summary>
+		/// List the names of all the files under the given path.
+		/// </summary>
+		public IEnumerable<HdfsFileStatus> ListStatus(string path)
+		{
+			var pathJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", path);
+			return ((List<JvmObjectReference>)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmHdfsReference, "listStatus", pathJvmReference)).Select(r=>new HdfsFileStatus(r));
+		}
+
+		/// <summary>
+		/// Build a temp file path under '/tmp' path on HDFS.
+		/// </summary>
+		public string GetTempFileName()
         {
             return "/tmp/" + Guid.NewGuid().ToString("N");
         }
@@ -91,5 +103,37 @@ namespace Microsoft.Spark.CSharp.Utils
             var pathJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", path);
             return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmHdfsReference, "delete", pathJvmReference, recursive);
         }
-    }
+
+	    public bool IsFile(string path)
+	    {
+			var pathJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", path);
+			return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmHdfsReference, "isFile", pathJvmReference);
+		}
+
+		public bool IsDirectory(string path)
+		{
+			var pathJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", path);
+			return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmHdfsReference, "isDirectory", pathJvmReference);
+		}
+
+		public bool Touch(string path)
+		{
+			var pathJvmReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", path);
+			return (bool)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmHdfsReference, "createNewFile", pathJvmReference);
+		}
+
+		public void CopyFromLocalFile(string src, string dest)
+		{
+			var from = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", new Uri(src).AbsoluteUri);
+			var to = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", dest);
+			SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmHdfsReference, "copyFromLocalFile", from, to);
+		}
+
+		public void CopyToLocalFile(string src, string dest)
+		{
+			var to = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", new Uri(dest).AbsoluteUri);
+			var from = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.hadoop.fs.Path", src);
+			SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmHdfsReference, "copyToLocalFile", from, to);
+		}
+	}
 }

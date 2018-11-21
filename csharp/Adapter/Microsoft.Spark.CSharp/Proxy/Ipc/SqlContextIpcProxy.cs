@@ -106,7 +106,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
             var udf = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.sql.execution.python.UserDefinedPythonFunction", new object[]
                 {
-                    name, function, dt
+                    name, function, dt, 100 /*BatchUDF*/, true /*deterministic*/
                 });
 
             SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(judf, "registerPython", new object[] { name, udf });

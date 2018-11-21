@@ -111,7 +111,8 @@ namespace Microsoft.Spark.CSharp
 
             bool sparkReuseWorker = false;
             string envVar = Environment.GetEnvironmentVariable("SPARK_REUSE_WORKER"); // this envVar is set in JVM side
-            if ((envVar != null) && envVar.Equals("1"))
+			var secret = Environment.GetEnvironmentVariable("PYTHON_WORKER_FACTORY_SECRET");
+			if ((envVar != null) && envVar.Equals("1"))
             {
                 sparkReuseWorker = true;
             }
@@ -130,7 +131,7 @@ namespace Microsoft.Spark.CSharp
                         SerDe.Write(s, trId); // write taskRunnerId to JVM side
                         s.Flush();
                     }
-                    TaskRunner taskRunner = new TaskRunner(trId, socket, sparkReuseWorker);
+                    TaskRunner taskRunner = new TaskRunner(trId, socket, sparkReuseWorker, secret);
                     waitingTaskRunners.Add(taskRunner);
                     taskRunnerRegistry[trId] = taskRunner;
                     trId++;

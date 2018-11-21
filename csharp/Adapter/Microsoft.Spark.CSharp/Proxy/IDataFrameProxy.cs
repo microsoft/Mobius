@@ -13,7 +13,7 @@ namespace Microsoft.Spark.CSharp.Proxy
         IRDDProxy JavaToCSharp();
         string GetQueryExecution();
         string GetExecutedPlan();
-        string GetShowString(int numberOfRows, bool truncate);
+        string GetShowString(int numberOfRows, int truncate, bool vertical);
         bool IsLocal();
         IStructTypeProxy GetSchema();
         IRDDProxy ToJSON();
@@ -59,7 +59,9 @@ namespace Microsoft.Spark.CSharp.Proxy
         IDataFrameProxy Repartition(int numPartitions, IColumnProxy[] columns);
         IDataFrameProxy Repartition(IColumnProxy[] columns);
         IDataFrameProxy Sample(bool withReplacement, double fraction, long seed);
-        IDataFrameWriterProxy Write();
+	    IDataFrameProxy Broadcast();
+
+		IDataFrameWriterProxy Write();
     }
 
     internal interface IUDFProxy

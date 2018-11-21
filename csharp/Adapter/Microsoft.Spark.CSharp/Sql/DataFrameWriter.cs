@@ -170,5 +170,16 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             Format("parquet").Save(path);
         }
-    }
+
+		/// <summary>
+		/// Saves the content of the DataFrame in AVRO format at the specified path.
+		/// This is equivalent to:
+		///    Format("com.databricks.spark.avro").Save(path)
+		/// </summary>
+		public void Avro(string path)
+		{
+			Format("com.databricks.spark.avro").Save(path);
+		}
+
+	}
 }

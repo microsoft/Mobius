@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Services;
@@ -150,13 +151,25 @@ namespace Microsoft.Spark.CSharp.Sql
             return new DataFrame(sqlContextProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext);
         }
 
-        /// <summary>
-        /// Registers the given <see cref="DataFrame"/> as a temporary table in the catalog.
-        /// Temporary tables exist only during the lifetime of this instance of SqlContext.
-        /// </summary>
-        /// <param name="dataFrame"></param>
-        /// <param name="tableName"></param>
-        public void RegisterDataFrameAsTable(DataFrame dataFrame, string tableName)
+		public DataFrame CreateDataFrame(RDD<Row> rdd, StructType schema)
+		{
+			// Note: This is for pickling RDD, convert to RDD<byte[]> which happens in CSharpWorker. 
+			// The below sqlContextProxy.CreateDataFrame() will call byteArrayRDDToAnyArrayRDD() of SQLUtils.scala which only accept RDD of type RDD[Array[Byte]].
+			// In byteArrayRDDToAnyArrayRDD() of SQLUtils.scala, the SerDeUtil.pythonToJava() will be called which is a mapPartitions inside. 
+			// It will be executed until the CSharpWorker finishes Pickling to RDD[Array[Byte]].
+			var rddRow = rdd.Map(r => r);
+			rddRow.serializedMode = SerializedMode.Row;
+
+			return new DataFrame(sqlContextProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), sparkContext);
+		}
+
+		/// <summary>
+		/// Registers the given <see cref="DataFrame"/> as a temporary table in the catalog.
+		/// Temporary tables exist only during the lifetime of this instance of SqlContext.
+		/// </summary>
+		/// <param name="dataFrame"></param>
+		/// <param name="tableName"></param>
+		public void RegisterDataFrameAsTable(DataFrame dataFrame, string tableName)
         {
             sqlContextProxy.RegisterDataFrameAsTable(dataFrame.DataFrameProxy, tableName);
         }
@@ -527,6 +540,14 @@ namespace Microsoft.Spark.CSharp.Sql
             Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(f).Execute;
             sqlContextProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
-        #endregion
-    }
+
+		public void RegisterFunction(string name, MethodInfo f)
+		{
+			logger.LogInfo("Name of the function to register {0}, method info", name, f.DeclaringType?.FullName + "." + f.Name);
+			var helper = new UdfReflectionHelper(f);
+			Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = helper.Execute;
+			sqlContextProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(helper.ReturnType));
+		}
+		#endregion
+	}
 }

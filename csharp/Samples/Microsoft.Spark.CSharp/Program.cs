@@ -66,8 +66,10 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (Configuration.IsValidationEnabled && !status)
             {
-                Environment.Exit(1);
+                Environment.Exit(2);
             }
+
+            Environment.Exit(1);
         }
 
         // Creates and returns a context

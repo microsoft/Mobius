@@ -80,7 +80,7 @@ namespace AdapterTest
                         ns.Flush();
                     }
                 });
-                return (listener.LocalEndPoint as IPEndPoint).Port;
+                return new SocketInfo((listener.LocalEndPoint as IPEndPoint).Port, null);
             });
             _mockRddProxy.Setup(m => m.RDDCollector).Returns(new RDDCollector());
 

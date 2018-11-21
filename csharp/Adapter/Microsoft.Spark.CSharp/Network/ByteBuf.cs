@@ -11,7 +11,7 @@ namespace Microsoft.Spark.CSharp.Network
     /// ByteBuf delimits a section of a ByteBufChunk.
     /// It is the smallest unit to be allocated.
     /// </summary>
-    internal class ByteBuf
+    public class ByteBuf
     {
         private int readerIndex;
         private int writerIndex;

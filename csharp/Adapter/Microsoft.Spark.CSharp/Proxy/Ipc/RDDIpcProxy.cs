@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
 {
@@ -66,10 +67,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return long.Parse(SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(rdd, "count").ToString());
         }
 
-        public int CollectAndServe()
+        public SocketInfo CollectAndServe()
         {
             var rdd = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmRddReference, "rdd"));
-            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "collectAndServe", new object[] { rdd }).ToString());
+            return SocketInfo.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "collectAndServe", new object[] { rdd }));
         }
 
 

@@ -111,7 +111,7 @@ namespace Microsoft.Spark.CSharp.Network
         /// </summary>
         /// <param name="remoteaddr">The IP address of the remote host</param>
         /// <param name="port">The port number of the remote host</param>
-        public void Connect(IPAddress remoteaddr, int port)
+        public void Connect(IPAddress remoteaddr, int port, string secret)
         {
             var remoteEndPoint = new IPEndPoint(remoteaddr, port);
             innerSocket.Connect(remoteEndPoint);

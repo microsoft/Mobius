@@ -12,12 +12,12 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
     /// Reference to object created in JVM
     /// </summary>
     [Serializable]
-    internal class JvmObjectReference
+    public class JvmObjectReference
     {
         public string Id { get; private set; }
         private DateTime creationTime;
 
-        public JvmObjectReference(string jvmReferenceId)
+        internal JvmObjectReference(string jvmReferenceId)
         {
             Id = jvmReferenceId;
             creationTime = DateTime.UtcNow;
@@ -47,6 +47,11 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
         {
             return base.GetHashCode();
         }
+
+	    public string ObjectToString()
+	    {
+			return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(this, "toString").ToString();
+		}
 
         public string GetDebugInfo()
         {

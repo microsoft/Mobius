@@ -79,12 +79,12 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
             return SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(executedPlanReference, "toString", new object[] { }).ToString();
         }
 
-        public string GetShowString(int numberOfRows, bool truncate)
+        public string GetShowString(int numberOfRows, int truncate, bool vertical)
         {
             return
                 SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(
                     jvmDataFrameReference, "showString",
-                    new object[] { numberOfRows, truncate }).ToString(); 
+                    new object[] { numberOfRows, truncate, vertical}).ToString(); 
         }
 
         public bool IsLocal()
@@ -575,7 +575,16 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
                         new object[] { withReplacement, fraction, seed }).ToString()), sqlContextProxy);
         }
 
-        public IDataFrameWriterProxy Write()
+		public IDataFrameProxy Broadcast()
+		{
+			return
+				new DataFrameIpcProxy(
+					new JvmObjectReference(
+						SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.sql.functions", "broadcast",
+							new object[] { jvmDataFrameReference }).ToString()), sqlContextProxy);
+		}
+
+		public IDataFrameWriterProxy Write()
         {
             return new DataFrameWriterIpcProxy(new JvmObjectReference(
                     SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmDataFrameReference, "write").ToString()));

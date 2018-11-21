@@ -6,6 +6,8 @@ rem Copyright (c) Microsoft. All rights reserved.
 rem Licensed under the MIT license. See LICENSE file in the project root for full license information.
 rem
 
+SET MAVEN_OPTS=-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2
+
 if "%1" == "csharp" set buildCSharp=true
 
 SET CMDHOME=%~dp0

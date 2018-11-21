@@ -81,6 +81,7 @@ namespace WorkerTest
             worker.Start();
             int serverPort = 0;
             serverPort = SerDe.ReadInt(worker.StandardOutput.BaseStream);
+            Environment.SetEnvironmentVariable("PYTHON_WORKER_FACTORY_PORT", serverPort.ToString());
 
             StreamReader stdoutReader = worker.StandardOutput;
             Task.Run(() => {
@@ -119,7 +120,7 @@ namespace WorkerTest
         private ISocketWrapper CreateSocket(int serverPort)
         {
             var socket =SocketFactory.CreateSocket();
-            socket.Connect(IPAddress.Loopback, serverPort);
+            socket.Connect(IPAddress.Loopback, serverPort, null);
             return socket;
         }
 
@@ -131,6 +132,10 @@ namespace WorkerTest
         {
             SerDe.Write(s, splitIndex);
             SerDe.Write(s, ver);
+            SerDe.Write(s, 0);
+            SerDe.Write(s, 0);
+            SerDe.Write(s, 0);
+            SerDe.Write(s, 0L);
             SerDe.Write(s, sparkFilesDir);
             SerDe.Write(s, numberOfIncludesItems);
             SerDe.Write(s, numBroadcastVariables);

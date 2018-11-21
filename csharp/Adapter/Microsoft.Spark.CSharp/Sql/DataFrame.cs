@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Services;
 
 namespace Microsoft.Spark.CSharp.Sql
@@ -66,10 +68,12 @@ namespace Microsoft.Spark.CSharp.Sql
             }
         }
 
-        /// <summary>
-        /// Returns true if the collect and take methods can be run locally (without any Spark executors).
-        /// </summary>
-        public bool IsLocal
+	    internal JvmObjectReference JvmReference => (dataFrameProxy as DataFrameIpcProxy)?.JvmDataFrameReference;
+
+		/// <summary>
+		/// Returns true if the collect and take methods can be run locally (without any Spark executors).
+		/// </summary>
+		public bool IsLocal
         {
             get
             {
@@ -145,10 +149,11 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         /// <param name="numberOfRows">Number of rows to display - default 20</param>
         /// <param name="truncate">Indicates if strings more than 20 characters long will be truncated</param>
-        public void Show(int numberOfRows = 20, bool truncate = true)
+        /// <param name="vertical">If set to True, print output rows vertically (one line per column value).</param>
+        public void Show(int numberOfRows = 20, int truncate = 20, bool vertical = false)
         {
             logger.LogInfo("Writing {0} rows in the DataFrame to Console output", numberOfRows);
-            Console.WriteLine(dataFrameProxy.GetShowString(numberOfRows, truncate));
+            Console.WriteLine(dataFrameProxy.GetShowString(numberOfRows, truncate, vertical));
         }
 
         /// <summary>
@@ -166,8 +171,8 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         public IEnumerable<Row> Collect()
         {
-            int port = RddProxy.CollectAndServe();
-            return Rdd.Collect(port).Cast<Row>();
+            var info = RddProxy.CollectAndServe();
+            return Rdd.Collect(info).Cast<Row>();
         }
 
         //TODO - add this method if needed to convert Row to collection of T
@@ -917,10 +922,11 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <summary>
         /// Persist this DataFrame with the default storage level (`MEMORY_AND_DISK`)
         /// </summary>
+        /// <param name="type">Persist storage type</param>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py persist(self, storageLevel)
-        public DataFrame Persist()
+        public DataFrame Persist(StorageLevelType type= StorageLevelType.MEMORY_AND_DISK)
         {
-            dataFrameProxy.Persist(StorageLevelType.MEMORY_AND_DISK);
+            dataFrameProxy.Persist(type);
             return this;
         }
 
@@ -943,6 +949,11 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             return Persist();
         }
+
+	    public DataFrame Broadcast()
+	    {
+			return new DataFrame(dataFrameProxy.Broadcast(), sparkContext);
+		}
 
         /// <summary>
         /// Returns a new DataFrame that has exactly `numPartitions` partitions.
