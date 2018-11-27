@@ -3,7 +3,7 @@ solution: csharp/SparkCLR.sln
 sudo: required
 dist: trusty
 env:
-  - JDK=openjdk7
+  - JDK=openjdk8
 before_install:
   - sudo apt-get install xsltproc
   - nuget install NUnit.Runners -Version 3.0.0 -OutputDirectory testrunner
