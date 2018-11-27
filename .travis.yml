@@ -14,7 +14,7 @@ before_install:
   - export M2="$M2_HOME/bin"
   - export PATH="$M2:$PATH"
   - hash -r
-script
+script:
   - echo JAVA_HOME = ${JAVA_HOME}
   - java -version
   - export MAVEN_OPTS="-XX:MaxPermSize=2g -Xmx4g"
