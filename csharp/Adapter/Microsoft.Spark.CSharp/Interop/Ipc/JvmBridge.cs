@@ -36,7 +36,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
             if (!sockets.TryDequeue(out socket))
             {
                 socket = SocketFactory.CreateSocket();
-                socket.Connect(IPAddress.Loopback, portNumber);
+                socket.Connect(IPAddress.Loopback, portNumber, null);
             }
             return socket;
         }

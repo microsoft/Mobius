@@ -127,17 +127,17 @@ object Utils extends Logging {
       timer.schedule(new TimerTask() {
         @Override
         def run() {
-          Runtime.getRuntime.halt(status)
+          if (status!=0) { Runtime.getRuntime.halt(status); }
         }
       }, maxDelayMillis)
       // try to exit nicely
-      System.exit(status);
+      if (status!=0) { System.exit(status); }
     } catch {
       // exit nastily if we have a problem
       case ex: Throwable => Runtime.getRuntime.halt(status)
     } finally {
       // should never get here
-      Runtime.getRuntime.halt(status)
+      if (status!=0) { Runtime.getRuntime.halt(status); }
     }
   }
 
@@ -147,7 +147,7 @@ object Utils extends Logging {
    * @param status  the exit status, zero for OK, non-zero for error
    */
   def exit(status: Int): Unit = {
-    exit(status, 1000)
+    exit(status, 1000);
   }
 
   private[spark] def listZipFileEntries(file: File): Array[String] = {

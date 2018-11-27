@@ -15,6 +15,7 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using NUnit.Framework;
+using Microsoft.Spark.CSharp.Network;
 
 namespace AdapterTest.Mocks
 {
@@ -60,7 +61,7 @@ namespace AdapterTest.Mocks
             return union;
         }
 
-        public int CollectAndServe()
+        public SocketInfo CollectAndServe()
         {
             return MockSparkContextProxy.RunJob(this);
         }

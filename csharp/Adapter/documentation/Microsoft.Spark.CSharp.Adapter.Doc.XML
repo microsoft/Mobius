@@ -3513,7 +3513,7 @@
             Close the socket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.DefaultSocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>
@@ -3612,12 +3612,13 @@
             Close the ISocket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>
             <param name="remoteaddr">The IP address of the remote host</param>
             <param name="port">The port number of the remote host</param>
+            <param name="secret">The secret to connect, can be null</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Network.ISocketWrapper.GetStream">
             <summary>
@@ -3770,7 +3771,7 @@
             Close the ISocket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.RioSocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>
@@ -3912,7 +3913,7 @@
             Close the ISocket connections and releases all associated resources.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.Connect(System.Net.IPAddress,System.Int32)">
+        <member name="M:Microsoft.Spark.CSharp.Network.SaeaSocketWrapper.Connect(System.Net.IPAddress,System.Int32,System.String)">
             <summary>
             Establishes a connection to a remote host that is specified by an IP address and a port number
             </summary>
@@ -5190,12 +5191,13 @@
             </summary>
             <returns>row count</returns>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Show(System.Int32,System.Boolean)">
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Show(System.Int32,System.Int32,System.Boolean)">
             <summary>
             Displays rows of the DataFrame in tabular form
             </summary>
             <param name="numberOfRows">Number of rows to display - default 20</param>
             <param name="truncate">Indicates if strings more than 20 characters long will be truncated</param>
+            <param name="vertical">If set to True, print output rows vertically (one line per column value).</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.ShowSchema">
             <summary>
@@ -5627,10 +5629,11 @@
             the 100 new partitions will claim 10 of the current partitions.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Persist">
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Persist(Microsoft.Spark.CSharp.Core.StorageLevelType)">
             <summary>
             Persist this DataFrame with the default storage level (`MEMORY_AND_DISK`)
             </summary>
+            <param name="type">Persist storage type</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.DataFrame.Unpersist(System.Boolean)">
             <summary>
@@ -6040,6 +6043,15 @@
             DataFrame if no paths are passed in.
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrameReader.Avro(System.String)">
+            <summary>
+            Loads a AVRO file (one object per line) and returns the result as a DataFrame.
+            
+            This function goes through the input once to determine the input schema. If you know the
+            schema in advance, use the version that specifies the schema to avoid the extra scan.
+            </summary>
+            <param name="path">input path</param>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.DataFrameWriter">
             <summary>
             Interface used to write a DataFrame to external storage systems (e.g. file systems,
@@ -6145,6 +6157,13 @@
                Format("parquet").Save(path)
             </summary>
         </member>
+        <member name="M:Microsoft.Spark.CSharp.Sql.DataFrameWriter.Avro(System.String)">
+            <summary>
+            Saves the content of the DataFrame in AVRO format at the specified path.
+            This is equivalent to:
+               Format("com.databricks.spark.avro").Save(path)
+            </summary>
+        </member>
         <member name="T:Microsoft.Spark.CSharp.Sql.Dataset">
             <summary>
              Dataset is a strongly typed collection of domain-specific objects that can be transformed
@@ -6193,13 +6212,14 @@
             Returns all column names as an array.
             </summary>
         </member>
-        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Show(System.Int32,System.Boolean)">
+        <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.Show(System.Int32,System.Int32,System.Boolean)">
             <summary>
             Displays the top 20 rows of Dataset in a tabular form. Strings more than 20 characters
             will be truncated, and all cells will be aligned right.
             </summary>
             <param name="numberOfRows">Number of rows - default is 20</param>
             <param name="truncate">Indicates if rows with more than 20 characters to be truncated</param>
+            <param name="vertical">If set to true, prints output rows vertically (one line per column value).</param>
         </member>
         <member name="M:Microsoft.Spark.CSharp.Sql.Dataset.ShowSchema">
             <summary>

@@ -159,5 +159,18 @@ namespace Microsoft.Spark.CSharp.Sql
             logger.LogInfo("Constructing DataFrame using Parquet source {0}", string.Join(";", path));
             return new DataFrame(dataFrameReaderProxy.Parquet(path), sparkContext);
         }
-    }
+
+		/// <summary>
+		/// Loads a AVRO file (one object per line) and returns the result as a DataFrame.
+		/// 
+		/// This function goes through the input once to determine the input schema. If you know the
+		/// schema in advance, use the version that specifies the schema to avoid the extra scan.
+		/// </summary>
+		/// <param name="path">input path</param>
+		public DataFrame Avro(string path)
+		{
+			logger.LogInfo("Constructing DataFrame using AVRO source {0}", path);
+			return Format("com.databricks.spark.avro").Load(path);
+		}
+	}
 }

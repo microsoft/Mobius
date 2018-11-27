@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Sql;
 using Razorvine.Pickle;
 using Microsoft.Spark.CSharp.Proxy;
@@ -64,7 +65,7 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public string GetShowString(int numberOfRows, bool truncate)
+        public string GetShowString(int numberOfRows, int truncate, bool vertical)
         {
             throw new NotImplementedException();
         }
@@ -240,7 +241,12 @@ namespace AdapterTest.Mocks
             throw new NotImplementedException();
         }
 
-        public IDataFrameWriterProxy Write()
+	    public IDataFrameProxy Broadcast()
+	    {
+		    throw new NotImplementedException();
+	    }
+
+	    public IDataFrameWriterProxy Write()
         {
             throw new NotImplementedException();
         }

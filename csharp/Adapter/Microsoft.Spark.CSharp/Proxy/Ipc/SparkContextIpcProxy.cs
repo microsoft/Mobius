@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 
 namespace Microsoft.Spark.CSharp.Proxy.Ipc
@@ -134,10 +135,8 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void Accumulator(int port)
         {
-            jvmAccumulatorReference = new JvmObjectReference((string)SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "accumulator", 
-                SparkCLRIpcProxy.JvmBridge.CallConstructor("java.util.ArrayList"),
-                SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorParam", IPAddress.Loopback.ToString(), port)
-            ));
+            jvmAccumulatorReference = SparkCLRIpcProxy.JvmBridge.CallConstructor("org.apache.spark.api.python.PythonAccumulatorV2", IPAddress.Loopback.ToString(), port);
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmSparkContextReference, "register", new object[] { jvmAccumulatorReference });
         }
 
         public void Stop()
@@ -241,7 +240,7 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         public void SetJobGroup(string groupId, string description, bool interruptOnCancel)
         {
-            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "setCheckpointDir", new object[] { groupId, description, interruptOnCancel });
+            SparkCLRIpcProxy.JvmBridge.CallNonStaticJavaMethod(jvmJavaContextReference, "setJobGroup", new object[] { groupId, description, interruptOnCancel });
         }
 
         public void SetLocalProperty(string key, string value)
@@ -344,10 +343,10 @@ namespace Microsoft.Spark.CSharp.Proxy.Ipc
 
         }
         
-        public int RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
+        public SocketInfo RunJob(IRDDProxy rdd, IEnumerable<int> partitions)
         {
             var jpartitions = JvmBridgeUtils.GetJavaList<int>(partitions);
-            return int.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "runJob", new object[] { jvmSparkContextReference, (rdd as RDDIpcProxy).JvmRddReference, jpartitions }).ToString());
+            return SocketInfo.Parse(SparkCLRIpcProxy.JvmBridge.CallStaticJavaMethod("org.apache.spark.api.python.PythonRDD", "runJob", new object[] { jvmSparkContextReference, (rdd as RDDIpcProxy).JvmRddReference, jpartitions }));
         }
 
         public IBroadcastProxy ReadBroadcastFromFile(string path, out long broadcastId)

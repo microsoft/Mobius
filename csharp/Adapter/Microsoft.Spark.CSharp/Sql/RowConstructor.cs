@@ -78,7 +78,7 @@ namespace Microsoft.Spark.CSharp.Sql
             currentSchema = null;
             return row;
         }
-
+		
         //removes objects of type RowConstructor and replacing them with actual values
         private object[] GetValues(object[] arguments)
         {
@@ -86,7 +86,7 @@ namespace Microsoft.Spark.CSharp.Sql
             int i = 0;
             foreach (var argument in arguments)
             {
-                if (argument != null && argument.GetType() == typeof(RowConstructor))
+                if (argument is RowConstructor)
                 {
                     values[i++] = (argument as RowConstructor).Values;
                 }

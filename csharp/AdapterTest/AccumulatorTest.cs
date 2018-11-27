@@ -33,7 +33,7 @@ namespace AdapterTest
             // get accumulator server port and connect to accumuator server
             int serverPort = (sc.SparkContextProxy as MockSparkContextProxy).AccumulatorServerPort;
             sock = SocketFactory.CreateSocket();
-            sock.Connect(IPAddress.Loopback, serverPort);
+            sock.Connect(IPAddress.Loopback, serverPort, null);
         }
 
         [TearDown]

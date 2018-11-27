@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
@@ -249,6 +250,17 @@ namespace Microsoft.Spark.CSharp.Sql
             Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(f).Execute;
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
-        #endregion
-    }
+
+		public void RegisterFunction(string name, MethodInfo f)
+		{
+			if (!f.IsStatic)
+				throw new InvalidOperationException(f.DeclaringType?.FullName + "." + f.Name +
+				                                    " is not a static method, can't be registered");
+			logger.LogInfo("Name of the function to register {0}, method info", name, f.DeclaringType?.FullName + "." + f.Name);
+			var helper = new UdfReflectionHelper(f);
+			Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = helper.Execute;
+			udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(helper.ReturnType));
+		}
+		#endregion
+	}
 }

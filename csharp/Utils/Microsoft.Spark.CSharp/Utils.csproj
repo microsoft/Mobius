@@ -40,6 +40,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileSystem\HdfsFileStatus.cs" />
     <Compile Include="FileSystem\LocalFileSystemHelper.cs" />
     <Compile Include="FileSystem\HdfsFileSystemHelper.cs" />
     <Compile Include="FileSystem\FileSystemHelper.cs" />

@@ -18,16 +18,23 @@ namespace Microsoft.Spark.CSharp.Sql
         [NonSerialized]
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(Row));
 
-        /// <summary>
-        /// Number of elements in the Row.
-        /// </summary>
-        /// <returns>elements count in this row</returns>
-        public abstract int Size();
+	    public abstract dynamic[] Values { get; }
+
+		/// <summary>
+		/// Number of elements in the Row.
+		/// </summary>
+		/// <returns>elements count in this row</returns>
+		public abstract int Size();
 
         /// <summary>
         /// Schema for the row.
         /// </summary>
         public abstract StructType GetSchema();
+
+	    public virtual void ResetValues(dynamic[] values)
+	    {
+		    throw new NotImplementedException();
+	    }
 
         /// <summary>
         /// Returns the value at position i.
@@ -80,8 +87,22 @@ namespace Microsoft.Spark.CSharp.Sql
     internal class RowImpl : Row
     {
         private readonly StructType schema;
-        public dynamic[] Values { get { return values; } }
-        private readonly dynamic[] values;
+
+	    public override dynamic[] Values
+	    {
+		    get
+		    {
+			    if (!valuesConverted)
+			    {
+				    schema.ConvertPickleObjects(rawValues,rawValues);
+				    valuesConverted = true;
+			    }
+			    return rawValues;
+		    }
+	    }
+
+        private dynamic[] rawValues;
+	    private bool valuesConverted = false;
 
         private readonly int columnCount;
 
@@ -96,11 +117,11 @@ namespace Microsoft.Spark.CSharp.Sql
         {
             if (data is dynamic[])
             {
-                values = data as dynamic[];
+				rawValues = data as dynamic[];
             }
             else if (data is List<dynamic>)
             {
-                values = (data as List<dynamic>).ToArray();
+				rawValues = (data as List<dynamic>).ToArray();
             }
             else
             {
@@ -109,17 +130,25 @@ namespace Microsoft.Spark.CSharp.Sql
 
             this.schema = schema;
             
-            columnCount = values.Count();
-            int schemaColumnCount = this.schema.Fields.Count();
+            columnCount = rawValues.Length;
+            int schemaColumnCount = this.schema.Fields.Count;
             if (columnCount != schemaColumnCount)
             {
                 throw new Exception(string.Format("column count inferred from data ({0}) and schema ({1}) mismatch", columnCount, schemaColumnCount));
             }
-
-            Initialize();
         }
 
-        public override int Size()
+	    public override void ResetValues(dynamic[] values)
+	    {
+			if (columnCount != values.Length)
+			{
+				throw new ArgumentException("column count inferred from data and schema mismatch");
+			}
+			rawValues = values;
+		    valuesConverted = false;
+		}
+
+	    public override int Size()
         {
             return columnCount;
         }
@@ -131,16 +160,15 @@ namespace Microsoft.Spark.CSharp.Sql
 
         public override dynamic Get(int i)
         {
+	        if (i >= 0 && i < columnCount) return Values[i];
             if (i >= columnCount)
             {
                 throw new Exception(string.Format("i ({0}) >= columnCount ({1})", i, columnCount));
             }
-            else if(i < 0)
+            else
             {
                 throw new Exception(string.Format("i ({0}) < 0", i));
             }
-
-            return values[i];
         }
 
         public override dynamic Get(string columnName)
@@ -152,7 +180,7 @@ namespace Microsoft.Spark.CSharp.Sql
         public override string ToString()
         {
             List<string> cols = new List<string>();
-            foreach (var item in values)
+            foreach (var item in Values)
             {
                 if (item != null)
                 {
@@ -166,73 +194,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
             return string.Format("[{0}]", string.Join(",", cols.ToArray()));
         }
-
-
-        private void Initialize()
-        {
-
-            int index = 0;
-            foreach (var field in schema.Fields)
-            {
-                if (field.DataType is ArrayType)
-                {
-                    Func<DataType, int, StructType> convertArrayTypeToStructTypeFunc = (dataType, length) =>
-                                                                                      {
-                                                                                          StructField[] fields = new StructField[length];
-                                                                                          for(int i = 0; i < length ; i++)
-                                                                                          {
-                                                                                              fields[i] = new StructField(string.Format("_array_{0}", i), dataType);
-                                                                                          }
-                                                                                          return new StructType(fields);
-                                                                                      };
-                    var elementType = (field.DataType as ArrayType).ElementType;
-
-                    // Note: When creating object from json, PySpark converts Json array to Python List (https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/types.py, _create_cls(dataType)), 
-                    // then Pyrolite unpickler converts Python List to C# ArrayList (https://github.com/irmen/Pyrolite/blob/v4.10/README.txt). So values[index] should be of type ArrayList;
-                    // In case Python changes its implementation, which means value is not of type ArrayList, try cast to object[] because Pyrolite unpickler convert Python Tuple to C# object[].
-                    object[] valueOfArray = values[index] is ArrayList ? (values[index] as ArrayList).ToArray() : values[index] as object[];
-                    if (valueOfArray == null)
-                    {
-                        throw new ArgumentException("Cannot parse data of ArrayType: " + field.Name);
-                    }
-
-                    values[index] = new RowImpl(valueOfArray, elementType as StructType ?? convertArrayTypeToStructTypeFunc(elementType, valueOfArray.Length)).values;
-                }
-                else if (field.DataType is MapType)
-                {
-                    //TODO
-                    throw new NotImplementedException();
-                }
-                else if (field.DataType is StructType)
-                {
-                    dynamic value = values[index];
-                    if (value != null)
-                    {
-                        var subRow = new RowImpl(values[index], field.DataType as StructType);
-                        values[index] = subRow;
-                    }
-                }
-                else if (field.DataType is DecimalType)
-                {
-                    //TODO
-                    throw new NotImplementedException();
-                }
-                else if (field.DataType is DateType)
-                {
-                    //TODO
-                    throw new NotImplementedException();
-                }
-                else if (field.DataType is StringType)
-                {
-                    if (values[index] != null) values[index] = values[index].ToString();
-                }
-                else
-                {
-                    values[index] = values[index];
-                }
-                index++;
-            }
-        }
+        
     }
 
 }

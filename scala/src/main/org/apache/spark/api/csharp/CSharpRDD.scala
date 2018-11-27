@@ -12,6 +12,7 @@ import java.util.{List => JList, Map => JMap}
 
 import org.apache.hadoop.io.compress.CompressionCodec
 import org.apache.spark.api.python._
+import org.apache.spark.api.python.PythonAccumulatorV2
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark._
@@ -34,7 +35,7 @@ class CSharpRDD(
     cSharpWorkerExecutable: String,
     unUsedVersionIdentifier: String,
     broadcastVars: JList[Broadcast[PythonBroadcast]],
-    accumulator: Accumulator[JList[Array[Byte]]])
+    accumulator: PythonAccumulatorV2)
   extends PythonRDD (
     parent,
     SQLUtils.createCSharpFunction(command, envVars, cSharpIncludes, cSharpWorkerExecutable,
@@ -95,7 +96,7 @@ class CSharpRDD(
     logInfo("Env vars: " + envVars.asScala.mkString(", "))
 
     val runner = new PythonRunner(
-      Seq(ChainedPythonFunctions(Seq(func))), bufferSize, reuse_worker, false, Array(Array(0)))
+      Seq(ChainedPythonFunctions(Seq(func))), bufferSize, reuseWorker)
     runner.compute(firstParent.iterator(split, context), split.index, context)
   }
 

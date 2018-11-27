@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -919,7 +921,7 @@ namespace Microsoft.Spark.CSharp.Sql
             {typeof(double), "double"},
             {typeof(float), "float"},
             {typeof(byte), "tinyint"},
-            {typeof(int), "int"},
+            {typeof(int), "integer"},
             {typeof(long), "bigint"},
             {typeof(short), "smallint"}
         };
@@ -1119,5 +1121,42 @@ namespace Microsoft.Spark.CSharp.Sql
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]), (A5)(a[4]), (A6)(a[5]), (A7)(a[6]), (A8)(a[7]), (A9)(a[8]), (A10)(a[9]))).Cast<dynamic>();
         }
     }
-    #endregion
+
+	[Serializable]
+	internal class UdfReflectionHelper
+	{
+		private readonly MethodInfo func;
+
+		[NonSerialized]
+		private object[] _cache;
+
+		internal UdfReflectionHelper(MethodInfo f)
+		{
+			func = f;
+			_cache = new object[func.GetParameters().Length];
+		}
+
+		public Type ReturnType => func.ReturnType;
+
+		[OnDeserialized()]
+		public void Init(StreamingContext context)
+		{
+			_cache = new object[func.GetParameters().Length];
+		}
+
+		internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
+		{
+			return input.Select(Run).Cast<dynamic>();
+		}
+
+		private dynamic Run(dynamic input)
+		{
+			for (int i = 0; i < _cache.Length; ++i)
+			{
+				_cache[i] = input[i];
+			}
+			return func.Invoke(null, _cache);
+		}
+	}
+	#endregion
 }

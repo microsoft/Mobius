@@ -9,7 +9,9 @@ using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
+using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
+using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Services;
 using Microsoft.Spark.CSharp.Sql.Catalog;
 
@@ -42,10 +44,12 @@ namespace Microsoft.Spark.CSharp.Sql
             get { return catalog ?? (catalog = new Catalog.Catalog(SparkSessionProxy.GetCatalog())); }
         }
 
-        /// <summary>
-        /// Interface through which the user may access the underlying SparkContext.
-        /// </summary>
-        public SparkContext SparkContext { get; private set; }
+		internal JvmObjectReference JvmReference => (sparkSessionProxy as SparkSessionIpcProxy)?.JvmReference;
+
+		/// <summary>
+		/// Interface through which the user may access the underlying SparkContext.
+		/// </summary>
+		public SparkContext SparkContext { get; private set; }
 
         public UdfRegistration Udf
         {
@@ -114,18 +118,30 @@ namespace Microsoft.Spark.CSharp.Sql
             // The below sqlContextProxy.CreateDataFrame() will call byteArrayRDDToAnyArrayRDD() of SQLUtils.scala which only accept RDD of type RDD[Array[Byte]].
             // In byteArrayRDDToAnyArrayRDD() of SQLUtils.scala, the SerDeUtil.pythonToJava() will be called which is a mapPartitions inside. 
             // It will be executed until the CSharpWorker finishes Pickling to RDD[Array[Byte]].
-            var rddRow = rdd.Map(r => r);
+	        var rddRow = rdd.MapPartitions(r => r.Select(rr => rr));
             rddRow.serializedMode = SerializedMode.Row;
 
             return new DataFrame(sparkSessionProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), SparkContext);
         }
 
-        /// <summary>
-        /// Returns the specified table as a <see cref="DataFrame"/>
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public DataFrame Table(string tableName)
+		public DataFrame CreateDataFrame(RDD<Row> rdd, StructType schema)
+		{
+			// Note: This is for pickling RDD, convert to RDD<byte[]> which happens in CSharpWorker. 
+			// The below sqlContextProxy.CreateDataFrame() will call byteArrayRDDToAnyArrayRDD() of SQLUtils.scala which only accept RDD of type RDD[Array[Byte]].
+			// In byteArrayRDDToAnyArrayRDD() of SQLUtils.scala, the SerDeUtil.pythonToJava() will be called which is a mapPartitions inside. 
+			// It will be executed until the CSharpWorker finishes Pickling to RDD[Array[Byte]].
+			var rddRow = rdd.MapPartitions(rows => rows.Select(r => r.Values));
+			rddRow.serializedMode = SerializedMode.Row;
+
+			return new DataFrame(sparkSessionProxy.CreateDataFrame(rddRow.RddProxy, schema.StructTypeProxy), SparkContext);
+		}
+
+		/// <summary>
+		/// Returns the specified table as a <see cref="DataFrame"/>
+		/// </summary>
+		/// <param name="tableName"></param>
+		/// <returns></returns>
+		public DataFrame Table(string tableName)
         {
             return new DataFrame(sparkSessionProxy.Table(tableName), SparkContext);
         }
