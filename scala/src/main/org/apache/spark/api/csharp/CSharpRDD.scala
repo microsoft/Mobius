@@ -96,7 +96,7 @@ class CSharpRDD(
     logInfo("Env vars: " + envVars.asScala.mkString(", "))
 
     val runner = new PythonRunner(
-      Seq(ChainedPythonFunctions(Seq(func))), bufferSize, reuseWorker)
+      Seq(ChainedPythonFunctions(Seq(func))), bufferSize, false, false, Array(Array(0)))
     runner.compute(firstParent.iterator(split, context), split.index, context)
   }
 

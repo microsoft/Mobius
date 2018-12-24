@@ -42,7 +42,7 @@ if not exist "%SPARK_JARS_DIR%" (
 
 set SPARK_JARS_CLASSPATH=%SPARK_JARS_DIR%\*
 
-if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.11-2.3.1-SNAPSHOT.jar)
+if not defined SPARKCLR_JAR (set SPARKCLR_JAR=spark-clr_2.11-2.2.2-SNAPSHOT.jar)
 echo [sparkclr-submit.cmd] SPARKCLR_JAR=%SPARKCLR_JAR% 
 set SPARKCLR_CLASSPATH=%SPARKCLR_HOME%\lib\%SPARKCLR_JAR%
 REM SPARKCLR_DEBUGMODE_EXT_JARS environment variable is used to specify external dependencies to use in debug mode

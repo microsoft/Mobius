@@ -20,7 +20,7 @@ if ($stage.ToLower() -eq "run")
     $hadoopVersion = if ($envValue -eq $null) { "2.6" } else { $envValue }
     
     $envValue = [Environment]::GetEnvironmentVariable("SPARK_VERSION")
-    $sparkVersion = if ($envValue -eq $null) { "2.3.1" } else { $envValue }
+    $sparkVersion = if ($envValue -eq $null) { "2.2.2" } else { $envValue }
 
     Write-Output "[downloadtools] hadoopVersion=$hadoopVersion, sparkVersion=$sparkVersion, apacheDistServer=$apacheDistServer"
 }

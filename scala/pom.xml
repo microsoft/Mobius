@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.sparkclr</groupId>
   <artifactId>spark-clr_2.11</artifactId>
-  <version>2.3.1-SNAPSHOT</version>
+  <version>2.2.2-SNAPSHOT</version>
   <name>Mobius Project</name>
   <description>C# language binding and extensions to Apache Spark</description>
   <url>https://github.com/Microsoft/Mobius</url>
@@ -35,7 +35,7 @@
     <maven.compiler.target>1.5</maven.compiler.target>
     <encoding>UTF-8</encoding>
     <scala.version>2.11.8</scala.version>
-    <spark.version>2.3.1</spark.version>
+    <spark.version>2.2.2</spark.version>
     <scala.binary.version>2.11</scala.binary.version>
   </properties>
 
