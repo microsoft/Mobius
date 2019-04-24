@@ -1,4 +1,4 @@
-# Mobius development is deprecated and has been superseded by a more recent version '.NET for Apache Spark' from Microsoft ([Website](https://dot.net/spark) | [GitHub](https://github.com/dotnet/spark)) that runs on Azure HDInsight Spark, Azure & AWS Databricks.
+# Mobius development is deprecated and has been superseded by a more recent version '.NET for Apache Spark' from Microsoft ([Website](https://dot.net/spark) | [GitHub](https://github.com/dotnet/spark)) that runs on Azure HDInsight Spark, Amazon EMR Spark, Azure & AWS Databricks.
 
 <img src='logo/mobius-star-200.png' width='125px' alt='Mobius logo' />
 
