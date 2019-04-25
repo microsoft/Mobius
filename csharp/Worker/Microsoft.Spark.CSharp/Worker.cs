@@ -101,10 +101,10 @@ namespace Microsoft.Spark.CSharp
             try
             {
                 // if there exists exe.config file, then use log4net
-                if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile))
+                /*if (File.Exists(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile))
                 {
                     LoggerServiceFactory.SetLoggerService(Log4NetLoggerService.Instance);
-                }
+                }*/
                 logger = LoggerServiceFactory.GetLogger(typeof(Worker));
             }
             catch (Exception e)

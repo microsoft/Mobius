@@ -39,12 +39,12 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public void Write(int value)
         {
-            stream.Writer.Write(SerDe.Convert(value));   
+            stream.Writer.Write(SerDe.ToBytes(value));   
         }
 
         public void Write(long value)
         {
-            stream.Writer.Write(SerDe.Convert(value));
+            stream.Writer.Write(SerDe.ToBytes(value));
         }
 
         public void Write(string value)
@@ -66,7 +66,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public int ReadInt()
         {
-            return SerDe.Convert(stream.Reader.ReadInt32());
+            return SerDe.ReadInt(stream.Reader.BaseStream);
         }
 
         public long ReadLong()
@@ -78,7 +78,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public string ReadString()
         {
-            var length = SerDe.Convert(stream.Reader.ReadInt32());
+            var length = stream.Reader.ReadInt32();
             var stringAsBytes = stream.Reader.ReadBytes(length);
             return SerDe.ToString(stringAsBytes);
         }
@@ -91,7 +91,7 @@ namespace Microsoft.Spark.CSharp.Interop.Ipc
 
         public double ReadDouble()
         {
-            return SerDe.Convert(stream.Reader.ReadDouble());
+            return stream.Reader.ReadDouble();
         }
 
         public bool ReadBoolean()

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using log4net;
 using log4net.Config;
+using System.Reflection;
 
 namespace Microsoft.Spark.CSharp.Services
 {
@@ -21,7 +22,8 @@ namespace Microsoft.Spark.CSharp.Services
 
         static Log4NetLoggerService()
         {
-            XmlConfigurator.Configure();
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.Configure(logRepository);
         }
 
         /// <summary>
