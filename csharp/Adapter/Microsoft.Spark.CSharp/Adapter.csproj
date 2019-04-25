@@ -41,4 +41,8 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\ExpressionSerializer\SerializationHelpers.csproj" />
+  </ItemGroup>
 </Project>

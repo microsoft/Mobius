@@ -4,9 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Services;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -61,7 +64,7 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 return sparkContext;
             }
-	        set { sparkContext = value; }
+            set { sparkContext = value; }
         }
 
         /// <summary>
@@ -120,7 +123,7 @@ namespace Microsoft.Spark.CSharp.Core
             if (this is PipelinedRDD<T>)
             {
                 CSharpWorkerFunc oldWorkerFunc = (this as PipelinedRDD<T>).workerFunc;
-                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc(oldWorkerFunc.Func, oldWorkerFunc.StackTrace);
+                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc((olderWorkerX, olderWorkerY) => oldWorkerFunc.Func(olderWorkerX, olderWorkerY), oldWorkerFunc.StackTrace);
                 (r as PipelinedRDD<U>).workerFunc = newWorkerFunc;
                 (r as PipelinedRDD<U>).preservesPartitioning = (this as PipelinedRDD<T>).preservesPartitioning;
             }
@@ -210,10 +213,10 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="f"></param>
         /// <param name="preservesPartitioning"></param>
         /// <returns></returns>
-        public RDD<U> Map<U>(Func<T, U> f, bool preservesPartitioning = false)
+        public RDD<U> Map<U>(Expression<Func<T, U>> f, bool preservesPartitioning = false)
         {
             logger.LogInfo("Executing Map operation on RDD (preservesPartitioning={0})", preservesPartitioning);
-            return MapPartitionsWithIndex(new MapHelper<T, U>(f).Execute, preservesPartitioning);
+            return MapPartitionsWithIndex((mapHelperX, mapHelperY) => new MapHelper<T, U>(f).Execute(mapHelperX, mapHelperY), preservesPartitioning);
         }
 
         /// <summary>
@@ -228,9 +231,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="f"></param>
         /// <param name="preservesPartitioning"></param>
         /// <returns></returns>
-        public RDD<U> FlatMap<U>(Func<T, IEnumerable<U>> f, bool preservesPartitioning = false)
+        public RDD<U> FlatMap<U>(Expression<Func<T, IEnumerable<U>>> f, bool preservesPartitioning = false)
         {
-            return MapPartitionsWithIndex(new FlatMapHelper<T, U>(f).Execute, preservesPartitioning);
+            return MapPartitionsWithIndex((flatMapHelperX, flatMapHelperY) => new FlatMapHelper<T, U>(f).Execute(flatMapHelperX, flatMapHelperY), preservesPartitioning);
         }
 
         /// <summary>
@@ -244,9 +247,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="f"></param>
         /// <param name="preservesPartitioning"></param>
         /// <returns></returns>
-        public RDD<U> MapPartitions<U>(Func<IEnumerable<T>, IEnumerable<U>> f, bool preservesPartitioning = false)
+        public RDD<U> MapPartitions<U>(Expression<Func<IEnumerable<T>, IEnumerable<U>>> f, bool preservesPartitioning = false)
         {
-            return MapPartitionsWithIndex(new MapPartitionsHelper<T, U>(f).Execute, preservesPartitioning);
+            return MapPartitionsWithIndex((mapPartitionsHelperX, mapPartitionsHelperY) => new MapPartitionsHelper<T, U>(f).Execute(mapPartitionsHelperX, mapPartitionsHelperY), preservesPartitioning);
         }
 
         /// <summary>
@@ -260,9 +263,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="f"></param>
         /// <param name="preservesPartitioningParam"></param>
         /// <returns></returns>
-        public virtual RDD<U> MapPartitionsWithIndex<U>(Func<int, IEnumerable<T>, IEnumerable<U>> f, bool preservesPartitioningParam = false)
+        public virtual RDD<U> MapPartitionsWithIndex<U>(Expression<Func<int, IEnumerable<T>, IEnumerable<U>>> f, bool preservesPartitioningParam = false)
         {
-            CSharpWorkerFunc csharpWorkerFunc = new CSharpWorkerFunc(new DynamicTypingWrapper<T, U>(f).Execute);
+            CSharpWorkerFunc csharpWorkerFunc = new CSharpWorkerFunc((dynamicX, dynamicY) => new DynamicTypingWrapper<T, U>(f).Execute(dynamicX, dynamicY));
             var pipelinedRDD = new PipelinedRDD<U>
             {
                 workerFunc = csharpWorkerFunc,
@@ -286,9 +289,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         /// <param name="f"></param>
         /// <returns></returns>
-        public RDD<T> Filter(Func<T, bool> f)
+        public RDD<T> Filter(Expression<Func<T, bool>> f)
         {
-            return MapPartitionsWithIndex(new FilterHelper<T>(f).Execute, true);
+            return MapPartitionsWithIndex((filterX, filterY) => new FilterHelper<T>(f).Execute(filterX, filterY), true);
         }
 
         /// <summary>
@@ -511,7 +514,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public RDD<T[]> Glom()
         {
-            return MapPartitionsWithIndex<T[]>(new GlomHelper<T>().Execute);
+            return MapPartitionsWithIndex<T[]>((glomX, glomY) => new GlomHelper<T>().Execute(glomX, glomY));
         }
 
         /// <summary>
@@ -546,7 +549,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public RDD<Tuple<K, List<T>>> GroupBy<K>(Func<T, K> f, int numPartitions = 0)
+        public RDD<Tuple<K, List<T>>> GroupBy<K>(Expression<Func<T, K>> f, int numPartitions = 0)
         {
             return KeyBy(f).GroupByKey(numPartitions);
         }
@@ -571,9 +574,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <param name="f"></param>
-        public void Foreach(Action<T> f)
+        public void Foreach(Expression<Action<T>> f)
         {
-            MapPartitionsWithIndex<T>(new ForeachHelper<T>(f).Execute).Count(); // Force evaluation
+            MapPartitionsWithIndex<T>((foreachHelperX, foreachHelperY) => new ForeachHelper<T>(f).Execute(foreachHelperX, foreachHelperY)).Count(); // Force evaluation
         }
 
         /// <summary>
@@ -583,9 +586,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// 
         /// </summary>
         /// <param name="f"></param>
-        public void ForeachPartition(Action<IEnumerable<T>> f)
+        public void ForeachPartition(Expression<Action<IEnumerable<T>>> f)
         {
-            MapPartitionsWithIndex<T>(new ForeachPartitionHelper<T>(f).Execute).Count(); // Force evaluation
+            MapPartitionsWithIndex<T>((partitionHelperX, partitionHelperY) => new ForeachPartitionHelper<T>(f).Execute(partitionHelperX, partitionHelperY)).Count(); // Force evaluation
         }
 
         /// <summary>
@@ -613,10 +616,10 @@ namespace Microsoft.Spark.CSharp.Core
         /// </summary>
         /// <param name="f"></param>
         /// <returns></returns>
-        public T Reduce(Func<T, T, T> f)
+        public T Reduce(Expression<Func<T, T, T>> f)
         {
             logger.LogInfo("Executing Reduce operation on RDD");
-            Func<int, IEnumerable<T>, IEnumerable<T>> func = new ReduceHelper<T>(f).Execute;
+            Expression<Func<int, IEnumerable<T>, IEnumerable<T>>> func = (reduceX, reduceY) => new ReduceHelper<T>(f).Execute(reduceX, reduceY);
             var vals = MapPartitionsWithIndex(func, true).Collect();
 
             if (vals == null)
@@ -624,7 +627,7 @@ namespace Microsoft.Spark.CSharp.Core
                 throw new ArgumentException("Cannot reduce empty RDD");
             }
 
-            return vals.Aggregate(f);
+            return vals.Aggregate(f.Compile());
         }
 
         /// <summary>
@@ -647,14 +650,14 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="f"></param>
         /// <param name="depth">suggested depth of the tree (default: 2)</param>
         /// <returns></returns>
-        public T TreeReduce(Func<T, T, T> f, int depth = 2)
+        public T TreeReduce(Expression<Func<T, T, T>> f, int depth = 2)
         {
             if (depth < 1)
                 throw new ArgumentException(string.Format("Depth cannot be smaller than 1 but got {0}.", depth));
 
             var zeroValue = new Tuple<T, bool>(default(T), true);  // Use the second entry to indicate whether this is a dummy value.
 
-            Func<Tuple<T, bool>, Tuple<T, bool>, Tuple<T, bool>> op = new TreeReduceHelper<T>(f).Execute;
+            Expression<Func<Tuple<T, bool>, Tuple<T, bool>, Tuple<T, bool>>> op = (treeReduceX, treeReduceY) => new TreeReduceHelper<T>(f).Execute(treeReduceX, treeReduceY);
 
             var reduced = Map<Tuple<T, bool>>(x => new Tuple<T, bool>(x, false)).TreeAggregate(zeroValue, op, op, depth);
             if (reduced.Item2)
@@ -687,10 +690,10 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="zeroValue"></param>
         /// <param name="op"></param>
         /// <returns></returns>
-        public T Fold(T zeroValue, Func<T, T, T> op)
+        public T Fold(T zeroValue, Expression<Func<T, T, T>> op)
         {
-            T[] vals = MapPartitionsWithIndex<T>(new AggregateHelper<T, T>(zeroValue, op).Execute).Collect();
-            return vals.Aggregate(zeroValue, op);
+            T[] vals = MapPartitionsWithIndex<T>((aggregateHelperX, aggregateHelperY) => new AggregateHelper<T, T>(zeroValue, op).Execute(aggregateHelperX, aggregateHelperY)).Collect();
+            return vals.Aggregate(zeroValue, op.Compile());
         }
 
         /// <summary>
@@ -715,9 +718,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="seqOp"></param>
         /// <param name="combOp"></param>
         /// <returns></returns>
-        public U Aggregate<U>(U zeroValue, Func<U, T, U> seqOp, Func<U, U, U> combOp)
+        public U Aggregate<U>(U zeroValue, Expression<Func<U, T, U>> seqOp, Expression<Func<U, U, U>> combOp)
         {
-            return MapPartitionsWithIndex<U>(new AggregateHelper<U, T>(zeroValue, seqOp).Execute).Fold(zeroValue, combOp);
+            return MapPartitionsWithIndex<U>((aggregateHelperX, aggregateHelperY) => new AggregateHelper<U, T>(zeroValue, seqOp).Execute(aggregateHelperX, aggregateHelperY)).Fold(zeroValue, combOp);
         }
 
         /// <summary>
@@ -732,7 +735,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="combOp"></param>
         /// <param name="depth">suggested depth of the tree (default: 2)</param>
         /// <returns></returns>
-        public U TreeAggregate<U>(U zeroValue, Func<U, T, U> seqOp, Func<U, U, U> combOp, int depth = 2)
+        public U TreeAggregate<U>(U zeroValue, Expression<Func<U, T, U>> seqOp, Expression<Func<U, U, U>> combOp, int depth = 2)
         {
             if (depth < 1)
                 throw new ArgumentException(string.Format("Depth cannot be smaller than 1 but got {0}.", depth));
@@ -740,7 +743,7 @@ namespace Microsoft.Spark.CSharp.Core
             if (GetNumPartitions() == 0)
                 return zeroValue;
 
-            var partiallyAggregated = MapPartitionsWithIndex(new AggregateHelper<U, T>(zeroValue, seqOp).Execute);
+            var partiallyAggregated = MapPartitionsWithIndex((aggregateHelperX, aggregateHelperY) => new AggregateHelper<U, T>(zeroValue, seqOp).Execute(aggregateHelperX, aggregateHelperY));
             int numPartitions = partiallyAggregated.GetNumPartitions();
             int scale = Math.Max((int)(Math.Ceiling(Math.Pow(numPartitions, 1.0 / depth))), 2);
             // If creating an extra level doesn't help reduce the wall-clock time, we stop the tree aggregation.
@@ -749,7 +752,7 @@ namespace Microsoft.Spark.CSharp.Core
                 numPartitions /= scale;
 
                 partiallyAggregated = partiallyAggregated
-                    .MapPartitionsWithIndex<Tuple<int, U>>(new TreeAggregateHelper<U>(numPartitions).Execute)
+                    .MapPartitionsWithIndex<Tuple<int, U>>((treeAggregateHelperX, treeAggregateHelperY) => new TreeAggregateHelper<U>(numPartitions).Execute(treeAggregateHelperX, treeAggregateHelperY))
                     .ReduceByKey(combOp, numPartitions)
                     .Values();
             }
@@ -831,7 +834,7 @@ namespace Microsoft.Spark.CSharp.Core
                 IEnumerable<int> partitions = Enumerable.Range(partsScanned, Math.Min(numPartsToTry, totalParts - partsScanned));
 
 
-                var mappedRDD = MapPartitionsWithIndex<T>(new TakeHelper<T>(left).Execute);
+                var mappedRDD = MapPartitionsWithIndex<T>((takeHelperX, takeHelperY) => new TakeHelper<T>(left).Execute(takeHelperX, takeHelperY));
                 var info = sparkContext.SparkContextProxy.RunJob(mappedRDD.RddProxy, partitions);
 
                 IEnumerable<T> res = Collect(info).Cast<T>();
@@ -903,9 +906,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <typeparam name="K"></typeparam>
         /// <param name="f"></param>
         /// <returns></returns>
-        public RDD<Tuple<K, T>> KeyBy<K>(Func<T, K> f)
+        public RDD<Tuple<K, T>> KeyBy<K>(Expression<Func<T, K>> f)
         {
-            return Map<Tuple<K, T>>(new KeyByHelper<K, T>(f).Execute);
+            return Map<Tuple<K, T>>((keyByHelperX) => new KeyByHelper<K, T>(f).Execute(keyByHelperX));
         }
 
         /// <summary>
@@ -945,7 +948,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<T> Coalesce(int numPartitions, bool shuffle = false)
         {
             return new RDD<T>(RddProxy.Coalesce(numPartitions, shuffle), sparkContext, serializedMode);
-		}
+        }
 
         /// <summary>
         /// Zips this RDD with another one, returning key-value pairs with the
@@ -994,7 +997,7 @@ namespace Microsoft.Spark.CSharp.Core
                 for (int i = 0; i < nums.Length - 1; i++)
                     starts[i + 1] = starts[i] + nums[i];
             }
-            return MapPartitionsWithIndex<Tuple<T, long>>(new ZipWithIndexHelper<T>(starts).Execute);
+            return MapPartitionsWithIndex<Tuple<T, long>>((zipX, zipY) => new ZipWithIndexHelper<T>(starts).Execute(zipX, zipY));
         }
 
         /// <summary>
@@ -1012,7 +1015,7 @@ namespace Microsoft.Spark.CSharp.Core
         public RDD<Tuple<T, long>> ZipWithUniqueId()
         {
             int num = GetNumPartitions();
-            return MapPartitionsWithIndex<Tuple<T, long>>(new ZipWithUniqueIdHelper<T>(num).Execute);
+            return MapPartitionsWithIndex<Tuple<T, long>>((zipX, zipY) => new ZipWithUniqueIdHelper<T>(num).Execute(zipX, zipY));
         }
 
         /// <summary>
@@ -1130,7 +1133,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T Max<T>(this RDD<T> self) where T : IComparable<T>
         {
-            return self.MapPartitionsWithIndex<T>((pid, iter) => { return new List<T> { iter.Max() }; }).Collect().Max();
+            return self.MapPartitionsWithIndex<T>((pid, iter) => new List<T> { iter.Max() }).Collect().Max();
         }
 
         /// <summary>
@@ -1146,7 +1149,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static T Min<T>(this RDD<T> self) where T : IComparable<T>
         {
-            return self.MapPartitionsWithIndex<T>((pid, iter) => { return new List<T> { iter.Min() }; }).Collect().Min();
+            return self.MapPartitionsWithIndex<T>((pid, iter) => new List<T> { iter.Min() }).Collect().Min();
         }
 
         /// <summary>
@@ -1162,17 +1165,17 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="num"></param>
         /// <param name="keyFunc"></param>
         /// <returns></returns>
-        public static T[] TakeOrdered<T>(this RDD<T> self, int num, Func<T, dynamic> keyFunc = null) where T : IComparable<T>
+        public static T[] TakeOrdered<T>(this RDD<T> self, int num, Expression<Func<T, dynamic>> keyFunc = null) where T : IComparable<T>
         {
             return self.TakeOrdered(num, true, keyFunc);
         }
 
-        internal static T[] TakeOrdered<T>(this RDD<T> self, int num, bool ascending, Func<T, dynamic> keyFunc = null) where T : IComparable<T>
+        internal static T[] TakeOrdered<T>(this RDD<T> self, int num, bool ascending, Expression<Func<T, dynamic>> keyFunc = null) where T : IComparable<T>
         {
             var helper = new TakeOrderedHelper<T>(num, keyFunc, ascending);
-            return self.MapPartitionsWithIndex(helper.TakeOrderedInPartition)
-                    .Reduce(helper.MergeTwoPriorityQueues)
-                    .OrderBy(x => keyFunc == null ? x : keyFunc(x))
+            return self.MapPartitionsWithIndex((helperX, helperY) => helper.TakeOrderedInPartition(helperX, helperY))
+                    .Reduce((mergeTwoPQX, mergeTwoPQY) => helper.MergeTwoPriorityQueues(mergeTwoPQX, mergeTwoPQY))
+                    .OrderBy(x => keyFunc == null ? x : keyFunc.Compile()(x))
                     .ToArray();
         }
 
@@ -1207,14 +1210,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     public class DynamicTypingWrapper<I, O>
     {
-        private readonly Func<int, IEnumerable<I>, IEnumerable<O>> func;
-        internal DynamicTypingWrapper(Func<int, IEnumerable<I>, IEnumerable<O>> f)
+        //private readonly Func<int, IEnumerable<I>, IEnumerable<O>> func;
+        private readonly LinqExpressionData expressionData;
+        internal DynamicTypingWrapper(Expression<Func<int, IEnumerable<I>, IEnumerable<O>>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<dynamic> Execute(int val, IEnumerable<dynamic> inputValues)
         {
+            var func = expressionData.ToFunc<Func<int, IEnumerable<I>, IEnumerable<O>>>();
             return func(val, inputValues.Cast<I>()).Cast<dynamic>();
         }
     }
@@ -1234,7 +1239,7 @@ namespace Microsoft.Spark.CSharp.Core
         internal IEnumerable<dynamic> Execute(int val, IEnumerable<dynamic> inputValues)
         {
             // constructor and property reflection is much slower than 'new' operator
-            return inputValues.Select(x => 
+            return inputValues.Select(x =>
                 {
                     K key;
                     dynamic value;
@@ -1273,14 +1278,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class FilterHelper<I>
     {
-        private readonly Func<I, bool> func;
-        internal FilterHelper(Func<I, bool> f)
+        //private readonly Func<I, bool> func;
+        private readonly LinqExpressionData expressionData;
+        internal FilterHelper(Expression<Func<I, bool>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<I> Execute(int pid, IEnumerable<I> input)
         {
+            var func = this.expressionData.ToFunc<Func<I, bool>>();
             return input.Where(func);
         }
     }
@@ -1294,14 +1301,17 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class MapHelper<I, O>
     {
-        private readonly Func<I, O> func;
-        internal MapHelper(Func<I, O> f)
+        //private readonly Func<I, O> func;
+        private readonly LinqExpressionData expressionData;
+
+        internal MapHelper(Expression<Func<I, O>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<O> Execute(int pid, IEnumerable<I> input)
         {
+            var func = this.expressionData.ToFunc<Func<I, O>>();
             return input.Select(func);
         }
     }
@@ -1315,14 +1325,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class FlatMapHelper<I, O>
     {
-        private readonly Func<I, IEnumerable<O>> func;
-        internal FlatMapHelper(Func<I, IEnumerable<O>> f)
+        //private readonly Func<I, IEnumerable<O>> func;
+        private readonly LinqExpressionData expressionData;
+        internal FlatMapHelper(Expression<Func<I, IEnumerable<O>>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<O> Execute(int pid, IEnumerable<I> input)
         {
+            var func = this.expressionData.ToFunc<Func<I, IEnumerable<O>>>();
             return input.SelectMany(func);
         }
     }
@@ -1336,14 +1348,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class MapPartitionsHelper<T, U>
     {
-        private readonly Func<IEnumerable<T>, IEnumerable<U>> func;
-        internal MapPartitionsHelper(Func<IEnumerable<T>, IEnumerable<U>> f)
+        //private readonly Func<IEnumerable<T>, IEnumerable<U>> func;
+        private readonly LinqExpressionData expressionData;
+        internal MapPartitionsHelper(Expression<Func<IEnumerable<T>, IEnumerable<U>>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<U> Execute(int pid, IEnumerable<T> input)
         {
+            var func = this.expressionData.ToFunc<Func<IEnumerable<T>, IEnumerable<U>>>();
             return func(input);
         }
     }
@@ -1357,14 +1371,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class ReduceHelper<T1>
     {
-        private readonly Func<T1, T1, T1> func;
-        internal ReduceHelper(Func<T1, T1, T1> f)
+        //private readonly Func<T1, T1, T1> func;
+        private readonly LinqExpressionData expressionData;
+        internal ReduceHelper(Expression<Func<T1, T1, T1>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<T1> Execute(int pid, IEnumerable<T1> input)
         {
+            var func = this.expressionData.ToFunc<Func<T1, T1, T1>>();
             yield return input.DefaultIfEmpty().Aggregate(func);
         }
     }
@@ -1379,14 +1395,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class ForeachHelper<T>
     {
-        private readonly Action<T> func;
-        internal ForeachHelper(Action<T> f)
+        //private readonly Action<T> func;
+        private readonly LinqExpressionData expressionData;
+        internal ForeachHelper(Expression<Action<T>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
+            var func = this.expressionData.ToFunc<Action<T>>();
             foreach (var item in input)
             {
                 func(item);
@@ -1397,14 +1415,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class ForeachPartitionHelper<T>
     {
-        private readonly Action<IEnumerable<T>> func;
-        internal ForeachPartitionHelper(Action<IEnumerable<T>> f)
+        //private readonly Action<IEnumerable<T>> func;
+        private readonly LinqExpressionData expressionData;
+        internal ForeachPartitionHelper(Expression<Action<IEnumerable<T>>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<T> Execute(int pid, IEnumerable<T> input)
         {
+            var func = this.expressionData.ToFunc<Action<IEnumerable<T>>>();
             func(input);
             yield return default(T);
         }
@@ -1412,14 +1432,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class KeyByHelper<K, T>
     {
-        private readonly Func<T, K> func;
-        internal KeyByHelper(Func<T, K> f)
+        //private readonly Func<T, K> func;
+        private readonly LinqExpressionData expressionData;
+        internal KeyByHelper(Expression<Func<T, K>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal Tuple<K, T> Execute(T input)
         {
+            var func = this.expressionData.ToFunc<Func<T, K>>();
             return new Tuple<K, T>(func(input), input);
         }
     }
@@ -1427,15 +1449,17 @@ namespace Microsoft.Spark.CSharp.Core
     internal class AggregateHelper<U, T>
     {
         private readonly U zeroValue;
-        private readonly Func<U, T, U> op;
-        internal AggregateHelper(U zeroValue, Func<U, T, U> op)
+        //private readonly Func<U, T, U> op;
+        private readonly LinqExpressionData expressionData;
+        internal AggregateHelper(U zeroValue, Expression<Func<U, T, U>> op)
         {
             this.zeroValue = zeroValue;
-            this.op = op;
+            this.expressionData = op.ToExpressionData();
         }
 
         internal IEnumerable<U> Execute(int pid, IEnumerable<T> input)
         {
+            var op = this.expressionData.ToFunc<Func<U, T, U>>();
             yield return input.Aggregate(zeroValue, op);
         }
     }
@@ -1455,13 +1479,16 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class TreeReduceHelper<T>
     {
-        private readonly Func<T, T, T> func;
-        internal TreeReduceHelper(Func<T, T, T> func)
+        //private readonly Func<T, T, T> func;
+        private readonly LinqExpressionData expressionData;
+
+        internal TreeReduceHelper(Expression<Func<T, T, T>> func)
         {
-            this.func = func;
+            this.expressionData = func.ToExpressionData();
         }
         internal Tuple<T, bool> Execute(Tuple<T, bool> x, Tuple<T, bool> y)
         {
+            var func = this.expressionData.ToFunc<Func<T, T, T>>();
             if (x.Item2)
                 return y;
             else if (y.Item2)
@@ -1487,25 +1514,26 @@ namespace Microsoft.Spark.CSharp.Core
     internal class TakeOrderedHelper<T> where T : IComparable<T>
     {
         private readonly int num;
-        private readonly Func<T, dynamic> keyFunc;
+        //private readonly Func<T, dynamic> keyFunc;
+        private readonly LinqExpressionData expressionData;
         private readonly bool ascending;
 
-        internal TakeOrderedHelper(int num, Func<T, dynamic> keyFunc, bool ascending)
+        internal TakeOrderedHelper(int num, Expression<Func<T, dynamic>> keyFunc, bool ascending)
         {
             this.num = num;
-            this.keyFunc = keyFunc;
+            this.expressionData = keyFunc.ToExpressionData();
             this.ascending = ascending;
         }
 
         internal IEnumerable<PriorityQueue<T>> TakeOrderedInPartition(int pid, IEnumerable<T> input)
         {
             Comparer<T> comparer;
-
+            var keyFunc = this.expressionData.ToFunc<Func<T, dynamic>>();
             if (ascending)
             {
                 if (keyFunc != null)
                 {
-                    comparer = Comparer<T>.Create((x, y) => ((IComparable) keyFunc(x)).CompareTo(keyFunc(y)));
+                    comparer = Comparer<T>.Create((x, y) => ((IComparable)keyFunc(x)).CompareTo(keyFunc(y)));
                 }
                 else
                 {
@@ -1523,7 +1551,7 @@ namespace Microsoft.Spark.CSharp.Core
                     comparer = Comparer<T>.Create((x, y) => ((IComparable)keyFunc(y)).CompareTo(keyFunc(x)));
                 }
             }
-           
+
             var priorityQueue = new PriorityQueue<T>(num, comparer);
             foreach (var e in input)
             {

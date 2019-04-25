@@ -61,7 +61,7 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     self = self.Coalesce(1);
                 }
-                return self.MapPartitionsWithIndex(new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute, true);
+                return self.MapPartitionsWithIndex((sortByKeyX, sortByKeyY) => new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute(sortByKeyX, sortByKeyY), true);
             }
 
             var rddSize = self.Count();
@@ -82,13 +82,13 @@ namespace Microsoft.Spark.CSharp.Core
                 bounds.Add(samples[(int)(samples.Length * (i + 1) / numPartitions)]);
             }
 
-            return self.PartitionBy(numPartitions.Value, 
-                new PairRDDFunctions.PartitionFuncDynamicTypeHelper<K>(
-                    new RangePartitionerHelper<K, U>(numPartitions.Value, keyFunc, bounds, ascending).Execute)
-                    .Execute)
-                        .MapPartitionsWithIndex(new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute, true);
+            return self.PartitionBy(numPartitions.Value, (partionDynamicX) =>
+                 new PairRDDFunctions.PartitionFuncDynamicTypeHelper<K>(
+                     (rangePartionsX) => new RangePartitionerHelper<K, U>(numPartitions.Value, keyFunc, bounds, ascending).Execute(rangePartionsX))
+                     .Execute((object)partionDynamicX))
+                        .MapPartitionsWithIndex((sortX, sortY) => new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute(sortX, sortY), true);
         }
-        
+
         /// <summary>
         /// Repartition the RDD according to the given partitioner and, within each resulting partition,
         /// sort records by their keys.
@@ -104,9 +104,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="ascending"></param>
         /// <returns></returns>
         public static RDD<Tuple<K, V>> repartitionAndSortWithinPartitions<K, V>(
-            this RDD<Tuple<K, V>> self, 
-            int? numPartitions = null, 
-            Func<K, int> partitionFunc = null, 
+            this RDD<Tuple<K, V>> self,
+            int? numPartitions = null,
+            Func<K, int> partitionFunc = null,
             bool ascending = true)
         {
             return self.MapPartitionsWithIndex<Tuple<K, V>>((pid, iter) => ascending ? iter.OrderBy(kv => kv.Item1) : iter.OrderByDescending(kv => kv.Item1));

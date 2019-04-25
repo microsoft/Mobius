@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,11 +39,11 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="RT"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT>(string name, Func<RT> f)
+        public void RegisterFunction<RT>(string name, Expression<Func<RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
 
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT>(f).Execute;
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -55,10 +56,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A1"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1>(string name, Func<A1, RT> f)
+        public void RegisterFunction<RT, A1>(string name, Expression<Func<A1, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -72,10 +73,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A2"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2>(string name, Func<A1, A2, RT> f)
+        public void RegisterFunction<RT, A1, A2>(string name, Expression<Func<A1, A2, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -90,10 +91,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A3"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3>(string name, Func<A1, A2, A3, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3>(string name, Expression<Func<A1, A2, A3, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -109,10 +110,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A4"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3, A4>(string name, Func<A1, A2, A3, A4, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3, A4>(string name, Expression<Func<A1, A2, A3, A4, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -129,10 +130,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A5"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3, A4, A5>(string name, Func<A1, A2, A3, A4, A5, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3, A4, A5>(string name, Expression<Func<A1, A2, A3, A4, A5, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -150,10 +151,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A6"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6>(string name, Func<A1, A2, A3, A4, A5, A6, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6>(string name, Expression<Func<A1, A2, A3, A4, A5, A6, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5, A6>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -172,10 +173,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A7"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7>(string name, Func<A1, A2, A3, A4, A5, A6, A7, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7>(string name, Expression<Func<A1, A2, A3, A4, A5, A6, A7, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -195,10 +196,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A8"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7, A8>(string name, Func<A1, A2, A3, A4, A5, A6, A7, A8, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7, A8>(string name, Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -219,10 +220,10 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A9"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(string name, Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(string name, Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
@@ -244,23 +245,23 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A10"></typeparam>
         /// <param name="name"></param>
         /// <param name="f"></param>
-        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(string name, Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT> f)
+        public void RegisterFunction<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(string name, Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT>> f)
         {
-            logger.LogInfo("Name of the function to register {0}, method info", name, f.Method);
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(f).Execute;
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.Compile().Method);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(f).Execute(udfHelperX, udfHelperY);
             udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(typeof(RT)));
         }
 
-		public void RegisterFunction(string name, MethodInfo f)
-		{
-			if (!f.IsStatic)
-				throw new InvalidOperationException(f.DeclaringType?.FullName + "." + f.Name +
-				                                    " is not a static method, can't be registered");
-			logger.LogInfo("Name of the function to register {0}, method info", name, f.DeclaringType?.FullName + "." + f.Name);
-			var helper = new UdfReflectionHelper(f);
-			Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = helper.Execute;
-			udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(helper.ReturnType));
-		}
-		#endregion
-	}
+        public void RegisterFunction(string name, MethodInfo f)
+        {
+            if (!f.IsStatic)
+                throw new InvalidOperationException(f.DeclaringType?.FullName + "." + f.Name +
+                                                    " is not a static method, can't be registered");
+            logger.LogInfo("Name of the function to register {0}, method info", name, f.DeclaringType?.FullName + "." + f.Name);
+            var helper = new UdfReflectionHelper(f);
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => helper.Execute(udfHelperX, udfHelperY);
+            udfRegistrationProxy.RegisterFunction(name, SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.Row, SerializedMode.Row), Functions.GetReturnType(helper.ReturnType));
+        }
+        #endregion
+    }
 }

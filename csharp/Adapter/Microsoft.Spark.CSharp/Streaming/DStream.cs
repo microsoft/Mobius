@@ -10,6 +10,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
+using System.Linq.Expressions;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -42,12 +45,12 @@ namespace Microsoft.Spark.CSharp.Streaming
         internal IDStreamProxy dstreamProxy;
         internal SerializedMode prevSerializedMode;
         internal SerializedMode serializedMode;
-        
+
         internal bool isCached;
         internal bool isCheckpointed;
 
         internal virtual IDStreamProxy DStreamProxy { get { return dstreamProxy; } }
-        
+
         internal bool Piplinable
         {
             get
@@ -91,9 +94,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         /// <param name="f"></param>
         /// <returns></returns>
-        public DStream<T> Filter(Func<T, bool> f)
+        public DStream<T> Filter(Expression<Func<T, bool>> f)
         {
-            return MapPartitionsWithIndex((new FilterHelper<T>(f)).Execute, true);
+            return MapPartitionsWithIndex((filterX, filterY) => new FilterHelper<T>(f).Execute(filterX, filterY), true);
         }
 
         /// <summary>
@@ -104,9 +107,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="f"></param>
         /// <param name="preservesPartitioning"></param>
         /// <returns></returns>
-        public DStream<U> FlatMap<U>(Func<T, IEnumerable<U>> f, bool preservesPartitioning = false)
+        public DStream<U> FlatMap<U>(Expression<Func<T, IEnumerable<U>>> f, bool preservesPartitioning = false)
         {
-            return MapPartitionsWithIndex(new FlatMapHelper<T, U>(f).Execute, preservesPartitioning);
+            return MapPartitionsWithIndex((flatMapX, flatMapY) => new FlatMapHelper<T, U>(f).Execute(flatMapX, flatMapY), preservesPartitioning);
         }
 
         /// <summary>
@@ -116,9 +119,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="f"></param>
         /// <param name="preservesPartitioning"></param>
         /// <returns></returns>
-        public DStream<U> Map<U>(Func<T, U> f, bool preservesPartitioning = false)
+        public DStream<U> Map<U>(Expression<Func<T, U>> f, bool preservesPartitioning = false)
         {
-            return MapPartitionsWithIndex(new MapHelper<T, U>(f).Execute, preservesPartitioning);
+            return MapPartitionsWithIndex((mapX, mapY) => new MapHelper<T, U>(f).Execute(mapX, mapY), preservesPartitioning);
         }
 
         /// <summary>
@@ -129,9 +132,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="f"></param>
         /// <param name="preservesPartitioning"></param>
         /// <returns></returns>
-        public DStream<U> MapPartitions<U>(Func<IEnumerable<T>, IEnumerable<U>> f, bool preservesPartitioning = false)
+        public DStream<U> MapPartitions<U>(Expression<Func<IEnumerable<T>, IEnumerable<U>>> f, bool preservesPartitioning = false)
         {
-            return MapPartitionsWithIndex(new MapPartitionsHelper<T, U>(f).Execute, preservesPartitioning);
+            return MapPartitionsWithIndex((mapPartionsX, mapPartionsY) => new MapPartitionsHelper<T, U>(f).Execute(mapPartionsX, mapPartionsY), preservesPartitioning);
         }
 
         /// <summary>
@@ -140,9 +143,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         /// <typeparam name="U"></typeparam>
         /// <returns></returns>
-        public DStream<U> MapPartitionsWithIndex<U>(Func<int, IEnumerable<T>, IEnumerable<U>> f, bool preservesPartitioningParam = false)
+        public DStream<U> MapPartitionsWithIndex<U>(Expression<Func<int, IEnumerable<T>, IEnumerable<U>>> f, bool preservesPartitioningParam = false)
         {
-            return Transform<U>(new MapPartitionsWithIndexHelper<T, U>(f, preservesPartitioningParam).Execute);
+            return Transform<U>((mapPartionsX) => new MapPartitionsWithIndexHelper<T, U>(f, preservesPartitioningParam).Execute(mapPartionsX));
         }
 
         /// <summary>
@@ -151,7 +154,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         /// <param name="f"></param>
         /// <returns></returns>
-        public DStream<T> Reduce(Func<T, T, T> f)
+        public DStream<T> Reduce(Expression<Func<T, T, T>> f)
         {
             return Map<Tuple<string, T>>(x => new Tuple<string, T>(string.Empty, x)).ReduceByKey(f, 1).Map<T>(kvp => kvp.Item2);
         }
@@ -160,16 +163,16 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// Apply a function to each RDD in this DStream.
         /// </summary>
         /// <param name="f"></param>
-        public void ForeachRDD(Action<RDD<T>> f)
+        public void ForeachRDD(Expression<Action<RDD<T>>> f)
         {
-            ForeachRDD(new ForeachRDDHelper<T>(f).Execute);
+            ForeachRDD((forEachX, forEachY) => new ForeachRDDHelper<T>(f).Execute(forEachX, forEachY));
         }
 
         /// <summary>
         /// Apply a function to each RDD in this DStream.
         /// </summary>
         /// <param name="f"></param>
-        public void ForeachRDD(Action<double, RDD<dynamic>> f)
+        public void ForeachRDD(Expression<Action<double, RDD<dynamic>>> f)
         {
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
@@ -245,7 +248,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// </summary>
         public void SaveAsTextFiles(string prefix, string suffix = null)
         {
-            ForeachRDD(new SaveAsTextFileHelper(prefix, suffix).Execute);
+            ForeachRDD((saveAsTextX, saveAsTextY) => new SaveAsTextFileHelper(prefix, suffix).Execute(saveAsTextX, saveAsTextY));
         }
 
         /// <summary>
@@ -317,17 +320,17 @@ namespace Microsoft.Spark.CSharp.Streaming
             Func<double, RDD<dynamic>, RDD<dynamic>> otherF = other.Piplinable ? (other as TransformedDStream<U>).func : null;
 
             Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new TransformWithDynamicHelper<T, U, V>(f, prevF, otherF).Execute;
-            
+
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
             formatter.Serialize(stream, func);
 
             return new DStream<V>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpTransformed2DStream(
-                    Piplinable ? prevDStreamProxy : DStreamProxy, 
-                    other.Piplinable ? other.prevDStreamProxy : other.DStreamProxy, 
+                    Piplinable ? prevDStreamProxy : DStreamProxy,
+                    other.Piplinable ? other.prevDStreamProxy : other.DStreamProxy,
                     stream.ToArray(),
-                    (Piplinable ? prevSerializedMode : serializedMode).ToString(), 
-                    (other.Piplinable ? other.prevSerializedMode : other.serializedMode).ToString()), 
+                    (Piplinable ? prevSerializedMode : serializedMode).ToString(),
+                    (other.Piplinable ? other.prevSerializedMode : other.serializedMode).ToString()),
                 streamingContext,
                 keepSerializer ? serializedMode : SerializedMode.Byte);
         }
@@ -425,7 +428,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="windowSeconds">width of the window; must be a multiple of this DStream's batching interval</param>
         /// <param name="slideSeconds">sliding interval of the window (i.e., the interval after which the new DStream will generate RDDs); must be a multiple of this DStream's batching interval</param>
         /// <returns></returns>
-        public DStream<T> ReduceByWindow(Func<T, T, T> reduceFunc, Func<T, T, T> invReduceFunc, int windowSeconds, int slideSeconds = 0)
+        public DStream<T> ReduceByWindow(Expression<Func<T, T, T>> reduceFunc, Expression<Func<T, T, T>> invReduceFunc, int windowSeconds, int slideSeconds = 0)
         {
             var keyed = Map(v => new Tuple<int, T>(1, v));
             var reduced = keyed.ReduceByKeyAndWindow(reduceFunc, invReduceFunc, windowSeconds, slideSeconds, 1);
@@ -478,16 +481,18 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class MapPartitionsWithIndexHelper<I, O>
     {
-        private readonly Func<int, IEnumerable<I>, IEnumerable<O>> func;
+        //private readonly Func<int, IEnumerable<I>, IEnumerable<O>> func;
+        private readonly LinqExpressionData expressionData;
         private readonly bool preservesPartitioningParam = false;
-        internal MapPartitionsWithIndexHelper(Func<int, IEnumerable<I>, IEnumerable<O>> f, bool preservesPartitioningParam = false)
+        internal MapPartitionsWithIndexHelper(Expression<Func<int, IEnumerable<I>, IEnumerable<O>>> f, bool preservesPartitioningParam = false)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
             this.preservesPartitioningParam = preservesPartitioningParam;
         }
 
         internal RDD<O> Execute(RDD<I> rdd)
         {
+            var func = this.expressionData.ToExpression<Func<int, IEnumerable<I>, IEnumerable<O>>>();
             return rdd.MapPartitionsWithIndex(func, preservesPartitioningParam);
         }
     }
@@ -558,7 +563,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             if (otherFunc != null)
                 rdd2 = otherFunc(t, rdd2);
-            
+
             return func(t, rdd1.ConvertTo<T>(), rdd2.ConvertTo<U>()).ConvertTo<dynamic>();
         }
     }
@@ -581,14 +586,16 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class ForeachRDDHelper<I>
     {
-        private readonly Action<RDD<I>> func;
-        internal ForeachRDDHelper(Action<RDD<I>> f)
+        //private readonly Action<RDD<I>> func;
+        private LinqExpressionData expressionData;
+        internal ForeachRDDHelper(Expression<Action<RDD<I>>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal void Execute(double t, RDD<dynamic> rdd)
         {
+            var func = this.expressionData.ToFunc<Action<RDD<I>>>();
             func(rdd.ConvertTo<I>());
         }
     }
@@ -596,9 +603,9 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class SaveAsTextFileHelper
     {
-        private readonly string prefix; 
+        private readonly string prefix;
         private readonly string suffix;
-        
+
         internal SaveAsTextFileHelper(string prefix, string suffix)
         {
             this.prefix = prefix;

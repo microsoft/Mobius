@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
@@ -1016,7 +1017,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Returns a new RDD by first applying a function to all rows of this DataFrame, and then flattening the results.
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py flatMap(self, f)
-        public RDD<U> FlatMap<U>(Func<Row, IEnumerable<U>> f, bool preservesPartitioning = false)
+        public RDD<U> FlatMap<U>(Expression<Func<Row, IEnumerable<U>>> f, bool preservesPartitioning = false)
         {
             return Rdd.FlatMap(f, preservesPartitioning);
         }
@@ -1025,7 +1026,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// Returns a new RDD by applying a function to all rows of this DataFrame.
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py map(self, f)
-        public RDD<U> Map<U>(Func<Row, U> f)
+        public RDD<U> Map<U>(Expression<Func<Row, U>> f)
         {
             return Rdd.Map(f);
         }
@@ -1035,7 +1036,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
         // mapPartitions(self, f, preservesPartitioning=False)
-        public RDD<U> MapPartitions<U>(Func<IEnumerable<Row>, IEnumerable<U>> f, bool preservesPartitioning = false)
+        public RDD<U> MapPartitions<U>(Expression<Func<IEnumerable<Row>, IEnumerable<U>>> f, bool preservesPartitioning)
         {
             return Rdd.MapPartitions(f, preservesPartitioning);
         }
@@ -1045,7 +1046,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
         // foreachPartition(self, f)
-        public void ForeachPartition(Action<IEnumerable<Row>> f)
+        public void ForeachPartition(Expression<Action<IEnumerable<Row>>> f)
         {
             Rdd.ForeachPartition(f);
         }
@@ -1055,7 +1056,7 @@ namespace Microsoft.Spark.CSharp.Sql
         /// </summary>
         // Python API: https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/dataframe.py
         // foreach(self, f)
-        public void Foreach(Action<Row> f)
+        public void Foreach(Expression<Action<Row>> f)
         {
             Rdd.Foreach(f);
         }

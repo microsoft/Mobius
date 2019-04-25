@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
+using SerializationHelpers.Data;
+using System.Linq.Expressions;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -27,9 +30,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// it should return a RDD for each batch interval
         /// </param>
         /// <returns>A DStream object</returns>
-        public static DStream<T> CreateStream<T>(StreamingContext ssc, Func<double, RDD<T>> func)
+        public static DStream<T> CreateStream<T>(StreamingContext ssc, Expression<Func<double, RDD<T>>> func)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>> csharpFunc = new CSharpInputDStreamTransformRDDHelper<T>(func).Execute;
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> csharpFunc = (csharpInputDSX, csharpInputDSY) => new CSharpInputDStreamTransformRDDHelper<T>(func).Execute(csharpInputDSX, csharpInputDSY);
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
             formatter.Serialize(stream, csharpFunc);
@@ -49,9 +52,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// it should return IEnumerable of injected data
         /// </param>
         /// <returns>A DStream object</returns>
-        public static DStream<T> CreateStream<T>(StreamingContext ssc, int numPartitions, Func<double, int, IEnumerable<T>> func)
+        public static DStream<T> CreateStream<T>(StreamingContext ssc, int numPartitions, Expression<Func<double, int, IEnumerable<T>>> func)
         {
-            Func<double, RDD<T>> generateRDDFunc = new CSharpInputDStreamGenerateRDDHelper<T>(numPartitions, func).Execute;
+            Expression<Func<double, RDD<T>>> generateRDDFunc = (csharpDSX) => new CSharpInputDStreamGenerateRDDHelper<T>(numPartitions, func).Execute(csharpDSX);
             return CreateStream<T>(ssc, generateRDDFunc);
         }
     }
@@ -65,15 +68,16 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class CSharpInputDStreamTransformRDDHelper<T>
     {
-        private Func<double, RDD<T>> func;
-
-        public CSharpInputDStreamTransformRDDHelper(Func<double, RDD<T>> func)
+        //private Func<double, RDD<T>> func;
+        private LinqExpressionData expressionData;
+        public CSharpInputDStreamTransformRDDHelper(Expression<Func<double, RDD<T>>> func)
         {
-            this.func = func;
+            this.expressionData = func.ToExpressionData();
         }
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd)
         {
+            var func = this.expressionData.ToFunc<Func<double, RDD<T>>>();
             return func(t).ConvertTo<dynamic>();
         }
     }
@@ -87,17 +91,19 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class CSharpInputDStreamMapPartitionWithIndexHelper<T>
     {
-        Func<double, int, IEnumerable <T>> func;
+        //Func<double, int, IEnumerable<T>> func;
+        private LinqExpressionData expressionData;
         double time;
 
-        public CSharpInputDStreamMapPartitionWithIndexHelper(double time, Func<double, int, IEnumerable<T>> func)
+        public CSharpInputDStreamMapPartitionWithIndexHelper(double time, Expression<Func<double, int, IEnumerable<T>>> func)
         {
             this.time = time;
-            this.func = func;
+            this.expressionData = func.ToExpressionData();
         }
 
         internal IEnumerable<T> Execute(int partitionIndex, IEnumerable<int> input)
         {
+            var func = this.expressionData.ToFunc<Func<double, int, IEnumerable<T>>>();
             return func(time, partitionIndex);
         }
     }
@@ -111,21 +117,23 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class CSharpInputDStreamGenerateRDDHelper<T>
     {
-        private Func<double, int, IEnumerable<T>> func;
+        //private Func<double, int, IEnumerable<T>> func;
+        private LinqExpressionData expressionData;
         private int numPartitions;
 
-        public CSharpInputDStreamGenerateRDDHelper(int numPartitions, Func<double, int, IEnumerable<T>> func)
+        public CSharpInputDStreamGenerateRDDHelper(int numPartitions, Expression<Func<double, int, IEnumerable<T>>> func)
         {
             this.numPartitions = numPartitions;
-            this.func = func;
+            this.expressionData = func.ToExpressionData();
         }
 
         internal RDD<T> Execute(double t)
         {
+            var func = this.expressionData.ToExpression<Func<double, int, IEnumerable<T>>>();
             var sc = SparkContext.GetActiveSparkContext();
             int[] array = new int[numPartitions];
             var initialRdd = sc.Parallelize(array.AsEnumerable(), numPartitions);
-            return initialRdd.MapPartitionsWithIndex<T>(new CSharpInputDStreamMapPartitionWithIndexHelper<T>(t, func).Execute, true);
+            return initialRdd.MapPartitionsWithIndex<T>((inputDSMapX, inputDSMapY) => new CSharpInputDStreamMapPartitionWithIndexHelper<T>(t, func).Execute(inputDSMapX, inputDSMapY), true);
         }
     }
 }

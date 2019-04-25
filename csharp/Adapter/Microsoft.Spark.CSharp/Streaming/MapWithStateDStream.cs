@@ -59,7 +59,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal KeyedState()
         {
-            
+
         }
 
         internal KeyedState(S state, long ticks)
@@ -144,7 +144,7 @@ namespace Microsoft.Spark.CSharp.Streaming
                 {
                     logger.LogException(e);
                 }
-               
+
                 stateRddRecord.mappedData.Add(mappedData);
 
                 if (wrappedState.removed)
@@ -173,10 +173,10 @@ namespace Microsoft.Spark.CSharp.Streaming
                         mappedData = f(entry.Key, default(V), timingOutstate);
                     }
                     catch (Exception e)
-                    { 
+                    {
                         logger.LogException(e);
                     }
-                        
+
                     stateRddRecord.mappedData.Add(mappedData);
                     toBeRemovedKeys.Add(entry.Key);
                 }
@@ -187,7 +187,7 @@ namespace Microsoft.Spark.CSharp.Streaming
                 }
             }
 
-            return new []{stateRddRecord};
+            return new[] { stateRddRecord };
         }
 
         internal MapWithStateRDDRecord<K, S, M> GetStateRecord(IEnumerator<dynamic> enumerator)
@@ -234,19 +234,19 @@ namespace Microsoft.Spark.CSharp.Streaming
                         stateSpec.initialState.sparkContext = valuesRDD.sparkContext;
                     }
                     var partitionedInitialState = stateSpec.initialState.PartitionBy(stateSpec.numPartitions);
-                    stateRDD = partitionedInitialState.MapPartitions(new MapWithStateMapPartitionHelper<K, V, S, M>(ticks).Execute, true).ConvertTo<dynamic>();
+                    stateRDD = partitionedInitialState.MapPartitions((mapWithStateX) => new MapWithStateMapPartitionHelper<K, V, S, M>(ticks).Execute(mapWithStateX), true).ConvertTo<dynamic>();
                 }
                 else
                 {
-                    stateRDD = values.PartitionBy(stateSpec.numPartitions).MapPartitions(new MapWithStateMapPartitionHelper<K, V, S, M>(ticks).ExecuteWithoutInitialState, true).ConvertTo<dynamic>();
+                    stateRDD = values.PartitionBy(stateSpec.numPartitions).MapPartitions((mapWithStateX) => new MapWithStateMapPartitionHelper<K, V, S, M>(ticks).ExecuteWithoutInitialState(mapWithStateX), true).ConvertTo<dynamic>();
                 }
             }
-            
+
             bool removeTimedoutData = stateSpec.idleDuration.Ticks != 0 && stateRDD.IsCheckpointed;
             stateRDD.partitioner = values.partitioner;
             RDD<dynamic> union = stateRDD.Union(values.ConvertTo<dynamic>());
 
-            return union.MapPartitionsWithIndex(new UpdateStateHelper<K, V, S, M>(stateSpec.mappingFunction, ticks, removeTimedoutData, stateSpec.idleDuration).Execute, true);
+            return union.MapPartitionsWithIndex((updateStateX, updateStateY) => new UpdateStateHelper<K, V, S, M>(stateSpec.mappingFunction, ticks, removeTimedoutData, stateSpec.idleDuration).Execute(updateStateX, updateStateY), true);
         }
     }
 
@@ -261,7 +261,7 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal IEnumerable<MapWithStateRDDRecord<K, S, M>> Execute(IEnumerable<Tuple<K, S>> iter)
         {
-            return new[] {new MapWithStateRDDRecord<K, S, M>(ticks, iter)};
+            return new[] { new MapWithStateRDDRecord<K, S, M>(ticks, iter) };
         }
 
         internal IEnumerable<MapWithStateRDDRecord<K, S, M>> ExecuteWithoutInitialState(IEnumerable<Tuple<K, V>> iter)

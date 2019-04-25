@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Interop;
+using System.Linq.Expressions;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -14,10 +15,10 @@ namespace Microsoft.Spark.CSharp.Sql
     {
         private readonly IUDFProxy udfProxy;
 
-        internal UserDefinedFunction(Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func)
+        internal UserDefinedFunction(Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> func)
         {
             udfProxy = SparkCLREnvironment.SparkCLRProxy.SparkContextProxy.CreateUserDefinedCSharpFunction(
-                func.GetType().Name,
+                func.Compile().GetType().Name,
                 SparkContext.BuildCommand(new CSharpWorkerFunc(func), SerializedMode.Row, SerializedMode.Row),
                 Functions.GetReturnType(typeof(RT)));
         }

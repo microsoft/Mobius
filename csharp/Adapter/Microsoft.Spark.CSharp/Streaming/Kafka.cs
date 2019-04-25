@@ -11,6 +11,7 @@ using System.IO;
 
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using System.Linq.Expressions;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -122,7 +123,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
         /// <param name="readFunc">user function to process the kafka data.</param>
         /// <returns>A DStream object</returns>
-        public static DStream<T> CreateDirectStream<T>(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, Func<int, IEnumerable<Tuple<byte[], byte[]>>, IEnumerable<T>> readFunc)
+        public static DStream<T> CreateDirectStream<T>(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, Expression<Func<int, IEnumerable<Tuple<byte[], byte[]>>, IEnumerable<T>>> readFunc)
         {
             int numPartitions = GetNumPartitionsFromConfig(ssc, topics, kafkaParams);
             if (ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.numReceivers", 0) <= 0)

@@ -12,6 +12,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
+using System.Linq.Expressions;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -36,12 +39,12 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="newFunc">The function to be applied to each partition</param>
         /// <param name="preservesPartitioningParam">Indicates if it preserves partition parameters</param>
         /// <returns>A new RDD</returns>
-        public override RDD<U1> MapPartitionsWithIndex<U1>(Func<int, IEnumerable<U>, IEnumerable<U1>> newFunc, bool preservesPartitioningParam = false)
+        public override RDD<U1> MapPartitionsWithIndex<U1>(Expression<Func<int, IEnumerable<U>, IEnumerable<U1>>> newFunc, bool preservesPartitioningParam = false)
         {
             if (IsPipelinable())
             {
-                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc(
-                    new MapPartitionsWithIndexHelper<U, U1>(newFunc, workerFunc.Func).Execute, workerFunc.StackTrace);
+                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc((mapPartionsX, mapPartionsY) =>
+                    new MapPartitionsWithIndexHelper<U, U1>(newFunc, workerFunc.Expr).Execute(mapPartionsX, mapPartionsY), workerFunc.StackTrace);
 
                 var pipelinedRDD = new PipelinedRDD<U1>
                 {
@@ -69,16 +72,20 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         private class MapPartitionsWithIndexHelper<I, O>
         {
-            private readonly Func<int, IEnumerable<I>, IEnumerable<O>> newFunc;
-            private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> prevFunc;
-            internal MapPartitionsWithIndexHelper(Func<int, IEnumerable<I>, IEnumerable<O>> nFunc, Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> pFunc)
+            //private readonly Func<int, IEnumerable<I>, IEnumerable<O>> newFunc;
+            //private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> prevFunc;
+            private readonly LinqExpressionData newFuncExpressionData;
+            private readonly LinqExpressionData prevFuncExpressionData;
+            internal MapPartitionsWithIndexHelper(Expression<Func<int, IEnumerable<I>, IEnumerable<O>>> nFunc, Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> pFunc)
             {
-                prevFunc = pFunc;
-                newFunc = nFunc;
+                prevFuncExpressionData = pFunc.ToExpressionData();
+                newFuncExpressionData = nFunc.ToExpressionData();
             }
 
             internal IEnumerable<dynamic> Execute(int split, IEnumerable<dynamic> input)
             {
+                var newFunc = newFuncExpressionData.ToFunc<Func<int, IEnumerable<I>, IEnumerable<O>>>();
+                var prevFunc = prevFuncExpressionData.ToFunc<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>>();
                 return newFunc(split, prevFunc(split, input).Cast<I>()).Cast<dynamic>();
             }
         }
