@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
@@ -471,12 +472,9 @@ namespace AdapterTest
             // test create CSharpInputDStream
             var sc = new SparkContext("", "");
             var ssc = new StreamingContext(sc, 1000L);
-            Func<double, int, IEnumerable<string>> func =
+            Expression<Func<double, int, IEnumerable<string>>> func =
                 (double time, int pid) =>
-                {
-                    var list = new List<string>() { string.Format("PluggableInputDStream-{0}-{1}", pid, time) };
-                    return list.AsEnumerable();
-                };
+                    new List<string>() { string.Format("PluggableInputDStream-{0}-{1}", pid, time) }.AsEnumerable();
             const int numPartitions = 5;
             var inputDStream = CSharpInputDStreamUtils.CreateStream<string>(
                 ssc,

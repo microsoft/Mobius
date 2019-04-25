@@ -254,7 +254,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
             var partitioned = SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4, 5, 6, 1 }, 3)
                 .Map(x => new Tuple<int, int>(x, x + 100))
-                .PartitionBy(3, partitionFunc)
+                .PartitionBy(3, x => PairRDDPartitionBySampleHelper((object)x))
                 .Glom()
                 .Collect();
 
@@ -275,6 +275,13 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.IsTrue(partitioned.Count(p => p.All(key => key.Item1 >= 3 && key.Item1 < 6)) == 1);
                 Assert.IsTrue(partitioned.Count(p => p.All(key => key.Item1 >= 6)) == 1);
             }
+        }
+
+        internal static int PairRDDPartitionBySampleHelper(dynamic key)
+        {
+            if (key < 3) return 1;
+            if (key >= 3 && key < 6) return 2;
+            else return 3;
         }
 
         [Sample]

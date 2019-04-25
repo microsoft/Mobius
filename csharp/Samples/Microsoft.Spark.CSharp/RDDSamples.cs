@@ -155,8 +155,13 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void RDDForeachPartitionSample()
         {
-            SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 2, 3, 4, 5 }, 1).ForeachPartition(iter => { foreach (var x in iter) Console.Write(x + " "); });
+            SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 2, 3, 4, 5 }, 1).ForeachPartition(iter => LogRDDForeachPartitionSample(iter));
             Console.WriteLine();
+        }
+
+        private static void LogRDDForeachPartitionSample(IEnumerable<int> values)
+        {
+            foreach (var x in values) Console.Write(x + " ");
         }
 
         [Sample]
@@ -531,9 +536,9 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void RDDWordCountSample()
         {
             var lines = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath("words.txt"), 1);
-            
-            var words = lines.FlatMap(s => s.Split(' '));
-            
+
+            var words = lines.FlatMap(s => s.Split(new char[] { ' ' }));
+
             var wordCounts = words.Map(w => new Tuple<string, int>(w.Trim(), 1))
                                   .ReduceByKey((x, y) => x + y).Collect();
 
@@ -584,22 +589,15 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var requests = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath("requestslog.txt"), 1);
             var metrics = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath("metricslog.txt"), 1);
-           
-            var requestsColumns = requests.Map(s =>
-            {
-                var columns = s.Split(',');
-                return new Tuple<string, string[]>(columns[0], new[] { columns[1], columns[2], columns[3] });
-            });
-            var metricsColumns = metrics.Map(s =>
-            {
-                var columns = s.Split(',');
-                return new Tuple<string, string[]>(columns[3], new[] { columns[4], columns[5], columns[6] });
-            });
+
+            var requestsColumns = requests.Map(s => RDDJoinSampleRequestsFormat(s));
+            var metricsColumns = metrics.Map(s => RDDJoinSampleMetricsFormat(s));
+
 
             var requestsJoinedWithMetrics = requestsColumns.Join(metricsColumns)
                                                             .Map(
                                                                 s =>
-                                                                    new []
+                                                                    new[]
                                                                     {
                                                                         s.Item1, //guid
                                                                         s.Item2.Item1[0], s.Item2.Item1[1], s.Item2.Item1[2], //dc, abtestid, traffictype
@@ -607,23 +605,23 @@ namespace Microsoft.Spark.CSharp.Samples
                                                                     });
 
 
-            var latencyByDatacenter = requestsJoinedWithMetrics.Map(i => new Tuple<string, int> (i[1], int.Parse(i[6]))); //key is "datacenter"      
-            var maxLatencyByDataCenterList = latencyByDatacenter.ReduceByKey(Math.Max).Collect();
+            var latencyByDatacenter = requestsJoinedWithMetrics.Map(i => new Tuple<string, int>(i[1], int.Parse(i[6]))); //key is "datacenter"      
+            var maxLatencyByDataCenterList = latencyByDatacenter.ReduceByKey((x, y) => Math.Max(x, y)).Collect();
 
             Console.WriteLine("***** Max latency metrics by DC *****");
             foreach (var Tuple in maxLatencyByDataCenterList)
             {
                 Console.WriteLine("Datacenter={0}, Max latency={1}", Tuple.Item1, Tuple.Item2);
             }
-            
-            var latencyAndCountByDatacenter = requestsJoinedWithMetrics.Map(i => new Tuple<string, Tuple<int,int>> (i[1], new Tuple<int, int>(int.Parse(i[6]), 1)));
+
+            var latencyAndCountByDatacenter = requestsJoinedWithMetrics.Map(i => new Tuple<string, Tuple<int, int>>(i[1], new Tuple<int, int>(int.Parse(i[6]), 1)));
             var sumLatencyAndCountByDatacenter = latencyAndCountByDatacenter.ReduceByKey((tuple, tuple1) => new Tuple<int, int>((tuple == null ? 0 : tuple.Item1) + tuple1.Item1, (tuple == null ? 0 : tuple.Item2) + tuple1.Item2));
             var sumLatencyAndCountByDatacenterList = sumLatencyAndCountByDatacenter.Collect();
 
             Console.WriteLine("***** Mean latency metrics by DC *****");
             foreach (var Tuple in sumLatencyAndCountByDatacenterList)
             {
-                Console.WriteLine("Datacenter={0}, Mean latency={1}", Tuple.Item1, Tuple.Item2.Item1/Tuple.Item2.Item2);
+                Console.WriteLine("Datacenter={0}, Mean latency={1}", Tuple.Item1, Tuple.Item2.Item1 / Tuple.Item2.Item2);
             }
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -650,6 +648,18 @@ namespace Microsoft.Spark.CSharp.Samples
             }
         }
 
+        private static Tuple<string, string[]> RDDJoinSampleRequestsFormat(string value)
+        {
+            var columns = value.Split(',');
+            return new Tuple<string, string[]>(columns[0], new[] { columns[1], columns[2], columns[3] });
+        }
+
+        private static Tuple<string, string[]> RDDJoinSampleMetricsFormat(string value)
+        {
+            var columns = value.Split(',');
+            return new Tuple<string, string[]>(columns[3], new[] { columns[4], columns[5], columns[6] });
+        }
+
         /// <summary>
         /// Sample for map and filter in RDD
         /// </summary>
@@ -658,11 +668,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
 
             var mulogs = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath("csvtestlog.txt"), 2);
-            var mulogsProjected = mulogs.Map(x =>
-            {
-                var columns = x.Split(',');
-                return string.Format("{0},{1},{2},{3}", columns[0], columns[1], columns[2], columns[3]);
-            });
+            var mulogsProjected = mulogs.Map(x => RDDMapFilterSampleFormat(x));
 
             var muLogsFiltered = mulogsProjected.Filter(s => s.Contains("US,EN"));
             var count = muLogsFiltered.Count();
@@ -679,6 +685,12 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.AreEqual(6, count);
                 Assert.AreEqual(6, collectedItems.Count());
             }
+        }
+
+        private static string RDDMapFilterSampleFormat(string value)
+        {
+            var columns = value.Split(',');
+            return string.Format("{0},{1},{2},{3}", columns[0], columns[1], columns[2], columns[3]);
         }
 
         /// <summary>
@@ -725,7 +737,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var oddNumbersRdd = numbersRdd.Filter(x => x % 2 != 0);
             var countOfOddNumbers = oddNumbersRdd.Count();
             Console.WriteLine("IntCollectionExample: countOfOddNumbers " + countOfOddNumbers);
-            
+
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
                 Assert.AreEqual(4, countOfOddNumbers);
