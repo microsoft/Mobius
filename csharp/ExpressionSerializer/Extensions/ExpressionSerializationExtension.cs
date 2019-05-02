@@ -1,5 +1,6 @@
 ﻿using ExpressionSerializer.ComplexSerializer;
 using SerializationHelpers.Data;
+using Serialize.Linq.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -11,7 +12,8 @@ namespace SerializationHelpers.Extensions
     {
         public static LinqExpressionData ToExpressionData(this Expression expression)
         {
-            var serializer = new Serialize.Linq.Serializers.ExpressionSerializer(new JsonLinqSerializer());
+            var factory = new FactorySettings { AllowPrivateFieldAccess = true };
+            var serializer = new Serialize.Linq.Serializers.ExpressionSerializer(new JsonLinqSerializer(), factory);
             var expressionValue = serializer.SerializeText(expression);
             return new LinqExpressionData(expressionValue);
         }

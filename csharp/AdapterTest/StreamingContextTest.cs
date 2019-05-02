@@ -47,7 +47,7 @@ namespace AdapterTest
                 ssc,
                 new List<string> { "testTopic3" },
                 new List<Tuple<string, string>>(), new List<Tuple<string, long>>(),
-                (int pid, IEnumerable<Tuple<byte[], byte[]>> input) => { return input; });
+                (int pid, IEnumerable<Tuple<byte[], byte[]>> input) => input);
             Assert.IsNotNull(directKafkaStreamWithRepartitionAndReadFunc);
 
             ssc.SparkContext.SparkConf.Set("spark.mobius.streaming.kafka.numReceivers", "10");
@@ -56,7 +56,7 @@ namespace AdapterTest
                 ssc,
                 new List<string> { "testTopic3" },
                 new List<Tuple<string, string>>(),  new List<Tuple<string, long>>(),
-                (int pid, IEnumerable<Tuple<byte[], byte[]>> input) => { return input; });
+                (int pid, IEnumerable<Tuple<byte[], byte[]>> input) => input);
             Assert.IsNotNull(directKafkaReceiver.DStreamProxy);
 
             var union = ssc.Union(textFile, socketStream);

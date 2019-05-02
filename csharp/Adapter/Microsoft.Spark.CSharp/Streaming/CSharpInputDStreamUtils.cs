@@ -35,7 +35,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> csharpFunc = (csharpInputDSX, csharpInputDSY) => new CSharpInputDStreamTransformRDDHelper<T>(func).Execute(csharpInputDSX, csharpInputDSY);
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, csharpFunc);
+            formatter.Serialize(stream, csharpFunc.ToExpressionData());
 
             var dstreamProxy = ssc.streamingContextProxy.CreateCSharpInputDStream(stream.ToArray(), SerializedMode.Byte.ToString());
             return new DStream<T>(dstreamProxy, ssc, SerializedMode.Byte);

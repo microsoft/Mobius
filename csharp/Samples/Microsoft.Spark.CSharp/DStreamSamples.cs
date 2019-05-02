@@ -85,27 +85,8 @@ namespace Microsoft.Spark.CSharp
                     var initialStateRdd = sc.Parallelize(new[] { new Tuple<string, int>("AAA", 88), new Tuple<string, int>("BBB", 88) });
                     var state = join.UpdateStateByKey((x, y) => new UpdateStateHelper(b).Execute(x, y), initialStateRdd);
 
-                    state.ForeachRDD((time, rdd) =>
-                    {
-                        // there's chance rdd.Take conflicts with ssc.Stop
-                        if (stopFileServer)
-                            return;
+                    state.ForeachRDD((time, rdd) => new DStreamTextFileSampleHelper().ForEachRDDHelper(time, rdd));
 
-                        object[] taken = rdd.Take(10);
-                        Console.WriteLine("-------------------------------------------");
-                        Console.WriteLine("Time: {0}", time);
-                        Console.WriteLine("-------------------------------------------");
-                        foreach (object record in taken)
-                        {
-                            Console.WriteLine(record);
-
-                            var countByWord = (Tuple<string, int>)record;
-                            Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "lazy" || countByWord.Item1 == "dog" ? 92 : 88);
-                        }
-                        Console.WriteLine();
-
-                        stopFileServer = true;
-                    });
 
                     return context;
                 });
@@ -115,6 +96,31 @@ namespace Microsoft.Spark.CSharp
             ssc.Start();
 
             ssc.AwaitTermination();
+        }
+
+        public class DStreamTextFileSampleHelper
+        {
+            public void ForEachRDDHelper(double time, RDD<dynamic> rdd)
+            {
+                // there's chance rdd.Take conflicts with ssc.Stop
+                if (stopFileServer)
+                    return;
+
+                object[] taken = rdd.Take(10);
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Time: {0}", time);
+                Console.WriteLine("-------------------------------------------");
+                foreach (object record in taken)
+                {
+                    Console.WriteLine(record);
+
+                    var countByWord = (Tuple<string, int>)record;
+                    Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "lazy" || countByWord.Item1 == "dog" ? 92 : 88);
+                }
+                Console.WriteLine();
+
+                stopFileServer = true;
+            }
         }
 
         private static string brokers = ConfigurationManager.AppSettings["KafkaTestBrokers"] ?? "127.0.0.1:9092";
@@ -153,35 +159,40 @@ namespace Microsoft.Spark.CSharp
                     conf.Set("spark.mobius.streaming.kafka.numPartitions." + topic, partitions.ToString());
                     var dstream = KafkaUtils.CreateDirectStream(context, new List<string> { topic }, kafkaParams, Enumerable.Empty<Tuple<string, long>>());
 
-                    dstream.ForeachRDD((time, rdd) =>
-                        {
-                            long batchCount = rdd.Count();
-                            int numPartitions = rdd.GetNumPartitions();
-
-                            Console.WriteLine("-------------------------------------------");
-                            Console.WriteLine("Time: {0}", time);
-                            Console.WriteLine("-------------------------------------------");
-                            Console.WriteLine("Count: " + batchCount);
-                            Console.WriteLine("Partitions: " + numPartitions);
-
-                            // only first batch has data and is repartitioned into 10 partitions
-                            if (count++ == 0)
-                            {
-                                Assert.AreEqual(messages, batchCount);
-                                Assert.IsTrue(numPartitions >= partitions);
-                            }
-                            else
-                            {
-                                Assert.AreEqual(0, batchCount);
-                                Assert.IsTrue(numPartitions == 0);
-                            }
-                        });
+                    dstream.ForeachRDD((time, rdd) => new DStreamDirectKafkaWithRepartitionSampleHelper().ForEachRddHelper(time, rdd));
 
                     return context;
                 });
 
             ssc.Start();
             ssc.AwaitTermination();
+        }
+
+        public class DStreamDirectKafkaWithRepartitionSampleHelper
+        {
+            public void ForEachRddHelper(double time, RDD<dynamic> rdd)
+            {
+                long batchCount = rdd.Count();
+                int numPartitions = rdd.GetNumPartitions();
+
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Time: {0}", time);
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine("Count: " + batchCount);
+                Console.WriteLine("Partitions: " + numPartitions);
+
+                // only first batch has data and is repartitioned into 10 partitions
+                if (count++ == 0)
+                {
+                    Assert.AreEqual(messages, batchCount);
+                    Assert.IsTrue(numPartitions >= partitions);
+                }
+                else
+                {
+                    Assert.AreEqual(0, batchCount);
+                    Assert.IsTrue(numPartitions == 0);
+                }
+            }
         }
 
         /// <summary>
@@ -200,7 +211,15 @@ namespace Microsoft.Spark.CSharp
             var seedRDD = sc.Parallelize(Enumerable.Range(0, 100), 2);
             var dstream = new ConstantInputDStream<int>(seedRDD, ssc);
 
-            dstream.ForeachRDD((time, rdd) =>
+            dstream.ForeachRDD((time, rdd) => new DStreamConstantDStreamSampleHelper().ForEachRdd(time, rdd));
+
+            ssc.Start();
+            ssc.AwaitTermination();
+        }
+
+        public class DStreamConstantDStreamSampleHelper
+        {
+            public void ForEachRdd(double time, RDD<dynamic> rdd)
             {
                 long batchCount = rdd.Count();
                 int numPartitions = rdd.GetNumPartitions();
@@ -212,10 +231,7 @@ namespace Microsoft.Spark.CSharp
                 Console.WriteLine("Partitions: " + numPartitions);
                 Assert.AreEqual(count, batchCount);
                 Assert.AreEqual(partitions, numPartitions);
-            });
-
-            ssc.Start();
-            ssc.AwaitTermination();
+            }
         }
 
         /// <summary>
@@ -265,7 +281,29 @@ namespace Microsoft.Spark.CSharp
                     numPartitions
                 );
 
-            reduced.ForeachRDD((time, rdd) =>
+            reduced.ForeachRDD((time, rdd) => new DStreamReduceByKeyAndLargeWindowSampleHelper(bacthIntervalMs, windowDuration, numPartitions).ForEachRdd(time, rdd));
+
+
+            ssc.Start();
+            ssc.AwaitTermination();
+        }
+
+        public class DStreamReduceByKeyAndLargeWindowSampleHelper
+        {
+            public long bacthIntervalMs; // batch interval is in milliseconds
+            public int windowDuration;     // window duration in seconds
+            public int numPartitions;
+
+            public DStreamReduceByKeyAndLargeWindowSampleHelper(long bacthIntervalMs, int windowDuration, int numPartitions)
+            {
+                this.bacthIntervalMs = bacthIntervalMs;
+                this.windowDuration = windowDuration;
+                this.numPartitions = numPartitions;
+            }
+
+            public DStreamReduceByKeyAndLargeWindowSampleHelper() { }
+
+            public void ForEachRdd(double time, RDD<dynamic> rdd)
             {
                 count++;
                 var taken = rdd.Collect();
@@ -288,10 +326,7 @@ namespace Microsoft.Spark.CSharp
                     // when batch count reaches window size, sum of even/odd number stay at windowDuration / slideDuration * (2450, 2500) respectively
                     Assert.AreEqual(sum.Item2, (count > windowDuration / slideDuration ? windowDuration : count * slideDuration) / (bacthIntervalMs / 1000) * (sum.Item1 == 0 ? 2450 : 2500));
                 }
-            });
-
-            ssc.Start();
-            ssc.AwaitTermination();
+            }
         }
 
         [Sample("experimental")]

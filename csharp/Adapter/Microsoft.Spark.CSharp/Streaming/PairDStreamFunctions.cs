@@ -62,7 +62,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.Transform<Tuple<K, C>>(new CombineByKeyHelper<K, V, C>(createCombiner, mergeValue, mergeCombiners, numPartitions).Execute);
+            return self.Transform<Tuple<K, C>>((combineByX) => new CombineByKeyHelper<K, V, C>(createCombiner, mergeValue, mergeCombiners, numPartitions).Execute(combineByX));
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.Transform<Tuple<K, V>>(new PartitionByHelper<K, V>(numPartitions).Execute);
+            return self.Transform<Tuple<K, V>>((partitionByX) => new PartitionByHelper<K, V>(numPartitions).Execute(partitionByX));
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <returns></returns>
         public static DStream<Tuple<K, List<V>>> GroupByKey<K, V>(this DStream<Tuple<K, V>> self, int numPartitions = 0)
         {
-            return self.Transform<Tuple<K, List<V>>>(new GroupByKeyHelper<K, V>(numPartitions).Execute);
+            return self.Transform<Tuple<K, List<V>>>((groupByX) => new GroupByKeyHelper<K, V>(numPartitions).Execute(groupByX));
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<List<V>, List<W>>>>(new GroupWithHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<List<V>, List<W>>>>((groupWithX, groupWithY) => new GroupWithHelper<K, V, W>(numPartitions).Execute(groupWithX, groupWithY), other);
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<V, W>>>(new JoinHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<V, W>>>((joinHelperX, joinHelperY) => new JoinHelper<K, V, W>(numPartitions).Execute(joinHelperX, joinHelperY), other);
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<V, Option<W>>>>(new LeftOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<V, Option<W>>>>((leftOuterJoinX, leftOuterJoinY) => new LeftOuterJoinHelper<K, V, W>(numPartitions).Execute(leftOuterJoinX, leftOuterJoinY), other);
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<Option<V>, W>>>(new RightOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<Option<V>, W>>>((rightOuterJoinX, rightOuterJoinY) => new RightOuterJoinHelper<K, V, W>(numPartitions).Execute(rightOuterJoinX, rightOuterJoinY), other);
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (numPartitions <= 0)
                 numPartitions = self.streamingContext.SparkContext.DefaultParallelism;
 
-            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<Option<V>, Option<W>>>>(new FullOuterJoinHelper<K, V, W>(numPartitions).Execute, other);
+            return self.TransformWith<Tuple<K, W>, Tuple<K, Tuple<Option<V>, Option<W>>>>((fullOuterJoinX, fullOuterJoinY) => new FullOuterJoinHelper<K, V, W>(numPartitions).Execute(fullOuterJoinX, fullOuterJoinY), other);
         }
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             // completes pipelinable dstream by adding the last pipelinable operation
             // before transforming to CSharpStateDStream so that UpdateStateByKey's 
             // parallel job covers all pipelinable operations before shuffling
-            var ds = self.Transform(new AddShuffleKeyHelper<K, V>(numPartitions).Execute);
+            var ds = self.Transform((addShuffleX) => new AddShuffleKeyHelper<K, V>(numPartitions).Execute(addShuffleX));
 
             Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (updateStateX, updateStateY, updateStateZ) => new UpdateStateByKeysHelper<K, V, S>(updateFunc, initialState, numPartitions).Execute(updateStateX, updateStateY, updateStateZ);
 
@@ -416,13 +416,13 @@ namespace Microsoft.Spark.CSharp.Streaming
                 stateSpec = stateSpec.NumPartitions(self.streamingContext.SparkContext.DefaultParallelism);
             }
 
-            Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc = self.Piplinable ? (self as TransformedDStream<Tuple<K, V>>).func : null;
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> prevFunc = self.Piplinable ? (self as TransformedDStream<Tuple<K, V>>).expressionData.ToExpression<Func<double, RDD<dynamic>, RDD<dynamic>>>() : null;
 
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> func = new MapWithStateHelper<K, V, S, M>(prevFunc, stateSpec).Execute;
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (mapWithStateX, mapWithStateY, mapWithStateZ) => new MapWithStateHelper<K, V, S, M>(prevFunc, stateSpec).Execute(mapWithStateX, mapWithStateY, mapWithStateZ);
 
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, func);
+            formatter.Serialize(stream, func.ToExpressionData());
 
             var mapWithStateDStream = new DStream<MapWithStateRDDRecord<K, S, M>>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpStateDStream(
                     self.Piplinable ? self.prevDStreamProxy : self.DStreamProxy,

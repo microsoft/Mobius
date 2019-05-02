@@ -86,7 +86,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
         /// <returns>A DStream object</returns>
         public static DStream<Tuple<byte[], byte[]>> CreateDirectStream(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets)
-        {        
+        {
             int numPartitions = GetNumPartitionsFromConfig(ssc, topics, kafkaParams);
             if (numPartitions >= 0 ||
                 ssc.SparkContext.SparkConf.SparkConfProxy.Get("spark.mobius.streaming.kafka.CSharpReader.enabled", "false").ToLower() == "true" ||
@@ -132,9 +132,9 @@ namespace Microsoft.Spark.CSharp.Streaming
                 return dstream.MapPartitionsWithIndex(readFunc, true);
             }
 
-            var mapPartitionsWithIndexHelper = new MapPartitionsWithIndexHelper<Tuple<byte[], byte[]>, T>(readFunc, true); 
-            var transformHelper = new TransformHelper<Tuple<byte[], byte[]>, T>(mapPartitionsWithIndexHelper.Execute);
-            var transformDynamicHelper = new TransformDynamicHelper<Tuple<byte[], byte[]>, T>(transformHelper.Execute);
+            var mapPartitionsWithIndexHelper = new MapPartitionsWithIndexHelper<Tuple<byte[], byte[]>, T>(readFunc, true);
+            var transformHelper = new TransformHelper<Tuple<byte[], byte[]>, T>((mapPartitionsWithIndexHelperX) => mapPartitionsWithIndexHelper.Execute(mapPartitionsWithIndexHelperX));
+            var transformDynamicHelper = new TransformDynamicHelper<Tuple<byte[], byte[]>, T>((mapPartitionsWithIndexHelperX, mapPartitionsWithIndexHelperY) => transformHelper.Execute(mapPartitionsWithIndexHelperX, mapPartitionsWithIndexHelperY));
             Func<double, RDD<dynamic>, RDD<dynamic>> func = transformDynamicHelper.Execute;
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
@@ -194,7 +194,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             return ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.numPartitions." + topics[0] + clusterId, -1);
         }
     }
-    
+
     /// <summary>
     /// Kafka offset range
     /// </summary>

@@ -96,7 +96,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void SqlContextCreateDataFrameSample2()
         {
-            var rddRequestsLog = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath(RequestsLog), 1).Map(r => r.Split(',').Select(s => (object)s).ToArray());
+            var rddRequestsLog = SparkCLRSamples.SparkContext.TextFile(SparkCLRSamples.Configuration.GetInputDataPath(RequestsLog), 1).Map(r => r.Split(new char[] { ' ' }).Select(s => (object)s).ToArray());
 
             const string schemaRequestsLogJson = @"{
 	                                            ""fields"": [{

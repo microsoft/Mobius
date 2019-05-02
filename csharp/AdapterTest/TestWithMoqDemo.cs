@@ -174,12 +174,20 @@ namespace AdapterTest
 
             // Act
             var lines = _streamingContext.TextFileStream(Path.GetTempPath());
-            var words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new[] { ' ' }));
             var pairs = words.Map(w => new Tuple<string, int>(w, 1));
             var wordCounts = pairs.ReduceByKey((x, y) => x + y);
 
             // Assert
-            wordCounts.ForeachRDD((time, rdd) =>
+            wordCounts.ForeachRDD((time, rdd) => new TestDStreamTransform_MoqHelper().ForeachRDD(time, rdd));
+
+            // Use Verify to verify if a method to mock was invoked
+            mockDStreamProxy.Verify(m => m.CallForeachRDD(It.IsAny<byte[]>(), It.IsAny<string>()));
+        }
+
+        public class TestDStreamTransform_MoqHelper
+        {
+            public void ForeachRDD(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
@@ -189,9 +197,7 @@ namespace AdapterTest
                     Tuple<string, int> countByWord = (Tuple<string, int>)record;
                     Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
-            });
-            // Use Verify to verify if a method to mock was invoked
-            mockDStreamProxy.Verify(m => m.CallForeachRDD(It.IsAny<byte[]>(), It.IsAny<string>()));
+            }
         }
 
     }

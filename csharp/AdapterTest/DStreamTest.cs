@@ -28,21 +28,36 @@ namespace AdapterTest
             var lines = ssc.TextFileStream(Path.GetTempPath());
             Assert.IsNotNull(lines.DStreamProxy);
 
-            var words = lines.FlatMap(l => l.Split(' ')).Filter(w => w != "The").Repartition(1);
+            var words = lines.FlatMap(l => l.Split(new char[] { ' ' })).Filter(w => w != "The").Repartition(1);
 
             words.Slice(DateTime.MinValue, DateTime.MaxValue);
             words.Cache();
             words.Checkpoint(1000);
             words.Window(1, 1);
 
-            words.Count().ForeachRDD((time, rdd) =>
+            words.Count().ForeachRDD((time, rdd) => new TestDStreamMapReduceHelper().Count(time, rdd));
+
+            words.CountByValue().ForeachRDD((time, rdd) => new TestDStreamMapReduceHelper().CountByValue(time, rdd));
+
+            words.CountByValueAndWindow(1, 1).ForeachRDD((time, rdd) => new TestDStreamMapReduceHelper().CountByValueAndWindow(time, rdd));
+
+            words.CountByWindow(1).ForeachRDD((time, rdd) => new TestDStreamMapReduceHelper().CountByWindow(time, rdd));
+
+            words.Union(words).ForeachRDD((time, rdd) => new TestDStreamMapReduceHelper().Union(time, rdd));
+
+            words.Glom().ForeachRDD((time, rdd) => new TestDStreamMapReduceHelper().Glom(time, rdd));
+        }
+
+        public class TestDStreamMapReduceHelper
+        {
+            public void Count(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 1);
                 Assert.AreEqual((int)taken[0], 178);
-            });
+            }
 
-            words.CountByValue().ForeachRDD((time, rdd) =>
+            public void CountByValue(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 8);
@@ -52,33 +67,33 @@ namespace AdapterTest
                     Tuple<string, long> countByWord = (Tuple<string, long>)record;
                     Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
-            });
+            }
 
-            words.CountByValueAndWindow(1, 1).ForeachRDD((time, rdd) =>
+            public void CountByValueAndWindow(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken[0], 8);
-            });
+            }
 
-            words.CountByWindow(1).ForeachRDD((time, rdd) =>
+            public void CountByWindow(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 1);
                 Assert.AreEqual((int)taken[0], 356);
-            });
+            }
 
-            words.Union(words).ForeachRDD((time, rdd) =>
+            public void Union(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 356);
-            });
+            }
 
-            words.Glom().ForeachRDD((time, rdd) =>
+            public void Glom(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 1);
                 Assert.AreEqual((taken[0] as string[]).Length, 178);
-            });
+            }
         }
 
         [Test]
@@ -90,27 +105,39 @@ namespace AdapterTest
             var lines = ssc.TextFileStream(Path.GetTempPath());
             Assert.IsNotNull(lines.DStreamProxy);
 
-            var words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new char[] { ' ' }));
 
             var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
             var wordCounts = pairs.PartitionBy().ReduceByKey((x, y) => x + y);
 
-            wordCounts.ForeachRDD((time, rdd) => 
-                {
-                    var taken = rdd.Collect();
-                    Assert.AreEqual(taken.Length, 9);
-
-                    foreach (object record in taken)
-                    {
-                        Tuple<string, int> countByWord = (Tuple<string, int>)record;
-                        Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
-                    }
-                });
+            wordCounts.ForeachRDD((time, rdd) => new TestDStreamTransformHelper().ForeachRDD(time, rdd));
 
             var wordLists = pairs.GroupByKey();
 
-            wordLists.ForeachRDD((time, rdd) =>
+            wordLists.ForeachRDD((time, rdd) => new TestDStreamTransformHelper().ForeachRDD1(time, rdd));
+
+            var wordCountsByWindow = pairs.ReduceByKeyAndWindow((x, y) => x + y, (x, y) => x - y, 1);
+
+            wordCountsByWindow.ForeachRDD((time, rdd) => new TestDStreamTransformHelper().ForeachRDD2(time, rdd));
+        }
+
+        public class TestDStreamTransformHelper
+        {
+            public void ForeachRDD(double time, RDD<dynamic> rdd)
+            {
+                var taken = rdd.Collect();
+
+                Assert.AreEqual(taken.Length, 9);
+
+                foreach (object record in taken)
+                {
+                    Tuple<string, int> countByWord = (Tuple<string, int>)record;
+                    Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
+                }
+            }
+
+            public void ForeachRDD1(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
@@ -120,11 +147,9 @@ namespace AdapterTest
                     Tuple<string, List<int>> countByWord = (Tuple<string, List<int>>)record;
                     Assert.AreEqual(countByWord.Item2.Count, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
-            });
+            }
 
-            var wordCountsByWindow = pairs.ReduceByKeyAndWindow((x, y) => x + y, (x, y) => x - y, 1);
-
-            wordCountsByWindow.ForeachRDD((time, rdd) =>
+            public void ForeachRDD2(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
@@ -134,9 +159,9 @@ namespace AdapterTest
                     Tuple<string, int> countByWord = (Tuple<string, int>)record;
                     Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 46 : 44);
                 }
-            });
+            }
         }
-        
+
         [Test]
         public void TestDStreamJoin()
         {
@@ -146,7 +171,7 @@ namespace AdapterTest
             var lines = ssc.TextFileStream(Path.GetTempPath());
             Assert.IsNotNull(lines.DStreamProxy);
 
-            var words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new char[] { ' ' }));
 
             var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
@@ -156,7 +181,24 @@ namespace AdapterTest
             var right = wordCounts.Filter(x => x.Item1 != "brown");
 
             var groupWith = left.GroupWith(right);
-            groupWith.ForeachRDD((time, rdd) =>
+            groupWith.ForeachRDD((time, rdd) => new TestDStreamJoinHelper().GroupByHelper(time, rdd));
+
+            var innerJoin = left.Join(right);
+            innerJoin.ForeachRDD((time, rdd) => new TestDStreamJoinHelper().InnerJoinHelper(time, rdd));
+
+            var leftOuterJoin = left.LeftOuterJoin(right);
+            leftOuterJoin.ForeachRDD((time, rdd) => new TestDStreamJoinHelper().LeftOuterJoinHelper(time, rdd));
+
+            var rightOuterJoin = left.RightOuterJoin(right);
+            rightOuterJoin.ForeachRDD(rdd => new TestDStreamJoinHelper().RightOuterJoinHelper(rdd));
+
+            var fullOuterJoin = left.FullOuterJoin(right);
+            fullOuterJoin.ForeachRDD(rdd => new TestDStreamJoinHelper().FullOuterJoinHelper(rdd));
+        }
+
+        public class TestDStreamJoinHelper
+        {
+            public void GroupByHelper(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
@@ -174,10 +216,9 @@ namespace AdapterTest
                         Assert.AreEqual(countByWord.Item2.Item2[0], countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                     }
                 }
-            });
+            }
 
-            var innerJoin = left.Join(right);
-            innerJoin.ForeachRDD((time, rdd) =>
+            public void InnerJoinHelper(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 6);
@@ -188,10 +229,9 @@ namespace AdapterTest
                     Assert.AreEqual(countByWord.Item2.Item1, countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 23 : 22);
                     Assert.AreEqual(countByWord.Item2.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 23 : 22);
                 }
-            });
+            }
 
-            var leftOuterJoin = left.LeftOuterJoin(right);
-            leftOuterJoin.ForeachRDD((time, rdd) =>
+            public void LeftOuterJoinHelper(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 7);
@@ -200,14 +240,13 @@ namespace AdapterTest
                 {
                     Tuple<string, Tuple<int, Option<int>>> countByWord = (Tuple<string, Tuple<int, Option<int>>>)record;
                     Assert.AreEqual(countByWord.Item2.Item1, countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 23 : 22);
-                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 
+                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" ?
                         countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 23 : (countByWord.Item1 == "brown" ?
                         countByWord.Item2.Item2.IsDefined == true == false : countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 22));
                 }
-            });
+            }
 
-            var rightOuterJoin = left.RightOuterJoin(right);
-            rightOuterJoin.ForeachRDD(rdd =>
+            public void RightOuterJoinHelper(RDD<Tuple<string, Tuple<Option<int>, int>>> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 8);
@@ -215,16 +254,15 @@ namespace AdapterTest
                 foreach (object record in taken)
                 {
                     Tuple<string, Tuple<Option<int>, int>> countByWord = (Tuple<string, Tuple<Option<int>, int>>)record;
-                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" ? 
-                        countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 23 : 
+                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" ?
+                        countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 23 :
                         (countByWord.Item1 == "quick" || countByWord.Item1 == "lazy" ? countByWord.Item2.Item1.IsDefined == false :
                         countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 22));
                     Assert.AreEqual(countByWord.Item2.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
-            });
-            
-            var fullOuterJoin = left.FullOuterJoin(right);
-            fullOuterJoin.ForeachRDD(rdd =>
+            }
+
+            public void FullOuterJoinHelper(RDD<Tuple<string, Tuple<Option<int>, Option<int>>>> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
@@ -237,11 +275,11 @@ namespace AdapterTest
                         (countByWord.Item1 == "quick" || countByWord.Item1 == "lazy" ? countByWord.Item2.Item1.IsDefined == false :
                         countByWord.Item2.Item1.IsDefined == true && countByWord.Item2.Item1.GetValue() == 22));
 
-                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 
-                        countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 23 : 
+                    Assert.IsTrue(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ?
+                        countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 23 :
                         (countByWord.Item1 == "brown" ? countByWord.Item2.Item2.IsDefined == false : countByWord.Item2.Item2.IsDefined == true && countByWord.Item2.Item2.GetValue() == 22));
                 }
-            });
+            }
         }
 
         [Test]
@@ -253,22 +291,27 @@ namespace AdapterTest
             var lines = ssc.TextFileStream(Path.GetTempPath());
             Assert.IsNotNull(lines.DStreamProxy);
 
-            var words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new char[] { ' ' }));
 
             var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
             var doubleCounts = pairs.GroupByKeyAndWindow(1000, 0).FlatMapValues(vs => vs).ReduceByKey((x, y) => x + y);
-            doubleCounts.ForeachRDD((time, rdd) =>
+            doubleCounts.ForeachRDD((time, rdd) => new TestDStreamGroupByKeyAndWindowHelper().DoubleCountsHelper(time, rdd));
+        }
+
+        public class TestDStreamGroupByKeyAndWindowHelper
+        {
+            public void DoubleCountsHelper(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
 
                 foreach (object record in taken)
                 {
-                    Tuple<string, int> countByWord = (Tuple<string, int>) record;    
+                    Tuple<string, int> countByWord = (Tuple<string, int>)record;
                     Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 2 * 23 : 2 * 22, countByWord.Item2);
                 }
-            });
+            }
         }
 
         [Test]
@@ -280,12 +323,28 @@ namespace AdapterTest
             var lines = ssc.TextFileStream(Path.GetTempPath());
             Assert.IsNotNull(lines.DStreamProxy);
 
-            var words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new char[] { ' ' }));
 
             var pairs = words.Map(w => new Tuple<string, int>(w, 1));
 
             var doubleCounts = pairs.GroupByKey().FlatMapValues(vs => vs).MapValues(v => 2 * v).ReduceByKey((x, y) => x + y);
-            doubleCounts.ForeachRDD((time, rdd) =>
+            doubleCounts.ForeachRDD((time, rdd) => new TestDStreamUpdateStateByKeyHelper().ForeachRDDHelper1(time, rdd));
+
+            // disable pipeline to UpdateStateByKey which replys on checkpoint mock proxy doesn't support
+            pairs.Cache();
+
+            var initialStateRdd = ssc.SparkContext.Parallelize(new[] { "AAA" }).Map(w => new Tuple<string, int>("AAA", 22));
+            var state = pairs.UpdateStateByKey<string, int, int>((v, s) => s + v.Count(), initialStateRdd);
+            state.ForeachRDD((time, rdd) => new TestDStreamUpdateStateByKeyHelper().ForeachRDDHelper2(time, rdd));
+
+            // test when initialStateRdd is not provided
+            var state2 = pairs.UpdateStateByKey<string, int, int>((v, s) => s + v.Count());
+            state2.ForeachRDD((time, rdd) => new TestDStreamUpdateStateByKeyHelper().ForeachRDDHelper3(time, rdd));
+        }
+
+        public class TestDStreamUpdateStateByKeyHelper
+        {
+            public void ForeachRDDHelper1(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
@@ -295,14 +354,9 @@ namespace AdapterTest
                     Tuple<string, int> countByWord = (Tuple<string, int>)record;
                     Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 2 * 23 : 2 * 22, countByWord.Item2);
                 }
-            });
+            }
 
-            // disable pipeline to UpdateStateByKey which replys on checkpoint mock proxy doesn't support
-            pairs.Cache();
-
-            var initialStateRdd = ssc.SparkContext.Parallelize(new[] { "AAA" }).Map( w => new Tuple<string, int>("AAA", 22));
-            var state = pairs.UpdateStateByKey<string, int, int>((v, s) => s + (v as List<int>).Count, initialStateRdd);
-            state.ForeachRDD((time, rdd) =>
+            public void ForeachRDDHelper2(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 10);
@@ -312,21 +366,19 @@ namespace AdapterTest
                     Tuple<string, int> countByWord = (Tuple<string, int>)record;
                     Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22, countByWord.Item2);
                 }
-            });
+            }
 
-            // test when initialStateRdd is not provided
-            var state2 = pairs.UpdateStateByKey<string, int, int>((v, s) => s + (v as List<int>).Count);
-            state2.ForeachRDD((time, rdd) =>
+            public void ForeachRDDHelper3(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
 
                 foreach (object record in taken)
-                {                                                                                                                                          
+                {
                     Tuple<string, int> countByWord = (Tuple<string, int>)record;
-                    Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22, countByWord.Item2); 
+                    Assert.AreEqual(countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22, countByWord.Item2);
                 }
-            });
+            }
         }
 
         [Test]
@@ -389,7 +441,7 @@ namespace AdapterTest
             var pipelinedRddProxy = new Mock<IRDDProxy>();
             pipelinedRddProxy.Setup(p => p.Union(It.IsAny<IRDDProxy>())).Returns(new Mock<IRDDProxy>().Object);
 
-            sparkContextProxy.Setup(p => 
+            sparkContextProxy.Setup(p =>
                 p.CreateCSharpRdd(It.IsAny<IRDDProxy>(), It.IsAny<byte[]>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<List<string>>(), It.IsAny<bool>(), It.IsAny<List<Broadcast>>(), It.IsAny<List<byte[]>>()))
                 .Returns(pipelinedRddProxy.Object);
 
@@ -415,24 +467,13 @@ namespace AdapterTest
         {
             var ticks = DateTime.UtcNow.Ticks;
             var helper = new UpdateStateHelper<string, int, int, int>(
-                (k, v, state) =>
-                {
-                    if (v < 0 && state.Exists())
-                    {
-                        state.Remove();
-                    }
-                    else if(!state.IsTimingOut())
-                    {
-                        state.Update(v + state.Get());
-                    }
-                    
-                    return v;
-                },
+                                (k, v, state) => UpdateState(k, v, state),
+
                 ticks, true, TimeSpan.FromSeconds(10));
 
             var input = new dynamic[4];
 
-            var preStateRddRecord = new MapWithStateRDDRecord<string, int, int>(ticks - TimeSpan.FromSeconds(2).Ticks, new [] { new Tuple<string, int>("1", 1), new Tuple<string, int>("2", 2)});
+            var preStateRddRecord = new MapWithStateRDDRecord<string, int, int>(ticks - TimeSpan.FromSeconds(2).Ticks, new[] { new Tuple<string, int>("1", 1), new Tuple<string, int>("2", 2) });
             preStateRddRecord.stateMap.Add("expired", new KeyedState<int>(0, ticks - TimeSpan.FromSeconds(60).Ticks));
 
             input[0] = preStateRddRecord;
@@ -451,6 +492,20 @@ namespace AdapterTest
             Assert.AreEqual(stateRddRecord.stateMap.Count, 2);
         }
 
+        public static int UpdateState(String k, int v, State<int> state)
+        {
+            if (v < 0 && state.Exists())
+            {
+                state.Remove();
+            }
+            else if (!state.IsTimingOut())
+            {
+                state.Update(v + state.Get());
+            }
+
+            return v;
+        }
+
         [Test]
         public void TestConstantInputDStream()
         {
@@ -463,7 +518,7 @@ namespace AdapterTest
 
             var constantInputDStream = new ConstantInputDStream<int>(rdd, ssc);
             Assert.IsNotNull(constantInputDStream);
-            Assert.AreEqual(ssc, constantInputDStream.streamingContext);     
+            Assert.AreEqual(ssc, constantInputDStream.streamingContext);
         }
 
         [Test]

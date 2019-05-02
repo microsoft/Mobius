@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Spark.CSharp.Core;
@@ -15,6 +16,8 @@ using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Microsoft.Spark.CSharp.Services;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -109,15 +112,15 @@ namespace Microsoft.Spark.CSharp.Streaming
     {
         [NonSerialized]
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(UpdateStateHelper<K, V, S, M>));
-
-        private readonly Func<K, V, State<S>, M> f;
+        private LinqExpressionData expressionData;
+        //private readonly Func<K, V, State<S>, M> f;
         private readonly long ticks;
         private readonly bool removeTimedoutData;
         private readonly TimeSpan idleDuration;
 
-        internal UpdateStateHelper(Func<K, V, State<S>, M> f, long ticks, bool removeTimedoutData, TimeSpan idleDuration)
+        internal UpdateStateHelper(Expression<Func<K, V, State<S>, M>> f, long ticks, bool removeTimedoutData, TimeSpan idleDuration)
         {
-            this.f = f;
+            this.expressionData = f.ToExpressionData();
             this.ticks = ticks;
             this.removeTimedoutData = removeTimedoutData;
             this.idleDuration = idleDuration;
@@ -128,7 +131,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             var enumerator = iter.GetEnumerator();
             var preStateRddRecord = GetStateRecord(enumerator);
             var stateRddRecord = preStateRddRecord;
-
+            var f = this.expressionData.ToFunc<Func<K, V, State<S>, M>>();
             while (enumerator.MoveNext())
             {
                 Tuple<K, V> kv = enumerator.Current;
@@ -205,19 +208,20 @@ namespace Microsoft.Spark.CSharp.Streaming
     internal class MapWithStateHelper<K, V, S, M>
     {
         private static readonly DateTime UnixTimeEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+        private LinqExpressionData prevExpressionData;
+        //private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
         private readonly StateSpec<K, V, S, M> stateSpec;
 
-        internal MapWithStateHelper(Func<double, RDD<dynamic>, RDD<dynamic>> prevF, StateSpec<K, V, S, M> stateSpec)
+        internal MapWithStateHelper(Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> prevF, StateSpec<K, V, S, M> stateSpec)
         {
-            prevFunc = prevF;
+            prevExpressionData = prevF.ToExpressionData();
             this.stateSpec = stateSpec;
         }
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> stateRDD, RDD<dynamic> valuesRDD)
         {
             long ticks = UnixTimeEpoch.AddMilliseconds(t).Ticks;
-
+            var prevFunc = this.prevExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
             if (prevFunc != null)
             {
                 valuesRDD = prevFunc(t, valuesRDD);
@@ -246,7 +250,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             stateRDD.partitioner = values.partitioner;
             RDD<dynamic> union = stateRDD.Union(values.ConvertTo<dynamic>());
 
-            return union.MapPartitionsWithIndex((updateStateX, updateStateY) => new UpdateStateHelper<K, V, S, M>(stateSpec.mappingFunction, ticks, removeTimedoutData, stateSpec.idleDuration).Execute(updateStateX, updateStateY), true);
+            return union.MapPartitionsWithIndex((updateStateX, updateStateY) => new UpdateStateHelper<K, V, S, M>(stateSpec.mappingFunctionExpressionData.ToExpression<Func<K, V, State<S>, M>>(), ticks, removeTimedoutData, stateSpec.idleDuration).Execute(updateStateX, updateStateY), true);
         }
     }
 
@@ -280,7 +284,8 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     public class StateSpec<K, V, S, M>
     {
-        internal Func<K, V, State<S>, M> mappingFunction;
+        internal LinqExpressionData mappingFunctionExpressionData;
+        //internal Func<K, V, State<S>, M> mappingFunction;
         internal int numPartitions;
         internal TimeSpan idleDuration = TimeSpan.FromTicks(0);
         internal RDD<Tuple<K, S>> initialState = null;
@@ -289,9 +294,9 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// Create a StateSpec for setting all the specifications of the `mapWithState` operation on a pair DStream.
         /// </summary>
         /// <param name="mappingFunction">The function applied on every data item to manage the associated state and generate the mapped data</param>
-        public StateSpec(Func<K, V, State<S>, M> mappingFunction)
+        public StateSpec(Expression<Func<K, V, State<S>, M>> mappingFunction)
         {
-            this.mappingFunction = mappingFunction;
+            this.mappingFunctionExpressionData = mappingFunction.ToExpressionData();
         }
 
         /// <summary>
