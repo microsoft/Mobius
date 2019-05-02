@@ -51,6 +51,14 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
 
+        internal LinqExpressionData ExpressionData
+        {
+            get
+            {
+                return expressionData;
+            }
+        }
+
         public string StackTrace
         {
             get

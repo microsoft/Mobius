@@ -30,6 +30,7 @@ namespace Microsoft.Spark.CSharp.Core
         internal CSharpWorkerFunc workerFunc;
         internal bool preservesPartitioning;
 
+        public PipelinedRDD() { }
         //TODO - give generic types a better id
         /// <summary>
         /// Return a new RDD by applying a function to each partition of this RDD,
@@ -43,8 +44,10 @@ namespace Microsoft.Spark.CSharp.Core
         {
             if (IsPipelinable())
             {
+                var newExpressionData = newFunc.ToExpressionData();
+                var workerExpressionData = workerFunc.ExpressionData;
                 CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc((mapPartionsX, mapPartionsY) =>
-                    new MapPartitionsWithIndexHelper<U, U1>(newFunc, workerFunc.Expr).Execute(mapPartionsX, mapPartionsY), workerFunc.StackTrace);
+                    new MapPartitionsWithIndexHelper<U, U1>(newExpressionData, workerExpressionData).Execute(mapPartionsX, mapPartionsY), workerFunc.StackTrace);
 
                 var pipelinedRDD = new PipelinedRDD<U1>
                 {
@@ -74,12 +77,18 @@ namespace Microsoft.Spark.CSharp.Core
         {
             //private readonly Func<int, IEnumerable<I>, IEnumerable<O>> newFunc;
             //private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> prevFunc;
-            private readonly LinqExpressionData newFuncExpressionData;
-            private readonly LinqExpressionData prevFuncExpressionData;
+            private LinqExpressionData newFuncExpressionData;
+            private LinqExpressionData prevFuncExpressionData;
             internal MapPartitionsWithIndexHelper(Expression<Func<int, IEnumerable<I>, IEnumerable<O>>> nFunc, Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> pFunc)
             {
                 prevFuncExpressionData = pFunc.ToExpressionData();
                 newFuncExpressionData = nFunc.ToExpressionData();
+            }
+
+            internal MapPartitionsWithIndexHelper(LinqExpressionData newFuncExpressionData, LinqExpressionData prevFuncExpressionData)
+            {
+                this.prevFuncExpressionData = prevFuncExpressionData;
+                this.newFuncExpressionData = newFuncExpressionData;
             }
 
             internal IEnumerable<dynamic> Execute(int split, IEnumerable<dynamic> input)

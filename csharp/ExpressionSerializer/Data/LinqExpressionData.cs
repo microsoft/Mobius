@@ -1,30 +1,35 @@
 ﻿using ExpressionSerializer.ComplexSerializer;
+using SerializationHelpers.ComplexSerializers;
+using Serialize.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace SerializationHelpers.Data
 {
+    [Serializable]
+    [DataContract]
     public class LinqExpressionData
     {
-        private String _expressionData;
+        [DataMember]
+        public String ExpressionData { get; set; }
 
-        public LinqExpressionData(String expressionData)
-        {
-            this._expressionData = expressionData;
-        }
+        public LinqExpressionData() { }       
 
         public Expression<TDelegate> ToExpression<TDelegate>() where TDelegate : Delegate
         {
-            var serializer = new Serialize.Linq.Serializers.ExpressionSerializer(new JsonLinqSerializer());
-            return (Expression<TDelegate>)serializer.DeserializeText(_expressionData);
+            var serializer = new LinqExpressionSerializer(new JsonLinqSerializer());
+            var expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true};            
+            return (Expression<TDelegate>)serializer.DeserializeText(ExpressionData, expressionContext);
         }
 
         public TDelegate ToFunc<TDelegate>() where TDelegate : Delegate
         {
-            var serializer = new Serialize.Linq.Serializers.ExpressionSerializer(new JsonLinqSerializer());
-            var expression = (Expression<TDelegate>)serializer.DeserializeText(_expressionData);
+            var serializer = new LinqExpressionSerializer(new JsonLinqSerializer());
+            var expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true };
+            var expression = (Expression<TDelegate>)serializer.DeserializeText(ExpressionData, expressionContext);
             return expression.Compile();
         }
     }

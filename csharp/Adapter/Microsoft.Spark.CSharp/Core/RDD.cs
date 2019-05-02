@@ -1518,6 +1518,8 @@ namespace Microsoft.Spark.CSharp.Core
         private readonly LinqExpressionData expressionData;
         private readonly bool ascending;
 
+        internal TakeOrderedHelper() { }
+
         internal TakeOrderedHelper(int num, Expression<Func<T, dynamic>> keyFunc, bool ascending)
         {
             this.num = num;
