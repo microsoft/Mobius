@@ -25,9 +25,12 @@ namespace Microsoft.Spark.CSharp.Core
     /// </summary>
     /// <typeparam name="U"></typeparam>
     [Serializable]
+    [DataContract]
     public class PipelinedRDD<U> : RDD<U>
     {
+        [DataMember]
         internal CSharpWorkerFunc workerFunc;
+        [DataMember]
         internal bool preservesPartitioning;
 
         public PipelinedRDD() { }
@@ -44,10 +47,11 @@ namespace Microsoft.Spark.CSharp.Core
         {
             if (IsPipelinable())
             {
-                var newExpressionData = newFunc.ToExpressionData();
-                var workerExpressionData = workerFunc.ExpressionData;
+                //var newExpressionData = newFunc.ToExpressionData();
+                //var workerExpressionData = workerFunc.ExpressionData;
+                var mapPartition = new MapPartitionsWithIndexHelper<U, U1>(newFunc, workerFunc.Expr);
                 CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc((mapPartionsX, mapPartionsY) =>
-                    new MapPartitionsWithIndexHelper<U, U1>(newExpressionData, workerExpressionData).Execute(mapPartionsX, mapPartionsY), workerFunc.StackTrace);
+                    mapPartition.Execute(mapPartionsX, mapPartionsY), workerFunc.StackTrace);
 
                 var pipelinedRDD = new PipelinedRDD<U1>
                 {
@@ -73,23 +77,27 @@ namespace Microsoft.Spark.CSharp.Core
         /// on the serializability of compiler generated types
         /// </summary>
         [Serializable]
+        [DataContract]
         private class MapPartitionsWithIndexHelper<I, O>
         {
             //private readonly Func<int, IEnumerable<I>, IEnumerable<O>> newFunc;
             //private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> prevFunc;
+            [DataMember]
             private LinqExpressionData newFuncExpressionData;
+            [DataMember]
             private LinqExpressionData prevFuncExpressionData;
+            public MapPartitionsWithIndexHelper() { }
             internal MapPartitionsWithIndexHelper(Expression<Func<int, IEnumerable<I>, IEnumerable<O>>> nFunc, Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> pFunc)
             {
                 prevFuncExpressionData = pFunc.ToExpressionData();
                 newFuncExpressionData = nFunc.ToExpressionData();
             }
 
-            internal MapPartitionsWithIndexHelper(LinqExpressionData newFuncExpressionData, LinqExpressionData prevFuncExpressionData)
-            {
-                this.prevFuncExpressionData = prevFuncExpressionData;
-                this.newFuncExpressionData = newFuncExpressionData;
-            }
+            //internal MapPartitionsWithIndexHelper(LinqExpressionData newFuncExpressionData, LinqExpressionData prevFuncExpressionData)
+            //{
+            //    this.prevFuncExpressionData = prevFuncExpressionData;
+            //    this.newFuncExpressionData = newFuncExpressionData;
+            //}
 
             internal IEnumerable<dynamic> Execute(int split, IEnumerable<dynamic> input)
             {

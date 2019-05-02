@@ -13,7 +13,7 @@ namespace SerializationHelpers.Extensions
     {
         public static LinqExpressionData ToExpressionData(this Expression expression)
         {
-            var factory = new FactorySettings { AllowPrivateFieldAccess = true };
+            var factory = new FactorySettings { AllowPrivateFieldAccess = true , UseRelaxedTypeNames = false };
             var serializer = new LinqExpressionSerializer(new JsonLinqSerializer(), factory);
             var expressionValue = serializer.SerializeText(expression);
             return new LinqExpressionData { ExpressionData = expressionValue };

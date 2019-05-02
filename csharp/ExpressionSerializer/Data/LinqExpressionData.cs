@@ -14,14 +14,14 @@ namespace SerializationHelpers.Data
     public class LinqExpressionData
     {
         [DataMember]
-        public String ExpressionData { get; set; }
+        internal String ExpressionData;
 
-        public LinqExpressionData() { }       
+        public LinqExpressionData() { }
 
         public Expression<TDelegate> ToExpression<TDelegate>() where TDelegate : Delegate
         {
             var serializer = new LinqExpressionSerializer(new JsonLinqSerializer());
-            var expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true};            
+            var expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true };
             return (Expression<TDelegate>)serializer.DeserializeText(ExpressionData, expressionContext);
         }
 
@@ -30,7 +30,12 @@ namespace SerializationHelpers.Data
             var serializer = new LinqExpressionSerializer(new JsonLinqSerializer());
             var expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true };
             var expression = (Expression<TDelegate>)serializer.DeserializeText(ExpressionData, expressionContext);
-            return expression.Compile();
+            return expression?.Compile();
+        }
+
+        public bool Exists()
+        {
+            return !String.IsNullOrEmpty(this.ExpressionData);
         }
     }
 }

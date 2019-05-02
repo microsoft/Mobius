@@ -523,7 +523,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="self"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static RDD<Tuple<K, U>> MapValues<K, V, U>(this RDD<Tuple<K, V>> self, Func<V, U> func)
+        public static RDD<Tuple<K, U>> MapValues<K, V, U>(this RDD<Tuple<K, V>> self, Expression<Func<V, U>> func)
         {
             return self.Map((mapValuesX) => new MapValuesHelper<K, V, U>(func).Execute(mapValuesX), true);
         }
@@ -549,7 +549,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="self"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static RDD<Tuple<K, U>> FlatMapValues<K, V, U>(this RDD<Tuple<K, V>> self, Func<V, IEnumerable<U>> func)
+        public static RDD<Tuple<K, U>> FlatMapValues<K, V, U>(this RDD<Tuple<K, V>> self, Expression<Func<V, IEnumerable<U>>> func)
         {
             return self.FlatMap((flatMapX) => new FlatMapValuesHelper<K, V, U>(func).Execute(flatMapX), true);
         }
@@ -1022,7 +1022,7 @@ namespace Microsoft.Spark.CSharp.Core
             [NonSerialized]
             private MD5 md5 = MD5.Create();
             private readonly int numPartitions;
-            private readonly Func<dynamic, int> partitionFunc = null;
+            //private readonly Func<dynamic, int> partitionFunc = null;
             private readonly LinqExpressionData expressionData;
 
             public AddShuffleKeyHelper(int numPartitions, Expression<Func<dynamic, int>> partitionFunc)
@@ -1063,14 +1063,16 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         private class MapValuesHelper<K, V, U>
         {
-            private readonly Func<V, U> func;
-            public MapValuesHelper(Func<V, U> f)
+            private readonly LinqExpressionData expressionData;
+            //private readonly Func<V, U> func;
+            public MapValuesHelper(Expression<Func<V, U>> f)
             {
-                func = f;
+                expressionData = f.ToExpressionData();
             }
 
             public Tuple<K, U> Execute(Tuple<K, V> kvp)
             {
+                var func = expressionData.ToFunc<Func<V, U>>();
                 return new Tuple<K, U>
                     (
                     kvp.Item1,
@@ -1082,14 +1084,16 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         private class FlatMapValuesHelper<K, V, U>
         {
-            private readonly Func<V, IEnumerable<U>> func;
-            public FlatMapValuesHelper(Func<V, IEnumerable<U>> f)
+            private readonly LinqExpressionData expressionData;
+            //private readonly Func<V, IEnumerable<U>> func;
+            public FlatMapValuesHelper(Expression<Func<V, IEnumerable<U>>> f)
             {
-                func = f;
+                expressionData = f.ToExpressionData();
             }
 
             public IEnumerable<Tuple<K, U>> Execute(Tuple<K, V> kvp)
             {
+                var func = expressionData.ToFunc<Func<V, IEnumerable<U>>>();
                 return func(kvp.Item2).Select(v => new Tuple<K, U>(kvp.Item1, v));
             }
         }
@@ -1110,13 +1114,15 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         internal class PartitionFuncDynamicTypeHelper<K>
         {
-            private readonly Func<K, int> func;
-            internal PartitionFuncDynamicTypeHelper(Func<K, int> f)
+            private readonly LinqExpressionData expressionData;
+            //private readonly Func<K, int> func;
+            internal PartitionFuncDynamicTypeHelper(Expression<Func<K, int>> f)
             {
-                this.func = f;
+                this.expressionData = f.ToExpressionData();
             }
             internal int Execute(dynamic input)
             {
+                var func = expressionData.ToFunc<Func<K, int>>();
                 return func((K)input);
             }
         }

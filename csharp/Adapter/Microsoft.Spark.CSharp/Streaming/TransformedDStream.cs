@@ -15,6 +15,7 @@ using Microsoft.Spark.CSharp.Interop;
 using SerializationHelpers.Data;
 using System.Linq.Expressions;
 using SerializationHelpers.Extensions;
+using System.Runtime.Serialization;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -45,7 +46,8 @@ namespace Microsoft.Spark.CSharp.Streaming
             if (prev is TransformedDStream<T> && !prev.isCached && !prev.isCheckpointed)
             {
                 prevExpressionData = (prev as TransformedDStream<T>).expressionData;
-                Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> newFunc = (newFuncX, newFuncY) => new NewFuncWrapper(expressionData.ToExpression<Func<double, RDD<dynamic>, RDD<dynamic>>>(), prevExpressionData.ToExpression<Func<double, RDD<dynamic>, RDD<dynamic>>>()).Execute(newFuncX, newFuncY);
+                var wrapper = new NewFuncWrapper(f, prevExpressionData.ToExpression<Func<double, RDD<dynamic>, RDD<dynamic>>>());
+                Expression <Func<double, RDD<dynamic>, RDD<dynamic>>> newFunc = (newFuncX, newFuncY) => wrapper.Execute(newFuncX, newFuncY);
                 expressionData = newFunc.ToExpressionData();
                 prevDStreamProxy = prev.prevDStreamProxy;
                 prevSerializedMode = prev.prevSerializedMode;
@@ -59,12 +61,16 @@ namespace Microsoft.Spark.CSharp.Streaming
         }
 
         [Serializable]
+        [DataContract]
         private class NewFuncWrapper
         {
+            [DataMember]
             internal LinqExpressionData expressionData;
             //private readonly Func<double, RDD<dynamic>, RDD<dynamic>> func;
+            [DataMember]
             internal LinqExpressionData prevExpressionData;
             //private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+            internal NewFuncWrapper() { }
             internal NewFuncWrapper(Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> func, Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> prevFunc)
             {
                 this.expressionData = func.ToExpressionData();
@@ -74,7 +80,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd)
             {
                 var func = expressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
-                var prevFunc = expressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
+                var prevFunc = prevExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
                 return func(t, prevFunc(t, rdd));
             }
         }

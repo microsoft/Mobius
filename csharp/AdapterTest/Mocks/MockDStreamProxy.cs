@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using SerializationHelpers.Data;
 
 namespace AdapterTest.Mocks
 {
@@ -22,7 +23,7 @@ namespace AdapterTest.Mocks
 
         public int SlideDuration
         {
-            get { return 1000 ;}
+            get { return 1000; }
         }
 
         public MockDStreamProxy()
@@ -45,7 +46,8 @@ namespace AdapterTest.Mocks
 
         public void CallForeachRDD(byte[] func, string serializedMode)
         {
-            Action<double, RDD<dynamic>> f = (Action<double, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
+            var expressionData = (LinqExpressionData)formatter.Deserialize(new MemoryStream(func));
+            Action<double, RDD<dynamic>> f = expressionData.ToFunc<Action<double, RDD<dynamic>>>();
             f(DateTime.UtcNow.Ticks, new RDD<dynamic>(rddProxy, new SparkContext("", "")));
         }
 

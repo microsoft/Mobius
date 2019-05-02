@@ -13,6 +13,7 @@ using Microsoft.Spark.CSharp.Interop;
 using System.Linq.Expressions;
 using SerializationHelpers.Data;
 using SerializationHelpers.Extensions;
+using System.Runtime.Serialization;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -176,7 +177,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, f);
+            formatter.Serialize(stream, f.ToExpressionData());
             DStreamProxy.CallForeachRDD(stream.ToArray(), serializedMode.ToString());
         }
 
@@ -318,8 +319,8 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> prevF = Piplinable ? (this as TransformedDStream<T>).expressionData.ToExpression<Func<double, RDD<dynamic>, RDD<dynamic>>>() : null;
             Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> otherF = other.Piplinable ? (other as TransformedDStream<U>).expressionData.ToExpression<Func<double, RDD<dynamic>, RDD<dynamic>>>() : null;
-
-            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (transformWithDynamicX, transformWithDynamicY, transformWithDynamicZ) => new TransformWithDynamicHelper<T, U, V>(f, prevF, otherF).Execute(transformWithDynamicX, transformWithDynamicY, transformWithDynamicZ);
+            var helper = new TransformWithDynamicHelper<T, U, V>(f, prevF, otherF);
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (transformWithDynamicX, transformWithDynamicY, transformWithDynamicZ) => helper.Execute(transformWithDynamicX, transformWithDynamicY, transformWithDynamicZ);
 
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
@@ -549,15 +550,19 @@ namespace Microsoft.Spark.CSharp.Streaming
     }
 
     [Serializable]
+    [DataContract]
     internal class TransformWithDynamicHelper<T, U, V>
     {
+        [DataMember]
         private readonly LinqExpressionData expressionData;
         //private readonly Func<double, RDD<T>, RDD<U>, RDD<V>> func;
+        [DataMember]
         private readonly LinqExpressionData prevExpressionData;
         //private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+        [DataMember]
         private readonly LinqExpressionData otherExpressionData;
         //private readonly Func<double, RDD<dynamic>, RDD<dynamic>> otherFunc;
-
+        internal TransformWithDynamicHelper() { }
         internal TransformWithDynamicHelper(Expression<Func<double, RDD<T>, RDD<U>, RDD<V>>> f, Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> prevF, Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> otherF)
         {
             expressionData = f.ToExpressionData();
@@ -567,14 +572,14 @@ namespace Microsoft.Spark.CSharp.Streaming
 
         internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd1, RDD<dynamic> rdd2)
         {
-            if (prevExpressionData != null)
+            if (prevExpressionData != null && prevExpressionData.Exists())
             {
                 var prevFunc = prevExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
                 rdd1 = prevFunc(t, rdd1);
             }
 
 
-            if (otherExpressionData != null)
+            if (otherExpressionData != null && otherExpressionData.Exists())
             {
                 var otherFunc = otherExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
                 rdd2 = otherFunc(t, rdd2);

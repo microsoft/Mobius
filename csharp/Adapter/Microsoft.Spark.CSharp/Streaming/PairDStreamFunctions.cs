@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
@@ -297,20 +298,20 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             var helper = new ReduceByKeyAndWindowHelper<K, V>(reduceFunc, invReduceFunc, numPartitions, filterFunc);
             // function to reduce the new values that entered the window (e.g., adding new counts)
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> reduceF = helper.Reduce;
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> reduceF = (reduceHelperX, reduceHelperY, reduceHelperZ) => helper.Reduce(reduceHelperX, reduceHelperY, reduceHelperZ);
 
             MemoryStream stream = new MemoryStream();
             var formatter = new BinaryFormatter();
-            formatter.Serialize(stream, reduceF);
+            formatter.Serialize(stream, reduceF.ToExpressionData());
 
             // function to "inverse reduce" the old values that left the window (e.g., subtracting old counts)
             MemoryStream invStream = null;
             if (invReduceFunc != null)
             {
-                Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> invReduceF = helper.InvReduce;
+                Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> invReduceF = (invReduceHelperX, invReduceHelperY, invReduceHelperZ) => helper.InvReduce(invReduceHelperX, invReduceHelperY, invReduceHelperZ);
 
                 invStream = new MemoryStream();
-                formatter.Serialize(invStream, invReduceF);
+                formatter.Serialize(invStream, invReduceF.ToExpressionData());
             }
 
             return new DStream<Tuple<K, V>>(
@@ -389,12 +390,12 @@ namespace Microsoft.Spark.CSharp.Streaming
             // before transforming to CSharpStateDStream so that UpdateStateByKey's 
             // parallel job covers all pipelinable operations before shuffling
             var ds = self.Transform((addShuffleX) => new AddShuffleKeyHelper<K, V>(numPartitions).Execute(addShuffleX));
-
-            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (updateStateX, updateStateY, updateStateZ) => new UpdateStateByKeysHelper<K, V, S>(updateFunc, initialState, numPartitions).Execute(updateStateX, updateStateY, updateStateZ);
+            var helper = new UpdateStateByKeysHelper<K, V, S>(updateFunc, initialState, numPartitions);
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (updateStateX, updateStateY, updateStateZ) => helper.Execute(updateStateX, updateStateY, updateStateZ);
 
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, func);
+            formatter.Serialize(stream, func.ToExpressionData());
 
             return new DStream<Tuple<K, S>>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpStateDStream(
                     ds.DStreamProxy,
@@ -654,16 +655,21 @@ namespace Microsoft.Spark.CSharp.Streaming
     }
 
     [Serializable]
+    [DataContract]
     internal class ReduceByKeyAndWindowHelper<K, V>
     {
         //private readonly Func<V, V, V> reduceFunc;
+        [DataMember]
         private readonly LinqExpressionData reduceFuncExpressionData;
         //private readonly Func<V, V, V> invReduceFunc;
+        [DataMember]
         private readonly LinqExpressionData invReduceFuncExpressionData;
         private readonly int numPartitions;
         //private readonly Func<Tuple<K, V>, bool> filterFunc;
+        [DataMember]
         private readonly LinqExpressionData filterFuncExpressionData;
 
+        internal ReduceByKeyAndWindowHelper() { }
         internal ReduceByKeyAndWindowHelper(Expression<Func<V, V, V>> reduceF,
             Expression<Func<V, V, V>> invReduceF,
             int numPartitions,
@@ -696,14 +702,34 @@ namespace Microsoft.Spark.CSharp.Streaming
         internal RDD<dynamic> InvReduce(double t, RDD<dynamic> a, RDD<dynamic> b)
         {
             var reduceFunc = this.reduceFuncExpressionData.ToExpression<Func<V, V, V>>();
-            var invReduceFunc = this.invReduceFuncExpressionData.ToFunc<Func<V, V, V>>();
+            var invReduceFunc = this.invReduceFuncExpressionData.ToExpression<Func<V, V, V>>();
 
             a.partitioner = b.partitioner = new Partitioner(numPartitions, null);
             var rddb = b.ConvertTo<Tuple<K, V>>().ReduceByKey<K, V>(reduceFunc, numPartitions);
             var rdda = a.ConvertTo<Tuple<K, V>>();
             var joined = rdda.Join<K, V, V>(rddb, numPartitions);
-            var r = joined.MapValues<K, Tuple<V, V>, V>(kv => kv.Item2 != null ? invReduceFunc(kv.Item1, kv.Item2) : kv.Item1);
+            var r = joined.MapValues<K, Tuple<V, V>, V>(kv => new ReduceByKeyAndWindowInvReduceHelper<V>(invReduceFunc).Execute(kv));
             return r.ConvertTo<dynamic>();
+        }
+    }
+
+    [DataContract]
+    public class ReduceByKeyAndWindowInvReduceHelper<V>
+    {
+        //private readonly Expression<Func<IEnumerable<V>, S, S>> func;
+        [DataMember]
+        private readonly LinqExpressionData expressionData;
+
+        public ReduceByKeyAndWindowInvReduceHelper(Expression<Func<V, V, V>> func)
+        {
+            this.expressionData = func.ToExpressionData();
+        }
+
+        public V Execute(Tuple<V, V> kv)
+        {
+            var func = this.expressionData.ToFunc<Func<V, V, V>>();
+
+            return kv.Item2 != null ? func(kv.Item1, kv.Item2) : kv.Item1;
         }
     }
 
@@ -725,11 +751,15 @@ namespace Microsoft.Spark.CSharp.Streaming
     }
 
     [Serializable]
+    [DataContract]
     internal class UpdateStateByKeysHelper<K, V, S>
     {
         //private readonly Func<int, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<Tuple<K, S>>> func;
+        [DataMember]
         private readonly LinqExpressionData expressionData;
+        [DataMember]
         private readonly RDD<Tuple<K, S>> initialState;
+        [DataMember]
         private readonly int numPartitions;
         internal UpdateStateByKeysHelper(
             Expression<Func<int, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<Tuple<K, S>>>> f,

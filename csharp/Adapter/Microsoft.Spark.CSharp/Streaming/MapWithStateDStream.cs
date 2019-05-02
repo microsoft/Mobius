@@ -250,7 +250,8 @@ namespace Microsoft.Spark.CSharp.Streaming
             stateRDD.partitioner = values.partitioner;
             RDD<dynamic> union = stateRDD.Union(values.ConvertTo<dynamic>());
 
-            return union.MapPartitionsWithIndex((updateStateX, updateStateY) => new UpdateStateHelper<K, V, S, M>(stateSpec.mappingFunctionExpressionData.ToExpression<Func<K, V, State<S>, M>>(), ticks, removeTimedoutData, stateSpec.idleDuration).Execute(updateStateX, updateStateY), true);
+            var expression = stateSpec.mappingFunctionExpressionData.ToExpression<Func<K, V, State<S>, M>>();
+            return union.MapPartitionsWithIndex((updateStateX, updateStateY) => new UpdateStateHelper<K, V, S, M>(expression, ticks, removeTimedoutData, stateSpec.idleDuration).Execute(updateStateX, updateStateY), true);
         }
     }
 

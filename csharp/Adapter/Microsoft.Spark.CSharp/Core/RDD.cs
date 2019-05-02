@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Services;
@@ -21,12 +22,16 @@ namespace Microsoft.Spark.CSharp.Core
     /// </summary>
     /// <typeparam name="T">Type of the RDD</typeparam>
     [Serializable]
+    [DataContract]
     public class RDD<T>
     {
         [NonSerialized]
         private readonly ILoggerService logger = LoggerServiceFactory.GetLogger(typeof(RDD<T>));
 
+        [DataMember]
         internal IRDDProxy rddProxy;
+
+        [DataMember]
         internal IRDDProxy previousRddProxy;
         // There should be only one SparkContext instance per application, mark it as NonSerialized to avoid more than one SparkContext instances created.
         // Need to set this field with a valid SparkContext instance after deserialization.
@@ -123,7 +128,7 @@ namespace Microsoft.Spark.CSharp.Core
             if (this is PipelinedRDD<T>)
             {
                 CSharpWorkerFunc oldWorkerFunc = (this as PipelinedRDD<T>).workerFunc;
-                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc((olderWorkerX, olderWorkerY) => oldWorkerFunc.Func(olderWorkerX, olderWorkerY), oldWorkerFunc.StackTrace);
+                CSharpWorkerFunc newWorkerFunc = new CSharpWorkerFunc(oldWorkerFunc.Expr, oldWorkerFunc.StackTrace);
                 (r as PipelinedRDD<U>).workerFunc = newWorkerFunc;
                 (r as PipelinedRDD<U>).preservesPartitioning = (this as PipelinedRDD<T>).preservesPartitioning;
             }
@@ -1511,11 +1516,15 @@ namespace Microsoft.Spark.CSharp.Core
         }
     }
     [Serializable]
+    [DataContract]
     internal class TakeOrderedHelper<T> where T : IComparable<T>
     {
+        [DataMember]
         private readonly int num;
         //private readonly Func<T, dynamic> keyFunc;
+        [DataMember]
         private readonly LinqExpressionData expressionData;
+        [DataMember]
         private readonly bool ascending;
 
         internal TakeOrderedHelper() { }
@@ -1530,7 +1539,7 @@ namespace Microsoft.Spark.CSharp.Core
         internal IEnumerable<PriorityQueue<T>> TakeOrderedInPartition(int pid, IEnumerable<T> input)
         {
             Comparer<T> comparer;
-            var keyFunc = this.expressionData.ToFunc<Func<T, dynamic>>();
+            var keyFunc = this.expressionData?.ToFunc<Func<T, dynamic>>();
             if (ascending)
             {
                 if (keyFunc != null)

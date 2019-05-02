@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;                                        
+using System.IO;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;   
+using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
+using SerializationHelpers.Data;
 
 namespace AdapterTest.Mocks
 {
@@ -15,16 +16,16 @@ namespace AdapterTest.Mocks
     {
         private IFormatter formatter = new BinaryFormatter();
         public void Start()
-        {}
+        { }
 
         public void Stop()
-        {}
+        { }
 
         public void Remember(long durationMs)
-        {}
+        { }
 
         public void Checkpoint(string directory)
-        {}
+        { }
 
         public IDStreamProxy TextFileStream(string directory)
         {
@@ -72,7 +73,8 @@ namespace AdapterTest.Mocks
 
         public IDStreamProxy CreateCSharpDStream(IDStreamProxy jdstream, byte[] func, string serializationMode)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
+            var linqExpressionData = (LinqExpressionData)formatter.Deserialize(new MemoryStream(func));
+            Func<double, RDD<dynamic>, RDD<dynamic>> f = linqExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
             RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
             return new MockDStreamProxy(rdd.RddProxy);
@@ -80,7 +82,8 @@ namespace AdapterTest.Mocks
 
         public IDStreamProxy CreateCSharpTransformed2DStream(IDStreamProxy jdstream, IDStreamProxy jother, byte[] func, string serializationMode, string serializationModeOther)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
+            var linqExpressionData = (LinqExpressionData)formatter.Deserialize(new MemoryStream(func));
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = linqExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>>();
             RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")),
                 new RDD<dynamic>((jother as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
@@ -89,7 +92,8 @@ namespace AdapterTest.Mocks
 
         public IDStreamProxy CreateCSharpReducedWindowedDStream(IDStreamProxy jdstream, byte[] func, byte[] invFunc, int windowSeconds, int slideSeconds, string serializationMode)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>) formatter.Deserialize(new MemoryStream(func));
+            var linqExpressionData = (LinqExpressionData)formatter.Deserialize(new MemoryStream(func));
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = linqExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>>();
 
             var ticks = DateTime.UtcNow.Ticks;
             RDD<dynamic> rdd = f(ticks,
@@ -98,7 +102,8 @@ namespace AdapterTest.Mocks
 
             if (invFunc == null) return new MockDStreamProxy(rdd.RddProxy);
 
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> invf = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>) formatter.Deserialize(new MemoryStream(invFunc));
+            var invLinqExpressionData = (LinqExpressionData)formatter.Deserialize(new MemoryStream(invFunc));
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> invf = invLinqExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>>();
             RDD<dynamic> invRdd = invf(ticks,
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")),
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
@@ -109,7 +114,8 @@ namespace AdapterTest.Mocks
 
         public IDStreamProxy CreateCSharpStateDStream(IDStreamProxy jdstream, byte[] func, string className, string serializationMode, string serializationMode2)
         {
-            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>)formatter.Deserialize(new MemoryStream(func));
+            var linqExpressionData = (LinqExpressionData)formatter.Deserialize(new MemoryStream(func));
+            Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>> f = linqExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>>();
             RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,
                 null,
                 new RDD<dynamic>((jdstream as MockDStreamProxy).rddProxy ?? new MockRddProxy(null), new SparkContext("", "")));
@@ -120,7 +126,7 @@ namespace AdapterTest.Mocks
         {
             return new MockDStreamProxy();
         }
-                    
+
         public IDStreamProxy CreateCSharpInputDStream(byte[] func, string serializationMode)
         {
             return new MockDStreamProxy();
