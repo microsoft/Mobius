@@ -43,9 +43,14 @@ namespace Microsoft.Spark.CSharp.Core
             if (ReferenceEquals(this, obj)) return true;
 
             var otherPartitioner = obj as Partitioner;
-            if (otherPartitioner != null)
+            if (otherPartitioner != null && otherPartitioner.expressionData != null && otherPartitioner.expressionData.Exists())
             {
-                return otherPartitioner.numPartitions == numPartitions && otherPartitioner.expressionData == expressionData;
+                var otherPartiotionExpression = otherPartitioner.expressionData.ToExpression<Func<dynamic, int>>();
+                var thisPartitionExpression = expressionData.ToExpression<Func<dynamic, int>>();
+                return otherPartitioner.numPartitions == numPartitions &&
+                    (otherPartiotionExpression == thisPartitionExpression || otherPartiotionExpression.ToString() == thisPartitionExpression.ToString());
+
+
             }
 
             return base.Equals(obj);
