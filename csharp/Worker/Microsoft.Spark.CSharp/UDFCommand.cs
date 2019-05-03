@@ -284,7 +284,6 @@ namespace Microsoft.Spark.CSharp
             var mode = (SerializedMode)Enum.Parse(typeof(SerializedMode), serializedMode);
             int messageLength;
             Stopwatch watch = Stopwatch.StartNew();
-            Row tempRow = null;
 
             while ((messageLength = SerDe.ReadInt(inputStream)) != (int)SpecialLengths.END_OF_DATA_SECTION)
             {

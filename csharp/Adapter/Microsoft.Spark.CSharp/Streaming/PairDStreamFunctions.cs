@@ -390,12 +390,12 @@ namespace Microsoft.Spark.CSharp.Streaming
             // before transforming to CSharpStateDStream so that UpdateStateByKey's 
             // parallel job covers all pipelinable operations before shuffling
             var ds = self.Transform((addShuffleX) => new AddShuffleKeyHelper<K, V>(numPartitions).Execute(addShuffleX));
-            var helper = new UpdateStateByKeysHelper<K, V, S>(updateFunc, initialState, numPartitions);
-            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (updateStateX, updateStateY, updateStateZ) => helper.Execute(updateStateX, updateStateY, updateStateZ);
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>, RDD<dynamic>>> func = (updateStateX, updateStateY, updateStateZ) => new UpdateStateByKeysHelper<K, V, S>(updateFunc, initialState, numPartitions).Execute(updateStateX, updateStateY, updateStateZ);
 
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, func.ToExpressionData());
+            var expressionData = func.ToExpressionData();
+            formatter.Serialize(stream, expressionData);
 
             return new DStream<Tuple<K, S>>(SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpStateDStream(
                     ds.DStreamProxy,
@@ -734,10 +734,14 @@ namespace Microsoft.Spark.CSharp.Streaming
     }
 
     [Serializable]
+    [DataContract]
     internal class UpdateStateByKeyHelper<K, V, S>
     {
         //private readonly Func<IEnumerable<V>, S, S> func;
+        [DataMember]
         private readonly LinqExpressionData expressionData;
+
+        internal UpdateStateByKeyHelper() { }
         internal UpdateStateByKeyHelper(Expression<Func<IEnumerable<V>, S, S>> f)
         {
             expressionData = f.ToExpressionData();
@@ -774,7 +778,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         {
             RDD<Tuple<K, S>> state = null;
             RDD<Tuple<K, Tuple<IEnumerable<V>, S>>> g = null;
-            var func = this.expressionData.ToFunc<Func<int, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<Tuple<K, S>>>>();
+            var func = this.expressionData.ToExpression<Func<int, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<Tuple<K, S>>>>();
 
             // call into scala side partitionBy directly since AddShuffleKey already applied
             var values = new RDD<Tuple<K, V>>(valuesRDD.sparkContext.SparkContextProxy.CreatePairwiseRDD(valuesRDD.rddProxy, numPartitions, 0), valuesRDD.sparkContext);
@@ -803,9 +807,28 @@ namespace Microsoft.Spark.CSharp.Streaming
                 g = state.GroupWith(values, numPartitions).MapValues(x => new Tuple<IEnumerable<V>, S>(new List<V>(x.Item2), x.Item1.Count > 0 ? x.Item1[0] : default(S)));
             }
 
-            state = g.MapPartitionsWithIndex((pid, iter) => func(pid, iter), true).Filter(x => x.Item2 != null);
+            state = g.MapPartitionsWithIndex((pid, iter) => new UpdateStateByKeysMapPartitionsHelper(func).Execute(pid, iter), true).Filter(x => x.Item2 != null);
 
             return state.ConvertTo<dynamic>();
+        }
+
+        [DataContract]
+        public class UpdateStateByKeysMapPartitionsHelper
+        {
+            //private readonly Expression<Func<int, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<Tuple<K, S>>>> func;
+            [DataMember]
+            private readonly LinqExpressionData expressionData;
+
+            public UpdateStateByKeysMapPartitionsHelper(Expression<Func<int, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<Tuple<K, S>>>> f)
+            {
+                expressionData = f.ToExpressionData();
+            }
+
+            public IEnumerable<Tuple<K, S>> Execute(int pid, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>> input)
+            {
+                var func = expressionData.ToFunc<Func<int, IEnumerable<Tuple<K, Tuple<IEnumerable<V>, S>>>, IEnumerable<Tuple<K, S>>>>();
+                return func(pid, input);
+            }
         }
     }
 }

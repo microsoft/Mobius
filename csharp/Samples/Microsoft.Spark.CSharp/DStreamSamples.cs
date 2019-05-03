@@ -208,7 +208,7 @@ namespace Microsoft.Spark.CSharp
             const int partitions = 2;
 
             // create the RDD
-            var seedRDD = sc.Parallelize(Enumerable.Range(0, 100), 2);
+            var seedRDD = sc.Parallelize(Enumerable.Range(0, count), partitions);
             var dstream = new ConstantInputDStream<int>(seedRDD, ssc);
 
             dstream.ForeachRDD((time, rdd) => new DStreamConstantDStreamSampleHelper().ForEachRdd(time, rdd));

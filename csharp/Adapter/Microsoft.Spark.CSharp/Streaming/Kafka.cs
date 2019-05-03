@@ -12,6 +12,8 @@ using System.IO;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using System.Linq.Expressions;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -135,10 +137,10 @@ namespace Microsoft.Spark.CSharp.Streaming
             var mapPartitionsWithIndexHelper = new MapPartitionsWithIndexHelper<Tuple<byte[], byte[]>, T>(readFunc, true);
             var transformHelper = new TransformHelper<Tuple<byte[], byte[]>, T>((mapPartitionsWithIndexHelperX) => mapPartitionsWithIndexHelper.Execute(mapPartitionsWithIndexHelperX));
             var transformDynamicHelper = new TransformDynamicHelper<Tuple<byte[], byte[]>, T>((mapPartitionsWithIndexHelperX, mapPartitionsWithIndexHelperY) => transformHelper.Execute(mapPartitionsWithIndexHelperX, mapPartitionsWithIndexHelperY));
-            Func<double, RDD<dynamic>, RDD<dynamic>> func = transformDynamicHelper.Execute;
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> func = (transformDynamicX, transformDynamicY) => transformDynamicHelper.Execute(transformDynamicX, transformDynamicY);
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, func);
+            formatter.Serialize(stream, func.ToExpressionData());
             byte[] readFuncBytes = stream.ToArray();
             string serializationMode = SerializedMode.Pair.ToString();
             return new DStream<T>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions, readFuncBytes, serializationMode), ssc);

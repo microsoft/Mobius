@@ -998,11 +998,12 @@ namespace Microsoft.Spark.CSharp.Core
             int[] starts = new int[num];
             if (num > 1)
             {
-                var nums = MapPartitionsWithIndex<int>((pid, iter) => new[] { iter.Count() }).Collect();
+                var nums = MapPartitionsWithIndex<int>((pid, iter) => new List<int> { iter.Count() }).Collect();
                 for (int i = 0; i < nums.Length - 1; i++)
                     starts[i + 1] = starts[i] + nums[i];
             }
-            return MapPartitionsWithIndex<Tuple<T, long>>((zipX, zipY) => new ZipWithIndexHelper<T>(starts).Execute(zipX, zipY));
+            var startlist = starts.ToList();
+            return MapPartitionsWithIndex<Tuple<T, long>>((zipX, zipY) => new ZipWithIndexHelper<T>(startlist).Execute(zipX, zipY));
         }
 
         /// <summary>
@@ -1351,10 +1352,15 @@ namespace Microsoft.Spark.CSharp.Core
     /// on the serializability of compiler generated types
     /// </summary>
     [Serializable]
+    [DataContract]
     internal class MapPartitionsHelper<T, U>
     {
         //private readonly Func<IEnumerable<T>, IEnumerable<U>> func;
+        [DataMember]
         private readonly LinqExpressionData expressionData;
+
+        internal MapPartitionsHelper() { }
+
         internal MapPartitionsHelper(Expression<Func<IEnumerable<T>, IEnumerable<U>>> f)
         {
             expressionData = f.ToExpressionData();
@@ -1538,32 +1544,9 @@ namespace Microsoft.Spark.CSharp.Core
 
         internal IEnumerable<PriorityQueue<T>> TakeOrderedInPartition(int pid, IEnumerable<T> input)
         {
-            Comparer<T> comparer;
-            var keyFunc = this.expressionData?.ToFunc<Func<T, dynamic>>();
-            if (ascending)
-            {
-                if (keyFunc != null)
-                {
-                    comparer = Comparer<T>.Create((x, y) => ((IComparable)keyFunc(x)).CompareTo(keyFunc(y)));
-                }
-                else
-                {
-                    comparer = Comparer<T>.Create((x, y) => x.CompareTo(y));
-                }
-            }
-            else
-            {
-                if (keyFunc == null)
-                {
-                    comparer = Comparer<T>.Create((x, y) => y.CompareTo(x));
-                }
-                else
-                {
-                    comparer = Comparer<T>.Create((x, y) => ((IComparable)keyFunc(y)).CompareTo(keyFunc(x)));
-                }
-            }
+            var keyFunc = this.expressionData?.ToExpression<Func<T, dynamic>>();
+            PriorityQueue<T> priorityQueue = new PriorityQueue<T>(num, ascending, keyFunc);
 
-            var priorityQueue = new PriorityQueue<T>(num, comparer);
             foreach (var e in input)
             {
                 priorityQueue.Offer(e);
@@ -1603,8 +1586,8 @@ namespace Microsoft.Spark.CSharp.Core
     [Serializable]
     internal class ZipWithIndexHelper<T>
     {
-        private readonly int[] starts;
-        internal ZipWithIndexHelper(int[] starts)
+        private readonly List<int> starts;
+        internal ZipWithIndexHelper(List<int> starts)
         {
             this.starts = starts;
         }

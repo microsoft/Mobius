@@ -326,7 +326,7 @@ namespace Microsoft.Spark.CSharp.Core
             // invoking property keyed.RddProxy marks the end of current pipeline RDD after shuffling
             // and potentially starts next pipeline RDD with defult SerializedMode.Byte
             var rdd = new RDD<Tuple<K, V>>(self.sparkContext.SparkContextProxy.CreatePairwiseRDD(keyed.RddProxy, numPartitions,
-                GenerateObjectId(partitionFunc)), self.sparkContext);
+                GenerateObjectId(partitionFunc.ToExpressionData())), self.sparkContext);
             rdd.partitioner = partitioner;
 
             return rdd;
