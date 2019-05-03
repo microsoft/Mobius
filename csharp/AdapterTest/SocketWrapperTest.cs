@@ -86,7 +86,7 @@ namespace AdapterTest
             Assert.Throws<InvalidOperationException>(() => clientSock.GetStream());
             Assert.Throws<InvalidOperationException>(() => clientSock.Receive());
             Assert.Throws<InvalidOperationException>(() => clientSock.Send(null));
-            Assert.Throws<SocketException>(() => clientSock.Connect(IPAddress.Any, 1024, null));
+            Assert.Throws(Is.InstanceOf<SocketException>(), () => clientSock.Connect(IPAddress.Any, 1024, null));
 
             clientSock.Connect(IPAddress.Loopback, port, null);
 
