@@ -20,8 +20,7 @@ namespace ExpressionSerializer.ComplexSerializer
                 new Newtonsoft.Json.JsonSerializerSettings
                 {
                     TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Objects,
-                    TypeNameAssemblyFormatHandling = Newtonsoft.Json.TypeNameAssemblyFormatHandling.Full,
-                    ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                    TypeNameAssemblyFormatHandling = Newtonsoft.Json.TypeNameAssemblyFormatHandling.Full
                 });
             using (StreamWriter sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
             using (Newtonsoft.Json.JsonWriter writer = new Newtonsoft.Json.JsonTextWriter(sw))
