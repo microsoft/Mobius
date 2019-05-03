@@ -22,6 +22,7 @@ using Microsoft.Spark.CSharp.Network;
 using NUnit.Framework;
 using Razorvine.Pickle;
 using Tests.Common;
+using System.Linq.Expressions;
 
 namespace WorkerTest
 {
@@ -761,7 +762,7 @@ namespace WorkerTest
                 WritePayloadHeaderToWorker(s);
                 const int accumulatorId = 1001;
                 var accumulator = new Accumulator<int>(accumulatorId, 0);
-                byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc(new AccumulatorHelper(accumulator).Execute),
+                byte[] command = SparkContext.BuildCommand(new CSharpWorkerFunc((accumulatorX, accumulatorY) => new AccumulatorHelper(accumulator).Execute(accumulatorX, accumulatorY)),
                     SerializedMode.String, SerializedMode.String);
 
                 SerDe.Write(s, command.Length);
@@ -802,8 +803,8 @@ namespace WorkerTest
         [Test]
         public void TestUdfSerialization()
         {
-            Func<string, int> f = (s) => 1;
-            Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> udfHelper = new UdfHelper<int, string>(f).Execute;
+            Expression<Func<string, int>> f = (s) => 1;
+            Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> udfHelper = (udfHelperX, udfHelperY) => new UdfHelper<int, string>(f).Execute(udfHelperX, udfHelperY);
             var udfCommand = SparkContext.BuildCommand(new CSharpWorkerFunc(udfHelper), SerializedMode.String,
                 SerializedMode.String);
 
@@ -871,7 +872,7 @@ namespace WorkerTest
         public void ChainTest()
         {
             var func1 = new CSharpWorkerFunc((id, iter) => new List<dynamic> { 1, 2, 3 });
-            var func2 = new CSharpWorkerFunc(Multiplier);
+            var func2 = new CSharpWorkerFunc((multiplierX, multiplierY) => Multiplier(multiplierX, multiplierY));
             var func3 = CSharpWorkerFunc.Chain(func1, func2); //func1 will be executed first on input and result will be input to func2
 
             var result = func3.Func(1, new List<dynamic>()).Cast<int>().ToArray();

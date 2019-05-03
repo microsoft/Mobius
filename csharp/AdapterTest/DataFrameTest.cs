@@ -747,9 +747,9 @@ namespace AdapterTest
             SetPrivatePropertyValue(sc, "SparkContextProxy", mockSparkContextProxy.Object);
             SetPrivateFieldValue(dataFrame, "rdd", new RDD<Row>(mockRddProxy.Object, sc));
 
-            var f = new Func<Row, IEnumerable<int>>(row => new int[] { row.Size() });
+            //var f = new Func<Row, IEnumerable<int>>(row => new int[] { row.Size() });
 
-            RDD<int> rdd = dataFrame.FlatMap(f);
+            RDD<int> rdd = dataFrame.FlatMap(row => new int[] { row.Size() });
 
             // assert
             Assert.IsNotNull(rdd);
@@ -775,9 +775,9 @@ namespace AdapterTest
             SetPrivatePropertyValue(sc, "SparkContextProxy", mockSparkContextProxy.Object);
             SetPrivateFieldValue(dataFrame, "rdd", new RDD<Row>(mockRddProxy.Object, sc));
 
-            var f = new Func<Row, int>(row => row.Size());
+            //var f = new Func<Row, int>(row => row.Size());
 
-            RDD<int> rdd = dataFrame.Map(f);
+            RDD<int> rdd = dataFrame.Map(row => row.Size());
 
             // assert
             Assert.IsNotNull(rdd);
@@ -805,7 +805,7 @@ namespace AdapterTest
 
             var f = new Func<IEnumerable<Row>, IEnumerable<int>>(iter => Enumerable.Repeat(1, iter.Count()));
 
-            RDD<int> rdd = dataFrame.MapPartitions(f);
+            RDD<int> rdd = dataFrame.MapPartitions<int>(iter => Enumerable.Repeat(1, iter.Count()), false);
 
             // verify
             Assert.IsNotNull(rdd);
@@ -950,9 +950,9 @@ namespace AdapterTest
             var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
             SetPrivateFieldValue(dataFrame, "rdd", new RDD<Row>(mockRddProxy.Object, sc));
 
-            var f = new Action<IEnumerable<Row>>(iter => Console.WriteLine(iter.Count()));
+            //var f = new Action<IEnumerable<Row>>(iter => Console.WriteLine(iter.Count()));
 
-            dataFrame.ForeachPartition(f);
+            dataFrame.ForeachPartition(iter => Console.WriteLine(iter.Count()));
 
             // assert
             mockRddProxy.Verify(m => m.Count(), Times.Once);
@@ -981,9 +981,9 @@ namespace AdapterTest
             var dataFrame = new DataFrame(mockDataFrameProxy.Object, sc);
             SetPrivateFieldValue(dataFrame, "rdd", new RDD<Row>(mockRddProxy.Object, sc));
 
-            var f = new Action<Row>(row => Console.WriteLine(row.ToString()));
+            //var f = new Action<Row>(row => Console.WriteLine(row.ToString()));
 
-            dataFrame.Foreach(f);
+            dataFrame.Foreach(row => Console.WriteLine(row.ToString()));
 
             // assert
             mockRddProxy.Verify(m => m.Count(), Times.Once);

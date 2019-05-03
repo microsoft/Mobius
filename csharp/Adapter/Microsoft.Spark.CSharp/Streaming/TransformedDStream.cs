@@ -12,6 +12,10 @@ using System.Threading.Tasks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Interop;
+using SerializationHelpers.Data;
+using System.Linq.Expressions;
+using SerializationHelpers.Extensions;
+using System.Runtime.Serialization;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -26,10 +30,12 @@ namespace Microsoft.Spark.CSharp.Streaming
     [Serializable]
     internal class TransformedDStream<U> : DStream<U>
     {
-        internal Func<double, RDD<dynamic>, RDD<dynamic>> func;
-        private Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+        internal LinqExpressionData expressionData;
+        //internal Func<double, RDD<dynamic>, RDD<dynamic>> func;
+        internal LinqExpressionData prevExpressionData;
+        //private Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
 
-        internal void Init<T>(DStream<T> prev, Func<double, RDD<dynamic>, RDD<dynamic>> f)
+        internal void Init<T>(DStream<T> prev, Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> f)
         {
             streamingContext = prev.streamingContext;
             serializedMode = SerializedMode.Byte;
@@ -39,8 +45,10 @@ namespace Microsoft.Spark.CSharp.Streaming
 
             if (prev is TransformedDStream<T> && !prev.isCached && !prev.isCheckpointed)
             {
-                prevFunc = (prev as TransformedDStream<T>).func;
-                func = new NewFuncWrapper(f, prevFunc).Execute;
+                prevExpressionData = (prev as TransformedDStream<T>).expressionData;
+                var wrapper = new NewFuncWrapper(f, prevExpressionData.ToExpression<Func<double, RDD<dynamic>, RDD<dynamic>>>());
+                Expression <Func<double, RDD<dynamic>, RDD<dynamic>>> newFunc = (newFuncX, newFuncY) => wrapper.Execute(newFuncX, newFuncY);
+                expressionData = newFunc.ToExpressionData();
                 prevDStreamProxy = prev.prevDStreamProxy;
                 prevSerializedMode = prev.prevSerializedMode;
             }
@@ -48,23 +56,31 @@ namespace Microsoft.Spark.CSharp.Streaming
             {
                 prevDStreamProxy = prev.dstreamProxy;
                 prevSerializedMode = prev.serializedMode;
-                func = f;
+                expressionData = f.ToExpressionData();
             }
         }
 
         [Serializable]
+        [DataContract]
         private class NewFuncWrapper
         {
-            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> func;
-            private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
-            internal NewFuncWrapper(Func<double, RDD<dynamic>, RDD<dynamic>> func, Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc)
+            [DataMember]
+            internal LinqExpressionData expressionData;
+            //private readonly Func<double, RDD<dynamic>, RDD<dynamic>> func;
+            [DataMember]
+            internal LinqExpressionData prevExpressionData;
+            //private readonly Func<double, RDD<dynamic>, RDD<dynamic>> prevFunc;
+            internal NewFuncWrapper() { }
+            internal NewFuncWrapper(Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> func, Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> prevFunc)
             {
-                this.func = func;
-                this.prevFunc = prevFunc;
+                this.expressionData = func.ToExpressionData();
+                this.prevExpressionData = prevFunc.ToExpressionData();
             }
 
             internal RDD<dynamic> Execute(double t, RDD<dynamic> rdd)
             {
+                var func = expressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
+                var prevFunc = prevExpressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
                 return func(t, prevFunc(t, rdd));
             }
         }
@@ -77,7 +93,7 @@ namespace Microsoft.Spark.CSharp.Streaming
                 {
                     var formatter = new BinaryFormatter();
                     var stream = new MemoryStream();
-                    formatter.Serialize(stream, func);
+                    formatter.Serialize(stream, expressionData);
                     dstreamProxy = SparkCLREnvironment.SparkCLRProxy.StreamingContextProxy.CreateCSharpDStream(prevDStreamProxy, stream.ToArray(), prevSerializedMode.ToString());
                 }
                 return dstreamProxy;

@@ -11,6 +11,9 @@ using System.IO;
 
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using System.Linq.Expressions;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Streaming
 {
@@ -85,7 +88,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
         /// <returns>A DStream object</returns>
         public static DStream<Tuple<byte[], byte[]>> CreateDirectStream(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets)
-        {        
+        {
             int numPartitions = GetNumPartitionsFromConfig(ssc, topics, kafkaParams);
             if (numPartitions >= 0 ||
                 ssc.SparkContext.SparkConf.SparkConfProxy.Get("spark.mobius.streaming.kafka.CSharpReader.enabled", "false").ToLower() == "true" ||
@@ -122,7 +125,7 @@ namespace Microsoft.Spark.CSharp.Streaming
         /// <param name="fromOffsets">Per-topic/partition Kafka offsets defining the (inclusive) starting point of the stream.</param>
         /// <param name="readFunc">user function to process the kafka data.</param>
         /// <returns>A DStream object</returns>
-        public static DStream<T> CreateDirectStream<T>(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, Func<int, IEnumerable<Tuple<byte[], byte[]>>, IEnumerable<T>> readFunc)
+        public static DStream<T> CreateDirectStream<T>(StreamingContext ssc, List<string> topics, IEnumerable<Tuple<string, string>> kafkaParams, IEnumerable<Tuple<string, long>> fromOffsets, Expression<Func<int, IEnumerable<Tuple<byte[], byte[]>>, IEnumerable<T>>> readFunc)
         {
             int numPartitions = GetNumPartitionsFromConfig(ssc, topics, kafkaParams);
             if (ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.numReceivers", 0) <= 0)
@@ -131,13 +134,13 @@ namespace Microsoft.Spark.CSharp.Streaming
                 return dstream.MapPartitionsWithIndex(readFunc, true);
             }
 
-            var mapPartitionsWithIndexHelper = new MapPartitionsWithIndexHelper<Tuple<byte[], byte[]>, T>(readFunc, true); 
-            var transformHelper = new TransformHelper<Tuple<byte[], byte[]>, T>(mapPartitionsWithIndexHelper.Execute);
-            var transformDynamicHelper = new TransformDynamicHelper<Tuple<byte[], byte[]>, T>(transformHelper.Execute);
-            Func<double, RDD<dynamic>, RDD<dynamic>> func = transformDynamicHelper.Execute;
+            var mapPartitionsWithIndexHelper = new MapPartitionsWithIndexHelper<Tuple<byte[], byte[]>, T>(readFunc, true);
+            var transformHelper = new TransformHelper<Tuple<byte[], byte[]>, T>((mapPartitionsWithIndexHelperX) => mapPartitionsWithIndexHelper.Execute(mapPartitionsWithIndexHelperX));
+            var transformDynamicHelper = new TransformDynamicHelper<Tuple<byte[], byte[]>, T>((mapPartitionsWithIndexHelperX, mapPartitionsWithIndexHelperY) => transformHelper.Execute(mapPartitionsWithIndexHelperX, mapPartitionsWithIndexHelperY));
+            Expression<Func<double, RDD<dynamic>, RDD<dynamic>>> func = (transformDynamicX, transformDynamicY) => transformDynamicHelper.Execute(transformDynamicX, transformDynamicY);
             var formatter = new BinaryFormatter();
             var stream = new MemoryStream();
-            formatter.Serialize(stream, func);
+            formatter.Serialize(stream, func.ToExpressionData());
             byte[] readFuncBytes = stream.ToArray();
             string serializationMode = SerializedMode.Pair.ToString();
             return new DStream<T>(ssc.streamingContextProxy.DirectKafkaStreamWithRepartition(topics, kafkaParams, fromOffsets, numPartitions, readFuncBytes, serializationMode), ssc);
@@ -193,7 +196,7 @@ namespace Microsoft.Spark.CSharp.Streaming
             return ssc.SparkContext.SparkConf.SparkConfProxy.GetInt("spark.mobius.streaming.kafka.numPartitions." + topics[0] + clusterId, -1);
         }
     }
-    
+
     /// <summary>
     /// Kafka offset range
     /// </summary>

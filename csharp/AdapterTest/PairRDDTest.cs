@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Spark.CSharp.Core;
 using NUnit.Framework;
 
@@ -17,7 +18,7 @@ namespace AdapterTest
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
-            var words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new[] { ' ' }));
             pairs = words.Map(w => new Tuple<string, int>(w, 1));
         }
 
@@ -190,7 +191,7 @@ namespace AdapterTest
         [Test]
         public void TestPairRddPartitionBy()
         {
-            Func<dynamic, int> partitionFunc = key => 1;
+            Expression<Func<dynamic, int>> partitionFunc = key => 1;
             var rddPartitionBy = pairs.PartitionBy(3, partitionFunc);
             Assert.AreEqual(new Partitioner(3, partitionFunc), rddPartitionBy.partitioner);
         }

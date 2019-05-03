@@ -9,6 +9,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Security.Cryptography;
 using Microsoft.Spark.CSharp.Interop.Ipc;
+using System.Linq.Expressions;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -95,13 +98,13 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="reduceFunc"></param>
         /// <param name="numPartitions"></param>
         /// <returns></returns>
-        public static RDD<Tuple<K, V>> ReduceByKey<K, V>(this RDD<Tuple<K, V>> self, Func<V, V, V> reduceFunc, int numPartitions = 0)
+        public static RDD<Tuple<K, V>> ReduceByKey<K, V>(this RDD<Tuple<K, V>> self, Expression<Func<V, V, V>> reduceFunc, int numPartitions = 0)
         {
-            var locallyCombined = self.MapPartitionsWithIndex(new GroupByMergeHelper<K, V>(reduceFunc).Execute, true);
+            var locallyCombined = self.MapPartitionsWithIndex((groupByX, groupByY) => new GroupByMergeHelper<K, V>(reduceFunc).Execute(groupByX, groupByY), true);
 
             var shuffled = locallyCombined.PartitionBy(numPartitions);
 
-            return shuffled.MapPartitionsWithIndex(new GroupByMergeHelper<K, V>(reduceFunc).Execute, true);
+            return shuffled.MapPartitionsWithIndex((groupMergerX, groupMergerY) => new GroupByMergeHelper<K, V>(reduceFunc).Execute(groupMergerX, groupMergerY), true);
         }
 
         /// <summary>
@@ -127,7 +130,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="self"></param>
         /// <param name="reduceFunc"></param>
         /// <returns></returns>
-        public static IDictionary<K, V> ReduceByKeyLocally<K, V>(this RDD<Tuple<K, V>> self, Func<V, V, V> reduceFunc)
+        public static IDictionary<K, V> ReduceByKeyLocally<K, V>(this RDD<Tuple<K, V>> self, Expression<Func<V, V, V>> reduceFunc)
         {
             return ReduceByKey(self, reduceFunc).CollectAsMap();
         }
@@ -219,7 +222,7 @@ namespace Microsoft.Spark.CSharp.Core
             int numPartitions = 0)
         {
             return self.GroupWith(other, numPartitions).FlatMapValues(
-                input => input.Item1.SelectMany(v => input.Item2.NullIfEmpty().Select(optionW => new Tuple<V, Option<W>>(v, optionW)))                );
+                input => input.Item1.SelectMany(v => input.Item2.NullIfEmpty().Select(optionW => new Tuple<V, Option<W>>(v, optionW))));
         }
 
         /// <summary>
@@ -305,25 +308,25 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="numPartitions"></param>
         /// <param name="partitionFunc"></param>
         /// <returns></returns>
-        public static RDD<Tuple<K, V>> PartitionBy<K, V>(this RDD<Tuple<K, V>> self, int numPartitions = 0, 
-            Func<dynamic, int> partitionFunc = null)
+        public static RDD<Tuple<K, V>> PartitionBy<K, V>(this RDD<Tuple<K, V>> self, int numPartitions = 0,
+            Expression<Func<dynamic, int>> partitionFunc = null)
         {
             if (numPartitions == 0)
             {
                 numPartitions = self.GetDefaultPartitionNum();
             }
-            
+
             var partitioner = new Partitioner(numPartitions, partitionFunc);
             if (self.partitioner != null && self.partitioner.Equals(partitioner))
                 return self;
 
-            var keyed = self.MapPartitionsWithIndex(new AddShuffleKeyHelper<K, V>(numPartitions, partitionFunc).Execute, true);
+            var keyed = self.MapPartitionsWithIndex((addShuffleX, addShuffleY) => new AddShuffleKeyHelper<K, V>(numPartitions, partitionFunc).Execute(addShuffleX, addShuffleY), true);
             keyed.bypassSerializer = true;
             // convert shuffling version of RDD[(Long, Array[Byte])] back to normal RDD[Array[Byte]]
             // invoking property keyed.RddProxy marks the end of current pipeline RDD after shuffling
             // and potentially starts next pipeline RDD with defult SerializedMode.Byte
             var rdd = new RDD<Tuple<K, V>>(self.sparkContext.SparkContextProxy.CreatePairwiseRDD(keyed.RddProxy, numPartitions,
-                GenerateObjectId(partitionFunc)), self.sparkContext);
+                GenerateObjectId(partitionFunc.ToExpressionData())), self.sparkContext);
             rdd.partitioner = partitioner;
 
             return rdd;
@@ -369,16 +372,16 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static RDD<Tuple<K, C>> CombineByKey<K, V, C>(
             this RDD<Tuple<K, V>> self,
-            Func<C> createCombiner,
-            Func<C, V, C> mergeValue,
-            Func<C, C, C> mergeCombiners,
+            Expression<Func<C>> createCombiner,
+            Expression<Func<C, V, C>> mergeValue,
+            Expression<Func<C, C, C>> mergeCombiners,
             int numPartitions = 0)
         {
-            var locallyCombined = self.MapPartitionsWithIndex(new GroupByCombineHelper<K, V, C>(createCombiner, mergeValue).Execute, true);
+            var locallyCombined = self.MapPartitionsWithIndex((groupByCombineX, groupByCombineY) => new GroupByCombineHelper<K, V, C>(createCombiner, mergeValue).Execute(groupByCombineX, groupByCombineY), true);
 
             var shuffled = locallyCombined.PartitionBy(numPartitions);
 
-            return shuffled.MapPartitionsWithIndex(new GroupByMergeHelper<K, C>(mergeCombiners).Execute, true);
+            return shuffled.MapPartitionsWithIndex((groupByMergerX, groupByMergerY) => new GroupByMergeHelper<K, C>(mergeCombiners).Execute(groupByMergerX, groupByMergerY), true);
         }
 
         /// <summary>
@@ -412,9 +415,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static RDD<Tuple<K, U>> AggregateByKey<K, V, U>(
             this RDD<Tuple<K, V>> self,
-            Func<U> zeroValue,
-            Func<U, V, U> seqOp,
-            Func<U, U, U> combOp,
+            Expression<Func<U>> zeroValue,
+            Expression<Func<U, V, U>> seqOp,
+            Expression<Func<U, U, U>> combOp,
             int numPartitions = 0)
         {
             return self.CombineByKey(zeroValue, seqOp, combOp, numPartitions);
@@ -446,8 +449,8 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static RDD<Tuple<K, V>> FoldByKey<K, V>(
             this RDD<Tuple<K, V>> self,
-            Func<V> zeroValue,
-            Func<V, V, V> func,
+            Expression<Func<V>> zeroValue,
+            Expression<Func<V, V, V>> func,
             int numPartitions = 0)
         {
             return self.CombineByKey(zeroValue, func, func, numPartitions);
@@ -482,9 +485,21 @@ namespace Microsoft.Spark.CSharp.Core
         {
             return CombineByKey(self,
                 () => new List<V>(),
-                (c, v) => { c.Add(v); return c; },
-                (c1, c2) => { c1.AddRange(c2); return c1; },
+                (c, v) => ValueAdder<V>(c, v),
+                (c1, c2) => RangeAdder<V>(c1, c2),
                 numPartitions);
+        }
+
+        private static List<V> ValueAdder<V>(List<V> list, V value)
+        {
+            list.Add(value);
+            return list;
+        }
+
+        private static List<V> RangeAdder<V>(List<V> list1, List<V> list2)
+        {
+            list1.AddRange(list2);
+            return list1;
         }
 
         /// <summary>
@@ -508,9 +523,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="self"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static RDD<Tuple<K, U>> MapValues<K, V, U>(this RDD<Tuple<K, V>> self, Func<V, U> func)
+        public static RDD<Tuple<K, U>> MapValues<K, V, U>(this RDD<Tuple<K, V>> self, Expression<Func<V, U>> func)
         {
-            return self.Map(new MapValuesHelper<K, V, U>(func).Execute, true);
+            return self.Map((mapValuesX) => new MapValuesHelper<K, V, U>(func).Execute(mapValuesX), true);
         }
 
         /// <summary>
@@ -534,9 +549,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="self"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static RDD<Tuple<K, U>> FlatMapValues<K, V, U>(this RDD<Tuple<K, V>> self, Func<V, IEnumerable<U>> func)
+        public static RDD<Tuple<K, U>> FlatMapValues<K, V, U>(this RDD<Tuple<K, V>> self, Expression<Func<V, IEnumerable<U>>> func)
         {
-            return self.FlatMap(new FlatMapValuesHelper<K, V, U>(func).Execute, true);
+            return self.FlatMap((flatMapX) => new FlatMapValuesHelper<K, V, U>(func).Execute(flatMapX), true);
         }
 
         /// <summary>
@@ -552,7 +567,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         private static RDD<Tuple<K, dynamic>> MapPartitionsWithIndex<K, V, W1, W2, W3>(this RDD<Tuple<K, dynamic>> self)
         {
-            CSharpWorkerFunc csharpWorkerFunc = new CSharpWorkerFunc(new DynamicTypingWrapper<K, V, W1, W2, W3>().Execute);
+            CSharpWorkerFunc csharpWorkerFunc = new CSharpWorkerFunc((dynamicX, dynamicY) => new DynamicTypingWrapper<K, V, W1, W2, W3>().Execute(dynamicX, dynamicY));
             var pipelinedRDD = new PipelinedRDD<Tuple<K, dynamic>>
             {
                 workerFunc = csharpWorkerFunc,
@@ -599,8 +614,8 @@ namespace Microsoft.Spark.CSharp.Core
                     .MapPartitionsWithIndex<K, V, W, W, W>()
                     .CombineByKey(
                     () => new Tuple<List<V>, List<W>>(new List<V>(), new List<W>()),
-                    (c, v) => { if (v is V) c.Item1.Add((V)v); else c.Item2.Add((W)v); return c; },
-                    (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); return c1; },
+                    (c, v) => TupleValueAdder(c, (object)v),
+                    (c1, c2) => TupleRangeAdder(c1, c2),
                     numPartitions);
             }
 
@@ -608,11 +623,31 @@ namespace Microsoft.Spark.CSharp.Core
                 .Union(other.MapValues(w => new Tuple<int, dynamic>(1, w)))
                 .CombineByKey(
                 () => new Tuple<List<V>, List<W>>(new List<V>(), new List<W>()),
-                (c, v) => { if (v.Item1 == 0) c.Item1.Add((V)v.Item2); else c.Item2.Add((W)v.Item2); return c; },
-                (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); return c1; },
+                (c, v) => TupleValueAdder(c, v),
+                (c1, c2) => TupleRangeAdder(c1, c2),
                 numPartitions);
         }
 
+        private static Tuple<List<V>, List<W1>> TupleValueAdder<V, W1>(Tuple<List<V>, List<W1>> tuple, Tuple<int, dynamic> val)
+        {
+            if (val.Item1 == 0) tuple.Item1.Add((V)val.Item2);
+            else tuple.Item2.Add((W1)val.Item2);
+            return tuple;
+        }
+
+        private static Tuple<List<V>, List<W1>> TupleValueAdder<V, W1>(Tuple<List<V>, List<W1>> tuple, dynamic val)
+        {
+            if (val is V) tuple.Item1.Add((V)val);
+            else tuple.Item2.Add((W1)val);
+            return tuple;
+        }
+
+        private static Tuple<List<V>, List<W1>> TupleRangeAdder<V, W1>(Tuple<List<V>, List<W1>> list1, Tuple<List<V>, List<W1>> list2)
+        {
+            list1.Item1.AddRange(list2.Item1);
+            list1.Item2.AddRange(list2.Item2);
+            return list1;
+        }
         /// <summary>
         /// var x = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 5), new Tuple&lt;string, int>("b", 6) }, 2);
         /// var y = sc.Parallelize(new[] { new Tuple&lt;string, int>("a", 1), new Tuple&lt;string, int>("b", 4) }, 2);
@@ -643,8 +678,8 @@ namespace Microsoft.Spark.CSharp.Core
                     .MapPartitionsWithIndex<K, V, W1, W2, W2>()
                     .CombineByKey(
                     () => new Tuple<List<V>, List<W1>, List<W2>>(new List<V>(), new List<W1>(), new List<W2>()),
-                    (c, v) => { if (v is V) c.Item1.Add((V)v); else if (v is W1) c.Item2.Add((W1)v); else c.Item3.Add((W2)v); return c; },
-                    (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); c1.Item3.AddRange(c2.Item3); return c1; },
+                    (c, v) => Tuple2ValueAdder(c, (object)v),
+                    (c1, c2) => Tuple2RangeAdder(c1, c2),
                     numPartitions);
             }
 
@@ -653,9 +688,33 @@ namespace Microsoft.Spark.CSharp.Core
                 .Union(other2.MapValues(w2 => new Tuple<int, dynamic>(2, w2)))
                 .CombineByKey(
                 () => new Tuple<List<V>, List<W1>, List<W2>>(new List<V>(), new List<W1>(), new List<W2>()),
-                (c, v) => { if (v.Item1 == 0) c.Item1.Add((V)v.Item2); else if (v.Item1 == 1) c.Item2.Add((W1)v.Item2); else c.Item3.Add((W2)v.Item2); return c; },
-                (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); c1.Item3.AddRange(c2.Item3); return c1; },
+                (c, v) => Tuple2ValueAdder(c, v),
+                (c1, c2) => Tuple2RangeAdder(c1, c2),
                 numPartitions);
+        }
+
+        private static Tuple<List<V>, List<W1>, List<W2>> Tuple2ValueAdder<V, W1, W2>(Tuple<List<V>, List<W1>, List<W2>> tuple, Tuple<int, dynamic> val)
+        {
+            if (val.Item1 == 0) tuple.Item1.Add((V)val.Item2);
+            else if (val.Item1 == 1) tuple.Item2.Add((W1)val.Item2);
+            else tuple.Item3.Add((W2)val.Item2);
+            return tuple;
+        }
+
+        private static Tuple<List<V>, List<W1>, List<W2>> Tuple2ValueAdder<V, W1, W2>(Tuple<List<V>, List<W1>, List<W2>> tuple, dynamic val)
+        {
+            if (val is V) tuple.Item1.Add((V)val);
+            else if (val is W1) tuple.Item2.Add((W1)val);
+            else tuple.Item3.Add((W2)val);
+            return tuple;
+        }
+
+        private static Tuple<List<V>, List<W1>, List<W2>> Tuple2RangeAdder<V, W1, W2>(Tuple<List<V>, List<W1>, List<W2>> list1, Tuple<List<V>, List<W1>, List<W2>> list2)
+        {
+            list1.Item1.AddRange(list2.Item1);
+            list1.Item2.AddRange(list2.Item2);
+            list1.Item3.AddRange(list2.Item3);
+            return list1;
         }
 
         /// <summary>
@@ -693,8 +752,8 @@ namespace Microsoft.Spark.CSharp.Core
                     .MapPartitionsWithIndex<K, V, W1, W2, W3>()
                     .CombineByKey(
                     () => new Tuple<List<V>, List<W1>, List<W2>, List<W3>>(new List<V>(), new List<W1>(), new List<W2>(), new List<W3>()),
-                    (c, v) => { if (v is V) c.Item1.Add((V)v); else if (v is W1) c.Item2.Add((W1)v); else if (v is W2) c.Item3.Add((W2)v); else c.Item4.Add((W3)v); return c; },
-                    (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); c1.Item3.AddRange(c2.Item3); c1.Item4.AddRange(c2.Item4); return c1; },
+                    (c, v) => Tuple3ValueAdder(c, (object)v),
+                    (c1, c2) => Tuple3RangeAdder(c1, c2),
                     numPartitions);
             }
 
@@ -704,9 +763,36 @@ namespace Microsoft.Spark.CSharp.Core
                 .Union(other3.MapValues(w3 => new Tuple<int, dynamic>(3, w3)))
                 .CombineByKey(
                 () => new Tuple<List<V>, List<W1>, List<W2>, List<W3>>(new List<V>(), new List<W1>(), new List<W2>(), new List<W3>()),
-                (c, v) => { if (v.Item1 == 0) c.Item1.Add((V)v.Item2); else if (v.Item1 == 1) c.Item2.Add((W1)v.Item2); else if (v.Item1 == 2) c.Item3.Add((W2)v.Item2); else c.Item4.Add((W3)v.Item2); return c; },
-                (c1, c2) => { c1.Item1.AddRange(c2.Item1); c1.Item2.AddRange(c2.Item2); c1.Item3.AddRange(c2.Item3); c1.Item4.AddRange(c2.Item4); return c1; },
+                (c, v) => Tuple3ValueAdder(c, v),
+                (c1, c2) => Tuple3RangeAdder(c1, c2),
                 numPartitions);
+        }
+
+        private static Tuple<List<V>, List<W1>, List<W2>, List<W3>> Tuple3ValueAdder<V, W1, W2, W3>(Tuple<List<V>, List<W1>, List<W2>, List<W3>> tuple, Tuple<int, dynamic> val)
+        {
+            if (val.Item1 == 0) tuple.Item1.Add((V)val.Item2);
+            else if (val.Item1 == 1) tuple.Item2.Add((W1)val.Item2);
+            else if (val.Item1 == 2) tuple.Item3.Add((W2)val.Item2);
+            else tuple.Item4.Add((W3)val.Item2);
+            return tuple;
+        }
+
+        private static Tuple<List<V>, List<W1>, List<W2>, List<W3>> Tuple3ValueAdder<V, W1, W2, W3>(Tuple<List<V>, List<W1>, List<W2>, List<W3>> tuple, dynamic val)
+        {
+            if (val is V) tuple.Item1.Add((V)val);
+            else if (val is W1) tuple.Item2.Add((W1)val);
+            else if (val is W2) tuple.Item3.Add((W2)val);
+            else tuple.Item4.Add((W3)val);
+            return tuple;
+        }
+
+        private static Tuple<List<V>, List<W1>, List<W2>, List<W3>> Tuple3RangeAdder<V, W1, W2, W3>(Tuple<List<V>, List<W1>, List<W2>, List<W3>> list1, Tuple<List<V>, List<W1>, List<W2>, List<W3>> list2)
+        {
+            list1.Item1.AddRange(list2.Item1);
+            list1.Item2.AddRange(list2.Item2);
+            list1.Item3.AddRange(list2.Item3);
+            list1.Item4.AddRange(list2.Item4);
+            return list1;
         }
 
         // /// <summary>
@@ -786,7 +872,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <returns></returns>
         public static V[] Lookup<K, V>(this RDD<Tuple<K, V>> self, K key)
         {
-            return self.Filter(new LookupHelper<K, V>(key).Execute).Values().Collect();
+            return self.Filter((lookUpX) => new LookupHelper<K, V>(key).Execute(lookUpX)).Values().Collect();
         }
 
         /// <summary>
@@ -885,14 +971,16 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         private class GroupByMergeHelper<K, C>
         {
-            private readonly Func<C, C, C> mergeCombiners;
-            public GroupByMergeHelper(Func<C, C, C> mc)
+            //private readonly Func<C, C, C> mergeCombiners;
+            private readonly LinqExpressionData expressionData;
+            public GroupByMergeHelper(Expression<Func<C, C, C>> mc)
             {
-                mergeCombiners = mc;
+                expressionData = mc.ToExpressionData();
             }
 
             public IEnumerable<Tuple<K, C>> Execute(int pid, IEnumerable<Tuple<K, C>> input)
             {
+                var mergeCombiners = this.expressionData.ToFunc<Func<C, C, C>>();
                 return input.GroupBy(
                     kvp => kvp.Item1,
                     kvp => kvp.Item2,
@@ -904,16 +992,22 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         private class GroupByCombineHelper<K, V, C>
         {
-            private readonly Func<C> createCombiner;
-            private readonly Func<C, V, C> mergeValue;
-            public GroupByCombineHelper(Func<C> createCombiner, Func<C, V, C> mergeValue)
+            //private readonly Func<C> createCombiner;
+            private readonly LinqExpressionData createCombinerExpressionData;
+
+            //private readonly Func<C, V, C> mergeValue;
+            private readonly LinqExpressionData mergeValueExpressionData;
+
+            public GroupByCombineHelper(Expression<Func<C>> createCombiner, Expression<Func<C, V, C>> mergeValue)
             {
-                this.createCombiner = createCombiner;
-                this.mergeValue = mergeValue;
+                this.createCombinerExpressionData = createCombiner.ToExpressionData();
+                this.mergeValueExpressionData = mergeValue.ToExpressionData();
             }
 
             public IEnumerable<Tuple<K, C>> Execute(int pid, IEnumerable<Tuple<K, V>> input)
             {
+                var createCombiner = this.createCombinerExpressionData.ToFunc<Func<C>>();
+                var mergeValue = this.mergeValueExpressionData.ToFunc<Func<C, V, C>>();
                 return input.GroupBy(
                     kvp => kvp.Item1,
                     kvp => kvp.Item2,
@@ -921,24 +1015,26 @@ namespace Microsoft.Spark.CSharp.Core
                     );
             }
         }
-        
+
         [Serializable]
         internal class AddShuffleKeyHelper<K, V>
         {
             [NonSerialized]
             private MD5 md5 = MD5.Create();
             private readonly int numPartitions;
-            private readonly Func<dynamic, int> partitionFunc = null;
+            //private readonly Func<dynamic, int> partitionFunc = null;
+            private readonly LinqExpressionData expressionData;
 
-            public AddShuffleKeyHelper(int numPartitions, Func<dynamic, int> partitionFunc = null)
+            public AddShuffleKeyHelper(int numPartitions, Expression<Func<dynamic, int>> partitionFunc)
             {
                 this.numPartitions = numPartitions;
-                this.partitionFunc = partitionFunc;
+                this.expressionData = partitionFunc?.ToExpressionData();
             }
 
             public IEnumerable<byte[]> Execute(int split, IEnumerable<Tuple<K, V>> input)
             {
                 // make sure that md5 is not null even if it is deseriazed in C# worker
+                var partitionFunc = expressionData?.ToFunc<Func<dynamic, int>>();
                 if (md5 == null)
                 {
                     md5 = MD5.Create();
@@ -967,14 +1063,16 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         private class MapValuesHelper<K, V, U>
         {
-            private readonly Func<V, U> func;
-            public MapValuesHelper(Func<V, U> f)
+            private readonly LinqExpressionData expressionData;
+            //private readonly Func<V, U> func;
+            public MapValuesHelper(Expression<Func<V, U>> f)
             {
-                func = f;
+                expressionData = f.ToExpressionData();
             }
 
             public Tuple<K, U> Execute(Tuple<K, V> kvp)
             {
+                var func = expressionData.ToFunc<Func<V, U>>();
                 return new Tuple<K, U>
                     (
                     kvp.Item1,
@@ -986,14 +1084,16 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         private class FlatMapValuesHelper<K, V, U>
         {
-            private readonly Func<V, IEnumerable<U>> func;
-            public FlatMapValuesHelper(Func<V, IEnumerable<U>> f)
+            private readonly LinqExpressionData expressionData;
+            //private readonly Func<V, IEnumerable<U>> func;
+            public FlatMapValuesHelper(Expression<Func<V, IEnumerable<U>>> f)
             {
-                func = f;
+                expressionData = f.ToExpressionData();
             }
 
             public IEnumerable<Tuple<K, U>> Execute(Tuple<K, V> kvp)
             {
+                var func = expressionData.ToFunc<Func<V, IEnumerable<U>>>();
                 return func(kvp.Item2).Select(v => new Tuple<K, U>(kvp.Item1, v));
             }
         }
@@ -1014,13 +1114,15 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         internal class PartitionFuncDynamicTypeHelper<K>
         {
-            private readonly Func<K, int> func;
-            internal PartitionFuncDynamicTypeHelper(Func<K, int> f)
+            private readonly LinqExpressionData expressionData;
+            //private readonly Func<K, int> func;
+            internal PartitionFuncDynamicTypeHelper(Expression<Func<K, int>> f)
             {
-                this.func = f;
+                this.expressionData = f.ToExpressionData();
             }
             internal int Execute(dynamic input)
             {
+                var func = expressionData.ToFunc<Func<K, int>>();
                 return func((K)input);
             }
         }

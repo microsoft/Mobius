@@ -18,7 +18,7 @@ namespace AdapterTest
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
-            words = lines.FlatMap(l => l.Split(' '));
+            words = lines.FlatMap(l => l.Split(new[] { ' ' }));
         }
 
         [Test]

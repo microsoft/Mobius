@@ -4,14 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop;
 using Microsoft.Spark.CSharp.Proxy;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -730,9 +732,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <param name="f">The given function</param>
         /// <typeparam name="RT">The return type of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column> Udf<RT>(Func<RT> f)
+        public static Expression<Func<Column>> Udf<RT>(Expression<Func<RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT>(f).Execute).Execute0;
+            return () => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT>(f).Execute(udfHelperX, udfHelperY)).Execute0();
         }
 
         /// <summary>
@@ -743,9 +745,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="RT">The return type of the given function</typeparam>
         /// <typeparam name="A1">The 1st arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column> Udf<RT, A1>(Func<A1, RT> f)
+        public static Expression<Func<Column, Column>> Udf<RT, A1>(Expression<Func<A1, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1>(f).Execute).Execute1;
+            return (x) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1>(f).Execute(udfHelperX, udfHelperY)).Execute1(x);
         }
 
         /// <summary>
@@ -757,9 +759,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A1">The 1st arguement of the given function</typeparam>
         /// <typeparam name="A2">The 2nd arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column> Udf<RT, A1, A2>(Func<A1, A2, RT> f)
+        public static Expression<Func<Column, Column, Column>> Udf<RT, A1, A2>(Expression<Func<A1, A2, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2>(f).Execute).Execute2;
+            return (x, y) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2>(f).Execute(udfHelperX, udfHelperY)).Execute2(x, y);
         }
 
         /// <summary>
@@ -772,9 +774,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A2">The 2nd arguement of the given function</typeparam>
         /// <typeparam name="A3">The 3rd arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column> Udf<RT, A1, A2, A3>(Func<A1, A2, A3, RT> f)
+        public static Expression<Func<Column, Column, Column, Column>> Udf<RT, A1, A2, A3>(Expression<Func<A1, A2, A3, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3>(f).Execute).Execute3;
+            return (a1, a2, a3) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3>(f).Execute(udfHelperX, udfHelperY)).Execute3(a1, a2, a3);
         }
 
         /// <summary>
@@ -788,9 +790,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A3">The 3rd arguement of the given function</typeparam>
         /// <typeparam name="A4">The 4th arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column, Column> Udf<RT, A1, A2, A3, A4>(Func<A1, A2, A3, A4, RT> f)
+        public static Expression<Func<Column, Column, Column, Column, Column>> Udf<RT, A1, A2, A3, A4>(Expression<Func<A1, A2, A3, A4, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3, A4>(f).Execute).Execute4;
+            return (a1, a2, a3, a4) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4>(f).Execute(udfHelperX, udfHelperY)).Execute4(a1, a2, a3, a4);
         }
 
         /// <summary>
@@ -805,9 +807,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A4">The 4th arguement of the given function</typeparam>
         /// <typeparam name="A5">The 5th arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column, Column, Column> Udf<RT, A1, A2, A3, A4, A5>(Func<A1, A2, A3, A4, A5, RT> f)
+        public static Expression<Func<Column, Column, Column, Column, Column, Column>> Udf<RT, A1, A2, A3, A4, A5>(Expression<Func<A1, A2, A3, A4, A5, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3, A4, A5>(f).Execute).Execute5;
+            return (a1, a2, a3, a4, a5) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5>(f).Execute(udfHelperX, udfHelperY)).Execute5(a1, a2, a3, a4, a5);
         }
 
         /// <summary>
@@ -823,9 +825,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A5">The 5th arguement of the given function</typeparam>
         /// <typeparam name="A6">The 6th arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column, Column, Column, Column> Udf<RT, A1, A2, A3, A4, A5, A6>(Func<A1, A2, A3, A4, A5, A6, RT> f)
+        public static Expression<Func<Column, Column, Column, Column, Column, Column, Column>> Udf<RT, A1, A2, A3, A4, A5, A6>(Expression<Func<A1, A2, A3, A4, A5, A6, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3, A4, A5, A6>(f).Execute).Execute6;
+            return (a1, a2, a3, a4, a5, a6) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6>(f).Execute(udfHelperX, udfHelperY)).Execute6(a1, a2, a3, a4, a5, a6);
         }
 
         /// <summary>
@@ -842,9 +844,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A6">The 6th arguement of the given function</typeparam>
         /// <typeparam name="A7">The 7th arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column, Column, Column, Column, Column> Udf<RT, A1, A2, A3, A4, A5, A6, A7>(Func<A1, A2, A3, A4, A5, A6, A7, RT> f)
+        public static Expression<Func<Column, Column, Column, Column, Column, Column, Column, Column>> Udf<RT, A1, A2, A3, A4, A5, A6, A7>(Expression<Func<A1, A2, A3, A4, A5, A6, A7, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7>(f).Execute).Execute7;
+            return (a1, a2, a3, a4, a5, a6, a7) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7>(f).Execute(udfHelperX, udfHelperY)).Execute7(a1, a2, a3, a4, a5, a6, a7);
         }
 
         /// <summary>
@@ -862,9 +864,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A7">The 7th arguement of the given function</typeparam>
         /// <typeparam name="A8">The 8th arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column, Column, Column, Column, Column, Column> Udf<RT, A1, A2, A3, A4, A5, A6, A7, A8>(Func<A1, A2, A3, A4, A5, A6, A7, A8, RT> f)
+        public static Expression<Func<Column, Column, Column, Column, Column, Column, Column, Column, Column>> Udf<RT, A1, A2, A3, A4, A5, A6, A7, A8>(Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8>(f).Execute).Execute8;
+            return (a1, a2, a3, a4, a5, a6, a7, a8) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8>(f).Execute(udfHelperX, udfHelperY)).Execute8(a1, a2, a3, a4, a5, a6, a7, a8);
         }
 
         /// <summary>
@@ -883,9 +885,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A8">The 8th arguement of the given function</typeparam>
         /// <typeparam name="A9">The 9th arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column, Column, Column, Column, Column, Column, Column> Udf<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT> f)
+        public static Expression<Func<Column, Column, Column, Column, Column, Column, Column, Column, Column, Column>> Udf<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(f).Execute).Execute9;
+            return (a1, a2, a3, a4, a5, a6, a7, a8, a9) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>(f).Execute(udfHelperX, udfHelperY)).Execute9(a1, a2, a3, a4, a5, a6, a7, a8, a9);
         }
 
         /// <summary>
@@ -905,9 +907,9 @@ namespace Microsoft.Spark.CSharp.Sql
         /// <typeparam name="A9">The 9th arguement of the given function</typeparam>
         /// <typeparam name="A10">The 10th arguement of the given function</typeparam>
         /// <returns>The new user-defined function</returns>
-        public static Func<Column, Column, Column, Column, Column, Column, Column, Column, Column, Column, Column> Udf<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT> f)
+        public static Expression<Func<Column, Column, Column, Column, Column, Column, Column, Column, Column, Column, Column>> Udf<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT>> f)
         {
-            return new UserDefinedFunction<RT>(new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(f).Execute).Execute10;
+            return (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => new UserDefinedFunction<RT>((udfHelperX, udfHelperY) => new UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(f).Execute(udfHelperX, udfHelperY)).Execute10(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
         }
         #endregion
 
@@ -959,14 +961,15 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT>
     {
-        private readonly Func<RT> func;
-
-        internal UdfHelper(Func<RT> f)
+        //private readonly Func<RT> func;
+        private readonly LinqExpressionData expressionData;
+        internal UdfHelper(Expression<Func<RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<RT>>();
             return input.Select(a => func()).Cast<dynamic>();
         }
     }
@@ -974,14 +977,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1>
     {
-        private readonly Func<A1, RT> func;
+        //private readonly Func<A1, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, RT> f)
+        internal UdfHelper(Expression<Func<A1, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, RT>>();
             return input.Select(a => func((A1)(a[0]))).Cast<dynamic>();
         }
     }
@@ -989,14 +994,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2>
     {
-        private readonly Func<A1, A2, RT> func;
+        //private readonly Func<A1, A2, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]))).Cast<dynamic>();
         }
     }
@@ -1004,14 +1011,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3>
     {
-        private readonly Func<A1, A2, A3, RT> func;
+        //private readonly Func<A1, A2, A3, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]))).Cast<dynamic>();
         }
     }
@@ -1019,14 +1028,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3, A4>
     {
-        private readonly Func<A1, A2, A3, A4, RT> func;
+        //private readonly Func<A1, A2, A3, A4, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, A4, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, A4, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, A4, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]))).Cast<dynamic>();
         }
     }
@@ -1034,14 +1045,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3, A4, A5>
     {
-        private readonly Func<A1, A2, A3, A4, A5, RT> func;
+        //private readonly Func<A1, A2, A3, A4, A5, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, A4, A5, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, A4, A5, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, A4, A5, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]), (A5)(a[4]))).Cast<dynamic>();
         }
     }
@@ -1049,14 +1062,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3, A4, A5, A6>
     {
-        private readonly Func<A1, A2, A3, A4, A5, A6, RT> func;
+        //private readonly Func<A1, A2, A3, A4, A5, A6, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, A4, A5, A6, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, A4, A5, A6, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, A4, A5, A6, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]), (A5)(a[4]), (A6)(a[5]))).Cast<dynamic>();
         }
     }
@@ -1064,14 +1079,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7>
     {
-        private readonly Func<A1, A2, A3, A4, A5, A6, A7, RT> func;
+        //private readonly Func<A1, A2, A3, A4, A5, A6, A7, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, A4, A5, A6, A7, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, A4, A5, A6, A7, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, A4, A5, A6, A7, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]), (A5)(a[4]), (A6)(a[5]), (A7)(a[6]))).Cast<dynamic>();
         }
     }
@@ -1079,14 +1096,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8>
     {
-        private readonly Func<A1, A2, A3, A4, A5, A6, A7, A8, RT> func;
+        //private readonly Func<A1, A2, A3, A4, A5, A6, A7, A8, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, A4, A5, A6, A7, A8, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, A4, A5, A6, A7, A8, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]), (A5)(a[4]), (A6)(a[5]), (A7)(a[6]), (A8)(a[7]))).Cast<dynamic>();
         }
     }
@@ -1094,14 +1113,16 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9>
     {
-        private readonly Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT> func;
+        //private readonly Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]), (A5)(a[4]), (A6)(a[5]), (A7)(a[6]), (A8)(a[7]), (A9)(a[8]))).Cast<dynamic>();
         }
     }
@@ -1109,54 +1130,56 @@ namespace Microsoft.Spark.CSharp.Sql
     [Serializable]
     internal class UdfHelper<RT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>
     {
-        private readonly Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT> func;
+        //private readonly Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT> func;
+        private readonly LinqExpressionData expressionData;
 
-        internal UdfHelper(Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT> f)
+        internal UdfHelper(Expression<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT>> f)
         {
-            func = f;
+            expressionData = f.ToExpressionData();
         }
 
         internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
         {
+            var func = expressionData.ToFunc<Func<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, RT>>();
             return input.Select(a => func((A1)(a[0]), (A2)(a[1]), (A3)(a[2]), (A4)(a[3]), (A5)(a[4]), (A6)(a[5]), (A7)(a[6]), (A8)(a[7]), (A9)(a[8]), (A10)(a[9]))).Cast<dynamic>();
         }
     }
 
-	[Serializable]
-	internal class UdfReflectionHelper
-	{
-		private readonly MethodInfo func;
+    [Serializable]
+    internal class UdfReflectionHelper
+    {
+        private readonly MethodInfo func;
 
-		[NonSerialized]
-		private object[] _cache;
+        [NonSerialized]
+        private object[] _cache;
 
-		internal UdfReflectionHelper(MethodInfo f)
-		{
-			func = f;
-			_cache = new object[func.GetParameters().Length];
-		}
+        internal UdfReflectionHelper(MethodInfo f)
+        {
+            func = f;
+            _cache = new object[func.GetParameters().Length];
+        }
 
-		public Type ReturnType => func.ReturnType;
+        public Type ReturnType => func.ReturnType;
 
-		[OnDeserialized()]
-		public void Init(StreamingContext context)
-		{
-			_cache = new object[func.GetParameters().Length];
-		}
+        [OnDeserialized()]
+        public void Init(StreamingContext context)
+        {
+            _cache = new object[func.GetParameters().Length];
+        }
 
-		internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
-		{
-			return input.Select(Run).Cast<dynamic>();
-		}
+        internal IEnumerable<dynamic> Execute(int pid, IEnumerable<dynamic> input)
+        {
+            return input.Select(Run).Cast<dynamic>();
+        }
 
-		private dynamic Run(dynamic input)
-		{
-			for (int i = 0; i < _cache.Length; ++i)
-			{
-				_cache[i] = input[i];
-			}
-			return func.Invoke(null, _cache);
-		}
-	}
-	#endregion
+        private dynamic Run(dynamic input)
+        {
+            for (int i = 0; i < _cache.Length; ++i)
+            {
+                _cache[i] = input[i];
+            }
+            return func.Invoke(null, _cache);
+        }
+    }
+    #endregion
 }

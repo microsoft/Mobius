@@ -4,6 +4,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -22,15 +25,25 @@ namespace Microsoft.Spark.CSharp.Core
         // The number of elements in the priority queue.
         private int elementCount;
         private T[] queue;
-        private Comparer<T> comparer;
+        private LinqExpressionData keyFuncExpressionData;
+        private LinqExpressionData comparerExpressionData;
+        public bool ascending { get; set; } = false;
 
         /// <summary>
         /// Constructor of PriorityQueue type.
         /// </summary>
-        internal PriorityQueue(int queueSize, Comparer<T> comparer)
+        internal PriorityQueue(int queueSize, bool ascending, Expression<Func<T, object>> keyExtractorExpression = null)
         {
-            this.comparer = comparer;
+            keyFuncExpressionData = keyExtractorExpression?.ToExpressionData();
             queue = new T[queueSize];
+            this.ascending = ascending;
+        }
+
+        public PriorityQueue(int queueSize, Expression<Func<T, T, int>> comparerExpression)
+        {
+            comparerExpressionData = comparerExpression.ToExpressionData();
+            queue = new T[queueSize];
+            this.ascending = ascending;
         }
 
         /// <summary>
@@ -112,15 +125,49 @@ namespace Microsoft.Spark.CSharp.Core
             queue[k] = x;
         }
 
+        public Func<T, T, int> Comparer
+        {
+            get
+            {
+                var keyFunc = keyFuncExpressionData?.ToFunc<Func<T, object>>();
+                if (ascending)
+                {
+                    if (keyFunc != null)
+                    {
+                        return (x, y) => ((IComparable)keyFunc(x)).CompareTo(keyFunc(y));
+                    }
+                    else
+                    {
+                        return (x, y) => x.CompareTo(y);
+                    }
+                }
+                else
+                {
+                    if (keyFunc == null)
+                    {
+                        return (x, y) => y.CompareTo(x);
+                    }
+                    else
+                    {
+                        return (x, y) => ((IComparable)keyFunc(y)).CompareTo(keyFunc(x));
+                    }
+                }
+            }
+        }
+
         // helper method for comparision
         private bool GT(T a, T b)
         {
+            var comparerDelegate = comparerExpressionData != null && comparerExpressionData.Exists() ? comparerExpressionData.ToFunc<Func<T, T, int>>() : null;
+            var comparer = comparerDelegate != null ? Comparer<T>.Create((x, y) => comparerDelegate(x, y)) : Comparer<T>.Create((x, y) => Comparer(x, y));            
             return comparer.Compare(a, b) > 0;
         }
 
         // great or equal, helper method for comparision
         private bool GE(T a, T b)
         {
+            var comparerDelegate = comparerExpressionData != null && comparerExpressionData.Exists() ? comparerExpressionData.ToFunc<Func<T, T, int>>() : null;
+            var comparer = comparerDelegate != null ? Comparer<T>.Create((x, y) => comparerDelegate(x, y)) : Comparer<T>.Create((x, y) => Comparer(x, y));
             return comparer.Compare(a, b) >= 0;
         }
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AdapterTest.Mocks;
@@ -27,7 +28,7 @@ namespace AdapterTest
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName());
-            words = lines.FlatMap(l => l.Split(' '));
+            words = lines.FlatMap(l => l.Split(new[] { ' ' }));
             empty = sparkContext.EmptyRDD<string>();
         }
 
@@ -120,18 +121,22 @@ namespace AdapterTest
         [Test]
         public void TestRddGroupBy()
         {
-            words.GroupBy(w => w).Foreach(record =>
+            words.GroupBy(w => w).Foreach(x => TestRddGroupBy(x));
+
+            words.GroupBy(w => w).ForeachPartition(iter => TestRddGroupBy(iter));
+        }
+
+        public void TestRddGroupBy(IEnumerable<Tuple<String, List<String>>> iter)
+        {
+            foreach (var record in iter)
             {
                 Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2.Count);
-            });
-            
-            words.GroupBy(w => w).ForeachPartition(iter =>
-            {
-                foreach (var record in iter)
-                {
-                    Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2.Count);
-                }
-            });
+            }
+        }
+
+        public void TestRddGroupBy(Tuple<String, List<String>> record)
+        {
+            Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2.Count);
         }
 
         [Test]
@@ -346,7 +351,7 @@ namespace AdapterTest
         {
             var sparkContext = new SparkContext(null);
             var lines = sparkContext.TextFile(Path.GetTempFileName(), 5);
-            words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new char[] { ' ' }));
 
             var defaultNumPartitions = words.GetDefaultPartitionNum();
             Assert.AreEqual(2, defaultNumPartitions);

@@ -131,10 +131,10 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var requestsSchema = new StructType(new List<StructField>
                                                 {
-                                                    new StructField("guid", new StringType(), false), 
-                                                    new StructField("datacenter", new StringType(), false), 
-                                                    new StructField("abtestid", new StringType(), false), 
-                                                    new StructField("traffictype", new StringType(), false), 
+                                                    new StructField("guid", new StringType(), false),
+                                                    new StructField("datacenter", new StringType(), false),
+                                                    new StructField("abtestid", new StringType(), false),
+                                                    new StructField("traffictype", new StringType(), false),
                                                 });
 
             var requestsDateFrame = GetSqlContext().TextFile(SparkCLRSamples.Configuration.GetInputDataPath(RequestsLog), requestsSchema);
@@ -156,7 +156,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.AreEqual(1, filteredCount);
             }
         }
-        
+
         /// <summary>
         /// Sample to load two text files and join them using temptable constructs
         /// </summary>
@@ -176,7 +176,7 @@ namespace Microsoft.Spark.CSharp.Samples
                         "SELECT joinedtable.datacenter, max(joinedtable.latency) maxlatency, avg(joinedtable.latency) avglatency " +
                         "FROM (SELECT a._c1 as datacenter, b._c6 as latency from requests a JOIN metrics b ON a._c0  = b._c3) joinedtable " +
                         "GROUP BY datacenter");
-            
+
             join.ShowSchema();
             join.Show();
             var count = join.Count();
@@ -204,7 +204,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
             maxLatencyByDcDataFrame.ShowSchema();
             maxLatencyByDcDataFrame.Show();
-            
+
             avgLatencyByDcDataFrame.ShowSchema();
             avgLatencyByDcDataFrame.Show();
 
@@ -275,7 +275,7 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void DFProjectionFilterDSLSample()
         {
-            var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)); 
+            var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var projectedFilteredDataFrame = peopleDataFrame.Select("name", "address.state")
                                                     .Where("name = 'Bill' or state = 'California'");
             projectedFilteredDataFrame.ShowSchema();
@@ -588,7 +588,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.IsTrue(AreRowListEquivalent(peopleDataFrame.Collect().ToList(), singleValueReplaced.Collect().ToList(),
                                 new Dictionary<string, Func<object, object, bool>>
                             {
-                                {"name", (x, y) => x.ToString() == "Bill" ? 
+                                {"name", (x, y) => x.ToString() == "Bill" ?
                                     y.ToString() == "Bill.G" : x.ToString() == y.ToString()}
                             }));
 
@@ -608,7 +608,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.IsTrue(AreRowListEquivalent(peopleDataFrame.Collect().ToList(), multiValueReplaced2.Collect().ToList(),
                             new Dictionary<string, Func<object, object, bool>>
                             {
-                                {"name", (x, y) => x.ToString() == "Bill" || x.ToString() == "Steve"? 
+                                {"name", (x, y) => x.ToString() == "Bill" || x.ToString() == "Steve"?
                                     y.ToString() == "former CEO" : x.ToString() == y.ToString()}
                             }));
             }
@@ -675,7 +675,7 @@ namespace Microsoft.Spark.CSharp.Samples
                 Assert.IsTrue(columnsNameAndType.Any(c => c.Item1 == "address" && c.Item2 == "struct<city:string,state:string>"));
             }
         }
-        
+
 
         /// <summary>
         /// Sample to perform Sort on DataFrame
@@ -720,15 +720,15 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             peopleDataFrame = peopleDataFrame.Repartition(2);
             peopleDataFrame.Show();
-            
+
             // sort by column 'age' descending
             var sorted = peopleDataFrame.SortWithinPartitions(new[] { "age" }, new[] { false });
             sorted.Show();
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                var partitions = sorted.MapPartitions(iters => 
-                                    new List<List<int>> { new List<int> ( iters.Select(row => row.GetAs<int>("age")) ) }).Collect();
+                var partitions = sorted.MapPartitions(iters =>
+                                    new List<List<int>> { new List<int>(iters.Select(row => row.GetAs<int>("age"))) }, false).Collect();
 
                 // within each partition, age should be sorted descending
                 foreach (var partition in partitions)
@@ -862,7 +862,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
 
-            DataFrame freqItems = peopleDataFrame.FreqItems(new []{"name"}, 0.4);
+            DataFrame freqItems = peopleDataFrame.FreqItems(new[] { "name" }, 0.4);
             freqItems.Show();
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -992,9 +992,9 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFAggregateDSLSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var countAggDataFrame = peopleDataFrame.Where("name = 'Bill'").Agg(new Dictionary<string, string> {{"name", "count"}});
+            var countAggDataFrame = peopleDataFrame.Where("name = 'Bill'").Agg(new Dictionary<string, string> { { "name", "count" } });
             var countAggDataFrameCount = countAggDataFrame.Count();
-            var maxAggDataFrame = peopleDataFrame.GroupBy("name").Agg(new Dictionary<string, string> {{"age", "max"}});
+            var maxAggDataFrame = peopleDataFrame.GroupBy("name").Agg(new Dictionary<string, string> { { "age", "max" } });
             var maxAggDataFrameCount = maxAggDataFrame.Count();
             Console.WriteLine("countAggDataFrameCount: {0}, maxAggDataFrameCount: {1}.", countAggDataFrameCount, maxAggDataFrameCount);
 
@@ -1047,7 +1047,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame2 = peopleDataFrame.Sort(new string[] { "id" }, new bool[] { true }).Limit(num);
 
             PrintAndVerifyPeopleDataFrameRows(peopleDataFrame2.Head(num), num);
-       }
+        }
 
         /// <summary>
         /// Sample to run head for DataFrame
@@ -1301,13 +1301,13 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.IsTrue(dfCount == peopleRddCount); 
+                Assert.IsTrue(dfCount == peopleRddCount);
                 Assert.AreEqual(4, dfCount);
                 Assert.AreEqual(4, intRddCount);
                 Assert.AreEqual(4, sum);
             }
 
-            var nameRdd = peopleDataFrame.Rdd.Map(item => (string) item.Get("name")).Filter(name => name.Equals("steve", StringComparison.OrdinalIgnoreCase));
+            var nameRdd = peopleDataFrame.Rdd.Map(item => (string)(object)item.Get("name")).Filter(name => name.Equals("steve", StringComparison.OrdinalIgnoreCase));
             var nameRddCount = nameRdd.Count();
             Console.WriteLine("There are {0} people whose name is steve.", nameRddCount);
 
@@ -1408,14 +1408,14 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(4);
 
-            var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }, false).Count();
             Console.WriteLine("Before coalesce, numPartitions: {0}", numPartitions);
 
             var expectedNumPartitions = numPartitions / 2;
             var newDataFrame = peopleDataFrame.Coalesce((int)expectedNumPartitions);
             Console.WriteLine("Force coalesce, dataframe count: {0}", newDataFrame.Count());
 
-            var newNumPartitions = newDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            var newNumPartitions = newDataFrame.MapPartitions(iters => new int[] { iters.Count() }, false).Count();
             Console.WriteLine("After coalesce, numPartitions: {0}", newNumPartitions);
 
             //TODO - fix this behavior is different than older versions of Spark
@@ -1462,14 +1462,14 @@ namespace Microsoft.Spark.CSharp.Samples
         internal static void DFRepartitionSample()
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
-            var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            var numPartitions = peopleDataFrame.MapPartitions(iters => new int[] { iters.Count() }, false).Count();
             Console.WriteLine("Before repartition, numPartitions: {0}", numPartitions);
 
             var expectedNumPartitions = numPartitions + 1;
             var newDataFrame = peopleDataFrame.Repartition((int)expectedNumPartitions);
             Console.WriteLine("Force repartition, dataframe count: {0}", newDataFrame.Count());
 
-            var newNumPartitions = newDataFrame.MapPartitions(iters => new int[] { iters.Count() }).Count();
+            var newNumPartitions = newDataFrame.MapPartitions(iters => new int[] { iters.Count() }, false).Count();
             Console.WriteLine("After repartition, numPartitions: {0}", newNumPartitions);
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -1491,8 +1491,8 @@ namespace Microsoft.Spark.CSharp.Samples
             Console.WriteLine("Force repartition, dataframe count: {0}", newDataFrame.Count());
             newDataFrame.Show();
 
-            var dfPartitionedByName = newDataFrame.MapPartitions(iters => 
-                                                            new string[] { string.Join(";", iters.Select(row => row.GetAs<string>("name")))}).Collect();
+            var dfPartitionedByName = newDataFrame.MapPartitions(iters =>
+                                                            new string[] { string.Join(";", iters.Select(row => row.GetAs<string>("name"))) }, false).Collect();
 
             Console.WriteLine("After repartition, partition index and names: {0}");
             for (int i = 0; i < dfPartitionedByName.Length; i++)
@@ -1551,7 +1551,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var dfCount = peopleDataFrame.Count();
 
-            RDD<string> rdd = peopleDataFrame.FlatMap(row => new String[] { (string)row.Get("name"), (string)row.Get("id") });
+            RDD<string> rdd = peopleDataFrame.FlatMap(row => new String[] { (string)(object)row.Get("name"), (string)(object)row.Get("id") });
             var rddCount = rdd.Count();
 
             Console.WriteLine("DataFrame count: {0}, RDD count: {1}", dfCount, rddCount);
@@ -1578,7 +1578,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var dfCount = peopleDataFrame.Count();
 
-            RDD<string> rdd = peopleDataFrame.Map(row => (string)row.Get("name"));
+            RDD<string> rdd = peopleDataFrame.Map(row => (string)(object)row.Get("name"));
             var rddCount = rdd.Count();
 
             Console.WriteLine("DataFrame count: {0}, RDD count: {1}", dfCount, rddCount);
@@ -1604,7 +1604,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var dfCount = peopleDataFrame.Count();
 
-            RDD<int> rdd = peopleDataFrame.MapPartitions(iter => new int[] { iter.Count() });
+            RDD<int> rdd = peopleDataFrame.MapPartitions(iter => new int[] { iter.Count() }, false);
             var rddSum = rdd.Collect().Sum();
 
             Console.WriteLine("DataFrame count: {0}, RDD sum: {1}", dfCount, rddSum);
@@ -1625,7 +1625,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson)).Repartition(partitionNumber);
             Console.WriteLine("Partition number: " + partitionNumber);
             var accumulator = SparkCLRSamples.SparkContext.Accumulator(0);
-            peopleDataFrame.ForeachPartition(new PartitionCountHelper(accumulator).Execute);
+            peopleDataFrame.ForeachPartition((x) => new PartitionCountHelper(accumulator).Execute(x));
             Console.WriteLine("Partition number counted by ForeachPartition :" + accumulator.Value);
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -1678,7 +1678,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var accumulator = SparkCLRSamples.SparkContext.Accumulator(0);
-            peopleDataFrame.Foreach(new ForeachRowHelper(accumulator).Execute);
+            peopleDataFrame.Foreach((x) => new ForeachRowHelper(accumulator).Execute(x));
 
             Console.WriteLine("DataFrame Row count: " + accumulator.Value);
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -1713,7 +1713,7 @@ namespace Microsoft.Spark.CSharp.Samples
         {
             var peopleDataFrame = GetSqlContext().Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             var accumulator = SparkCLRSamples.SparkContext.Accumulator(0);
-            peopleDataFrame.ForeachPartition(new ActionHelper(accumulator).Execute);
+            peopleDataFrame.ForeachPartition((x) => new ActionHelper(accumulator).Execute(x));
 
             Console.WriteLine("Total count of rows: {0}", accumulator.Value);
         }
@@ -1878,7 +1878,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = sqlContext.Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             peopleDataFrame.RegisterTempTable("peopleDataFrame");
 
-            sqlContext.RegisterFunction("UDF", (int x, int y) => { return x + y; });
+            sqlContext.RegisterFunction("UDF", (int x, int y) => x + y);
 
             var rowSet = sqlContext.Sql("SELECT * FROM peopleDataFrame where UDF(age, 20) > 60");
 
@@ -1886,7 +1886,7 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                Assert.AreEqual(rowSet.Count() ,2);
+                Assert.AreEqual(rowSet.Count(), 2);
             }
         }
 
@@ -1900,7 +1900,7 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = sqlContext.Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             peopleDataFrame.RegisterTempTable("peopleDataFrame");
 
-            sqlContext.RegisterFunction("UDF", (int x, int y) => { return x + y; });
+            sqlContext.RegisterFunction("UDF", (int x, int y) => x + y);
 
             var rowSet = sqlContext.Sql("SELECT * FROM peopleDataFrame where UDF(age, age) < 50");
 
@@ -1922,8 +1922,8 @@ namespace Microsoft.Spark.CSharp.Samples
             var peopleDataFrame = sqlContext.Read().Json(SparkCLRSamples.Configuration.GetInputDataPath(PeopleJson));
             peopleDataFrame.RegisterTempTable("peopleDataFrame");
 
-            sqlContext.RegisterFunction("UDF1", (int x, int y) => { return x + y; });
-            sqlContext.RegisterFunction("UDF2", (string name, string id) => { return name + ":"  + id; });
+            sqlContext.RegisterFunction("UDF1", (int x, int y) => x + y);
+            sqlContext.RegisterFunction("UDF2", (string name, string id) => name + ":" + id);
 
             var rowSet = sqlContext.Sql("SELECT id, name, UDF1(age, 20) AS UDF1, UDF2(name, id) AS UDF2 FROM peopleDataFrame where UDF1(age, 20) > 60");
 

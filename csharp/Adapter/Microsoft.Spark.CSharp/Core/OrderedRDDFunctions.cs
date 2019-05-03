@@ -5,8 +5,12 @@ using Microsoft.Spark.CSharp.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -29,7 +33,7 @@ namespace Microsoft.Spark.CSharp.Core
         public static RDD<Tuple<K, V>> SortByKey<K, V>(this RDD<Tuple<K, V>> self,
             bool ascending = true, int? numPartitions = null)
         {
-            return SortByKey<K, V, K>(self, ascending, numPartitions, new DefaultSortKeyFuncHelper<K>().Execute);
+            return SortByKey<K, V, K>(self, ascending, numPartitions, key => new DefaultSortKeyFuncHelper<K>().Execute(key));
         }
         /// <summary>
         /// Sorts this RDD, which is assumed to consist of Tuples. If Item1 is type of string, case is sensitive.
@@ -43,7 +47,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="keyFunc">RDD will sort by keyFunc(key) for every Item1 in Tuple. Must not be null.</param>
         /// <returns></returns>
         public static RDD<Tuple<K, V>> SortByKey<K, V, U>(this RDD<Tuple<K, V>> self,
-            bool ascending, int? numPartitions, Func<K, U> keyFunc)
+            bool ascending, int? numPartitions, Expression<Func<K, U>> keyFunc)
         {
             if (keyFunc == null)
             {
@@ -61,7 +65,7 @@ namespace Microsoft.Spark.CSharp.Core
                 {
                     self = self.Coalesce(1);
                 }
-                return self.MapPartitionsWithIndex(new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute, true);
+                return self.MapPartitionsWithIndex((sortByKeyX, sortByKeyY) => new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute(sortByKeyX, sortByKeyY), true);
             }
 
             var rddSize = self.Count();
@@ -73,7 +77,7 @@ namespace Microsoft.Spark.CSharp.Core
             /* first compute the boundary of each part via sampling: we want to partition
              * the key-space into bins such that the bins have roughly the same
              * number of (key, value) pairs falling into them */
-            U[] samples = self.Sample(false, fraction, 1).Map(kv => kv.Item1).Collect().Select(k => keyFunc(k)).ToArray();
+            U[] samples = self.Sample(false, fraction, 1).Map(kv => kv.Item1).Collect().Select(k => keyFunc.Compile()(k)).ToArray();
             Array.Sort(samples, StringComparer.Ordinal); // case sensitive if key type is string
 
             List<U> bounds = new List<U>();
@@ -82,13 +86,13 @@ namespace Microsoft.Spark.CSharp.Core
                 bounds.Add(samples[(int)(samples.Length * (i + 1) / numPartitions)]);
             }
 
-            return self.PartitionBy(numPartitions.Value, 
-                new PairRDDFunctions.PartitionFuncDynamicTypeHelper<K>(
-                    new RangePartitionerHelper<K, U>(numPartitions.Value, keyFunc, bounds, ascending).Execute)
-                    .Execute)
-                        .MapPartitionsWithIndex(new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute, true);
+            return self.PartitionBy(numPartitions.Value, (partionDynamicX) =>
+                 new PairRDDFunctions.PartitionFuncDynamicTypeHelper<K>(
+                     (rangePartionsX) => new RangePartitionerHelper<K, U>(numPartitions.Value, keyFunc, bounds, ascending).Execute(rangePartionsX))
+                     .Execute((object)partionDynamicX))
+                        .MapPartitionsWithIndex((sortX, sortY) => new SortByKeyHelper<K, V, U>(keyFunc, ascending).Execute(sortX, sortY), true);
         }
-        
+
         /// <summary>
         /// Repartition the RDD according to the given partitioner and, within each resulting partition,
         /// sort records by their keys.
@@ -104,9 +108,9 @@ namespace Microsoft.Spark.CSharp.Core
         /// <param name="ascending"></param>
         /// <returns></returns>
         public static RDD<Tuple<K, V>> repartitionAndSortWithinPartitions<K, V>(
-            this RDD<Tuple<K, V>> self, 
-            int? numPartitions = null, 
-            Func<K, int> partitionFunc = null, 
+            this RDD<Tuple<K, V>> self,
+            int? numPartitions = null,
+            Func<K, int> partitionFunc = null,
             bool ascending = true)
         {
             return self.MapPartitionsWithIndex<Tuple<K, V>>((pid, iter) => ascending ? iter.OrderBy(kv => kv.Item1) : iter.OrderByDescending(kv => kv.Item1));
@@ -115,17 +119,21 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         internal class SortByKeyHelper<K, V, U>
         {
-            private readonly Func<K, U> func;
+            [DataMember]
+            private readonly LinqExpressionData expressionData;
+            //private readonly Func<K, U> func;
+            [DataMember]
             private readonly bool ascending;
-            public SortByKeyHelper(Func<K, U> f, bool ascending = true)
+            public SortByKeyHelper(Expression<Func<K, U>> f, bool ascending = true)
             {
-                func = f;
+                expressionData = f.ToExpressionData();
                 this.ascending = ascending;
             }
 
             public IEnumerable<Tuple<K, V>> Execute(int pid, IEnumerable<Tuple<K, V>> kvs)
             {
                 IEnumerable<Tuple<K, V>> ordered;
+                var func = this.expressionData.ToFunc<Func<K, U>>();
                 if (ascending)
                 {
                     if (typeof(K) == typeof(string))
@@ -153,15 +161,20 @@ namespace Microsoft.Spark.CSharp.Core
         [Serializable]
         internal class RangePartitionerHelper<K, U>
         {
+            [DataMember]
+            private readonly LinqExpressionData expressionData;
+            [DataMember]
             private readonly int numPartitions;
-            private readonly Func<K, U> keyFunc;
+            //private readonly Func<K, U> keyFunc;
+            [DataMember]
             private readonly List<U> bounds;
+            [DataMember]
             private readonly bool ascending;
-            public RangePartitionerHelper(int numPartitions, Func<K, U> keyFunc, List<U> bounds, bool ascending)
+            public RangePartitionerHelper(int numPartitions, Expression<Func<K, U>> keyFunc, List<U> bounds, bool ascending)
             {
                 this.numPartitions = numPartitions;
                 this.bounds = bounds;
-                this.keyFunc = keyFunc;
+                this.expressionData = keyFunc.ToExpressionData();
                 this.ascending = ascending;
             }
 
@@ -169,6 +182,7 @@ namespace Microsoft.Spark.CSharp.Core
             {
                 // Binary search the insert position in the bounds. If key found, return the insert position; if not, a negative
                 // number that is the bitwise complement of insert position is returned, so bitwise inversing it.
+                var keyFunc = this.expressionData.ToFunc<Func<K, U>>();
                 var pos = bounds.BinarySearch(keyFunc(key));
                 if (pos < 0) pos = ~pos;
 

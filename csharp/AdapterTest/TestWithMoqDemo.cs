@@ -19,6 +19,7 @@ using Microsoft.Spark.CSharp.Streaming;
 using StreamingContext = Microsoft.Spark.CSharp.Streaming.StreamingContext;
 using Moq;
 using NUnit.Framework;
+using SerializationHelpers.Data;
 
 namespace AdapterTest
 {
@@ -53,8 +54,8 @@ namespace AdapterTest
 
             // If the method to mock has return value and you want to mock the return value only, Use Returns(TReturnValue); if you want to add logics and return,
             // use Returns<T1, T2, ...>(Func<T1, T2, ..., TReturnValue>). If method is void, use CallBack<T1, T2, ...>(Action<T1, T2, ...>)
-			
-			// for more info please visit https://github.com/Moq/moq4/wiki/Quickstart
+
+            // for more info please visit https://github.com/Moq/moq4/wiki/Quickstart
             _mockSparkCLRProxy.Setup(m => m.CreateSparkConf(It.IsAny<bool>())).Returns(new MockSparkConfProxy()); // some of mocks which rarely change can be kept
 
             _mockSparkCLRProxy.Setup(m => m.CreateSparkContext(It.IsAny<ISparkConfProxy>())).Returns(_mockSparkContextProxy.Object);
@@ -140,7 +141,7 @@ namespace AdapterTest
         public void TestCleanUp()
         {
             // Revert to use Static mock class to prevent blocking other test methods which uses static mock class
-            SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();            
+            SparkCLREnvironment.SparkCLRProxy = new MockSparkCLRProxy();
         }
 
         [Test]
@@ -153,7 +154,8 @@ namespace AdapterTest
             mockDStreamProxy.Setup(m => m.CallForeachRDD(It.IsAny<byte[]>(), It.IsAny<string>())).Callback<byte[], string>(
                 (func, deserializer) =>
                 {
-                    Action<double, RDD<dynamic>> f = (Action<double, RDD<dynamic>>)new BinaryFormatter().Deserialize(new MemoryStream(func));
+                    var expressionData = (LinqExpressionData)new BinaryFormatter().Deserialize(new MemoryStream(func));
+                    Action<double, RDD<dynamic>> f = expressionData.ToFunc<Action<double, RDD<dynamic>>>();
                     f(DateTime.UtcNow.Ticks, new RDD<dynamic>(_mockRddProxy.Object, new SparkContext("", "")));
                 });
 
@@ -165,7 +167,8 @@ namespace AdapterTest
             _mockSparkCLRProxy.Setup(m => m.StreamingContextProxy.CreateCSharpDStream(It.IsAny<IDStreamProxy>(), It.IsAny<byte[]>(), It.IsAny<string>()))
                 .Returns<IDStreamProxy, byte[], string>((jdstream, func, deserializer) =>
                 {
-                    Func<double, RDD<dynamic>, RDD<dynamic>> f = (Func<double, RDD<dynamic>, RDD<dynamic>>)new BinaryFormatter().Deserialize(new MemoryStream(func));
+                    var expressionData = (LinqExpressionData)new BinaryFormatter().Deserialize(new MemoryStream(func));
+                    Func<double, RDD<dynamic>, RDD<dynamic>> f = expressionData.ToFunc<Func<double, RDD<dynamic>, RDD<dynamic>>>();
                     RDD<dynamic> rdd = f(DateTime.UtcNow.Ticks,
                         new RDD<dynamic>(functionedRddProxy ?? _mockRddProxy.Object, new SparkContext("", "")));
                     functionedRddProxy = rdd.RddProxy;
@@ -174,12 +177,20 @@ namespace AdapterTest
 
             // Act
             var lines = _streamingContext.TextFileStream(Path.GetTempPath());
-            var words = lines.FlatMap(l => l.Split(' '));
+            var words = lines.FlatMap(l => l.Split(new[] { ' ' }));
             var pairs = words.Map(w => new Tuple<string, int>(w, 1));
             var wordCounts = pairs.ReduceByKey((x, y) => x + y);
 
             // Assert
-            wordCounts.ForeachRDD((time, rdd) =>
+            wordCounts.ForeachRDD((time, rdd) => new TestDStreamTransform_MoqHelper().ForeachRDD(time, rdd));
+
+            // Use Verify to verify if a method to mock was invoked
+            mockDStreamProxy.Verify(m => m.CallForeachRDD(It.IsAny<byte[]>(), It.IsAny<string>()));
+        }
+
+        public class TestDStreamTransform_MoqHelper
+        {
+            public void ForeachRDD(double time, RDD<dynamic> rdd)
             {
                 var taken = rdd.Collect();
                 Assert.AreEqual(taken.Length, 9);
@@ -189,9 +200,7 @@ namespace AdapterTest
                     Tuple<string, int> countByWord = (Tuple<string, int>)record;
                     Assert.AreEqual(countByWord.Item2, countByWord.Item1 == "The" || countByWord.Item1 == "dog" || countByWord.Item1 == "lazy" ? 23 : 22);
                 }
-            });
-            // Use Verify to verify if a method to mock was invoked
-            mockDStreamProxy.Verify(m => m.CallForeachRDD(It.IsAny<byte[]>(), It.IsAny<string>()));
+            }
         }
 
     }

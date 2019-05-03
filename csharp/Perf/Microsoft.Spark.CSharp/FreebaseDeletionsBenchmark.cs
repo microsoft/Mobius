@@ -53,33 +53,38 @@ namespace Microsoft.Spark.CSharp.PerfBenchmark
             stopwatch.Restart();
 
             var lines = PerfBenchmark.SparkContext.TextFile(filePath);
-            var parsedRows = lines.Map(s =>
-            {
-                var columns = s.Split(new[] { ',' });
+            var parsedRows = lines.Map(s => RunRDDMaxDeletionsByUser(s));
 
-                //data has some bad records - use bool flag to indicate corrupt rows
-                if (columns.Length > 4)
-                    return new Tuple<bool, string, string, string, string>(true, columns[0], columns[1], columns[2], columns[3]);
-                else
-                    return new Tuple<bool, string, string, string, string>(false, "X", "X", "X", "X"); //invalid row placeholder
-            });
 
             var flaggedRows = parsedRows.Filter(s => s.Item1); //select good rows
             var selectedDeletions = flaggedRows.Filter(s => s.Item3.Equals(s.Item5)); //select deletions made by same creators
             var userDeletions = selectedDeletions.Map(s => new Tuple<string, int>(s.Item3, 1));
             var userDeletionCount = userDeletions.ReduceByKey((x, y) => x + y);
-            var userWithMaxDeletions = userDeletionCount.Fold(new Tuple<string, int>("zerovalue", 0), (kvp1, kvp2) =>
-            {
-                if (kvp1.Item2 > kvp2.Item2)
-                    return kvp1;
-                else
-                    return kvp2;
-            });
+            var userWithMaxDeletions = userDeletionCount.Fold(new Tuple<string, int>("zerovalue", 0), (kvp1, kvp2) => RunRDDMaxDeletionsByUser(kvp1, kvp2));
 
             stopwatch.Stop();
             PerfBenchmark.ExecutionTimeList.Add(stopwatch.Elapsed);
 
             Console.WriteLine("User with max deletions is {0}, count of deletions={1}. Elapsed time={2}", userWithMaxDeletions.Item1, userWithMaxDeletions.Item2, stopwatch.Elapsed);
+        }
+
+        public static Tuple<bool, string, string, string, string> RunRDDMaxDeletionsByUser(String s)
+        {
+            var columns = s.Split(new[] { ',' });
+
+            //data has some bad records - use bool flag to indicate corrupt rows
+            if (columns.Length > 4)
+                return new Tuple<bool, string, string, string, string>(true, columns[0], columns[1], columns[2], columns[3]);
+            else
+                return new Tuple<bool, string, string, string, string>(false, "X", "X", "X", "X"); //invalid row placeholder
+        }
+
+        public static Tuple<String, int> RunRDDMaxDeletionsByUser(Tuple<String, int> kvp1, Tuple<String, int> kvp2)
+        {
+            if (kvp1.Item2 > kvp2.Item2)
+                return kvp1;
+            else
+                return kvp2;
         }
 
         [PerfSuite]

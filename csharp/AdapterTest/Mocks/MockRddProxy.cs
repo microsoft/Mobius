@@ -36,7 +36,9 @@ namespace AdapterTest.Mocks
                 throw new NotImplementedException();
             }
         }
-        
+
+        private MockRddProxy() { }
+
         public MockRddProxy(object[] parameterCollection)
         {
             mockRddReference = parameterCollection;

@@ -43,11 +43,11 @@ namespace Microsoft.Spark.CSharp.Samples
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                CollectionAssert.AreEqual(new[] {1, 2, 3, 4, 5}, b.Value);
+                CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5 }, b.Value);
             }
 
-            RDD<int> rdd = SparkCLRSamples.SparkContext.Parallelize(new[] {0, 0}, 1);
-            var r = rdd.FlatMap(new BroadcastHelper<int>(b).Execute).Collect();
+            RDD<int> rdd = SparkCLRSamples.SparkContext.Parallelize(new[] { 0, 0 }, 1);
+            var r = rdd.FlatMap((x) => new BroadcastHelper<int>(b).Execute(x)).Collect();
             foreach (var value in r)
             {
                 Console.Write(value + " ");
@@ -57,7 +57,7 @@ namespace Microsoft.Spark.CSharp.Samples
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
                 // each item in rdd is mapped to broadcast value.
-                CollectionAssert.AreEqual(new[] {1, 2, 3, 4, 5, 1, 2, 3, 4, 5}, r);
+                CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5, 1, 2, 3, 4, 5 }, r);
             }
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.Spark.CSharp.Samples
             private Accumulator<int> accumulator;
             private bool async;
 
-            internal AccumulatorHelper(Accumulator<int> accumulator, bool async = false)
+            internal AccumulatorHelper(Accumulator<int> accumulator, bool async)
             {
                 this.accumulator = accumulator;
                 this.async = async;
@@ -99,9 +99,9 @@ namespace Microsoft.Spark.CSharp.Samples
             var a = SparkCLRSamples.SparkContext.Accumulator<int>(100);
             var b = SparkCLRSamples.SparkContext.Accumulator<int>(100);
 
-            SparkCLRSamples.SparkContext.Parallelize(new[] {1, 2, 3, 4}, 3).Foreach(new AccumulatorHelper(a).Execute);
-            SparkCLRSamples.SparkContext.Parallelize(new[] {1, 2, 3, 4}, 3)
-                .Foreach(new AccumulatorHelper(b, true).Execute);
+            SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4 }, 3).Foreach((x) => new AccumulatorHelper(a, false).Execute(x));
+            SparkCLRSamples.SparkContext.Parallelize(new[] { 1, 2, 3, 4 }, 3)
+                .Foreach((x) => new AccumulatorHelper(b, true).Execute(x));
             Console.WriteLine("accumulator value, a: {0}, b: {1}", a.Value, b.Value);
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
@@ -142,15 +142,15 @@ namespace Microsoft.Spark.CSharp.Samples
         [Sample]
         internal static void SparkContextUnionSample()
         {
-            var rdd1 = SparkCLRSamples.SparkContext.Parallelize(new int[] {1, 1, 2, 3}, 1);
-            var rdd2 = SparkCLRSamples.SparkContext.Parallelize(new int[] {1, 1, 2, 3}, 1);
+            var rdd1 = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 1, 2, 3 }, 1);
+            var rdd2 = SparkCLRSamples.SparkContext.Parallelize(new int[] { 1, 1, 2, 3 }, 1);
 
-            var union = SparkCLRSamples.SparkContext.Union(new[] {rdd1, rdd2}).Collect();
+            var union = SparkCLRSamples.SparkContext.Union(new[] { rdd1, rdd2 }).Collect();
             Console.WriteLine(string.Join(",", union));
 
             if (SparkCLRSamples.Configuration.IsValidationEnabled)
             {
-                CollectionAssert.AreEqual(new[] {1, 1, 2, 3, 1, 1, 2, 3}, union);
+                CollectionAssert.AreEqual(new[] { 1, 1, 2, 3, 1, 1, 2, 3 }, union);
             }
         }
 
