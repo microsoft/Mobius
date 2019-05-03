@@ -7,21 +7,26 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using SerializationHelpers.Extensions;
+using System.Runtime.Serialization;
 
 namespace Microsoft.Spark.CSharp.Core
 {
     /// <summary>
     /// Function that will be executed in CSharpWorker
     /// </summary>
+    [DataContract]
     [Serializable]
     internal class CSharpWorkerFunc
     {
         // using dynamic types to keep deserialization simple in worker side
         //private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> func;
+        [DataMember]
         private LinqExpressionData expressionData;
         // stackTrace of this func, for debug purpose
+        [DataMember]
         private readonly string stackTrace;
 
+        public CSharpWorkerFunc() { }
         public CSharpWorkerFunc(Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> func)
         {
             this.expressionData = func.ToExpressionData();
