@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using SerializationHelpers.Extensions;
 using System.Runtime.Serialization;
+using Serialize.Linq.Interfaces;
 
 namespace Microsoft.Spark.CSharp.Core
 {
@@ -38,13 +39,13 @@ namespace Microsoft.Spark.CSharp.Core
         {
             stackTrace += string.Format("   [STACK] --- Inner stack trace: ---{0}{1}",
                 Environment.NewLine, innerStackTrace.Replace("   at ", "   [STACK] "));
-        }
+        }      
 
         public Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> Func
         {
             get
             {
-                return expressionData.ToFunc<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>>();
+                return expressionData.ToFunc<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>>(ExpressionContext);
             }
         }
 
@@ -52,7 +53,7 @@ namespace Microsoft.Spark.CSharp.Core
         {
             get
             {
-                return expressionData.ToExpression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>>();
+                return expressionData.ToExpression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>>(ExpressionContext);
             }
         }
 
@@ -72,21 +73,30 @@ namespace Microsoft.Spark.CSharp.Core
             }
         }
 
+        internal IExpressionContext ExpressionContext { get; set; }
+
+
         /// <summary>
         /// Used to chain functions
         /// </summary>
         public static CSharpWorkerFunc Chain(CSharpWorkerFunc innerCSharpWorkerFunc, CSharpWorkerFunc outCSharpWorkerFunc)
         {
-            return new CSharpWorkerFunc((chainX, chainY) => new CSharpWrokerFuncChainHelper((innerX, innerY) => innerCSharpWorkerFunc.Func(innerX, innerY), (outerX, outerY) => outCSharpWorkerFunc.Func(outerX, outerY)).Execute(chainX, chainY));
+            var helper = new CSharpWrokerFuncChainHelper(innerCSharpWorkerFunc.ExpressionData, outCSharpWorkerFunc.ExpressionData);
+            return new CSharpWorkerFunc((chainX, chainY) => helper.Execute(chainX, chainY));
         }
 
         [Serializable]
+        [DataContract]
         private class CSharpWrokerFuncChainHelper
         {
             //private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> outerFunc;
             //private readonly Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>> innerFunc;
+            [DataMember]
             private readonly LinqExpressionData outerFuncExpressionData;
+            [DataMember]
             private readonly LinqExpressionData innerFuncExpressionData;
+
+            internal CSharpWrokerFuncChainHelper() { }
             internal CSharpWrokerFuncChainHelper(Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> iFunc,
                 Expression<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>> oFunc)
             {
@@ -94,6 +104,12 @@ namespace Microsoft.Spark.CSharp.Core
                 outerFuncExpressionData = oFunc.ToExpressionData();
             }
 
+            internal CSharpWrokerFuncChainHelper(LinqExpressionData iFunc,
+                LinqExpressionData oFunc)
+            {
+                innerFuncExpressionData = iFunc;
+                outerFuncExpressionData = oFunc;
+            }
             internal IEnumerable<dynamic> Execute(int split, IEnumerable<dynamic> input)
             {
                 var outerFunc = outerFuncExpressionData.ToFunc<Func<int, IEnumerable<dynamic>, IEnumerable<dynamic>>>();

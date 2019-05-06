@@ -5,12 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using AdapterTest.Mocks;
 using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Moq;
 using NUnit.Framework;
+using SerializationHelpers.Data;
 
 namespace AdapterTest
 {
@@ -48,7 +50,7 @@ namespace AdapterTest
                 Assert.AreEqual(record.Item1 == "The" || record.Item1 == "dog" || record.Item1 == "lazy" ? 23 : 22, record.Item2);
             }
         }
-
+      
         [Test]
         public void TestRddDistinct()
         {
@@ -151,7 +153,7 @@ namespace AdapterTest
         public void TestRddZipWithIndex()
         {
             int index = 0;
-            foreach(var record in words.ZipWithIndex().Collect())
+            foreach (var record in words.ZipWithIndex().Collect())
             {
                 Assert.AreEqual(index++, record.Item2);
             }
@@ -212,7 +214,7 @@ namespace AdapterTest
         public void TestRddUnion()
         {
             var sparkContext = new SparkContext(null);
-            var rdd = sparkContext.TextFile(@"c:\path\to\rddinput.txt"); 
+            var rdd = sparkContext.TextFile(@"c:\path\to\rddinput.txt");
             var rdd2 = sparkContext.TextFile(@"c:\path\to\rddinput2.txt");
             var unionRdd = rdd.Union(rdd2);
             var paramValuesToUnionMethod = ((unionRdd.RddProxy as MockRddProxy).mockRddReference as object[]);
@@ -227,7 +229,7 @@ namespace AdapterTest
         {
             Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
             rddProxy.Setup(m => m.Cache());
-            var rdd = new RDD<string> {rddProxy = rddProxy.Object};
+            var rdd = new RDD<string> { rddProxy = rddProxy.Object };
 
             Assert.IsFalse(rdd.IsCached);
 
@@ -242,8 +244,8 @@ namespace AdapterTest
             Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
             rddProxy.Setup(m => m.Persist(It.IsAny<StorageLevelType>()));
 
-            var rdd = new RDD<string> {rddProxy = rddProxy.Object};
-           
+            var rdd = new RDD<string> { rddProxy = rddProxy.Object };
+
             Assert.IsFalse(rdd.IsCached);
             // test persist
             var persistedRdd = rdd.Persist(StorageLevelType.MEMORY_AND_DISK);
@@ -270,11 +272,11 @@ namespace AdapterTest
         public void TestRandomSplit()
         {
             Mock<IRDDProxy> rddProxy = new Mock<IRDDProxy>();
-            rddProxy.Setup(m => m.RandomSplit(It.IsAny<double[]>(), It.IsAny<long>())).Returns(new[] {new Mock<IRDDProxy>().Object, new Mock<IRDDProxy>().Object});
+            rddProxy.Setup(m => m.RandomSplit(It.IsAny<double[]>(), It.IsAny<long>())).Returns(new[] { new Mock<IRDDProxy>().Object, new Mock<IRDDProxy>().Object });
 
             var rdd = new RDD<string> { rddProxy = rddProxy.Object };
 
-            var rdds = rdd.RandomSplit(new double[] {2, 3}, 17);
+            var rdds = rdd.RandomSplit(new double[] { 2, 3 }, 17);
             Assert.IsNotNull(rdds);
             Assert.AreEqual(2, rdds.Length);
         }

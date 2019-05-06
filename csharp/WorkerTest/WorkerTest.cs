@@ -86,8 +86,8 @@ namespace WorkerTest
             {
                 StartInfo =
                 {
-                    FileName = Path.Combine(exeLocation, "CSharpWorker.exe"),
-                    Arguments = "-m pyspark.worker",
+                    FileName = "dotnet",
+                    Arguments = Path.Combine(exeLocation, "CSharpWorker.dll") + " -m pyspark.worker",
                     UseShellExecute = false,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true
@@ -847,8 +847,10 @@ namespace WorkerTest
     }
 
     [Serializable]
+    [DataContract]
     internal class AccumulatorHelper
     {
+        [DataMember]
         private Accumulator<int> accumulator;
         internal AccumulatorHelper(Accumulator<int> accumulator)
         {

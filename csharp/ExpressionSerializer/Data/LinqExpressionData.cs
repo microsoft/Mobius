@@ -1,6 +1,8 @@
 ﻿using ExpressionSerializer.ComplexSerializer;
 using SerializationHelpers.ComplexSerializers;
+using SerializationHelpers.Context;
 using Serialize.Linq;
+using Serialize.Linq.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -18,17 +20,23 @@ namespace SerializationHelpers.Data
 
         public LinqExpressionData() { }
 
-        public Expression<TDelegate> ToExpression<TDelegate>() where TDelegate : Delegate
+        public Expression<TDelegate> ToExpression<TDelegate>(IExpressionContext expressionContext = null) where TDelegate : Delegate
         {
             var serializer = new LinqExpressionSerializer(new JsonLinqSerializer());
-            var expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true };
+            if (expressionContext == null)
+            {
+                expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true };
+            }
             return (Expression<TDelegate>)serializer.DeserializeText(ExpressionData, expressionContext);
         }
 
-        public TDelegate ToFunc<TDelegate>() where TDelegate : Delegate
+        public TDelegate ToFunc<TDelegate>(IExpressionContext expressionContext = null) where TDelegate : Delegate
         {
             var serializer = new LinqExpressionSerializer(new JsonLinqSerializer());
-            var expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true };
+            if (expressionContext == null)
+            {
+                expressionContext = new ExpressionContext { AllowPrivateFieldAccess = true };
+            }
             var expression = (Expression<TDelegate>)serializer.DeserializeText(ExpressionData, expressionContext);
             return expression?.Compile();
         }

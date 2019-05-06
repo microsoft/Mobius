@@ -32,6 +32,7 @@ namespace Microsoft.Spark.CSharp.Core
     /// 
     /// </summary>
     [Serializable]
+    [DataContract]
     public class Accumulator
     {
         internal static Dictionary<int, Accumulator> accumulatorRegistry = new Dictionary<int, Accumulator>();
@@ -42,6 +43,7 @@ namespace Microsoft.Spark.CSharp.Core
         /// <summary>
         /// The identity of the accumulator 
         /// </summary>
+        [DataMember]
         protected int accumulatorId;
 
         /// <summary>
@@ -57,10 +59,12 @@ namespace Microsoft.Spark.CSharp.Core
     /// </summary>
     /// <typeparam name="T">The type of element in the accumulator.</typeparam>
     [Serializable]
+    [DataContract]
     public class Accumulator<T> : Accumulator
     {
         [NonSerialized]
         internal T value;
+        [DataMember]
         private readonly AccumulatorParam<T> accumulatorParam = new AccumulatorParam<T>();
 
         /// <summary>

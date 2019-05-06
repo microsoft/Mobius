@@ -4,12 +4,25 @@
 using System.Runtime.Serialization;
 using Microsoft.Spark.CSharp.Core;
 using System.Collections.Generic;
+using SerializationHelpers.Context;
 
 namespace Microsoft.Spark.CSharp
 {
     internal class WorkerFunc
     {
-        internal CSharpWorkerFunc CharpWorkerFunc { get; }
+        private CSharpWorkerFunc _charpWorkerFunc;
+        internal CSharpWorkerFunc CharpWorkerFunc {
+            get
+            {
+                this._charpWorkerFunc.ExpressionContext = new WorkerExpressionContext();
+                return this._charpWorkerFunc;
+            }
+
+            set
+            {
+                this._charpWorkerFunc = value;
+            }
+        }
 
         internal int ArgsCount { get; }
 

@@ -16,6 +16,7 @@ using Microsoft.Spark.CSharp.Core;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Network;
 using Microsoft.Spark.CSharp.Services;
+using SerializationHelpers.Context;
 
 namespace Microsoft.Spark.CSharp
 {
@@ -350,6 +351,7 @@ namespace Microsoft.Spark.CSharp
                         ReadCommand(inputStream, formatter, out stageId, out deserializerMode, out serializerMode,
                             out workerFunc);
 
+                        workerFunc.ExpressionContext = new WorkerExpressionContext();
                         func = func == null ? workerFunc : CSharpWorkerFunc.Chain(func, workerFunc);
                     }
                     else

@@ -59,8 +59,8 @@ namespace WorkerTest
             {
                 StartInfo =
                 {
-                    FileName = Path.Combine(exeLocation, "CSharpWorker.exe"),
-                    Arguments = "-m pyspark.daemon",
+                    FileName = "dotnet",
+                    Arguments = Path.Combine(exeLocation, "CSharpWorker.dll") + " -m pyspark.daemon",
                     UseShellExecute = false,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
