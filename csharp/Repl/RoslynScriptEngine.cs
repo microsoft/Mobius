@@ -139,10 +139,10 @@ namespace Microsoft.Spark.CSharp
                 }
                 else
                 {
-                    // Currently "ContinueAsync" is a internal methold, might go public in 1.2.0(https://github.com/dotnet/roslyn/issues/6612)
-                    const string methodName = "ContinueAsync";
-                    var m = script.GetType().GetMethod(methodName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (m != null)
+					// Currently "ContinueAsync" is a internal methold, might go public in 1.2.0(https://github.com/dotnet/roslyn/issues/6612)
+					const string methodName = "RunFromAsync";
+					var m = script.GetType().GetMethod(methodName, new Type[] { previousState.GetType(), typeof(CancellationToken) });
+					if (m != null)
                     {
                         endState = ((Task<ScriptState<object>>)m.Invoke(script, new object[] { previousState, default(CancellationToken) })).Result;
                     }
