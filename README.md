@@ -1,10 +1,6 @@
-# Mobius development is deprecated and has been superseded by a more recent version '.NET for Apache Spark' from Microsoft ([Website](https://dot.net/spark) | [GitHub](https://github.com/dotnet/spark)) that runs on Azure HDInsight Spark, Amazon EMR Spark, Azure & AWS Databricks.
-
-<img src='logo/mobius-star-200.png' width='125px' alt='Mobius logo' />
-
 # Mobius: C# API for Spark
 
-[Mobius](https://github.com/Microsoft/Mobius) provides C# language binding to [Apache Spark](https://spark.apache.org/) enabling the implementation of Spark driver program and data processing operations in the languages supported in the .NET framework like C# or F#.
+[MobiusCore](https://github.com/cite-sa/MobiusCore) is a port of [Mobius](https://github.com/Microsoft/Mobius) the opensource framework that provides C# language binding to [Apache Spark](https://spark.apache.org/) enabling the implementation of Spark driver program and data processing operations in the languages supported in the .NET framework like C# or F#. Mobius relied heavily on Delegate Serialization, a feature that was cut from .NET Core. In MobiusCore Delegates have been replaced by Linq Expressions, thus making it easier to Serialize the UDF's to the Mobius Workers. More details on this approach can be found [here](./Implementation.md) 
 
 For example, the word count sample in Apache Spark can be implemented in C# as follows :
 
@@ -72,11 +68,7 @@ StreamingContext sparkStreamingContext = StreamingContext.GetOrCreate(checkpoint
                                                           windowDurationInSecs, slideDurationInSecs, 3)
                                     .Map(logLevelCountPair => string.Format("{0},{1}",
                                                           logLevelCountPair.Key, logLevelCountPair.Value));
-      countByLogLevelAndTime.ForeachRDD(countByLogLevel =>
-      {
-          foreach (var logCount in countByLogLevel.Collect())
-              Console.WriteLine(logCount);
-      });
+      countByLogLevelAndTime.ForeachRDD(countByLogLevel => new SparkStreamingHelper().Execute(countByLogLevel));
       return ssc;
     });
 sparkStreamingContext.Start();
@@ -102,7 +94,7 @@ Mobius API usage samples are available at:
 
 Refer to the [docs folder](docs) for design overview and other info on Mobius
 
-## Build Status
+<!-- ## Build Status
 
 |Ubuntu 14.04.3 LTS |Windows |Unit test coverage |
 |-------------------|:------:|:-----------------:|
@@ -135,7 +127,7 @@ Mobius releases are available at https://github.com/Microsoft/Mobius/releases. R
 [![NuGet Badge](https://buildstats.info/nuget/Microsoft.SparkCLR)](https://www.nuget.org/packages/Microsoft.SparkCLR)
 
 Refer to [mobius-release-info.md](./notes/mobius-release-info.md) for the details on versioning policy and the contents of the release.
-
+ -->
 ## License
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/Mobius/blob/master/LICENSE)
@@ -143,7 +135,7 @@ Refer to [mobius-release-info.md](./notes/mobius-release-info.md) for the detail
 Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
 
 
-## Community
+<!-- ## Community
 
 [![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/pr)](http://issuestats.com/github/Microsoft/Mobius)
 [![Issue Stats](http://issuestats.com/github/Microsoft/Mobius/badge/issue)](http://issuestats.com/github/Microsoft/Mobius)
@@ -160,3 +152,4 @@ Mobius is licensed under the MIT license. See [LICENSE](LICENSE) file for full l
 
 ## Code of Conduct
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+ -->
