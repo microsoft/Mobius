@@ -5,13 +5,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.Spark.CSharp.Interop.Ipc;
 using Microsoft.Spark.CSharp.Proxy;
 using Microsoft.Spark.CSharp.Proxy.Ipc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SerializationHelpers.Data;
+using SerializationHelpers.Extensions;
 
 namespace Microsoft.Spark.CSharp.Sql
 {
@@ -457,20 +461,37 @@ namespace Microsoft.Spark.CSharp.Sql
 		/// <summary>
 		/// Gets a list of StructField.
 		/// </summary>
+		[DataMember]
 		public List<StructField> Fields { get { return fields; } }
 
+		[DataMember]
+		private LinqExpressionData[] pickleConvertersData;
 
+		[NonSerialized]
 		private Lazy<Func<dynamic, dynamic>[]> pickleConverters;
 
-		private Func<dynamic, dynamic>[] ConstructPickleConverters()
+		private Lazy<Func<dynamic, dynamic>[]> PickleConverters
 		{
-			var funcs = new Func<dynamic, dynamic>[fields.Count];
+            get
+            {
+                if (pickleConverters == null && pickleConvertersData != null)
+                {
+                    pickleConverters = new Lazy<Func<dynamic, dynamic>[]>(() => pickleConvertersData.Select(x => x.ToFunc<Func<dynamic, dynamic>>()).ToArray());
+                }
+                return pickleConverters;
+            }
+        }
+
+
+		private LinqExpressionData[] ConstructPickleConverters()
+		{
+			var funcs = new Expression<Func<dynamic, dynamic>>[fields.Count];
 			int index = 0;
 			foreach (var field in fields)
 			{
 				if (field.DataType is StringType)
 				{
-					funcs[index] = x => x?.ToString();
+					funcs[index] = x => NulableToString((object)x);
 				}
 				/*else if (field.DataType is LongType)
 				{
@@ -482,31 +503,10 @@ namespace Microsoft.Spark.CSharp.Sql
 				}*/
 				else if (field.DataType is ArrayType)
 				{
-					Func<DataType, int, StructType> convertArrayTypeToStructTypeFunc = (dataType, length) =>
-					{
-						StructField[] f = new StructField[length];
-						for (int i = 0; i < length; i++)
-						{
-							f[i] = new StructField(string.Format("_array_{0}", i), dataType);
-						}
-						return new StructType(f);
-					};
+					Expression<Func<DataType, int, StructType>> helper = (helperx, helpery) => new ConvertArrayTypeToStructTypeFuncHelper().Execute(helperx, helpery);
 					var elementType = (field.DataType as ArrayType).ElementType;
-					funcs[index] = x =>
-					{
+					funcs[index] = structTypeHelpex => new StructTypeHelper(field, elementType, helper).Execute((object)structTypeHelpex);
 
-						// Note: When creating object from json, PySpark converts Json array to Python List (https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/types.py, _create_cls(dataType)), 
-						// then Pyrolite unpickler converts Python List to C# ArrayList (https://github.com/irmen/Pyrolite/blob/v4.10/README.txt). So values[index] should be of type ArrayList;
-						// In case Python changes its implementation, which means value is not of type ArrayList, try cast to object[] because Pyrolite unpickler convert Python Tuple to C# object[].
-						object[] valueOfArray = (x as ArrayList)?.ToArray() ?? x as object[];
-						if (valueOfArray == null)
-						{
-							throw new ArgumentException("Cannot parse data of ArrayType: " + field.Name);
-						}
-
-						return new RowImpl(valueOfArray,
-							elementType as StructType ?? convertArrayTypeToStructTypeFunc(elementType, valueOfArray.Length)).Values; // TODO: this part may have some problems, not verified
-					};
 				}
 				else if (field.DataType is MapType)
 				{
@@ -515,7 +515,7 @@ namespace Microsoft.Spark.CSharp.Sql
 				}
 				else if (field.DataType is StructType)
 				{
-					funcs[index] = x => x != null ? new RowImpl(x, field.DataType as StructType) : null;
+					funcs[index] = x => x as StructType != null ? new RowImpl(x as StructType, field.DataType as StructType) : null;
 				}
 				else
 				{
@@ -523,7 +523,12 @@ namespace Microsoft.Spark.CSharp.Sql
 				}
 				index++;
 			}
-			return funcs;
+			return funcs.Select(x => x.ToExpressionData()).ToArray();
+		}
+
+		private string NulableToString(object x)
+		{
+			return x?.ToString();
 		}
 
 		internal IStructTypeProxy StructTypeProxy
@@ -563,7 +568,7 @@ namespace Microsoft.Spark.CSharp.Sql
 
 		public void ConvertPickleObjects(dynamic[] input, dynamic[] output)
 		{
-			var c = pickleConverters.Value;
+			var c = PickleConverters.Value;
 			for (int i = 0; i < input.Length; ++i)
 			{
 				output[i] = c[i](input[i]);
@@ -572,7 +577,8 @@ namespace Microsoft.Spark.CSharp.Sql
 
 		private void Initialize()
 		{
-			pickleConverters = new Lazy<Func<dynamic, dynamic>[]>(ConstructPickleConverters);
+			pickleConvertersData = ConstructPickleConverters();
+			pickleConverters = new Lazy<Func<dynamic, dynamic>[]>(() => pickleConvertersData.Select(x => x.ToFunc<Func<dynamic, dynamic>>()).ToArray());
 		}
 
 		/// <summary>
@@ -609,6 +615,50 @@ namespace Microsoft.Spark.CSharp.Sql
 		private readonly IStructTypeProxy structTypeProxy;
 
 		private List<StructField> fields;
+
+		internal class StructTypeHelper
+		{
+			internal StructField field;
+			internal DataType elementType;
+			internal LinqExpressionData expressionData;
+			public StructTypeHelper(StructField field, DataType elementType, Expression<Func<DataType, int, StructType>> helper)
+			{
+				this.expressionData = helper.ToExpressionData();
+				this.field = field;
+				this.elementType = elementType;
+			}
+			internal dynamic[] Execute(dynamic x)
+			{
+				{
+					var expression = this.expressionData.ToFunc<Func<DataType, int, StructType>>();
+					// Note: When creating object from json, PySpark converts Json array to Python List (https://github.com/apache/spark/blob/branch-1.4/python/pyspark/sql/types.py, _create_cls(dataType)), 
+					// then Pyrolite unpickler converts Python List to C# ArrayList (https://github.com/irmen/Pyrolite/blob/v4.10/README.txt). So values[index] should be of type ArrayList;
+					// In case Python changes its implementation, which means value is not of type ArrayList, try cast to object[] because Pyrolite unpickler convert Python Tuple to C# object[].
+					object[] valueOfArray = (x as ArrayList)?.ToArray() ?? x as object[];
+					if (valueOfArray == null)
+					{
+						throw new ArgumentException("Cannot parse data of ArrayType: " + field.Name);
+					}
+
+					return new RowImpl(valueOfArray,
+						elementType as StructType ?? expression(elementType, valueOfArray.Length)).Values; // TODO: this part may have some problems, not verified
+				}
+			}
+		}
+
+		internal class ConvertArrayTypeToStructTypeFuncHelper
+		{
+			internal StructType Execute(DataType dataType, int length)
+			{
+				StructField[] f = new StructField[length];
+				for (int i = 0; i < length; i++)
+				{
+					f[i] = new StructField(string.Format("_array_{0}", i), dataType);
+				}
+				return new StructType(f);
+			}
+		}
+
 	}
 
 }
