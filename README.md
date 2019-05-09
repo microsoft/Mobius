@@ -74,11 +74,11 @@ StreamingContext sparkStreamingContext = StreamingContext.GetOrCreate(checkpoint
 sparkStreamingContext.Start();
 sparkStreamingContext.AwaitTermination();
 ```
-For more code samples, refer to [Mobius\examples](./examples) directory or [Mobius\csharp\Samples](./csharp/Samples) directory.
+For more code samples, refer to [MobiusCore\examples](./examples) directory or [MobiusCore\csharp\Samples](./csharp/Samples) directory.
 
 ## API Documentation
 
-Refer to [Mobius C# API documentation](./csharp/Adapter/documentation/Mobius_API_Documentation.md) for the list of Spark's data processing operations supported in Mobius.
+Refer to [MobiusCore C# API documentation](./csharp/Adapter/documentation/Mobius_API_Documentation.md) for the list of Spark's data processing operations supported in Mobius.
 
 ## API Usage
 
